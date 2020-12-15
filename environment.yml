@@ -1,0 +1,10 @@
+name: timeeval
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - scikit-learn=0.23.*
+  - matplotlib=3.3.*
+  - pip:
+      - tqdm=4.54.*
