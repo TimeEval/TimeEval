@@ -30,9 +30,7 @@ dads = DADS("/home/phillip.wenig/Projects/DADS/target/distributed-anomaly-detect
             "results.txt",
             ["master"], args)
 
-dads = DistributedAdapter(dads, """
-java -jar /home/phillip.wenig/Projects/DADS/target/distributed-anomaly-detection.jar slave --host $HOSTNAME --master-host odin01 --no-statistics
-""", "phillip.wenig", remote_hosts=[r.get("host") for r in remotes])
+dads = DistributedAdapter(dads, "java -jar /home/phillip.wenig/Projects/DADS/target/distributed-anomaly-detection.jar slave --host $HOSTNAME --master-host odin01 --no-statistics", "phillip.wenig", remote_hosts=[r.get("host") for r in remotes])
 
 timeeval = TimeEval(["taxi"], [Algorithm(name="dads", data_as_file=False, function=dads)],
                     prepare_data=prepare_data,
