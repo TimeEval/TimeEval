@@ -1,0 +1,10 @@
+{
+  "sed": {
+    "data": "SED.ts",
+    "labels": null
+  },
+  "taxi": {
+    "data": "taxi.ts",
+    "labels": "Annotations_taxi.txt"
+  }
+}
