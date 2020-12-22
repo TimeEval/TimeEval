@@ -13,7 +13,7 @@ class DistributedAdapter(BaseAdapter):
         self.remote_hosts = remote_hosts
 
     def _remote_command(self, remote_host):
-        ssh_process = subprocess.Popen(["ssh", "-tt", f"{self.remote_user}@{remote_host}"],
+        ssh_process = subprocess.Popen(["ssh", "-T", f"{self.remote_user}@{remote_host}"],
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
                                        universal_newlines=True,
