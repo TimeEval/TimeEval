@@ -13,8 +13,9 @@ class DistributedAdapter(BaseAdapter):
         self.remote_hosts = remote_hosts
 
     def _remote_command(self, remote_host):
-        subprocess.call(["ssh", f"{self.remote_user}@{remote_host}", f"'screen -dm bash -c \"{self.remote_command}\"'"],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        ssh_process = subprocess.Popen(["ssh", f"{self.remote_user}@{remote_host}"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        ssh_process.stdin.write(f"screen -dm bash -c \"{self.remote_command}\"")
+        ssh_process.stdin.close()
 
     def __call__(self, dataset: np.ndarray):
         # remote call
