@@ -1,10 +1,38 @@
 {
-  "sed": {
-    "data": "SED.ts",
-    "labels": null
-  },
-  "taxi": {
+  "taxi.1": {
     "data": "taxi.ts",
     "labels": "Annotations_taxi.txt"
+  },
+  "taxi.2": {
+    "data": "taxi.ts.2",
+    "labels": "Annotations_taxi.txt.2"
+  },
+  "taxi.3": {
+    "data": "taxi.ts.3",
+    "labels": "Annotations_taxi.txt.3"
+  },
+  "taxi.4": {
+    "data": "taxi.ts.4",
+    "labels": "Annotations_taxi.txt.4"
+  },
+  "taxi.5": {
+    "data": "taxi.ts.5",
+    "labels": "Annotations_taxi.txt.5"
+  },
+  "taxi.6": {
+    "data": "taxi.ts.6",
+    "labels": "Annotations_taxi.txt.6"
+  },
+  "taxi.7": {
+    "data": "taxi.ts.7",
+    "labels": "Annotations_taxi.txt.7"
+  },
+  "taxi.8": {
+    "data": "taxi.ts.8",
+    "labels": "Annotations_taxi.txt.8"
+  },
+  "taxi.9": {
+    "data": "taxi.ts.9",
+    "labels": "Annotations_taxi.txt.9"
   }
 }
