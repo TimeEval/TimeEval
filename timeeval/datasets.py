@@ -7,9 +7,9 @@ from typing import Tuple
 from timeeval.utils.label_formatting import id2labels
 
 
-class Datasets(Enum):
-    SED = "sed"
-    TAXI = "taxi"
+class Datasets:
+    def __init__(self, value: str):
+        self.value = value
 
     def load(self, dataset_config: Path) -> np.ndarray:
         dataset_store = json.load(dataset_config.open("r"))
