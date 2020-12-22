@@ -13,7 +13,7 @@ class DistributedAdapter(BaseAdapter):
         self.remote_hosts = remote_hosts
 
     def _remote_command(self, remote_host):
-        command = f"ssh {self.remote_user}@{remote_host} \"screen -dm bash -c '{self.remote_command}'\""
+        command = f"ssh {self.remote_user}@{remote_host} 'screen -dm bash -c \"{self.remote_command}\"'"
         print(command)
         subprocess.call(command.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
