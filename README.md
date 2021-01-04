@@ -63,7 +63,7 @@ def my_algorithm(data: np.ndarray) -> np.ndarray:
 
 datasets = ["webscope", "mba", "eeg"]
 algorithms = [
-    # Add algorithms as objects or functions...
+    # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
         function=my_algorithm,
