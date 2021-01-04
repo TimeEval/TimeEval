@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 class BaseAdapter(ABC):
     @abstractmethod
-    def __call__(self, dataset: np.ndarray) -> np.ndarray:
+    def _call(self, dataset: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
     def _preprocess_data(self, data: np.ndarray) -> np.ndarray:
@@ -12,3 +12,8 @@ class BaseAdapter(ABC):
 
     def _postprocess_data(self, data: np.ndarray) -> np.ndarray:
         return data
+
+    def __call__(self, dataset: np.ndarray) -> np.ndarray:
+        dataset = self._preprocess_data(dataset)
+        dataset = self._call(dataset)
+        return self._postprocess_data(dataset)
