@@ -1,0 +1,15 @@
+{
+  "remotes": [
+    {"host": "odin02", "user":  "phillip.wenig", "port": 22},
+    {"host": "odin03", "user":  "phillip.wenig", "port": 22},
+    {"host": "odin04", "user":  "phillip.wenig", "port": 22},
+    {"host": "odin05", "user":  "phillip.wenig", "port": 22},
+    {"host": "odin06", "user":  "phillip.wenig", "port": 22},
+    {"host": "odin07", "user":  "phillip.wenig", "port": 22},
+    {"host": "odin08", "user":  "phillip.wenig", "port": 22},
+    {"host": "thor01", "user":  "phillip.wenig", "port": 22},
+    {"host": "thor02", "user":  "phillip.wenig", "port": 22},
+    {"host": "thor03", "user":  "phillip.wenig", "port": 22},
+    {"host": "thor04", "user":  "phillip.wenig", "port": 22}
+  ]
+}
