@@ -3,6 +3,7 @@ from typing import List, Callable, Tuple, Any, NamedTuple, Optional, Union
 from collections import defaultdict
 import tqdm
 from pathlib import Path
+import logging
 
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
@@ -45,8 +46,12 @@ class TimeEval:
 
     def _run_w_loaded_data(self, algorithm: Algorithm, dataset: np.ndarray, dataset_name: str):
         y_true = dataset[:, 1]
-        y_scores = algorithm.function(dataset[:, 0])
-        self.results[algorithm.name][dataset_name] = roc(y_scores, y_true, plot=False)
+        try:
+            y_scores = algorithm.function(dataset[:, 0])
+            self.results[algorithm.name][dataset_name] = roc(y_scores, y_true, plot=False)
+        except Exception as e:
+            logging.error(f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
+            logging.error(str(e))
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
