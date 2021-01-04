@@ -1,1 +1,1 @@
-from .timeeval import TimeEval
+from .timeeval import TimeEval, Algorithm
