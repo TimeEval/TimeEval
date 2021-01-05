@@ -1,9 +1,10 @@
 import numpy as np
-from typing import List, Callable, Tuple, Any, NamedTuple, Optional, Union
+from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
 from collections import defaultdict
 import tqdm
 from pathlib import Path
 import logging
+import time
 
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
@@ -13,6 +14,23 @@ class Algorithm(NamedTuple):
     name: str
     function: Callable[[Union[np.ndarray, Path]], np.ndarray]
     data_as_file: bool
+
+
+class Times(NamedTuple):
+    pre: Optional[float]
+    main: float
+    post: Optional[float]
+
+    def to_dict(self) -> Dict:
+        return dict(self._asdict())
+
+
+def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
+    start = time.time()
+    fn_result = fn(*args, **kwargs)
+    end = time.time()
+    duration = end - start
+    return fn_result, Times(pre=None, main=duration, post=None)
 
 
 class TimeEval:
@@ -48,10 +66,20 @@ class TimeEval:
         y_true = dataset[:, 1]
         try:
             y_scores = algorithm.function(dataset[:, 0])
-            self.results[algorithm.name][dataset_name] = roc(y_scores, y_true, plot=False)
+            score, times = timer(roc, y_scores, y_true, plot=False)
+
+            self._record_results(algorithm.name, dataset_name, score, times)
+
         except Exception as e:
             logging.error(f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
             logging.error(str(e))
+
+    def _record_results(self, algorithm_name: str, dataset_name: str, score: float, times: Times):
+        result = {
+            "auroc": score,
+            "times": times.to_dict()
+        }
+        self.results[algorithm_name][dataset_name] = result
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
