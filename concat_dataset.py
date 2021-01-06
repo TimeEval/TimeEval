@@ -23,7 +23,7 @@ def main():
     new_labels = np.tile(labels, reps=args.t)
     if data_size > label_size:
         for i in range(args.t):
-            new_labels[i:i+label_size] += data_size*i
+            new_labels[i*label_size:(i*label_size)+label_size] += data_size*i
 
     new_data.tofile(str(args.dataset_file)+f".{args.t}", sep="\n")
     new_labels.tofile(str(args.labels_file)+f".{args.t}", sep="\n")
