@@ -27,7 +27,7 @@ class Datasets:
         label_file = ds_obj["labels"]
 
         data = np.loadtxt(data_file)
-        labels = np.loadtxt(label_file, dtype=np.long)
+        labels = np.loadtxt(label_file, dtype=np.long).reshape(-1)
         if data.shape[0] != labels.shape[0]:
             labels = id2labels(labels, data.shape[0])
 
