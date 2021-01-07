@@ -11,19 +11,25 @@ def create_parser() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def concat_dataset(data: np.ndarray, labels: np.ndarray, reps: int) -> (np.ndarray, np.ndarray):
+    data_size = len(data)
+    label_size = len(labels)
+
+    new_data = np.tile(data, reps=reps)
+    new_labels = np.tile(labels, reps=reps)
+    if data_size > label_size:
+        for i in range(reps):
+            new_labels[i * label_size:(i * label_size) + label_size] += data_size * i
+
+    return new_data, new_labels
+
+
 def main():
     args = create_parser()
     data = np.loadtxt(args.dataset_file)
     labels = np.loadtxt(args.labels_file).reshape(-1)
 
-    data_size = len(data)
-    label_size = len(labels)
-
-    new_data = np.tile(data, reps=args.t)
-    new_labels = np.tile(labels, reps=args.t)
-    if data_size > label_size:
-        for i in range(args.t):
-            new_labels[i*label_size:(i*label_size)+label_size] += data_size*i
+    new_data, new_labels = concat_dataset(data, labels, args.t)
 
     new_data.tofile(str(args.dataset_file)+f".{args.t}", sep="\n")
     new_labels.tofile(str(args.labels_file)+f".{args.t}", sep="\n")
