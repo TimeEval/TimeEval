@@ -16,7 +16,7 @@ def _metric(y_score: Iterable[float], y_true: Iterable[int], _curve_function: Ca
     return curve, area
 
 
-def roc(y_score: Iterable[float], y_true: Iterable[int], plot: bool = False) -> float:
+def roc(y_score: Iterable[float], y_true: Iterable[float], plot: bool = False) -> float:
     curve, area = _metric(y_score, y_true, roc_curve)
     if plot:
         fpr, tpr, _ = curve

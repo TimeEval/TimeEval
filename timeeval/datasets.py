@@ -3,6 +3,7 @@ import pandas as pd
 import json
 from pathlib import Path
 from typing import Tuple, Optional
+import datetime as dt
 
 from timeeval.utils.label_formatting import id2labels
 
@@ -19,7 +20,7 @@ class Datasets:
 
     def _load_one_file(self, ds_obj: dict) -> pd.DataFrame:
         dataset_file = ds_obj["dataset"]
-        df = pd.read_csv(dataset_file, header=None, names=("data", "labels"))
+        df = pd.read_csv(dataset_file)
         return df
 
     def _load_two_files(self, ds_obj: dict) -> pd.DataFrame:
@@ -32,8 +33,14 @@ class Datasets:
             labels = id2labels(labels, data.shape[0])
 
         df = pd.DataFrame()
-        df["data"] = data
-        df["labels"] = labels
+        df["timestamp"] = [dt.datetime(year=1970, month=1, day=1) + dt.timedelta(hours=int(x)) for x in np.arange(len(labels))]
+
+        if len(data.shape) == 2 and data.shape[1] > 1:
+            for dim in range(data.shape[1]):
+                df[f"value_{dim}"] = data[:, dim]
+        else:
+            df["value"] = data
+        df["is_anomaly"] = labels
         return df
 
     def load(self, dataset_config: Path) -> pd.DataFrame:

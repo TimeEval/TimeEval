@@ -64,10 +64,16 @@ class TimeEval:
         raise NotImplementedError()
 
     def _run_w_loaded_data(self, algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: str):
-        y_true = dataset.labels.values
+        y_true = dataset.values[:, -1]
         try:
-            y_scores = algorithm.function(dataset.data.values)
-            score, times = timer(roc, y_scores, y_true, plot=False)
+            if dataset.shape[1] > 3:
+                X = dataset.values[:, 1:-1]
+            elif dataset.shape[1] == 3:
+                X = dataset.values[:, 1]
+            else:
+                raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
+            y_scores = algorithm.function(X)
+            score, times = timer(roc, y_scores, y_true.astype(np.float), plot=False)
 
             self._record_results(algorithm.name, dataset_name, score, times)
 
