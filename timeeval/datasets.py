@@ -33,7 +33,7 @@ class Datasets:
             labels = id2labels(labels, data.shape[0])
 
         df = pd.DataFrame()
-        df["timestamp"] = [dt.datetime(year=1970, month=1, day=1) + dt.timedelta(hours=int(x)) for x in np.arange(len(labels))]
+        df["timestamp"] = [dt.datetime(year=1970, month=1, day=1) + dt.timedelta(milliseconds=int(x)) for x in np.arange(len(labels))]
 
         if len(data.shape) == 2 and data.shape[1] > 1:
             for dim in range(data.shape[1]):
