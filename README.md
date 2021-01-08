@@ -8,9 +8,11 @@ Evaluation Tool for Anomaly Detection Algorithms on Time Series
 
 A single dataset should be provided in a/two (with labels) Numpy-readable text file. The labels must be in a separate text file. Hereby, the label file can either contain the actual labels for each point in the data file or only the line indices of the anomalies.
 
+Moreover, a single file can be used. It should be a csv without header having the label column at the most right and all data columns at the left.
+
 #### Example
 
-Dataset file
+Data file
 ```csv
 12751.0
 8767.0
@@ -33,9 +35,20 @@ or Labels file (line indices)
 0
 ```
 
+or Combined Dataset file
+```csv
+12751.0,1
+8767.0,0
+7005.0,0
+5257.0,0
+4189.0,0
+```
+
 #### Registering Dataset
 
 To tell the TimeEval tool where it can find which dataset, a configuration file is needed that contains all required datasets organized by their identifier which is used later on.
+
+An element in the config file can either contain two different file paths for data and labels files, or use one combined file.
 
 Config file
 ```json
@@ -43,6 +56,9 @@ Config file
   "dataset_name": {
     "data": "dataset.ts",
     "labels": "labels.txt"
+  },
+  "other_dataset": {
+    "dataset": "dataset2.csv"
   }
 }
 ```

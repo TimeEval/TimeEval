@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
 from collections import defaultdict
 import tqdm
@@ -44,7 +45,7 @@ class TimeEval:
 
         self.results = defaultdict(dict)
 
-    def _load_dataset(self, name) -> np.ndarray:
+    def _load_dataset(self, name) -> pd.DataFrame:
         return Datasets(name).load(self.dataset_config)
 
     def _get_dataset_path(self, name) -> Tuple[Path, Path]:
@@ -62,11 +63,17 @@ class TimeEval:
     def _run_from_data_file(self, algorithm: Algorithm, dataset_file: Path, label_file: Path, dataset_name: str):
         raise NotImplementedError()
 
-    def _run_w_loaded_data(self, algorithm: Algorithm, dataset: np.ndarray, dataset_name: str):
-        y_true = dataset[:, 1]
+    def _run_w_loaded_data(self, algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: str):
+        y_true = dataset.values[:, -1]
         try:
-            y_scores = algorithm.function(dataset[:, 0])
-            score, times = timer(roc, y_scores, y_true, plot=False)
+            if dataset.shape[1] > 3:
+                X = dataset.values[:, 1:-1]
+            elif dataset.shape[1] == 3:
+                X = dataset.values[:, 1]
+            else:
+                raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
+            y_scores = algorithm.function(X)
+            score, times = timer(roc, y_scores, y_true.astype(np.float), plot=False)
 
             self._record_results(algorithm.name, dataset_name, score, times)
 
