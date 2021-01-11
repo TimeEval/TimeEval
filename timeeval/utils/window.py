@@ -1,6 +1,9 @@
 import numpy as np
 import tqdm
 from enum import Enum
+import multiprocessing as mp
+from itertools import cycle
+from typing import Optional
 
 
 class Method(Enum):
@@ -39,13 +42,39 @@ def reverse_windowing(scores: np.ndarray, window_size: int, reduction: Method = 
     return mapped
 
 
-def reverse_windowing_iterative(scores: np.ndarray, window_size: int, reduction: Method = Method.MEAN) -> np.ndarray:
-    scores = np.pad(scores, (window_size - 1, window_size - 1), 'constant', constant_values=(np.nan, np.nan))
+def reverse_windowing_iterative(scores: np.ndarray, window_size: int, reduction: Method = Method.MEAN, split: bool = False) -> np.ndarray:
+    if not split:
+        pad_n = (window_size - 1, window_size - 1)
+        scores = np.pad(scores, pad_n, 'constant', constant_values=(np.nan, np.nan))
 
     for i in tqdm.trange(len(scores) - (window_size - 1), desc="reverse windowing"):
         scores[i] = reduction.fn(scores[i:i + window_size])
 
+    if split:
+        scores = scores[:-(window_size-1)]
+
     return scores[~np.isnan(scores)]
+
+
+def reverse_windowing_iterative_parallel(scores: np.ndarray, window_size: int, reduction: Method = Method.MEAN, threads: Optional[int] = None ) -> np.ndarray:
+    if threads is None:
+        threads = mp.cpu_count()
+    pool = mp.Pool(threads)
+
+    scores_split = []
+    len_single = len(scores) // threads
+    for i in range(threads):
+        if i == 0:
+            split = np.pad(scores[:len_single+window_size-1], (window_size - 1, 0), 'constant', constant_values=(np.nan, np.nan))
+        elif i < (threads-1):
+            split = scores[i*len_single:(i+1)*len_single+window_size-1]
+        else:
+            split = scores[i*len_single:]
+            split = np.pad(split, (0, window_size - 1), 'constant', constant_values=(np.nan, np.nan))
+        scores_split.append(split)
+
+    windowed_scores_split = pool.starmap(reverse_windowing_iterative, zip(scores_split, cycle([window_size]), cycle([reduction]), cycle([True])))
+    return np.concatenate(windowed_scores_split)
 
 
 def padding_borders(scores: np.ndarray, input_size: int) -> np.ndarray:
