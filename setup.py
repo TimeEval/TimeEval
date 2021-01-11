@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
     name="TimeEval",
-    version="0.1.6",
+    version="0.1.7",
     description="Evaluation Tool for Time Series Anomaly Detection",
     author="Phillip Wenig",
     author_email="phillip.wenig@hpi.de",
