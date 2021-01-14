@@ -11,3 +11,4 @@ dependencies:
   - pandas
   - pip:
       - tqdm==4.54.*
+      - pytest
