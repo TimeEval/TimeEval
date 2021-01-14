@@ -3,13 +3,11 @@ import json
 import numpy as np
 from typing import Callable
 from pathlib import Path
-import os
 
 from timeeval import TimeEval, Algorithm
 
 
 def generates_results(dataset) -> dict:
-    print(os.path.curdir)
     datasets_config = Path("./tests/example_data/datasets.json")
     datasets = [dataset]
 
