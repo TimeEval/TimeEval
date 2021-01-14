@@ -19,15 +19,14 @@ workflow:
     - if: '$CI_COMMIT_BRANCH =~ /^doc\//'
       when: never
 
-prepare-job:
+test-job:
   stage: prepare
-  script:
+  interruptible: true
+  before_script:
     - echo "Setting up conda environment and installing dependencies"
     - conda env create -n timeeval -f environment.yml
     - source activate timeeval
     - pip install -r requirements.dev
-
-test-job:
-  stage: test
   script:
-    - pytest
+#    - python setup.py typecheck
+    - python setup.py test

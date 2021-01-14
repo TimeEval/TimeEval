@@ -1,6 +1,8 @@
+import sys
+import pytest
 from distutils.cmd import Command
 from setuptools import setup, find_packages
-import pytest
+from mypy.main import main as mypy
 
 
 class PyTestCommand(Command):
@@ -14,7 +16,23 @@ class PyTestCommand(Command):
         pass
 
     def run(self) -> None:
+        args = ["--pretty", "timeeval"]
+        mypy(None, stdout=sys.stdout, stderr=sys.stderr, args=args)
+
+
+class MyPyChechCommand(Command):
+    description = "run MyPy for TimeEval; performs static type checking"
+    user_options = []
+
+    def initialize_options(self) -> None:
+        pass
+
+    def finalize_options(self) -> None:
+        pass
+
+    def run(self) -> None:
         pytest.main(["-x", "tests"])
+
 
 
 setup(
@@ -24,7 +42,10 @@ setup(
     author="Phillip Wenig",
     author_email="phillip.wenig@hpi.de",
     packages=find_packages(),
+    package_data={"timeeval": ["py.typed"]},
     cmdclass={
-        'test': PyTestCommand
-    }
+        "test": PyTestCommand,
+        "typecheck": PyTestCommand
+    },
+    zip_safe=False
 )
