@@ -1,8 +1,11 @@
 import sys
 import pytest
+import pathlib
 from distutils.cmd import Command
 from setuptools import setup, find_packages
 from mypy.main import main as mypy
+
+README = (pathlib.Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 
 
 class PyTestCommand(Command):
@@ -38,9 +41,17 @@ setup(
     name="TimeEval",
     version="0.1.8",
     description="Evaluation Tool for Time Series Anomaly Detection",
-    author="Phillip Wenig",
+    long_description=README,
+    long_description_content_type="text/markdown",
+    author="Phillip Wenig and Sebastian Schmidl",
     author_email="phillip.wenig@hpi.de",
-    packages=find_packages(),
+    url="https://gitlab.hpi.de/bp2020fn1/timeeval",
+    license="MIT",
+    classifiers=[
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+    ],
+    packages=find_packages(exclude=("tests",)),
     package_data={"timeeval": ["py.typed"]},
     cmdclass={
         "test": PyTestCommand,

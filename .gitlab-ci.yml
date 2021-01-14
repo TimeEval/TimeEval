@@ -32,19 +32,21 @@ test:
 #    - python setup.py typecheck
     - python setup.py test
 
-#build:
-#  stage: build
+build:
+  stage: build
 #  only:
 #    - tags
-#  script:
-#    - python setup.py bdist_wheel
-#  artifacts:
-#    paths:
-#      - dist/*.whl
-#
-#deploy:
-#  stage: deploy
+  script:
+    - python setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist/*.whl
+      - dist/*.tar.gz
+
+deploy:
+  stage: deploy
 #  only:
 #    - tags
-#  script:
-#    -
+  script:
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token \
+      python -m twine upload --repository-url https://gitlab.hpi.de/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
