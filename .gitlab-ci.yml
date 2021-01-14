@@ -26,7 +26,7 @@ before_script:
   - pip install -r requirements.dev
 
 test:
-  stage: prepare
+  stage: test
   interruptible: true
   script:
 #    - python setup.py typecheck
