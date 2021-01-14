@@ -1,0 +1,33 @@
+image: conda/miniconda3
+
+stages:
+  - prepare
+  - test
+  - review
+
+workflow:
+  rules:
+    # If `$FORCE_GITLAB_CI` is set, create a pipeline.
+    - if: '$FORCE_GITLAB_CI'
+    # For merge requests, create a pipeline.
+    - if: '$CI_MERGE_REQUEST_IID'
+    # For `master` branch, create a pipeline (this includes on schedules, pushes, merges, etc.).
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    # For tags, create a pipeline.
+    - if: '$CI_COMMIT_TAG'
+    # For branches starting with 'doc/' don't create a pipeline
+    - if: '$CI_COMMIT_BRANCH =~ /^doc\//'
+      when: never
+
+prepare-job:
+  stage: prepare
+  script:
+    - echo "Setting up conda environment and installing dependencies"
+    - conda env create -n timeeval -f environment.yml
+    - source activate timeeval
+    - pip install -r requirements.dev
+
+test-job:
+  stage: test
+  script:
+    - pytest
