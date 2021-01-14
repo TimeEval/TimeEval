@@ -1,9 +1,9 @@
 image: conda/miniconda3
 
 stages:
-  - prepare
   - test
-  - review
+  - build
+  - deploy
 
 workflow:
   rules:
@@ -19,14 +19,32 @@ workflow:
     - if: '$CI_COMMIT_BRANCH =~ /^doc\//'
       when: never
 
-test-job:
+before_script:
+  - echo "Setting up conda environment and installing dependencies"
+  - conda env create -n timeeval -f environment.yml
+  - source activate timeeval
+  - pip install -r requirements.dev
+
+test:
   stage: prepare
   interruptible: true
-  before_script:
-    - echo "Setting up conda environment and installing dependencies"
-    - conda env create -n timeeval -f environment.yml
-    - source activate timeeval
-    - pip install -r requirements.dev
   script:
 #    - python setup.py typecheck
     - python setup.py test
+
+#build:
+#  stage: build
+#  only:
+#    - tags
+#  script:
+#    - python setup.py bdist_wheel
+#  artifacts:
+#    paths:
+#      - dist/*.whl
+#
+#deploy:
+#  stage: deploy
+#  only:
+#    - tags
+#  script:
+#    -

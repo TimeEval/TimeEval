@@ -6,7 +6,21 @@ from mypy.main import main as mypy
 
 
 class PyTestCommand(Command):
-    description = 'run PyTest for TimeEval'
+    description = "run PyTest for TimeEval"
+    user_options = []
+
+    def initialize_options(self) -> None:
+        pass
+
+    def finalize_options(self) -> None:
+        pass
+
+    def run(self) -> None:
+        pytest.main(["-x", "tests"])
+
+
+class MyPyCheckCommand(Command):
+    description = 'run MyPy for TimeEval; performs static type checking'
     user_options = []
 
     def initialize_options(self) -> None:
@@ -20,21 +34,6 @@ class PyTestCommand(Command):
         mypy(None, stdout=sys.stdout, stderr=sys.stderr, args=args)
 
 
-class MyPyChechCommand(Command):
-    description = "run MyPy for TimeEval; performs static type checking"
-    user_options = []
-
-    def initialize_options(self) -> None:
-        pass
-
-    def finalize_options(self) -> None:
-        pass
-
-    def run(self) -> None:
-        pytest.main(["-x", "tests"])
-
-
-
 setup(
     name="TimeEval",
     version="0.1.8",
@@ -45,7 +44,7 @@ setup(
     package_data={"timeeval": ["py.typed"]},
     cmdclass={
         "test": PyTestCommand,
-        "typecheck": PyTestCommand
+        "typecheck": MyPyCheckCommand
     },
     zip_safe=False
 )
