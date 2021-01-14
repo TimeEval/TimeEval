@@ -19,10 +19,20 @@ workflow:
     - if: '$CI_COMMIT_BRANCH =~ /^doc\//'
       when: never
 
+variables:
+  CONDA_ENV_DIR: "cache/timeeval"
+  PIP_DIR: "cache/pip"
+
+cache:
+  paths:
+    - "$CONDA_ENV_DIR"
+    - "$PIP_DIR"
+
 before_script:
   - echo "Setting up conda environment and installing dependencies"
-  - conda env create -n timeeval -f environment.yml
+  - conda env create --prefix $CONDA_ENV_DIR -f environment.yml
   - source activate timeeval
+  - export PIP_CACHE_DIR="${PIP_DIR}"
   - pip install -r requirements.dev
 
 test:
@@ -48,5 +58,4 @@ deploy:
 #  only:
 #    - tags
   script:
-    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token \
-      python -m twine upload --repository-url https://gitlab.hpi.de/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url https://gitlab.hpi.de/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
