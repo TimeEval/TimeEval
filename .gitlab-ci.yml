@@ -31,7 +31,7 @@ cache:
 before_script:
   - echo "Setting up conda environment and installing dependencies"
   - conda env create --prefix $CONDA_ENV_DIR -f environment.yml
-  - source activate timeeval
+  - source activate $CONDA_ENV_DIR
   - export PIP_CACHE_DIR="${PIP_DIR}"
   - pip install -r requirements.dev
 
