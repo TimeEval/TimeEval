@@ -2,6 +2,36 @@
 
 Evaluation Tool for Anomaly Detection Algorithms on Time Series
 
+## Installation (from source)
+
+Currently, we only support installing `timeeval` from source.
+
+**tl;dr**
+
+```bash
+git clone git@gitlab.hpi.de:bp2020fn1/timeeval.git
+cd timeeval/
+conda env create --file environment.yml
+conda activate timeeval
+python setup.py install
+```
+
+### Prerequisites
+
+The following tools are required to install `timeeval` from source:
+
+- git
+- conda (anaconda or miniconda)
+
+### Steps
+
+1. Clone this repository using git and change into its root directory.
+2. Create a conda-environment and install all required dependencies.
+   Use the file [`environment.yml`](./environment.yml) for this:
+   `conda env create --file environment.yml`.
+3. Activate the new environment and install `timeeval` using _setup.py_:
+   `python setup.py install`.
+
 ## Usage
 
 ### Datasets

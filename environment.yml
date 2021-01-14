@@ -4,9 +4,10 @@ channels:
   - defaults
 dependencies:
   - python=3
+  - pip=20
   - scikit-learn=0.23.*
   - matplotlib=3.3.*
   - numpy
   - pandas
   - pip:
-      - tqdm=4.54.*
+      - tqdm==4.54.*
