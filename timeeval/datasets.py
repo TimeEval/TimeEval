@@ -66,3 +66,6 @@ class Datasets:
                 data_file = ds_obj.get("data")
                 labels_file = ds_obj.get("labels")
                 return Path(data_file), Path(labels_file)
+        else:
+            raise ValueError(
+                "A dataset obj in your dataset config file must have either 'data' and 'labels' paths or one 'dataset' path.")

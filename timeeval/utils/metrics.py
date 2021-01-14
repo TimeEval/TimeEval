@@ -10,7 +10,7 @@ class Metrics(Enum):
     ROC = 0
 
 
-def _metric(y_score: Iterable[float], y_true: Iterable[int], _curve_function: Callable):
+def _metric(y_score: Iterable[float], y_true: Iterable[float], _curve_function: Callable):
     curve = _curve_function(y_true, y_score)
     area = auc(curve[0], curve[1])
     return curve, area
