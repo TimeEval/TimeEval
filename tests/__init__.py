@@ -1,5 +1,5 @@
-from overall_test import TestTimeEval
-from utils import TestUtils
+from .test_import_data import TestImportData
+from .test_utils import TestUtils
 
 import unittest
 

@@ -1,16 +1,16 @@
 {
   "dataset.1": {
-    "data": "./example_data/data.txt",
-    "labels": "./example_data/labels.txt"
+    "data": "./tests/example_data/data.txt",
+    "labels": "./tests/example_data/labels.txt"
   },
   "dataset.2": {
-    "data": "./example_data/data.txt",
-    "labels": "./example_data/labels.indices.txt"
+    "data": "./tests/example_data/data.txt",
+    "labels": "./tests/example_data/labels.indices.txt"
   },
   "dataset.3": {
-    "dataset": "./example_data/dataset.csv"
+    "dataset": "./tests/example_data/dataset.csv"
   },
   "dataset.4": {
-    "dataset": "./example_data/dataset.multi.csv"
+    "dataset": "./tests/example_data/dataset.multi.csv"
   }
 }
