@@ -31,14 +31,19 @@ The following tools are required to install `timeeval` from source:
    `conda env create --file environment.yml`.
 3. Activate the new environment and install `timeeval` using _setup.py_:
    `python setup.py install`.
-   
+4. If you want to make changes to `timeeval` or run the tests, you need to install the development dependencies from `requirements.dev`:
+   `pip install -r requirements.dev`.
+
 ## Tests
 
 Run tests in `./tests/` as follows
+
 ```bash
 python setup.py test
 ```
+
 or
+
 ```bash
 pytest
 ```
