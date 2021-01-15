@@ -2,9 +2,24 @@
 
 Evaluation Tool for Anomaly Detection Algorithms on Time Series
 
-## Installation (from source)
+## Installation using `pip`
 
-Currently, we only support installing `timeeval` from source.
+Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/bp2020fn1/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
+
+### Prerequisites
+
+- python 3
+- pip
+- A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` for [gitlab.hpi.de](https://gitlab.hpi.de/).
+### Steps
+
+You can use `pip` to install TimeEval using:
+
+```sh
+pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@gitlab.hpi.de/api/v4/projects/4041/packages/pypi/simple
+```
+
+## Installation from source
 
 **tl;dr**
 
@@ -18,7 +33,7 @@ python setup.py install
 
 ### Prerequisites
 
-The following tools are required to install `timeeval` from source:
+The following tools are required to install TimeEval from source:
 
 - git
 - conda (anaconda or miniconda)
@@ -29,9 +44,9 @@ The following tools are required to install `timeeval` from source:
 2. Create a conda-environment and install all required dependencies.
    Use the file [`environment.yml`](./environment.yml) for this:
    `conda env create --file environment.yml`.
-3. Activate the new environment and install `timeeval` using _setup.py_:
+3. Activate the new environment and install TimeEval using _setup.py_:
    `python setup.py install`.
-4. If you want to make changes to `timeeval` or run the tests, you need to install the development dependencies from `requirements.dev`:
+4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
 
 ## Tests
