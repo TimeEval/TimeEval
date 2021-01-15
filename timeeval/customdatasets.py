@@ -8,7 +8,7 @@ import datetime as dt
 from timeeval.utils.label_formatting import id2labels
 
 
-class Datasets:
+class CustomDatasets:
     def __init__(self, value: str):
         self.value = value
 
