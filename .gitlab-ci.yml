@@ -23,7 +23,7 @@ before_script:
   - echo "Setting up conda environment and installing dependencies"
   - conda env create -n timeeval -f environment.yml
   - source activate timeeval
-  - pip install -r requirements.dev
+  - pip install -r requirements.ci
 
 test:
   stage: test
