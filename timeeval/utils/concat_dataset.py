@@ -1,5 +1,6 @@
 import numpy as np
 from pathlib import Path
+from typing import Tuple
 import argparse
 
 
@@ -11,7 +12,7 @@ def create_parser() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def concat_dataset(data: np.ndarray, labels: np.ndarray, reps: int) -> (np.ndarray, np.ndarray):
+def concat_dataset(data: np.ndarray, labels: np.ndarray, reps: int) -> Tuple[np.ndarray, np.ndarray]:
     data_size = len(data)
     label_size = len(labels)
 
