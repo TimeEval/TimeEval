@@ -109,8 +109,11 @@ class ReverseWindowing(TransformerMixin):
         return np.concatenate(chunked_scores)
 
     def _chunk_and_vectorize(self, scores: np.ndarray, pad_start: bool = True, pad_end: bool = True) -> np.ndarray:
-        chunks = self._chunk_array(scores, len(scores) // self.chunksize, pad_start=pad_start, pad_end=pad_end)
-        return self._vectorize_chunks(chunks)
+        if self.chunksize is None:
+            raise ValueError("Please set an int value for chunksize in order to use _chunk_and_vectorize")
+        else:
+            chunks = self._chunk_array(scores, len(scores) // self.chunksize, pad_start=pad_start, pad_end=pad_end)
+            return self._vectorize_chunks(chunks)
 
     def fit_transform(self, X, y=None, **fit_params) -> np.ndarray:
         if self.n_jobs > 1:
