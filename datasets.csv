@@ -1,4 +1,0 @@
-collection_name,dataset_name,train_path,test_path,type,datetime_index,split_at,train_type,train_is_normal,input_type,length
-WebscopeS5,A1Benchmark-1,,,real,True,,unsupervised,False,univariate,1439
-WebscopeS5,A1Benchmark-2,,,real,True,,unsupervised,False,univariate,1439
-NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032
