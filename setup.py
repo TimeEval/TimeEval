@@ -19,7 +19,7 @@ class PyTestCommand(Command):
         pass
 
     def run(self) -> None:
-        pytest.main(["-x", "tests"])
+        pytest.main(["--cov=timeeval", "-x", "tests"])
 
 
 class MyPyCheckCommand(Command):
