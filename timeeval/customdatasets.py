@@ -1,14 +1,32 @@
-import numpy as np
-import pandas as pd
+import abc
+import datetime as dt
 import json
 from pathlib import Path
-from typing import Tuple, Optional
-import datetime as dt
+from typing import Tuple, Optional, List
+
+import numpy as np
+import pandas as pd
 
 from timeeval.utils.label_formatting import id2labels
 
 
-class CustomDatasets:
+class CustomDatasets(abc.ABC):
+
+    @abc.abstractmethod
+    def get_path(self, dataset_name: str) -> Tuple[Path, Optional[Path]]:
+        ...
+
+    @abc.abstractmethod
+    def get_dataset_names(self) -> List[str]:
+        ...
+
+    @abc.abstractmethod
+    def is_loaded(self):
+        ...
+
+
+class CustomDatasetsImpl(CustomDatasets):
+
     def __init__(self, value: str):
         self.value = value
 
@@ -43,6 +61,12 @@ class CustomDatasets:
         df["is_anomaly"] = labels
         return df
 
+    def is_loaded(self):
+        return True
+
+    def get_dataset_names(self) -> List[str]:
+        raise NotImplementedError
+
     def load(self, dataset_config: Path) -> pd.DataFrame:
         dataset_store = json.load(dataset_config.open("r"))
         ds_obj = dataset_store[self.value]
@@ -69,3 +93,18 @@ class CustomDatasets:
         else:
             raise ValueError(
                 "A dataset obj in your dataset config file must have either 'data' and 'labels' paths or one 'dataset' path.")
+
+
+class NoOpCustomDatasets(CustomDatasets):
+
+    def __init__(self):
+        super().__init__()
+
+    def is_loaded(self):
+        return False
+
+    def get_path(self, dataset_config: Path) -> Tuple[Path, Optional[Path]]:
+        raise KeyError("No custom datasets loaded!")
+
+    def get_dataset_names(self) -> List[str]:
+        return []

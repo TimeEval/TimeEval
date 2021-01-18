@@ -1,8 +1,11 @@
-import pytest
 import os
-import numpy as np
+from io import StringIO
 
-from timeeval.datasets import Datasets, DatasetRecord
+import numpy as np
+import pandas as pd
+import pytest
+
+from timeeval import Datasets, DatasetRecord
 
 header = "collection_name,dataset_name,train_path,test_path,type,datetime_index,split_at,train_type,train_is_normal,input_type,length"
 content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032"
@@ -33,6 +36,31 @@ test_record = DatasetRecord(
     input_type="univariate",
     length=12
 )
+# excerpt from NYC taxi dataset
+dataset_content = """
+timestamp,value,is_anomaly
+2014-10-30 09:30:00,18967,0
+2014-10-30 10:00:00,17899,0
+2014-10-30 10:30:00,17994,0
+2014-10-30 11:00:00,17167,0
+2014-10-30 11:30:00,18094,0
+2014-10-30 12:00:00,18575,0
+2014-10-30 12:30:00,18022,0
+2014-10-30 13:00:00,17359,0
+2014-10-30 13:30:00,18035,0
+2014-10-30 14:00:00,18733,0
+2014-10-30 14:30:00,19410,0
+2014-10-30 15:00:00,18991,0
+2014-10-30 15:30:00,16749,1
+2014-10-30 16:00:00,14604,1
+2014-10-30 16:30:00,13367,1
+2014-10-30 17:00:00,16382,1
+"""
+dataset_content_io = StringIO(dataset_content)
+dataset_df = pd.read_csv(dataset_content_io)
+dataset_content_io.seek(0)
+dataset_ndarray = np.genfromtxt(dataset_content_io, delimiter=",", skip_header=1)
+assert dataset_ndarray.shape != (0,)
 
 
 def _fill_file(path, lines=(content_nab,)):
@@ -52,8 +80,7 @@ def _read_file(path):
 
 def _add_dataset(dm):
     dm.add_dataset(
-        collection_name=test_record.collection_name,
-        dataset_name=test_record.dataset_name,
+        dataset_id=(test_record.collection_name, test_record.dataset_name),
         train_path=test_record.train_path,
         test_path=test_record.test_path,
         dataset_type=test_record.type,
@@ -196,3 +223,33 @@ def test_select_combined(tmp_path):
                                 collection_name=nab_record.collection_name,
                                 train_is_normal=nab_record.train_is_normal)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
+
+
+def test_context_manager(tmp_path):
+    _fill_file(tmp_path)
+    with Datasets(data_folder=tmp_path) as dm:
+        _add_dataset(dm)
+    lines = _read_file(tmp_path)
+    assert len(lines) == 3
+    assert lines[0] == header
+    assert lines[1] == content_nab
+    assert lines[2] == content_test
+
+
+def test_get_dataset_methods(tmp_path):
+    _fill_file(tmp_path, lines=[content_test])
+    # write example data
+    with open(tmp_path / "path_test.csv", "w") as f:
+        f.write(dataset_content)
+
+    dm = Datasets(data_folder=tmp_path)
+    test_path = dm.get_dataset_path((test_record.collection_name, test_record.dataset_name))
+    assert test_path == tmp_path / test_record.test_path
+    train_path = dm.get_dataset_path((test_record.collection_name, test_record.dataset_name), train=True)
+    assert train_path == tmp_path / test_record.train_path
+
+    test_df = dm.get_dataset_df((test_record.collection_name, test_record.dataset_name))
+    pd.testing.assert_frame_equal(test_df, dataset_df, check_datetimelike_compat=True)
+    test_ndarray = dm.get_dataset_ndarray((test_record.collection_name, test_record.dataset_name))
+    assert test_ndarray.shape == dataset_ndarray.shape
+    np.testing.assert_equal(test_ndarray, dataset_ndarray)
