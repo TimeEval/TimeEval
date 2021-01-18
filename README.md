@@ -1,5 +1,8 @@
 # TimeEval
 
+[![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
+[![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
+
 Evaluation Tool for Anomaly Detection Algorithms on Time Series
 
 ## Installation using `pip`
