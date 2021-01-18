@@ -1,18 +1,29 @@
 import numpy as np
 import subprocess
-from typing import List
+from typing import List, Callable
+import logging
+import getpass
 
 from .base import BaseAdapter
 
 
 class DistributedAdapter(BaseAdapter):
-    def __init__(self, local_adapter: BaseAdapter, remote_command: str, remote_user: str, remote_hosts: List[str]):
-        self.local_adapter = local_adapter
+    """
+    Please, be aware that you need password-less ssh to the remote machines!
+    """
+
+    def __init__(self, algorithm: Callable[[np.ndarray], np.ndarray], remote_command: str, remote_user: str, remote_hosts: List[str]):
+        self.algorithm = algorithm
         self.remote_command = remote_command
         self.remote_user = remote_user
         self.remote_hosts = remote_hosts
 
     def _remote_command(self, remote_host):
+        current_user = getpass.getuser()
+        if self.remote_user != current_user:
+            logging.warning(f"You are currently running this Python Script as user '{current_user}', "
+                            f"but you are trying to connect to '{remote_host}' as user '{self.remote_user}'.")
+
         ssh_process = subprocess.Popen(["ssh", "-T", f"{self.remote_user}@{remote_host}"],
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
@@ -26,4 +37,4 @@ class DistributedAdapter(BaseAdapter):
         for remote_host in self.remote_hosts:
             self._remote_command(remote_host)
         # local call
-        return self.local_adapter(dataset)
+        return self.algorithm(dataset)

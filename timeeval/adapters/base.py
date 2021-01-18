@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 
 class BaseAdapter(ABC):
     @abstractmethod
-    def _call(self, dataset: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
+    def _call(self, dataset: np.ndarray) -> np.ndarray:  # pragma: no cover
+        raise NotImplementedError()
 
     def _preprocess_data(self, data: np.ndarray) -> np.ndarray:
         return data
