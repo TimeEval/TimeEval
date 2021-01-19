@@ -6,6 +6,7 @@ from typing import Final, ContextManager, Optional, Tuple, List, Type, NamedTupl
 import numpy as np
 import pandas as pd
 
+from timeeval.datasets.custom import CustomDatasets
 from timeeval.datasets.custom_base import CustomDatasetsBase
 from timeeval.datasets.custom_noop import NoOpCustomDatasets
 
@@ -230,33 +231,27 @@ class Datasets(ContextManager['Datasets']):
         return df
 
     def load_custom_datasets(self, file_path: Union[str, Path]) -> None:
-        raise NotImplementedError()
+        self._custom_datasets = CustomDatasets(file_path)
 
-    def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Optional[Path]:
+    def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Path:
         collection_name, dataset_name = dataset_id
         if collection_name == "custom":
-            data_path, label_path = self._custom_datasets.get_path(dataset_name)
-            # FIXME: What about the labels? How to deal with train datasets?
+            data_path = self._custom_datasets.get_path(dataset_name, train)
+            if not data_path:
+                raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
             return data_path
         else:
-            if train:
-                return self._filepath.parent / self._get_value_internal(dataset_id, "train_path")
-            else:
-                return self._filepath.parent / self._get_value_internal(dataset_id, "test_path")
+            path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
+            if not path:
+                raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
+            return self._filepath.parent / path
 
     def get_dataset_df(self, dataset_id: DatasetId, train: bool = False) -> pd.DataFrame:
-        collection_name, dataset_name = dataset_id
-        if collection_name == "custom":
-            return self._custom_datasets.load_df(dataset_name)
-        else:
-            path = self.get_dataset_path(dataset_id, train)
-            #b = self._df.loc[dataset_id, "datetime_index"]
-            return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+        path = self.get_dataset_path(dataset_id, train)
+        # FIXME: check if datetime_index:
+        # b = self._df.loc[dataset_id, "datetime_index"]
+        return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
 
     def get_dataset_ndarray(self, dataset_id: DatasetId, train: bool = False) -> np.ndarray:
-        collection_name, dataset_name = dataset_id
-        if collection_name == "custom":
-            return self._custom_datasets.load_df(dataset_name).to_numpy()
-        else:
-            path = self.get_dataset_path(dataset_id, train)
-            return np.genfromtxt(path, delimiter=",", skip_header=1)
+        path = self.get_dataset_path(dataset_id, train)
+        return np.genfromtxt(path, delimiter=",", skip_header=1)

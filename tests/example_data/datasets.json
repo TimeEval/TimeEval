@@ -1,7 +1,7 @@
 {
   "dataset.1": {
     "dataset": "./tests/example_data/dataset.train.csv",
-    "train_type": "train"
+    "train_type": "test"
   },
   "dataset.3": {
     "dataset": "./tests/example_data/dataset.test.csv",

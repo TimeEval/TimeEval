@@ -4,12 +4,11 @@ import numpy as np
 from typing import Callable
 from pathlib import Path
 
-from timeeval import TimeEval, Algorithm
+from timeeval import TimeEval, Algorithm, Datasets
 
 
 def generates_results(dataset) -> dict:
     datasets_config = Path("./tests/example_data/datasets.json")
-    datasets = [dataset]
 
     def deviating_from(fn: Callable) -> Callable[[np.ndarray], np.ndarray]:
         def call(data: np.ndarray) -> np.ndarray:
@@ -24,14 +23,14 @@ def generates_results(dataset) -> dict:
         Algorithm(name="deviating_from_median", function=deviating_from(np.median), data_as_file=False)
     ]
 
-    timeeval = TimeEval(datasets, algorithms, dataset_config=datasets_config)
+    datasets = Datasets("tests/example_data", custom_datasets_file=datasets_config)
+    timeeval = TimeEval(datasets, [dataset], algorithms)
     timeeval.run()
     return timeeval.results
 
 
 def generates_results_multi(dataset) -> dict:
     datasets_config = Path("./tests/example_data/datasets.json")
-    datasets = [dataset]
 
     def deviating_from(fn: Callable) -> Callable[[np.ndarray], np.ndarray]:
         def call(data: np.ndarray) -> np.ndarray:
@@ -46,38 +45,39 @@ def generates_results_multi(dataset) -> dict:
         Algorithm(name="deviating_from_median", function=deviating_from(np.median), data_as_file=False)
     ]
 
-    timeeval = TimeEval(datasets, algorithms, dataset_config=datasets_config)
+    datasets = Datasets("tests/example_data", custom_datasets_file=datasets_config)
+    timeeval = TimeEval(datasets, [dataset], algorithms)
     timeeval.run()
     return timeeval.results
 
 
 class TestImportData(unittest.TestCase):
     def test_generates_correct_results_from_2files(self):
-        DATASET = "dataset.1"
+        DATASET = ("custom", "dataset.1")
         generated_results = generates_results(DATASET)
         true_results = json.load(open("./tests/example_data/results.json", "r"))
 
         for algorithm in ["deviating_from_mean", "deviating_from_median"]:
             self.assertEqual(generated_results[algorithm][DATASET]["auroc"],
-                             true_results[algorithm][DATASET]["auroc"])
+                             true_results[algorithm][DATASET[1]]["auroc"])
 
     def test_generates_correct_results_from_1file(self):
-        DATASET = "dataset.3"
+        DATASET = ("custom", "dataset.3")
         generated_results = generates_results(DATASET)
         true_results = json.load(open("./tests/example_data/results.json", "r"))
 
         for algorithm in ["deviating_from_mean", "deviating_from_median"]:
             self.assertEqual(generated_results[algorithm][DATASET]["auroc"],
-                             true_results[algorithm][DATASET]["auroc"])
+                             true_results[algorithm][DATASET[1]]["auroc"])
 
     def test_generates_correct_results_from_multi_file(self):
-        DATASET = "dataset.4"
+        DATASET = ("custom", "dataset.4")
         generated_results = generates_results_multi(DATASET)
         true_results = json.load(open("./tests/example_data/results_multi.json", "r"))
 
         for algorithm in ["deviating_from_mean", "deviating_from_median"]:
             self.assertEqual(generated_results[algorithm][DATASET]["auroc"],
-                             true_results[algorithm][DATASET]["auroc"])
+                             true_results[algorithm][DATASET[1]]["auroc"])
 
 
 if __name__ == "__main__":

@@ -1,8 +1,6 @@
 import abc
 from pathlib import Path
-from typing import Tuple, Optional, List
-
-import pandas as pd
+from typing import List
 
 
 class CustomDatasetsBase(abc.ABC):
@@ -16,9 +14,5 @@ class CustomDatasetsBase(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_path(self, dataset_name: str) -> Tuple[Path, Optional[Path]]:
-        ...
-
-    @abc.abstractmethod
-    def load_df(self, dataset_name: str) -> pd.DataFrame:
+    def get_path(self, dataset_name: str, train: bool) -> Path:
         ...

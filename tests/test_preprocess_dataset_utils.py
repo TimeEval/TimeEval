@@ -1,8 +1,8 @@
 import filecmp
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from timeeval.utils.preprocess_dataset import process
 
@@ -24,7 +24,7 @@ def test_process_indices(tmp_path: Path) -> None:
     indices = np.loadtxt(index_label_file)
     assert np.all(df.loc[indices, "is_anomaly"])
     other = ~df.index.isin(list(indices if isinstance(indices, list) else [indices]))
-    assert np.all(df.loc[other, "is_anomaly"]) == False
+    assert not np.all(df.loc[other, "is_anomaly"])
 
 
 def test_process_convert_datetime(tmp_path: Path) -> None:

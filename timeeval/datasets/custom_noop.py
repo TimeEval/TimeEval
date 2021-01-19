@@ -1,7 +1,5 @@
 from pathlib import Path
-from typing import List, Tuple, Optional
-
-import pandas as pd
+from typing import List
 
 from timeeval.datasets.custom_base import CustomDatasetsBase
 
@@ -14,10 +12,7 @@ class NoOpCustomDatasets(CustomDatasetsBase):
     def is_loaded(self):
         return False
 
-    def get_path(self, dataset_config: Path) -> Tuple[Path, Optional[Path]]:
-        raise KeyError("No custom datasets loaded!")
-
-    def load_df(self, dataset_name: str) -> pd.DataFrame:
+    def get_path(self, dataset_name: str, train: bool) -> Path:
         raise KeyError("No custom datasets loaded!")
 
     def get_dataset_names(self) -> List[str]:
