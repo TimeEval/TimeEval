@@ -15,54 +15,39 @@ def deviating_from_median(data: np.ndarray) -> np.ndarray:
 
 class TestMultivarAdapter(unittest.TestCase):
     def setUp(self) -> None:
-        self.X = np.random.rand(1000, 10)
+        np.random.seed(4444)
+        self.X = np.random.rand(100, 3)
+        self.y = (x := np.abs(self.X - np.median(self.X, axis=0))) / x.max(axis=0)
+        self.y_median = np.median(self.y, axis=1)
+        self.y_mean = np.mean(self.y, axis=1)
+        self.y_max = np.max(self.y, axis=1)
 
     def test_multivar_deviating_from_median_mean(self):
-        scores = []
-        for col in range(self.X.shape[1]):
-            scores.append(deviating_from_median(self.X[:, col]))
-        true_scores = np.stack(scores, axis=1).mean(axis=1)
-
         algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MEAN)
         score = algorithm(self.X)
 
-        self.assertListEqual(true_scores.tolist(), score.tolist())
+        np.testing.assert_array_equal(self.y_mean, score)
         self.assertEqual(len(self.X), len(score))
 
     def test_multivar_deviating_from_median_median(self):
-        scores = []
-        for col in range(self.X.shape[1]):
-            scores.append(deviating_from_median(self.X[:, col]))
-        true_scores = np.median(np.stack(scores, axis=1), axis=1)
-
         algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MEDIAN)
         score = algorithm(self.X)
 
-        self.assertListEqual(true_scores.tolist(), score.tolist())
+        np.testing.assert_array_equal(self.y_median, score)
         self.assertEqual(len(self.X), len(score))
 
     def test_multivar_deviating_from_median_max(self):
-        scores = []
-        for col in range(self.X.shape[1]):
-            scores.append(deviating_from_median(self.X[:, col]))
-        true_scores = np.max(np.stack(scores, axis=1), axis=1)
-
         algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MAX)
         score = algorithm(self.X)
 
-        self.assertListEqual(true_scores.tolist(), score.tolist())
+        np.testing.assert_array_equal(self.y_max, score)
         self.assertEqual(len(self.X), len(score))
 
     def test_multivar_deviating_from_median_parallel(self):
-        scores = []
-        for col in range(self.X.shape[1]):
-            scores.append(deviating_from_median(self.X[:, col]))
-        true_scores = np.max(np.stack(scores, axis=1), axis=1)
-
-        algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MAX, n_jobs=2)
+        algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MEAN, n_jobs=2)
         score = algorithm(self.X)
 
-        self.assertListEqual(true_scores.tolist(), score.tolist())
+        np.testing.assert_array_equal(self.y_mean, score)
         self.assertEqual(len(self.X), len(score))
 
 
@@ -112,6 +97,7 @@ class TestDistributedAdapter(unittest.TestCase):
 
 class TestJarAdapter(unittest.TestCase):
     def setUp(self) -> None:
+        np.random.seed(4444)
         self.X = np.random.rand(1000, 10)
 
     @patch('timeeval.adapters.JarAdapter._read_results')
@@ -153,7 +139,7 @@ class TestJarAdapter(unittest.TestCase):
         args = ["plot", "test"]
         kwargs = dict(plot="yes", test=2)
         algorithm = JarAdapter(jar_file=jar_file, output_file=output_file, args=args, kwargs=kwargs, verbose=True)
-        self.assertListEqual(result.tolist(), algorithm(self.X).tolist())
+        np.testing.assert_array_equal(result, algorithm(self.X))
 
         _, kwargs = mock_A.call_args
         self.assertEqual(kwargs["stdout"], subprocess.STDOUT)
@@ -167,9 +153,9 @@ class TestBaseAdapter(unittest.TestCase):
     def test_preprocess_data(self):
         data = np.random.rand(3)
         algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MEAN)
-        self.assertListEqual(data.tolist(), algorithm._preprocess_data(data).tolist())
+        np.testing.assert_array_equal(data, algorithm._preprocess_data(data))
 
     def test_postprocess_data(self):
         data = np.random.rand(3)
         algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MEAN)
-        self.assertListEqual(data.tolist(), algorithm._postprocess_data(data).tolist())
+        np.testing.assert_array_equal(data, algorithm._postprocess_data(data))

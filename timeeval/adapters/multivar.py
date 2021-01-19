@@ -15,10 +15,8 @@ class AggregationMethod(Enum):
             fn = np.mean
         elif self == self.MEDIAN:
             fn = np.median
-        elif self == self.MAX:
+        else:  # if self == self.MAX:
             fn = np.max
-        else:  # pragma: no cover
-            raise ValueError(f"AggregationMethod {self.value} is not supported!")
 
         return fn(np.stack(data, axis=1), axis=1)
 
