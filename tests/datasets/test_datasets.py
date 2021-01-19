@@ -60,6 +60,7 @@ dataset_content_io = StringIO(dataset_content)
 dataset_df = pd.read_csv(dataset_content_io, parse_dates=["timestamp"], infer_datetime_format=True)
 dataset_content_io.seek(0)
 dataset_ndarray = np.genfromtxt(dataset_content_io, delimiter=",", skip_header=1)
+custom_dataset_names = ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4"]
 
 
 def _fill_file(path, lines=(content_nab,)):
@@ -233,6 +234,42 @@ def test_select_wrong_order(tmp_path):
     assert names == [(test_record.collection_name, test_record.dataset_name)]
 
 
+def _test_select_with_custom_helper(path, **kwargs):
+    _fill_file(path)
+    dm = Datasets(data_folder=path, custom_datasets_file="tests/example_data/datasets.json")
+    return dm.select(**kwargs)
+
+
+def test_select_with_custom(tmp_path):
+    names = _test_select_with_custom_helper(tmp_path,
+                                            collection_name=nab_record.collection_name,
+                                            train_is_normal=nab_record.train_is_normal)
+    assert names == [(nab_record.collection_name, nab_record.dataset_name)]
+    names = _test_select_with_custom_helper(tmp_path, dataset_name=nab_record.dataset_name)
+    assert names == [(nab_record.collection_name, nab_record.dataset_name)]
+
+
+def test_select_with_custom_dataset(tmp_path):
+    names = _test_select_with_custom_helper(tmp_path, collection_name="custom", dataset_name="dataset.1")
+    assert names == [("custom", "dataset.1")]
+    names = _test_select_with_custom_helper(tmp_path, collection_name="custom")
+    assert names == [("custom", name) for name in custom_dataset_names]
+    names = _test_select_with_custom_helper(tmp_path, dataset_name="dataset.1")
+    assert names == [("custom", "dataset.1")]
+
+
+def test_select_with_custom_and_selector(tmp_path):
+    names = _test_select_with_custom_helper(tmp_path, collection_name="custom", train_type="unsupervised")
+    assert names == []
+    names = _test_select_with_custom_helper(tmp_path, dataset_name="dataset.1.train", train_type="unsupervised")
+    assert names == []
+
+
+def test_select_with_custom_only_selector(tmp_path):
+    names = _test_select_with_custom_helper(tmp_path, train_type=nab_record.train_type)
+    assert names == [(nab_record.collection_name, nab_record.dataset_name)]
+
+
 def test_context_manager(tmp_path):
     _fill_file(tmp_path)
     with Datasets(data_folder=tmp_path) as dm:
@@ -267,6 +304,14 @@ def test_get_dataset_methods(tmp_path):
     np.testing.assert_equal(test_ndarray, dataset_ndarray)
 
 
+def test_get_dataset_df_datetime_parsing():
+    dm = Datasets(data_folder="tests/example_data")
+    df = dm.get_dataset_df(("test", "dataset-datetime"))
+    assert df["timestamp"].dtype == np.dtype("<M8[ns]")
+    df = dm.get_dataset_df(("test", "dataset-int"))
+    assert df["timestamp"].dtype == np.dtype("int")
+
+
 def test_get_dataset_path_missing(tmp_path):
     _fill_file(tmp_path)
     dm = Datasets(data_folder=tmp_path)
@@ -287,7 +332,7 @@ def test_initialize_custom_datasets(tmp_path):
     _fill_file(tmp_path)
     dm = Datasets(data_folder=tmp_path, custom_datasets_file="tests/example_data/datasets.json")
     assert list(dm.get_collection_names()) == ["custom", "NAB"]
-    assert list(dm.get_dataset_names()) == ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4", "art_daily_no_noise"]
+    assert list(dm.get_dataset_names()) == custom_dataset_names + ["art_daily_no_noise"]
 
 
 def test_load_custom_datasets(tmp_path):
@@ -298,7 +343,7 @@ def test_load_custom_datasets(tmp_path):
 
     dm.load_custom_datasets("tests/example_data/datasets.json")
     assert list(dm.get_collection_names()) == ["custom", "NAB"]
-    assert list(dm.get_dataset_names()) == ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4", "art_daily_no_noise"]
+    assert list(dm.get_dataset_names()) == custom_dataset_names + ["art_daily_no_noise"]
 
 
 def test_df(tmp_path):

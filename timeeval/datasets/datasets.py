@@ -100,6 +100,7 @@ class Datasets(ContextManager['Datasets']):
                 return str(self._custom_datasets.get_path(name, train))
             except ValueError:
                 return np.nan
+
         collection_names = self._custom_datasets.get_collection_names()
         if len(collection_names) > 0:
             datasets = self._custom_datasets.get_dataset_names()
@@ -208,31 +209,46 @@ class Datasets(ContextManager['Datasets']):
         :return: list of dataset identifiers (combination of collection name and dataset name)
         """
 
-        # TODO: search custom datasets
-        # if collection_name in self._custom_datasets.get_collection_names():
-        # zip dataset names with "custom" and if dataset_name filter them
-        # else
-        # if dataset_name in self._custom_datasets.get_dataset_names():
-        # find matching custom datasets (rather use try-except KeyError)
+        def any_selector() -> bool:
+            return bool(dataset_type or datetime_index or train_type or train_is_normal or input_type)
 
-        selectors: List[np.ndarray] = []
-        if dataset_type is not None:
-            selectors.append(self._df["type"] == dataset_type)
-        if datetime_index is not None:
-            selectors.append(self._df["datetime_index"] == datetime_index)
-        if train_type is not None:
-            selectors.append(self._df["train_type"] == train_type)
-        if train_is_normal is not None:
-            selectors.append(self._df["train_is_normal"] == train_is_normal)
-        if input_type is not None:
-            selectors.append(self._df["input_type"] == input_type)
-        default_mask = np.full(len(self._df), True)
-        mask = reduce(lambda x, y: np.logical_and(x, y), selectors, default_mask)
+        if collection_name in self._custom_datasets.get_collection_names():
+            names = self._custom_datasets.get_dataset_names()
+            if any_selector() or (dataset_name and dataset_name not in names):
+                return []
+            elif dataset_name and dataset_name in names:
+                return [(collection_name, dataset_name)]
+            else:
+                return [(collection_name, name) for name in names]
+        else:
+            # if any selector is applied, there are no matches in custom datasets by definition!
+            if any_selector():
+                custom_datasets = []
+            else:
+                custom_datasets = [
+                    ("custom", name) for name in self._custom_datasets.get_dataset_names() if name == dataset_name
+                ]
 
-        return (self._df[mask]
-                .loc[(slice(collection_name, collection_name), slice(dataset_name, dataset_name)), :]
-                .index
-                .to_list())
+            df = self._df  # self.df()
+            selectors: List[np.ndarray] = []
+            if dataset_type is not None:
+                selectors.append(df["type"] == dataset_type)
+            if datetime_index is not None:
+                selectors.append(df["datetime_index"] == datetime_index)
+            if train_type is not None:
+                selectors.append(df["train_type"] == train_type)
+            if train_is_normal is not None:
+                selectors.append(df["train_is_normal"] == train_is_normal)
+            if input_type is not None:
+                selectors.append(df["input_type"] == input_type)
+            default_mask = np.full(len(df), True)
+            mask = reduce(lambda x, y: np.logical_and(x, y), selectors, default_mask)
+            bench_datasets = (df[mask]
+                              .loc[(slice(collection_name, collection_name), slice(dataset_name, dataset_name)), :]
+                              .index
+                              .to_list())
+
+            return custom_datasets + bench_datasets
 
     def df(self) -> pd.DataFrame:
         """Returns a copy of the internal dataset metadata collection."""
@@ -259,10 +275,13 @@ class Datasets(ContextManager['Datasets']):
 
     def get_dataset_df(self, dataset_id: DatasetId, train: bool = False) -> pd.DataFrame:
         path = self.get_dataset_path(dataset_id, train)
-        # FIXME: check if datetime_index:
-        # b = self._df.loc[dataset_id, "datetime_index"]
-        return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+        if (dataset_id[0] not in self._custom_datasets.get_collection_names()
+                and self._get_value_internal(dataset_id, "datetime_index")):
+            return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+        else:
+            return pd.read_csv(path)
 
     def get_dataset_ndarray(self, dataset_id: DatasetId, train: bool = False) -> np.ndarray:
         path = self.get_dataset_path(dataset_id, train)
+        # TODO: supply numpy with type information, especially for datasets with datetime_index == True
         return np.genfromtxt(path, delimiter=",", skip_header=1)
