@@ -69,15 +69,6 @@ class TestImportData(unittest.TestCase):
             self.assertEqual(generated_results[algorithm][DATASET]["auroc"],
                              true_results[algorithm][DATASET]["auroc"])
 
-    def test_generates_correct_results_from_2files_indices(self):
-        DATASET = "dataset.2"
-        generated_results = generates_results(DATASET)
-        true_results = json.load(open("./tests/example_data/results.json", "r"))
-
-        for algorithm in ["deviating_from_mean", "deviating_from_median"]:
-            self.assertEqual(generated_results[algorithm][DATASET]["auroc"],
-                             true_results[algorithm][DATASET]["auroc"])
-
     def test_generates_correct_results_from_1file(self):
         DATASET = "dataset.3"
         generated_results = generates_results(DATASET)

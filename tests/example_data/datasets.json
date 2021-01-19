@@ -1,16 +1,14 @@
 {
   "dataset.1": {
-    "data": "./tests/example_data/data.txt",
-    "labels": "./tests/example_data/labels.txt"
-  },
-  "dataset.2": {
-    "data": "./tests/example_data/data.txt",
-    "labels": "./tests/example_data/labels.indices.txt"
+    "dataset": "./tests/example_data/dataset.train.csv",
+    "train_type": "train"
   },
   "dataset.3": {
-    "dataset": "./tests/example_data/dataset.csv"
+    "dataset": "./tests/example_data/dataset.test.csv",
+    "train_type": "test"
   },
   "dataset.4": {
-    "dataset": "./tests/example_data/dataset.multi.csv"
+    "dataset": "./tests/example_data/dataset.multi.csv",
+    "train_type": "test"
   }
 }

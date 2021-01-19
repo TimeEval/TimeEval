@@ -1,6 +1,5 @@
 from .test_import_data import TestImportData
-from .test_utils import TestReverseWindowing
-
+from .test_window_utils import TestReverseWindowing
 import unittest
 
 
