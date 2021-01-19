@@ -3,6 +3,10 @@
     "dataset": "./tests/example_data/dataset.train.csv",
     "train_type": "test"
   },
+  "dataset.1.train": {
+    "dataset": "./tests/example_data/dataset.train.csv",
+    "train_type": "train"
+  },
   "dataset.3": {
     "dataset": "./tests/example_data/dataset.test.csv",
     "train_type": "test"

@@ -251,13 +251,71 @@ def test_get_dataset_methods(tmp_path):
         f.write(dataset_content)
 
     dm = Datasets(data_folder=tmp_path)
+    # get_path
     test_path = dm.get_dataset_path((test_record.collection_name, test_record.dataset_name))
     assert test_path == tmp_path / test_record.test_path
     train_path = dm.get_dataset_path((test_record.collection_name, test_record.dataset_name), train=True)
     assert train_path == tmp_path / test_record.train_path
 
+    # get_df
     test_df = dm.get_dataset_df((test_record.collection_name, test_record.dataset_name))
     pd.testing.assert_frame_equal(test_df, dataset_df, check_datetimelike_compat=True)
+
+    # get ndarray
     test_ndarray = dm.get_dataset_ndarray((test_record.collection_name, test_record.dataset_name))
     assert test_ndarray.shape == dataset_ndarray.shape
     np.testing.assert_equal(test_ndarray, dataset_ndarray)
+
+
+def test_get_dataset_path_missing(tmp_path):
+    _fill_file(tmp_path)
+    dm = Datasets(data_folder=tmp_path)
+    with pytest.raises(KeyError) as ex:
+        dm.get_dataset_path((nab_record.collection_name, "unknown"))
+        assert "not found" in str(ex.value)
+
+
+def test_get_dataset_path_missing_path(tmp_path):
+    _fill_file(tmp_path)
+    dm = Datasets(data_folder=tmp_path)
+    with pytest.raises(KeyError) as ex:
+        dm.get_dataset_path((nab_record.collection_name, nab_record.dataset_name), train=True)
+        assert "not found" in str(ex.value)
+
+
+def test_initialize_custom_datasets(tmp_path):
+    _fill_file(tmp_path)
+    dm = Datasets(data_folder=tmp_path, custom_datasets_file="tests/example_data/datasets.json")
+    assert list(dm.get_collection_names()) == ["custom", "NAB"]
+    assert list(dm.get_dataset_names()) == ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4", "art_daily_no_noise"]
+
+
+def test_load_custom_datasets(tmp_path):
+    _fill_file(tmp_path)
+    dm = Datasets(data_folder=tmp_path)
+    assert list(dm.get_collection_names()) == ["NAB"]
+    assert list(dm.get_dataset_names()) == ["art_daily_no_noise"]
+
+    dm.load_custom_datasets("tests/example_data/datasets.json")
+    assert list(dm.get_collection_names()) == ["custom", "NAB"]
+    assert list(dm.get_dataset_names()) == ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4", "art_daily_no_noise"]
+
+
+def test_df(tmp_path):
+    _fill_file(tmp_path)
+    dm = Datasets(data_folder=tmp_path)
+    df = dm.df()
+    assert len(df) == 1
+    assert list(df.index.get_level_values(0)) == [nab_record.collection_name]
+    assert df.loc[(nab_record.collection_name, nab_record.dataset_name), "train_type"] == nab_record.train_type
+
+
+def test_df_with_custom(tmp_path):
+    _fill_file(tmp_path)
+    dm = Datasets(data_folder=tmp_path, custom_datasets_file="tests/example_data/datasets.json")
+    df = dm.df()
+    assert len(df) == 5
+    assert list(df.index.get_level_values(0)) == [nab_record.collection_name] + 4 * ["custom"]
+    assert df.loc[(nab_record.collection_name, nab_record.dataset_name), "train_type"] == nab_record.train_type
+    assert np.isnan(df.loc[("custom", "dataset.1"), "train_type"])
+    assert df.loc[("custom", "dataset.1.train"), "train_path"] == "tests/example_data/dataset.train.csv"

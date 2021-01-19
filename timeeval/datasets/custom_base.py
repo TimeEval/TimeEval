@@ -10,9 +10,9 @@ class CustomDatasetsBase(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def is_loaded(self):
+    def get_path(self, dataset_name: str, train: bool) -> Path:
         ...
 
     @abc.abstractmethod
-    def get_path(self, dataset_name: str, train: bool) -> Path:
+    def get_collection_names(self) -> List[str]:
         ...

@@ -84,7 +84,7 @@ class Datasets(ContextManager['Datasets']):
         dataset_dir = self._filepath.parent
         if not dataset_dir.is_dir():
             print(f"Directory {dataset_dir} does not exist, creating it!")
-            dataset_dir.mkdir()
+            dataset_dir.mkdir(parents=True)
         df_temp.to_csv(self._filepath)
         return df_temp
 
@@ -95,10 +95,22 @@ class Datasets(ContextManager['Datasets']):
             raise KeyError(f"Dataset {dataset_id} was not found!") from e
 
     def _build_custom_df(self):
-        datasets = self._custom_datasets.get_dataset_names()
-        indices = [("custom", name) for name in datasets]
-        test_paths = pd.Series([self._custom_datasets.get_path(name)[0] for name in datasets])
-        return pd.DataFrame({"test_path": test_paths}, index=indices, columns=self._df.columns)
+        def safe_extract_path(name: str, train: bool) -> str:
+            try:
+                return str(self._custom_datasets.get_path(name, train))
+            except ValueError:
+                return np.nan
+        collection_names = self._custom_datasets.get_collection_names()
+        if len(collection_names) > 0:
+            datasets = self._custom_datasets.get_dataset_names()
+            indices = [(collection_names[0], name) for name in datasets]
+            data = {
+                "test_path": [safe_extract_path(name, train=False) for name in datasets],
+                "train_path": [safe_extract_path(name, train=True) for name in datasets]
+            }
+            return pd.DataFrame(data, index=indices, columns=self._df.columns)
+        else:
+            return pd.DataFrame()
 
     def add_dataset(self,
                     dataset_id: DatasetId,
@@ -164,8 +176,7 @@ class Datasets(ContextManager['Datasets']):
         self._dirty = False
 
     def get_collection_names(self) -> List[str]:
-        custom_collection: List[str] = ["custom"] if self._custom_datasets.is_loaded() else []
-        return custom_collection + list(self._df.index.get_level_values(0))
+        return self._custom_datasets.get_collection_names() + list(self._df.index.get_level_values(0))
 
     def get_dataset_names(self) -> List[str]:
         return self._custom_datasets.get_dataset_names() + list(self._df.index.get_level_values(1))
@@ -198,7 +209,7 @@ class Datasets(ContextManager['Datasets']):
         """
 
         # TODO: search custom datasets
-        # if collection_name == "custom":
+        # if collection_name in self._custom_datasets.get_collection_names():
         # zip dataset names with "custom" and if dataset_name filter them
         # else
         # if dataset_name in self._custom_datasets.get_dataset_names():
@@ -235,14 +246,14 @@ class Datasets(ContextManager['Datasets']):
 
     def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Path:
         collection_name, dataset_name = dataset_id
-        if collection_name == "custom":
+        if collection_name in self._custom_datasets.get_collection_names():
             data_path = self._custom_datasets.get_path(dataset_name, train)
             if not data_path:
                 raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
             return data_path
         else:
             path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
-            if not path:
+            if not path or (isinstance(path, (np.float, np.int)) and np.isnan(path)):
                 raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
             return self._filepath.parent / path
 

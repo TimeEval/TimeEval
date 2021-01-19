@@ -23,7 +23,7 @@ def generates_results(dataset) -> dict:
         Algorithm(name="deviating_from_median", function=deviating_from(np.median), data_as_file=False)
     ]
 
-    datasets = Datasets("tests/example_data", custom_datasets_file=datasets_config)
+    datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
     timeeval = TimeEval(datasets, [dataset], algorithms)
     timeeval.run()
     return timeeval.results
@@ -45,7 +45,7 @@ def generates_results_multi(dataset) -> dict:
         Algorithm(name="deviating_from_median", function=deviating_from(np.median), data_as_file=False)
     ]
 
-    datasets = Datasets("tests/example_data", custom_datasets_file=datasets_config)
+    datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
     timeeval = TimeEval(datasets, [dataset], algorithms)
     timeeval.run()
     return timeeval.results
