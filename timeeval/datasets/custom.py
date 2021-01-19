@@ -1,34 +1,21 @@
-import abc
-import datetime as dt
 import json
 from pathlib import Path
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Union
 
 import numpy as np
 import pandas as pd
 
+from timeeval.datasets.custom_base import CustomDatasetsBase
 from timeeval.utils.label_formatting import id2labels
 
 
-class CustomDatasets(abc.ABC):
+class CustomDatasets(CustomDatasetsBase):
+    _dataset_store: dict
 
-    @abc.abstractmethod
-    def get_path(self, dataset_name: str) -> Tuple[Path, Optional[Path]]:
-        ...
-
-    @abc.abstractmethod
-    def get_dataset_names(self) -> List[str]:
-        ...
-
-    @abc.abstractmethod
-    def is_loaded(self):
-        ...
-
-
-class CustomDatasetsImpl(CustomDatasets):
-
-    def __init__(self, value: str):
-        self.value = value
+    def __init__(self, dataset_config: Union[str, Path]):
+        super().__init__()
+        with Path(dataset_config).open("r") as f:
+            self._dataset_store = json.load(f)
 
     def _is_one_file(self, ds_obj: dict) -> bool:
         return "dataset" in ds_obj
@@ -51,7 +38,9 @@ class CustomDatasetsImpl(CustomDatasets):
             labels = id2labels(labels, data.shape[0])
 
         df = pd.DataFrame()
-        df["timestamp"] = [dt.datetime(year=1970, month=1, day=1) + dt.timedelta(milliseconds=int(x)) for x in np.arange(len(labels))]
+        s_index = pd.Series(np.arange(len(labels)))
+        df["timestamp"] = pd.to_datetime(s_index, unit="ms")
+        # df["timestamp"] = [dt.datetime(year=1970, month=1, day=1) + dt.timedelta(milliseconds=int(x)) for x in np.arange(len(labels))]
 
         if len(data.shape) == 2 and data.shape[1] > 1:
             for dim in range(data.shape[1]):
@@ -65,11 +54,10 @@ class CustomDatasetsImpl(CustomDatasets):
         return True
 
     def get_dataset_names(self) -> List[str]:
-        raise NotImplementedError
+        return [name for name in self._dataset_store]
 
-    def load(self, dataset_config: Path) -> pd.DataFrame:
-        dataset_store = json.load(dataset_config.open("r"))
-        ds_obj = dataset_store[self.value]
+    def load_df(self, dataset_name: str) -> pd.DataFrame:
+        ds_obj = self._dataset_store[dataset_name]
 
         if self._validate_dataset(ds_obj):
             if self._is_one_file(ds_obj):
@@ -77,11 +65,11 @@ class CustomDatasetsImpl(CustomDatasets):
             else:
                 return self._load_two_files(ds_obj)
         else:
-            raise ValueError("A dataset obj in your dataset config file must have either 'data' and 'labels' paths or one 'dataset' path.")
+            raise ValueError(
+                "A dataset obj in your dataset config file must have either 'data' and 'labels' paths or one 'dataset' path.")
 
-    def get_path(self, dataset_config: Path) -> Tuple[Path, Optional[Path]]:
-        dataset_store = json.load(dataset_config.open("r"))
-        ds_obj = dataset_store[self.value]
+    def get_path(self, dataset_name: str) -> Tuple[Path, Optional[Path]]:
+        ds_obj = self._dataset_store[dataset_name]
 
         if self._validate_dataset(ds_obj):
             if self._is_one_file(ds_obj):
@@ -93,18 +81,3 @@ class CustomDatasetsImpl(CustomDatasets):
         else:
             raise ValueError(
                 "A dataset obj in your dataset config file must have either 'data' and 'labels' paths or one 'dataset' path.")
-
-
-class NoOpCustomDatasets(CustomDatasets):
-
-    def __init__(self):
-        super().__init__()
-
-    def is_loaded(self):
-        return False
-
-    def get_path(self, dataset_config: Path) -> Tuple[Path, Optional[Path]]:
-        raise KeyError("No custom datasets loaded!")
-
-    def get_dataset_names(self) -> List[str]:
-        return []

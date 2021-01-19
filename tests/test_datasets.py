@@ -57,10 +57,9 @@ timestamp,value,is_anomaly
 2014-10-30 17:00:00,16382,1
 """
 dataset_content_io = StringIO(dataset_content)
-dataset_df = pd.read_csv(dataset_content_io)
+dataset_df = pd.read_csv(dataset_content_io, parse_dates=["timestamp"], infer_datetime_format=True)
 dataset_content_io.seek(0)
 dataset_ndarray = np.genfromtxt(dataset_content_io, delimiter=",", skip_header=1)
-assert dataset_ndarray.shape != (0,)
 
 
 def _fill_file(path, lines=(content_nab,)):
@@ -129,14 +128,15 @@ def test_add_batch_datasets(tmp_path):
     dm = Datasets(data_folder=tmp_path)
     dm.add_datasets([test_record, nab_record])
     dm.save()
-    assert list(dm.get_collection_names()) == ["test-collection", "NAB"]
-    assert list(dm.get_dataset_names()) == ["test_dataset", "art_daily_no_noise"]
+    # entries are internally sorted to allow fast MultiIndex-Slicing!
+    assert list(dm.get_collection_names()) == ["NAB", "test-collection"]
+    assert list(dm.get_dataset_names()) == ["art_daily_no_noise", "test_dataset"]
 
     lines = _read_file(tmp_path)
     assert len(lines) == 3
     assert lines[0] == header
-    assert lines[1] == content_test
-    assert lines[2] == content_nab
+    assert lines[1] == content_nab
+    assert lines[2] == content_test
 
 
 def test_add_dataset_and_save(tmp_path):
@@ -175,8 +175,8 @@ def test_refresh(tmp_path):
     assert list(dm.get_dataset_names()) == ["art_daily_no_noise"]
 
 
-def _test_select_helper(path, **kwargs):
-    _fill_file(path, lines=[content_nab, content_test])
+def _test_select_helper(path, lines=(content_nab, content_test), **kwargs):
+    _fill_file(path, lines)
     dm = Datasets(data_folder=path)
     return dm.select(**kwargs)
 
@@ -223,6 +223,14 @@ def test_select_combined(tmp_path):
                                 collection_name=nab_record.collection_name,
                                 train_is_normal=nab_record.train_is_normal)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
+
+
+def test_select_wrong_order(tmp_path):
+    names = _test_select_helper(tmp_path,
+                                lines=[content_test, content_nab],
+                                collection_name=test_record.collection_name,
+                                train_is_normal=test_record.train_is_normal)
+    assert names == [(test_record.collection_name, test_record.dataset_name)]
 
 
 def test_context_manager(tmp_path):

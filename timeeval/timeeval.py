@@ -7,7 +7,7 @@ from pathlib import Path
 import logging
 import time
 
-from timeeval.customdatasets import CustomDatasetsImpl
+from timeeval.datasets.custom import CustomDatasets
 from timeeval.utils.metrics import roc
 
 
@@ -41,15 +41,15 @@ class TimeEval:
                  dataset_config: Path):
         self.dataset_names = datasets
         self.algorithms = algorithms
-        self.dataset_config = dataset_config
+        self.custom_datasets = CustomDatasets(dataset_config)
 
         self.results: Dict = defaultdict(dict)
 
     def _load_dataset(self, name) -> pd.DataFrame:
-        return CustomDatasetsImpl(name).load(self.dataset_config)
+        return self.custom_datasets.load_df(name)
 
     def _get_dataset_path(self, name) -> Tuple[Path, Optional[Path]]:
-        return CustomDatasetsImpl(name).get_path(self.dataset_config)
+        return self.custom_datasets.get_path(name)
 
     def _run_algorithm(self, algorithm: Algorithm):
         for dataset_name in tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name}", position=1):

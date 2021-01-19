@@ -6,7 +6,8 @@ from typing import Final, ContextManager, Optional, Tuple, List, Type, NamedTupl
 import numpy as np
 import pandas as pd
 
-from timeeval.customdatasets import CustomDatasets, NoOpCustomDatasets
+from timeeval.datasets.custom_base import CustomDatasetsBase
+from timeeval.datasets.custom_noop import NoOpCustomDatasets
 
 
 class DatasetRecord(NamedTuple):
@@ -41,7 +42,7 @@ class Datasets(ContextManager['Datasets']):
     _filepath: Path
     _dirty: bool
     _df: pd.DataFrame
-    _custom_datasets: CustomDatasets
+    _custom_datasets: CustomDatasetsBase
 
     def __init__(self, data_folder: Union[str, Path], custom_datasets_file: Optional[Union[str, Path]] = None):
         """
@@ -92,6 +93,12 @@ class Datasets(ContextManager['Datasets']):
         except KeyError as e:
             raise KeyError(f"Dataset {dataset_id} was not found!") from e
 
+    def _build_custom_df(self):
+        datasets = self._custom_datasets.get_dataset_names()
+        indices = [("custom", name) for name in datasets]
+        test_paths = pd.Series([self._custom_datasets.get_path(name)[0] for name in datasets])
+        return pd.DataFrame({"test_path": test_paths}, index=indices, columns=self._df.columns)
+
     def add_dataset(self,
                     dataset_id: DatasetId,
                     train_path: Optional[str],
@@ -122,7 +129,7 @@ class Datasets(ContextManager['Datasets']):
         }, index=[dataset_id])
         df = pd.concat([self._df, df_new], axis=0)
         df = df[~df.index.duplicated(keep="last")]
-        self._df = df
+        self._df = df.sort_index()
         self._dirty = True
 
     def add_datasets(self, datasets: List[DatasetRecord]) -> None:
@@ -134,7 +141,7 @@ class Datasets(ContextManager['Datasets']):
         df_new.set_index(["collection_name", "dataset_name"], inplace=True)
         df = pd.concat([self._df, df_new], axis=0)
         df = df[~df.index.duplicated(keep="last")]
-        self._df = df
+        self._df = df.sort_index()
         self._dirty = True
 
     def refresh(self, force: bool = False) -> None:
@@ -142,7 +149,8 @@ class Datasets(ContextManager['Datasets']):
         if not force and self._dirty:
             raise Exception("There are unsaved changes in memory that would get lost by reading from disk again!")
         else:
-            self._df = pd.read_csv(self._filepath, index_col=["collection_name", "dataset_name"])
+            df = pd.read_csv(self._filepath, index_col=["collection_name", "dataset_name"])
+            self._df = df.sort_index()
 
     def save(self) -> None:
         """
@@ -171,7 +179,7 @@ class Datasets(ContextManager['Datasets']):
                input_type: Optional[str] = None
                ) -> List[DatasetId]:
         """
-        Returns a list of dataset identifiers from the benchmark dataset collection whose datasets match all of the
+        Returns a list of dataset identifiers from the benchmark dataset collection whose datasets match **all** of the
         given conditions.
 
         :param collection_name: restrict datasets to a specific collection
@@ -190,7 +198,10 @@ class Datasets(ContextManager['Datasets']):
 
         # TODO: search custom datasets
         # if collection_name == "custom":
-        # else:
+        # zip dataset names with "custom" and if dataset_name filter them
+        # else
+        # if dataset_name in self._custom_datasets.get_dataset_names():
+        # find matching custom datasets (rather use try-except KeyError)
 
         selectors: List[np.ndarray] = []
         if dataset_type is not None:
@@ -206,14 +217,17 @@ class Datasets(ContextManager['Datasets']):
         default_mask = np.full(len(self._df), True)
         mask = reduce(lambda x, y: np.logical_and(x, y), selectors, default_mask)
 
-        return self._df[mask].loc[(slice(collection_name), slice(dataset_name)), :].index.to_list()
+        return (self._df[mask]
+                .loc[(slice(collection_name, collection_name), slice(dataset_name, dataset_name)), :]
+                .index
+                .to_list())
 
     def df(self) -> pd.DataFrame:
         """Returns a copy of the internal dataset metadata collection."""
-
-        # TODO: append custom datasets first
-        both = self._df.copy()
-        return both
+        df = pd.concat([self._df, self._build_custom_df()], axis=0)
+        df = df[~df.index.duplicated(keep="last")]
+        df = df.sort_index()
+        return df
 
     def load_custom_datasets(self, file_path: Union[str, Path]) -> None:
         raise NotImplementedError()
@@ -221,11 +235,9 @@ class Datasets(ContextManager['Datasets']):
     def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Optional[Path]:
         collection_name, dataset_name = dataset_id
         if collection_name == "custom":
-            test_path, train_path = self._custom_datasets.get_path(dataset_name)
-            if train:
-                return train_path
-            else:
-                return test_path
+            data_path, label_path = self._custom_datasets.get_path(dataset_name)
+            # FIXME: What about the labels? How to deal with train datasets?
+            return data_path
         else:
             if train:
                 return self._filepath.parent / self._get_value_internal(dataset_id, "train_path")
@@ -233,9 +245,18 @@ class Datasets(ContextManager['Datasets']):
                 return self._filepath.parent / self._get_value_internal(dataset_id, "test_path")
 
     def get_dataset_df(self, dataset_id: DatasetId, train: bool = False) -> pd.DataFrame:
-        path = self.get_dataset_path(dataset_id, train)
-        return pd.read_csv(path)
+        collection_name, dataset_name = dataset_id
+        if collection_name == "custom":
+            return self._custom_datasets.load_df(dataset_name)
+        else:
+            path = self.get_dataset_path(dataset_id, train)
+            #b = self._df.loc[dataset_id, "datetime_index"]
+            return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
 
     def get_dataset_ndarray(self, dataset_id: DatasetId, train: bool = False) -> np.ndarray:
-        path = self.get_dataset_path(dataset_id, train)
-        return np.genfromtxt(path, delimiter=",", skip_header=1)
+        collection_name, dataset_name = dataset_id
+        if collection_name == "custom":
+            return self._custom_datasets.load_df(dataset_name).to_numpy()
+        else:
+            path = self.get_dataset_path(dataset_id, train)
+            return np.genfromtxt(path, delimiter=",", skip_header=1)
