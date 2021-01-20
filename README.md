@@ -176,7 +176,6 @@ They can directly be used using the dataset manager `Datasets`:
 ```python
 from timeeval import Datasets
 
-# Directly during initialization
 dm = Datasets("data_folder")
 datasets = dm.select()
 ```
