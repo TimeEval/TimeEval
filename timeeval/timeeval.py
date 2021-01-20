@@ -77,11 +77,14 @@ class TimeEval:
 
     def _run_w_loaded_data(self, algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: Tuple[str, str]):
         try:
+            future_result: Optional[Future] = None
+            result: Optional[Dict] = None
+
             if self.distributed:
-                result = self.remote.add_task(TimeEval.evaluate, algorithm, dataset, dataset_name)
+                future_result = self.remote.add_task(TimeEval.evaluate, algorithm, dataset, dataset_name)
             else:
                 result = TimeEval.evaluate(algorithm, dataset, dataset_name)
-            self._record_results(algorithm.name, dataset_name, result)
+            self._record_results(algorithm.name, dataset_name, result, future_result)
 
         except Exception as e:
             logging.error(f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
@@ -105,12 +108,16 @@ class TimeEval:
             "postprocess_time": times.post
         }
 
-    def _record_results(self, algorithm_name: str, dataset_name: Tuple[str, str], result: Union[Dict, Future]):
+    def _record_results(self,
+                        algorithm_name: str,
+                        dataset_name: Tuple[str, str],
+                        result: Optional[Dict] = None,
+                        future_result: Optional[Future] = None):
         new_row = dict(algorithm=algorithm_name, collection=dataset_name[0], dataset=dataset_name[1])
-        if type(result) == dict:
+        if result is not None and future_result is None:
             new_row.update(result)
-        else:
-            new_row.update(dict(future_result=result))
+        elif result is None and future_result is not None:
+            new_row.update(dict(future_result=future_result))
         self.results = self.results.append(new_row, ignore_index=True)
 
     def _get_future_results(self):

@@ -15,8 +15,9 @@ class Remote:
         self.client = Client(self.cluster)
 
     def add_task(self, task: Callable, *args) -> Future:
-        if self.cluster is None:
+        if self.client is None:
             self._start_cluster()
+        assert self.client is not None
         future = self.client.submit(task, *args)
         self.futures.append(future)
         return future
