@@ -4,15 +4,14 @@ from dask.distributed import Client, SSHCluster
 
 
 class Remote:
-    def __init__(self, hosts: List[str], threads_per_worker: int = 1):
-        self.hosts = hosts
-        self.threads_per_worker = threads_per_worker
+    def __init__(self, **kwargs):
+        self.ssh_cluster_kwargs = kwargs or dict()
         self.client: Optional[Client] = None
         self.cluster: Optional[SSHCluster] = None
         self.futures: List[Future] = []
 
     def _start_cluster(self):
-        self.cluster = SSHCluster(hosts=self.hosts, worker_options={"threads": self.threads_per_worker})
+        self.cluster = SSHCluster(**self.ssh_cluster_kwargs)
         self.client = Client(self.cluster)
 
     def add_task(self, task: Callable, *args) -> Future:

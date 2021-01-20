@@ -44,19 +44,17 @@ class TimeEval:
                  datasets: List[Tuple[str, str]],
                  algorithms: List[Algorithm],
                  distributed: bool = False,
-                 remote_hosts: Optional[List[str]] = None,
-                 threads_per_worker: int = 1):
+                 ssh_cluster_kwargs: Optional[dict] = None):
         self.dataset_names = datasets
         self.algorithms = algorithms
         self.dmgr = dataset_mgr
 
         self.distributed = distributed
-        self.remote_hosts = remote_hosts
-        self.threads_per_worker = threads_per_worker
+        self.cluster_kwargs = ssh_cluster_kwargs or dict()
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
 
         if self.distributed:
-            self.remote = Remote(self.remote_hosts, self.threads_per_worker)
+            self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
 
     def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
