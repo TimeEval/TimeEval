@@ -68,15 +68,73 @@ pytest
 
 ## Usage
 
+**tl;dr**
+
+```python
+from timeeval import TimeEval, Datasets, Algorithm
+import numpy as np
+
+# Load dataset metadata
+dm = Datasets("data_folder")
+
+# Define algorithm
+def my_algorithm(data: np.ndarray) -> np.ndarray:
+    return np.zeros_like(data)
+
+# Select datasets and algorithms
+datasets = dm.select(collection_name="NAB")
+algorithms = [
+    # Add algorithms to evaluate...
+    Algorithm(
+        name="MyAlgorithm",
+        function=my_algorithm,
+        data_as_file=False
+    )
+]
+timeeval = TimeEval(dm, datasets, algorithms)
+
+# execute evaluation
+timeeval.run()
+
+# retrieve results
+print(timeeval.results)
+```
+
 ### Datasets
 
-A single dataset should be provided in a/two (with labels) Numpy-readable text file. The labels must be in a separate text file. Hereby, the label file can either contain the actual labels for each point in the data file or only the line indices of the anomalies.
+TimeEval uses a canonical file format for datasets.
+Existing datasets in another format must first be transformed into the canonical format before they can be used with TimeEval.
 
-Moreover, a single file can be used. It should be a csv without header having the label column at the most right and all data columns at the left.
+#### Canonical file format
 
-#### Example
+TimeEval's canonical file format is based on CSV.
+Each file requires a header, cells (values) are separated by commas (decimal seperator is `.`), and records are separated by newlines (unix-style LF: `\n`).
+The first column of the dataset is its index, either in integer- or datetime-format (multiple timestamp-formats are supported but [RFC 3339](https://tools.ietf.org/html/rfc3339) is preferred, e.g. `2017-03-22 15:16:45.433502912`).
+The index follows a single or multiple (if multivariate dataset) time series columns.
+The last column contains the annotations, `0` for normal points and `1` for anomalies.
+
+```csv
+timestamp,value,is_anomaly
+0,12751.0,1
+1,8767.0,0
+2,7005.0,0
+3,5257.0,0
+4,4189.0,0
+```
+
+#### Dataset preprocessing
+
+Datasets in different formats should be transformed in TimeEval's canonical file format.
+TimeEval provides a utility to perform this transformation: [`preprocess_datasets.py`](./timeeval/utils/preprocess_dataset.py).
+
+A single dataset can be provided in two Numpy-readable text files.
+The first text file contains the data.
+The labels must be in a separate text file.
+Hereby, the label file can either contain the actual labels for each point in the data file or only the line indices of the anomalies.
+Example source data files:
 
 Data file
+
 ```csv
 12751.0
 8767.0
@@ -86,6 +144,7 @@ Data file
 ```
 
 Labels file (actual labels)
+
 ```csv
 1
 0
@@ -94,54 +153,80 @@ Labels file (actual labels)
 0
 ```
 
-or Labels file (line indices)
+Labels file (line indices)
+
 ```csv
-0
+3
+4
 ```
 
-or Combined Dataset file
-```csv
-12751.0,1
-8767.0,0
-7005.0,0
-5257.0,0
-4189.0,0
+[`preprocess_datasets.py`](./timeeval/utils/preprocess_dataset.py) automatically generates the index column using an auto-incrementing integer value.
+The integer value can be substituted with a corresponding timestamp (auto-incrementing value is used as a time unit, such as seconds `s` or hours `h` from the unix epoch).
+See the tool documentation for further information:
+
+```bash
+python timeeval/utils/preprocess_dataset.py --help
 ```
 
-#### Registering Dataset
+#### Registering datasets
 
-To tell the TimeEval tool where it can find which dataset, a configuration file is needed that contains all required datasets organized by their identifier which is used later on.
+TimeEval comes with its own collection of benchmark datasets (**currently not included**, find them at `odin01:/home/projects/akita/data/benchmark-data`).
+They can directly be used using the dataset manager `Datasets`:
 
-An element in the config file can either contain two different file paths for data and labels files, or use one combined file.
+```python
+from timeeval import Datasets
 
-Config file
+# Directly during initialization
+dm = Datasets("data_folder")
+datasets = dm.select()
+```
+
+TimeEval can also use **custom datasets** for the evaluation.
+To tell the TimeEval tool where it can find those custom datasets, a configuration file is needed.
+The custom datasets config file contains all custom datasets organized by their identifier which is used later on.
+Each entry in the config file must contain the path to the dataset and its dedication (usable for training or for testing);
+example file `datasets.json`:
+
 ```json
 {
   "dataset_name": {
-    "data": "dataset.ts",
-    "labels": "labels.txt"
+    "data": "path/to/data.ts",
+     "train_type": "test"
   },
   "other_dataset": {
-    "dataset": "dataset2.csv"
+    "dataset": "dataset2.csv",
+     "train_type": "test"
   }
 }
+```
+
+You can add custom datasets to the dataset manager using two ways:
+
+```python
+from timeeval import Datasets
+
+# Directly during initialization
+dm = Datasets("data_folder", custom_datasets_file="path/to/custom/datasets.json")
+
+# Later on
+dm = Datasets("data_folder")
+dm.load_custom_datasets("path/to/custom/datasets.json")
 ```
 
 ### Algorithms
 
 Any algorithm that can be called with a numpy array as parameter and a numpy array as return value can be evaluated. However, so far only __unsupervised__ algorithms are supported.
 
-#### Registering Algorithm
+#### Registering algorithm
 
 ```python
-from timeeval import TimeEval, Algorithm
-from pathlib import Path
+from timeeval import TimeEval, Datasets, Algorithm
 import numpy as np
 
 def my_algorithm(data: np.ndarray) -> np.ndarray:
     return np.zeros_like(data)
 
-datasets = ["webscope", "mba", "eeg"]
+datasets = [("WebscopeS5","A1Benchmark-1")]
 algorithms = [
     # Add algorithms to evaluate...
     Algorithm(
@@ -151,7 +236,5 @@ algorithms = [
     )
 ]
 
-timeeval = TimeEval(datasets, algorithms, dataset_config=Path("dataset.json"))
-timeeval.run()
-print(timeeval.results)
+timeeval = TimeEval(Datasets("data_folder"), datasets, algorithms)
 ```
