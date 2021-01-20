@@ -5,8 +5,9 @@ import numpy as np
 from pathlib import Path
 from typing import Callable, List
 from asyncio import Future
+from itertools import cycle
 
-from timeeval import TimeEval, Algorithm
+from timeeval import TimeEval, Algorithm, Datasets
 
 
 def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
@@ -45,10 +46,10 @@ class MockClient:
         pass
 
 
-class TestTimeEval(unittest.TestCase):
+class TestDistributedTimeEval(unittest.TestCase):
     def setUp(self) -> None:
         self.results = pd.read_csv("tests/example_data/results.csv")
-        self.algorithm = [
+        self.algorithms = [
             Algorithm(name="deviating_from_mean", function=deviating_from_mean, data_as_file=False),
             Algorithm(name="deviating_from_median", function=deviating_from_median, data_as_file=False)
         ]
@@ -59,9 +60,10 @@ class TestTimeEval(unittest.TestCase):
         mock_client.return_value = MockClient()
         mock_cluster.return_value = MockCluster()
 
-        timeeval = TimeEval(self.results.dataset.unique(), self.algorithm,
-                            dataset_config=Path("tests/example_data/datasets.json"),
-                            distributed=True)
+        datasets_config = Path("./tests/example_data/datasets.json")
+        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+
+        timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms, distributed=True)
         timeeval.run()
         np.testing.assert_array_equal(timeeval.results.values[:, :-3], self.results.values[:, :-3])
 

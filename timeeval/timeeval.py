@@ -1,12 +1,12 @@
+import logging
+import time
+from pathlib import Path
+from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
 from distributed.client import Future
 
 import numpy as np
 import pandas as pd
-from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
 import tqdm
-from pathlib import Path
-import logging
-import time
 
 from .remote import Remote
 from timeeval.datasets import Datasets
@@ -37,44 +37,47 @@ def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
 
 
 class TimeEval:
+    RESULT_KEYS = ("algorithm", "collection", "dataset", "score", "preprocess_time", "main_time", "postprocess_time")
+
     def __init__(self,
-                 datasets: List[str],
+                 dataset_mgr: Datasets,
+                 datasets: List[Tuple[str, str]],
                  algorithms: List[Algorithm],
-                 dataset_config: Path,
                  distributed: bool = False,
                  remote_hosts: Optional[List[str]] = None,
                  threads_per_worker: int = 1):
         self.dataset_names = datasets
         self.algorithms = algorithms
-        self.dataset_config = dataset_config
+        self.dmgr = dataset_mgr
+
         self.distributed = distributed
         self.remote_hosts = remote_hosts
         self.threads_per_worker = threads_per_worker
-        self.results = pd.DataFrame(columns=("algorithm", "dataset", "score", "preprocess_time", "main_time", "postprocess_time"))
+        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
 
         if self.distributed:
             self.remote = Remote(self.remote_hosts, self.threads_per_worker)
             self.results["future_result"] = np.nan
 
-    def _load_dataset(self, name) -> pd.DataFrame:
-        return Datasets(name).load(self.dataset_config)
+    def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
+        return self.dmgr.get_dataset_df(name)
 
-    def _get_dataset_path(self, name) -> Tuple[Path, Optional[Path]]:
-        return Datasets(name).get_path(self.dataset_config)
+    def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
+        return self.dmgr.get_dataset_path(name, train=False)
 
     def _run_algorithm(self, algorithm: Algorithm):
         for dataset_name in tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name}", position=1):
             if algorithm.data_as_file:
-                dataset_file, label_file = self._get_dataset_path(dataset_name)
-                self._run_from_data_file(algorithm, dataset_file, label_file, dataset_name)
+                dataset_file = self._get_dataset_path(dataset_name)
+                self._run_from_data_file(algorithm, dataset_file, dataset_name)
             else:
                 dataset = self._load_dataset(dataset_name)
                 self._run_w_loaded_data(algorithm, dataset, dataset_name)
 
-    def _run_from_data_file(self, algorithm: Algorithm, dataset_file: Path, label_file: Optional[Path], dataset_name: str):
+    def _run_from_data_file(self, algorithm: Algorithm, dataset_file: Path, dataset_name: str):
         raise NotImplementedError()
 
-    def _run_w_loaded_data(self, algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: str):
+    def _run_w_loaded_data(self, algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: Tuple[str, str]):
         try:
             if self.distributed:
                 result = self.remote.add_task(TimeEval.evaluate, algorithm, dataset, dataset_name)
@@ -87,7 +90,7 @@ class TimeEval:
             logging.error(str(e))
 
     @staticmethod
-    def evaluate(algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: str) -> Dict:
+    def evaluate(algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: Tuple[str, str]) -> Dict:
         y_true = dataset.values[:, -1]
         if dataset.shape[1] > 3:
             X = dataset.values[:, 1:-1]
@@ -104,8 +107,8 @@ class TimeEval:
             "postprocess_time": times.post
         }
 
-    def _record_results(self, algorithm_name: str, dataset_name: str, result: Union[Dict, Future]):
-        new_row = dict(algorithm=algorithm_name, dataset=dataset_name)
+    def _record_results(self, algorithm_name: str, dataset_name: Tuple[str, str], result: Union[Dict, Future]):
+        new_row = dict(algorithm=algorithm_name, collection=dataset_name[0], dataset=dataset_name[1])
         if type(result) == dict:
             new_row.update(result)
         else:

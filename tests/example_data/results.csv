@@ -1,7 +1,5 @@
-algorithm,dataset,score,preprocessing_time,main_time,postprocessing_time
-deviating_from_mean,dataset.1,0.8102250625173659,,0.0009088516235351562,
-deviating_from_mean,dataset.2,0.8102250625173659,,0.0008380413055419922,
-deviating_from_mean,dataset.3,0.8102250625173659,,0.0007221698760986328,
-deviating_from_median,dataset.1,0.8466240622395109,,0.0009541511535644531,
-deviating_from_median,dataset.2,0.8466240622395109,,0.0008330345153808594,
-deviating_from_median,dataset.3,0.8466240622395109,,0.0007898807525634766,
+algorithm,collection,dataset,score,preprocessing_time,main_time,postprocessing_time
+deviating_from_mean,custom,dataset.1,0.8102250625173659,,0.0009088516235351562,
+deviating_from_mean,custom,dataset.3,0.8102250625173659,,0.0007221698760986328,
+deviating_from_median,custom,dataset.1,0.8466240622395109,,0.0009541511535644531,
+deviating_from_median,custom,dataset.3,0.8466240622395109,,0.0007898807525634766,

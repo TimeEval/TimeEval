@@ -1,4 +1,5 @@
 import unittest
+
 import numpy as np
 
 from timeeval.utils.window import ReverseWindowing

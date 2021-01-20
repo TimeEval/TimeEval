@@ -1,0 +1,22 @@
+{
+  "deviating_from_mean": {
+    "dataset.4": {
+      "auroc": 0.711864406779661,
+      "times": {
+        "pre": null,
+        "main": 0.0015735626220703125,
+        "post": null
+      }
+    }
+  },
+  "deviating_from_median": {
+    "dataset.4": {
+      "auroc": 0.7666018338427341,
+      "times": {
+        "pre": null,
+        "main": 0.0018236637115478516,
+        "post": null
+      }
+    }
+  }
+}
