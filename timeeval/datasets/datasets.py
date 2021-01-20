@@ -16,7 +16,7 @@ class DatasetRecord(NamedTuple):
     dataset_name: str
     train_path: Optional[str]
     test_path: str
-    type: str
+    dataset_type: str
     datetime_index: bool
     split_at: int
     train_type: str
@@ -78,7 +78,7 @@ class Datasets(ContextManager['Datasets']):
 
     def _create_metadata_file(self) -> pd.DataFrame:
         df_temp = pd.DataFrame(
-            columns=["dataset_name", "collection_name", "train_path", "test_path", "type", "datetime_index", "split_at",
+            columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index", "split_at",
                      "train_type", "train_is_normal", "input_type", "length"])
         df_temp.set_index(["collection_name", "dataset_name"], inplace=True)
         dataset_dir = self._filepath.parent
@@ -133,7 +133,7 @@ class Datasets(ContextManager['Datasets']):
         df_new = pd.DataFrame({
             "train_path": train_path,
             "test_path": test_path,
-            "type": dataset_type,
+            "dataset_type": dataset_type,
             "datetime_index": datetime_index,
             "split_at": split_at,
             "train_type": train_type,
@@ -232,7 +232,7 @@ class Datasets(ContextManager['Datasets']):
             df = self._df  # self.df()
             selectors: List[np.ndarray] = []
             if dataset_type is not None:
-                selectors.append(df["type"] == dataset_type)
+                selectors.append(df["dataset_type"] == dataset_type)
             if datetime_index is not None:
                 selectors.append(df["datetime_index"] == datetime_index)
             if train_type is not None:

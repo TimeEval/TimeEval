@@ -7,7 +7,7 @@ import pytest
 
 from timeeval import Datasets, DatasetRecord
 
-header = "collection_name,dataset_name,train_path,test_path,type,datetime_index,split_at,train_type,train_is_normal,input_type,length"
+header = "collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length"
 content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032"
 content_test = "test-collection,test_dataset,path_train.csv,path_test.csv,real,True,,supervised,True,univariate,12"
 nab_record = DatasetRecord(
@@ -15,7 +15,7 @@ nab_record = DatasetRecord(
     dataset_name="art_daily_no_noise",
     train_path=None,
     test_path="data-processed/univariate/NAB/art_daily_no_noise.test.csv",
-    type="synthetic",
+    dataset_type="synthetic",
     datetime_index=True,
     split_at=np.nan,
     train_type="unsupervised",
@@ -28,7 +28,7 @@ test_record = DatasetRecord(
     dataset_name="test_dataset",
     train_path="path_train.csv",
     test_path="path_test.csv",
-    type="real",
+    dataset_type="real",
     datetime_index=True,
     split_at=np.nan,
     train_type="supervised",
@@ -83,7 +83,7 @@ def _add_dataset(dm):
         dataset_id=(test_record.collection_name, test_record.dataset_name),
         train_path=test_record.train_path,
         test_path=test_record.test_path,
-        dataset_type=test_record.type,
+        dataset_type=test_record.dataset_type,
         datetime_index=test_record.datetime_index,
         split_at=test_record.split_at,
         train_type=test_record.train_type,
@@ -193,7 +193,7 @@ def test_select_name(tmp_path):
 
 
 def test_select_dataset_type(tmp_path):
-    names = _test_select_helper(tmp_path, dataset_type=nab_record.type)
+    names = _test_select_helper(tmp_path, dataset_type=nab_record.dataset_type)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
 
