@@ -1,11 +1,12 @@
-import numpy as np
-import pandas as pd
-from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
-from collections import defaultdict
-import tqdm
-from pathlib import Path
 import logging
 import time
+from collections import defaultdict
+from pathlib import Path
+from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
+
+import numpy as np
+import pandas as pd
+import tqdm
 
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
@@ -36,31 +37,31 @@ def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
 
 class TimeEval:
     def __init__(self,
-                 datasets: List[str],
-                 algorithms: List[Algorithm],
-                 dataset_config: Path):
+                 dataset_mgr: Datasets,
+                 datasets: List[Tuple[str, str]],
+                 algorithms: List[Algorithm]):
         self.dataset_names = datasets
         self.algorithms = algorithms
-        self.dataset_config = dataset_config
+        self.dmgr = dataset_mgr
 
         self.results: Dict = defaultdict(dict)
 
-    def _load_dataset(self, name) -> pd.DataFrame:
-        return Datasets(name).load(self.dataset_config)
+    def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
+        return self.dmgr.get_dataset_df(name)
 
-    def _get_dataset_path(self, name) -> Tuple[Path, Optional[Path]]:
-        return Datasets(name).get_path(self.dataset_config)
+    def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
+        return self.dmgr.get_dataset_path(name, train=False)
 
     def _run_algorithm(self, algorithm: Algorithm):
         for dataset_name in tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name}", position=1):
             if algorithm.data_as_file:
-                dataset_file, label_file = self._get_dataset_path(dataset_name)
-                self._run_from_data_file(algorithm, dataset_file, label_file, dataset_name)
+                dataset_file = self._get_dataset_path(dataset_name)
+                self._run_from_data_file(algorithm, dataset_file, dataset_name)
             else:
                 dataset = self._load_dataset(dataset_name)
                 self._run_w_loaded_data(algorithm, dataset, dataset_name)
 
-    def _run_from_data_file(self, algorithm: Algorithm, dataset_file: Path, label_file: Optional[Path], dataset_name: str):
+    def _run_from_data_file(self, algorithm: Algorithm, dataset_file: Path, dataset_name: str):
         raise NotImplementedError()
 
     def _run_w_loaded_data(self, algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: str):
