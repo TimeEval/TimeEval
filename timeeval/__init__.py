@@ -1,1 +1,1 @@
-from .timeeval import TimeEval, Algorithm
+from .timeeval import TimeEval, Algorithm, Datasets
