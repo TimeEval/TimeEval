@@ -16,14 +16,14 @@ class TestTimeEvalExceptions(unittest.TestCase):
         self.datasets = Datasets("./tests/example_data", custom_datasets_file=self.datasets_config)
 
     def test_algorithm_with_file_raises_exception(self):
-        file_algorithm = Algorithm(name="with_file", function=lambda x: x, data_as_file=True)
+        file_algorithm = Algorithm(name="with_file", main=lambda x: x, data_as_file=True)
 
         with self.assertRaises(NotImplementedError):
             timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [file_algorithm])
             timeeval.run()
 
     def test_wrong_df_shape(self):
-        algorithm = Algorithm(name="test", function=lambda x: x, data_as_file=False)
+        algorithm = Algorithm(name="test", main=lambda x: x, data_as_file=False)
         df = pd.DataFrame(np.random.rand(10, 2))
         with self.assertRaises(ValueError):
             TimeEval.evaluate(algorithm, df, ("custom", "test"))
@@ -38,8 +38,8 @@ class TestTimeEvalExceptions(unittest.TestCase):
             raise ValueError()
 
         algorithms = [
-            Algorithm(name="exception", function=exception_algorithm, data_as_file=False),
-            Algorithm(name="test", function=lambda x: x, data_as_file=False)
+            Algorithm(name="exception", main=exception_algorithm, data_as_file=False),
+            Algorithm(name="test", main=lambda x: x, data_as_file=False)
         ]
 
         timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], algorithms)

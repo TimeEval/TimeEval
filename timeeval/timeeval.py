@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
 from distributed.client import Future
+from dataclasses import dataclass, asdict
 
 import numpy as np
 import pandas as pd
@@ -12,20 +13,26 @@ from .remote import Remote
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
 
+TSFunction = Callable[[Union[np.ndarray, Path]], Union[np.ndarray, Path]]
 
-class Algorithm(NamedTuple):
+
+@dataclass
+class Algorithm:
     name: str
-    function: Callable[[Union[np.ndarray, Path]], np.ndarray]
-    data_as_file: bool
+    main: TSFunction
+    preprocess: Optional[TSFunction] = None
+    postprocess: Optional[TSFunction] = None
+    data_as_file: bool = False
 
 
-class Times(NamedTuple):
+@dataclass
+class Times:
     preprocess: Optional[float]
     main: float
     postprocess: Optional[float]
 
     def to_dict(self) -> Dict:
-        return {f"{k}_time": v for k, v in dict(self._asdict()).items()}
+        return {f"{k}_time": v for k, v in dict(asdict(self)).items()}
 
 
 def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
@@ -99,7 +106,7 @@ class TimeEval:
             X = dataset.values[:, 1]
         else:
             raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
-        y_scores, times = timer(algorithm.function, X)
+        y_scores, times = timer(algorithm.main, X)
         score = roc(y_scores, y_true.astype(np.float), plot=False)
         result = dict(score=score)
         result.update(times.to_dict())
