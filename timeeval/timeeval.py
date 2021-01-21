@@ -27,9 +27,9 @@ class Algorithm:
 
 @dataclass
 class Times:
-    preprocess: Optional[float]
     main: float
-    postprocess: Optional[float]
+    preprocess: Optional[float] = None
+    postprocess: Optional[float] = None
 
     def to_dict(self) -> Dict:
         return {f"{k}_time": v for k, v in dict(asdict(self)).items()}
