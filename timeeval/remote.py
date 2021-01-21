@@ -12,7 +12,7 @@ class Remote:
 
     def _start_cluster(self):
         self.cluster = SSHCluster(**self.ssh_cluster_kwargs)
-        self.client = Client(self.cluster)
+        self.client = Client(self.cluster.scheduler_address)
 
     def add_task(self, task: Callable, *args) -> Future:
         if self.client is None:
@@ -26,5 +26,6 @@ class Remote:
         self.client.gather(self.futures)
 
     def close(self):
+        self.client.shutdown()
         self.client.close()
         self.cluster.close()
