@@ -20,12 +20,12 @@ class Algorithm(NamedTuple):
 
 
 class Times(NamedTuple):
-    pre: Optional[float]
+    preprocess: Optional[float]
     main: float
-    post: Optional[float]
+    postprocess: Optional[float]
 
     def to_dict(self) -> Dict:
-        return dict(self._asdict())
+        return {f"{k}_time": v for k, v in dict(self._asdict()).items()}
 
 
 def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
@@ -33,7 +33,7 @@ def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
     fn_result = fn(*args, **kwargs)
     end = time.time()
     duration = end - start
-    return fn_result, Times(pre=None, main=duration, post=None)
+    return fn_result, Times(preprocess=None, main=duration, postprocess=None)
 
 
 class TimeEval:
@@ -101,12 +101,9 @@ class TimeEval:
             raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
         y_scores = algorithm.function(X)
         score, times = timer(roc, y_scores, y_true.astype(np.float), plot=False)
-        return {
-            "score": score,
-            "preprocess_time": times.pre,
-            "main_time": times.main,
-            "postprocess_time": times.post
-        }
+        result = dict(score=score)
+        result.update(times.to_dict())
+        return result
 
     def _record_results(self,
                         algorithm_name: str,
