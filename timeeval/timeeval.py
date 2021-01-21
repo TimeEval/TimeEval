@@ -99,8 +99,8 @@ class TimeEval:
             X = dataset.values[:, 1]
         else:
             raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
-        y_scores = algorithm.function(X)
-        score, times = timer(roc, y_scores, y_true.astype(np.float), plot=False)
+        y_scores, times = timer(algorithm.function, X)
+        score = roc(y_scores, y_true.astype(np.float), plot=False)
         result = dict(score=score)
         result.update(times.to_dict())
         return result
