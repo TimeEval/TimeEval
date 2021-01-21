@@ -1,4 +1,5 @@
-image: conda/miniconda3
+# akita conda runner uses the following image by default:
+# image: continuumio/miniconda3:4.9.2
 
 stages:
   - test
@@ -20,6 +21,7 @@ workflow:
       when: never
 
 before_script:
+  - export PIP_CACHE_DIR="/opt/cache/pip"
   - echo "Setting up conda environment and installing dependencies"
   - conda env create -n timeeval -f environment.yml
   - source activate timeeval
@@ -28,12 +30,18 @@ before_script:
 test:
   stage: test
   interruptible: true
+  tags:
+    - akita
+    - conda
   script:
     - python setup.py typecheck
     - python setup.py test
 
 build:
   stage: build
+  tags:
+    - akita
+    - conda
   only:
     - tags
   script:
@@ -45,6 +53,9 @@ build:
 
 deploy:
   stage: deploy
+  tags:
+    - akita
+    - conda
   only:
     - tags
   script:
