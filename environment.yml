@@ -1,4 +1,4 @@
-name: timeeval
+name: "timeeval"
 channels:
   - conda-forge
   - defaults
@@ -11,3 +11,5 @@ dependencies:
   - pandas
   - pip:
       - tqdm==4.54.*
+      - dask[distributed]==2021.1.*
+      - asyncssh==2.5.*

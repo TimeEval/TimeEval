@@ -1,0 +1,3 @@
+algorithm,collection,dataset,score,preprocessing_time,main_time,postprocessing_time
+deviating_from_mean,custom,dataset.4,0.711864406779661,,0.0015735626220703125,
+deviating_from_median,custom,dataset.4,0.7666018338427341,,0.0018236637115478516,
