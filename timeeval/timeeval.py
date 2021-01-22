@@ -32,7 +32,7 @@ class Times:
     postprocess: Optional[float] = None
 
     def to_dict(self) -> Dict:
-        return {f"{k}_time": v for k, v in dict(asdict(self)).items()}
+        return {f"{k}_time": v for k, v in asdict(self).items()}
 
 
 class Status(Enum):
