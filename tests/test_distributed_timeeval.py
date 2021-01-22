@@ -25,6 +25,9 @@ def deviating_from_median(data: np.ndarray) -> np.ndarray:
 
 
 class MockCluster:
+    def __init__(self):
+        self.scheduler_address = "localhost:8000"
+
     def close(self) -> None:
         pass
 
@@ -43,6 +46,9 @@ class MockClient:
         pass
 
     def close(self) -> None:
+        pass
+
+    def shutdown(self) -> None:
         pass
 
 
