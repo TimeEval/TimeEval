@@ -107,6 +107,8 @@ class TimeEval:
             self._record_results(algorithm.name, dataset_name, result, future_result)
 
         except Exception as e:
+            logging.error(f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
+            logging.error(str(e))
             self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
 
     @staticmethod
