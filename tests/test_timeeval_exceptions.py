@@ -1,13 +1,10 @@
 import unittest
-from unittest.mock import patch
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from typing import Callable, List
-from asyncio import Future
-from itertools import cycle
 
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.timeeval import Status
 
 
 class TestTimeEvalExceptions(unittest.TestCase):
@@ -34,8 +31,10 @@ class TestTimeEvalExceptions(unittest.TestCase):
             timeeval.run()
 
     def test_evaluation_continues_after_exception_in_algorithm(self):
+        ERROR_MESSAGE = "error message test"
+
         def exception_algorithm(_x):
-            raise ValueError()
+            raise ValueError(ERROR_MESSAGE)
 
         algorithms = [
             Algorithm(name="exception", main=exception_algorithm, data_as_file=False),
@@ -47,6 +46,5 @@ class TestTimeEvalExceptions(unittest.TestCase):
 
         r = timeeval.results
 
-        self.assertEqual(r.shape[0], 1)
-        self.assertEqual(r[r.algorithm == "exception"].shape[0], 0)
-        self.assertEqual(r[r.algorithm == "test"].shape[0], 1)
+        self.assertEqual(r[r.algorithm == "exception"].iloc[0].status, Status.ERROR.name)
+        self.assertEqual(r[r.algorithm == "exception"].iloc[0].error_message, ERROR_MESSAGE)

@@ -1,10 +1,9 @@
-import logging
 import time
 from pathlib import Path
-from typing import List, Callable, Tuple, Any, NamedTuple, Dict, Union, Optional
+from typing import List, Callable, Tuple, Any, Dict, Union, Optional
 from distributed.client import Future
 from dataclasses import dataclass, asdict
-
+from enum import Enum
 import numpy as np
 import pandas as pd
 import tqdm
@@ -35,6 +34,12 @@ class Times:
         return {f"{k}_time": v for k, v in dict(asdict(self)).items()}
 
 
+class Status(Enum):
+    OK = 0
+    ERROR = 1
+    TIMEOUT = 2  # not yet implemented
+
+
 def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
     start = time.time()
     fn_result = fn(*args, **kwargs)
@@ -44,7 +49,15 @@ def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
 
 
 class TimeEval:
-    RESULT_KEYS = ("algorithm", "collection", "dataset", "score", "preprocess_time", "main_time", "postprocess_time")
+    RESULT_KEYS = ("algorithm",
+                   "collection",
+                   "dataset",
+                   "score",
+                   "preprocess_time",
+                   "main_time",
+                   "postprocess_time",
+                   "status",
+                   "error_message")
 
     def __init__(self,
                  dataset_mgr: Datasets,
@@ -57,7 +70,7 @@ class TimeEval:
         self.dmgr = dataset_mgr
 
         self.distributed = distributed
-        self.cluster_kwargs = ssh_cluster_kwargs or dict()
+        self.cluster_kwargs = ssh_cluster_kwargs or {}
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
 
         if self.distributed:
@@ -94,8 +107,7 @@ class TimeEval:
             self._record_results(algorithm.name, dataset_name, result, future_result)
 
         except Exception as e:
-            logging.error(f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
-            logging.error(str(e))
+            self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
 
     @staticmethod
     def evaluate(algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: Tuple[str, str]) -> Dict:
@@ -108,7 +120,7 @@ class TimeEval:
             raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
         y_scores, times = timer(algorithm.main, X)
         score = roc(y_scores, y_true.astype(np.float), plot=False)
-        result = dict(score=score)
+        result = {"score": score}
         result.update(times.to_dict())
         return result
 
@@ -116,13 +128,22 @@ class TimeEval:
                         algorithm_name: str,
                         dataset_name: Tuple[str, str],
                         result: Optional[Dict] = None,
-                        future_result: Optional[Future] = None):
-        new_row = dict(algorithm=algorithm_name, collection=dataset_name[0], dataset=dataset_name[1])
+                        future_result: Optional[Future] = None,
+                        status: Status = Status.OK,
+                        error_message: Optional[str] = None):
+        new_row = {
+            "algorithm": algorithm_name,
+            "collection": dataset_name[0],
+            "dataset": dataset_name[1],
+            "status": status.name,
+            "error_message": error_message
+        }
         if result is not None and future_result is None:
             new_row.update(result)
         elif result is None and future_result is not None:
-            new_row.update(dict(future_result=future_result))
+            new_row.update({"future_result": future_result})
         self.results = self.results.append(new_row, ignore_index=True)
+        self.results.replace(to_replace=[None], value=np.nan, inplace=True)
 
     def _get_future_results(self):
         keys = ["score", "preprocess_time", "main_time", "postprocess_time"]

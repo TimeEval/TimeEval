@@ -53,6 +53,9 @@ def generates_results_multi(dataset) -> pd.DataFrame:
 
 class TestImportData(unittest.TestCase):
     def setUp(self) -> None:
+        #  We only compare the columns "algorithm", "collection", "dataset", "score"
+        #  without the time measurements, status and error messages
+        #  (columns: "preprocessing_time", "main_time", "postprocessing_time", "status", "error_messages").
         self.results = pd.read_csv("./tests/example_data/results.csv")
         self.multi_results = pd.read_csv("./tests/example_data/results_multi.csv")
 
@@ -61,16 +64,14 @@ class TestImportData(unittest.TestCase):
         generated_results = generates_results(DATASET)
         true_results = self.results[self.results.dataset == DATASET[1]]
 
-        print(true_results)
-
-        np.testing.assert_array_equal(generated_results.iloc[:, :-3].values, true_results.iloc[:, :-3].values)
+        np.testing.assert_array_equal(generated_results.iloc[:, :4].values, true_results.iloc[:, :4].values)
 
     def test_generates_correct_results_from_multi_file(self):
         DATASET = ("custom", "dataset.4")
         generated_results = generates_results_multi(DATASET)
         true_results = self.multi_results[self.multi_results.dataset == DATASET[1]]
 
-        np.testing.assert_array_equal(generated_results.iloc[:, :-3].values, true_results.iloc[:, :-3].values)
+        np.testing.assert_array_equal(generated_results.iloc[:, :4].values, true_results.iloc[:, :4].values)
 
 
 if __name__ == "__main__":

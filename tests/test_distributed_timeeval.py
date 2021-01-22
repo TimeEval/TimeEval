@@ -25,6 +25,9 @@ def deviating_from_median(data: np.ndarray) -> np.ndarray:
 
 
 class MockCluster:
+    def __init__(self):
+        self.scheduler_address = "localhost:8000"
+
     def close(self) -> None:
         pass
 
@@ -43,6 +46,9 @@ class MockClient:
         pass
 
     def close(self) -> None:
+        pass
+
+    def shutdown(self) -> None:
         pass
 
 
@@ -65,5 +71,5 @@ class TestDistributedTimeEval(unittest.TestCase):
 
         timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms, distributed=True)
         timeeval.run()
-        np.testing.assert_array_equal(timeeval.results.values[:, :-3], self.results.values[:, :-3])
+        np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
 

@@ -2,8 +2,10 @@ import sys
 import pytest
 import pathlib
 from distutils.cmd import Command
+from distutils.errors import DistutilsError
 from setuptools import setup, find_packages
 from mypy.main import main as mypy
+from pytest import ExitCode
 
 README = (pathlib.Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 
@@ -19,7 +21,18 @@ class PyTestCommand(Command):
         pass
 
     def run(self) -> None:
-        pytest.main(["--cov=timeeval", "-x", "tests"])
+        exit_code = pytest.main(["--cov=timeeval", "-x", "tests"])
+        if exit_code == ExitCode.TESTS_FAILED:
+            raise DistutilsError("Tests failed!")
+        elif exit_code == ExitCode.INTERRUPTED:
+            raise DistutilsError("pytest was interrupted!")
+        elif exit_code == ExitCode.INTERNAL_ERROR:
+            raise DistutilsError("pytest internal error!")
+        elif exit_code == ExitCode.USAGE_ERROR:
+            raise DistutilsError("Pytest was not correctly used!")
+        elif exit_code == ExitCode.NO_TESTS_COLLECTED:
+            raise DistutilsError("No tests found!")
+        # else: everything is fine
 
 
 class MyPyCheckCommand(Command):
