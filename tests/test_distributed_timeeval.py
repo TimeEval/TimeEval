@@ -56,8 +56,8 @@ class TestDistributedTimeEval(unittest.TestCase):
     def setUp(self) -> None:
         self.results = pd.read_csv("tests/example_data/results.csv")
         self.algorithms = [
-            Algorithm(name="deviating_from_mean", function=deviating_from_mean, data_as_file=False),
-            Algorithm(name="deviating_from_median", function=deviating_from_median, data_as_file=False)
+            Algorithm(name="deviating_from_mean", main=deviating_from_mean),
+            Algorithm(name="deviating_from_median", main=deviating_from_median)
         ]
 
     @patch("timeeval.remote.Client")

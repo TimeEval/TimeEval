@@ -19,8 +19,8 @@ def generates_results(dataset) -> pd.DataFrame:
         return call
 
     algorithms = [
-        Algorithm(name="deviating_from_mean", function=deviating_from(np.mean), data_as_file=False),
-        Algorithm(name="deviating_from_median", function=deviating_from(np.median), data_as_file=False)
+        Algorithm(name="deviating_from_mean", main=deviating_from(np.mean)),
+        Algorithm(name="deviating_from_median", main=deviating_from(np.median))
     ]
 
     datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
@@ -41,8 +41,8 @@ def generates_results_multi(dataset) -> pd.DataFrame:
         return call
 
     algorithms = [
-        Algorithm(name="deviating_from_mean", function=deviating_from(np.mean), data_as_file=False),
-        Algorithm(name="deviating_from_median", function=deviating_from(np.median), data_as_file=False)
+        Algorithm(name="deviating_from_mean", main=deviating_from(np.mean), data_as_file=False),
+        Algorithm(name="deviating_from_median", main=deviating_from(np.median), data_as_file=False)
     ]
 
     datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
