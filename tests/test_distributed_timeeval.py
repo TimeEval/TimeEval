@@ -71,5 +71,5 @@ class TestDistributedTimeEval(unittest.TestCase):
 
         timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms, distributed=True)
         timeeval.run()
-        np.testing.assert_array_equal(timeeval.results.values[:, :-3], self.results.values[:, :-3])
+        np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
 
