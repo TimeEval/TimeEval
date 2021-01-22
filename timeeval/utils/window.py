@@ -129,19 +129,3 @@ def padding_borders(scores: np.ndarray, input_size: int) -> np.ndarray:
     result = np.zeros(input_size)
     result[padding_size:padding_size+len(scores)] = scores
     return result
-
-
-if __name__ == "__main__":
-    a = np.random.rand(1000000)
-
-    print("Time comparisons")
-    print("------------------")
-    print("vectorize entire")
-    print(timeit.timeit(lambda: ReverseWindowing(window_size=100).fit_transform(a), number=3))
-    print()
-    print("vectorize chunks")
-    print(timeit.timeit(lambda: ReverseWindowing(window_size=100, chunksize=100).fit_transform(a), number=3))
-    print()
-    print("vectorize parallel")
-    print(timeit.timeit(lambda: ReverseWindowing(window_size=100, chunksize=100, n_jobs=5).fit_transform(a), number=3))
-    print()
