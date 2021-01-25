@@ -13,7 +13,9 @@ from .remote import Remote
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
 
-TSFunction = Callable[[Union[np.ndarray, Path]], Union[np.ndarray, Path]]
+AlgorithmParameter = Union[np.ndarray, Path]
+TSFunction = Callable[[AlgorithmParameter], AlgorithmParameter]
+TSFunctionPost = Callable[[AlgorithmParameter], np.ndarray]
 
 
 @dataclass
@@ -21,7 +23,7 @@ class Algorithm:
     name: str
     main: TSFunction
     preprocess: Optional[TSFunction] = None
-    postprocess: Optional[TSFunction] = None
+    postprocess: Optional[TSFunctionPost] = None
     data_as_file: bool = False
 
 
@@ -34,19 +36,26 @@ class Times:
     def to_dict(self) -> Dict:
         return {f"{k}_time": v for k, v in asdict(self).items()}
 
+    @staticmethod
+    def from_algorithm(algorithm: Algorithm, X: AlgorithmParameter) -> Tuple[np.ndarray, 'Times']:
+        x, pre_time = timer(algorithm.preprocess, X) if algorithm.preprocess else (X, None)
+        x, main_time = timer(algorithm.main, x)
+        x, post_time = timer(algorithm.postprocess, x) if algorithm.postprocess else(x, None)
+        return x, Times(main_time, preprocess=pre_time, postprocess=post_time)
+
+
+def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, float]:
+    start = time.time()
+    fn_result = fn(*args, **kwargs)
+    end = time.time()
+    duration = end - start
+    return fn_result, duration
+
 
 class Status(Enum):
     OK = 0
     ERROR = 1
     TIMEOUT = 2  # not yet implemented
-
-
-def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, Times]:
-    start = time.time()
-    fn_result = fn(*args, **kwargs)
-    end = time.time()
-    duration = end - start
-    return fn_result, Times(preprocess=None, main=duration, postprocess=None)
 
 
 class TimeEval:
@@ -84,44 +93,43 @@ class TimeEval:
     def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
         return self.dmgr.get_dataset_path(name, train=False)
 
+    def _get_X_and_y(self, dataset_name: Tuple[str, str], data_as_file: bool = False) -> Tuple[AlgorithmParameter, np.ndarray]:
+        dataset = self._load_dataset(dataset_name)
+        if data_as_file:
+            X = self._get_dataset_path(dataset_name)
+        else:
+            if dataset.shape[1] > 3:
+                X = dataset.values[:, 1:-1]
+            elif dataset.shape[1] == 3:
+                X = dataset.values[:, 1]
+            else:
+                raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
+        y = dataset.values[:, -1]
+        return X, y
+
     def _run_algorithm(self, algorithm: Algorithm):
         for dataset_name in tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name}", position=1):
-            if algorithm.data_as_file:
-                dataset_file = self._get_dataset_path(dataset_name)
-                self._run_from_data_file(algorithm, dataset_file, dataset_name)
-            else:
-                dataset = self._load_dataset(dataset_name)
-                self._run_w_loaded_data(algorithm, dataset, dataset_name)
+            try:
+                future_result: Optional[Future] = None
+                result: Optional[Dict] = None
 
-    def _run_from_data_file(self, algorithm: Algorithm, dataset_file: Path, dataset_name: str):
-        raise NotImplementedError()
+                X, y_true = self._get_X_and_y(dataset_name, data_as_file=algorithm.data_as_file)
 
-    def _run_w_loaded_data(self, algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: Tuple[str, str]):
-        try:
-            future_result: Optional[Future] = None
-            result: Optional[Dict] = None
+                if self.distributed:
+                    future_result = self.remote.add_task(TimeEval.evaluate, algorithm, X, y_true)
+                else:
+                    result = TimeEval.evaluate(algorithm, X, y_true)
+                self._record_results(algorithm.name, dataset_name, result, future_result)
 
-            if self.distributed:
-                future_result = self.remote.add_task(TimeEval.evaluate, algorithm, dataset, dataset_name)
-            else:
-                result = TimeEval.evaluate(algorithm, dataset, dataset_name)
-            self._record_results(algorithm.name, dataset_name, result, future_result)
-
-        except Exception as e:
-            logging.error(f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
-            logging.error(str(e))
-            self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
+            except Exception as e:
+                logging.error(
+                    f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
+                logging.error(str(e))
+                self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
 
     @staticmethod
-    def evaluate(algorithm: Algorithm, dataset: pd.DataFrame, dataset_name: Tuple[str, str]) -> Dict:
-        y_true = dataset.values[:, -1]
-        if dataset.shape[1] > 3:
-            X = dataset.values[:, 1:-1]
-        elif dataset.shape[1] == 3:
-            X = dataset.values[:, 1]
-        else:
-            raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
-        y_scores, times = timer(algorithm.main, X)
+    def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray) -> Dict:
+        y_scores, times = Times.from_algorithm(algorithm, X)
         score = roc(y_scores, y_true.astype(np.float), plot=False)
         result = {"score": score}
         result.update(times.to_dict())

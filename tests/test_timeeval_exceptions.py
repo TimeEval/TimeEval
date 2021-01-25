@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -12,18 +13,14 @@ class TestTimeEvalExceptions(unittest.TestCase):
         self.datasets_config = Path("./tests/example_data/datasets.json")
         self.datasets = Datasets("./tests/example_data", custom_datasets_file=self.datasets_config)
 
-    def test_algorithm_with_file_raises_exception(self):
-        file_algorithm = Algorithm(name="with_file", main=lambda x: x, data_as_file=True)
-
-        with self.assertRaises(NotImplementedError):
-            timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [file_algorithm])
-            timeeval.run()
-
-    def test_wrong_df_shape(self):
+    @patch("timeeval.TimeEval._load_dataset")
+    def test_wrong_df_shape(self, mock_load):
         algorithm = Algorithm(name="test", main=lambda x: x, data_as_file=False)
         df = pd.DataFrame(np.random.rand(10, 2))
-        with self.assertRaises(ValueError):
-            TimeEval.evaluate(algorithm, df, ("custom", "test"))
+        mock_load.side_effect = [df]
+        timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [algorithm])
+        timeeval.run()
+        self.assertTrue("has a shape that was not expected" in timeeval.results.iloc[0].error_message)
 
     def test_no_algorithms(self):
         with self.assertRaises(AssertionError):
