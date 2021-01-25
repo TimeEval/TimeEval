@@ -2,13 +2,19 @@ import unittest
 import numpy as np
 import pandas as pd
 from typing import Callable
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath
 
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.timeeval import AlgorithmParameter
 
 
-def generates_results(dataset) -> pd.DataFrame:
+def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
+
+    def preprocess(x: AlgorithmParameter) -> np.ndarray:
+        if isinstance(x, (PosixPath, WindowsPath)):
+            x = pd.read_csv(x).values[:, 1:-1]
+        return x
 
     def deviating_from(fn: Callable) -> Callable[[np.ndarray], np.ndarray]:
         def call(data: np.ndarray) -> np.ndarray:
@@ -19,8 +25,8 @@ def generates_results(dataset) -> pd.DataFrame:
         return call
 
     algorithms = [
-        Algorithm(name="deviating_from_mean", main=deviating_from(np.mean)),
-        Algorithm(name="deviating_from_median", main=deviating_from(np.median))
+        Algorithm(name="deviating_from_mean", main=deviating_from(np.mean), preprocess=preprocess, data_as_file=from_file),
+        Algorithm(name="deviating_from_median", main=deviating_from(np.median), preprocess=preprocess, data_as_file=from_file)
     ]
 
     datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
@@ -70,6 +76,13 @@ class TestImportData(unittest.TestCase):
         DATASET = ("custom", "dataset.4")
         generated_results = generates_results_multi(DATASET)
         true_results = self.multi_results[self.multi_results.dataset == DATASET[1]]
+
+        np.testing.assert_array_equal(generated_results.iloc[:, :4].values, true_results.iloc[:, :4].values)
+
+    def test_algorithm_with_filename(self):
+        DATASET = ("custom", "dataset.1")
+        generated_results = generates_results(DATASET, from_file=True)
+        true_results = self.results[self.results.dataset == DATASET[1]]
 
         np.testing.assert_array_equal(generated_results.iloc[:, :4].values, true_results.iloc[:, :4].values)
 
