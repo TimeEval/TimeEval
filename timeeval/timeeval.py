@@ -129,6 +129,7 @@ class TimeEval:
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray) -> Dict:
+        # todo: save results to docker:/results
         y_scores, times = Times.from_algorithm(algorithm, X)
         score = roc(y_scores, y_true.astype(np.float), plot=False)
         result = {"score": score}
