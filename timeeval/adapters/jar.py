@@ -21,7 +21,7 @@ class JarAdapter(BaseAdapter):
     def _read_results(self) -> np.ndarray:
         return np.loadtxt(self.output_file)
 
-    def _call(self, _: np.ndarray) -> np.ndarray:
+    def _call(self, _: np.ndarray, args: dict) -> np.ndarray:
         stdout = subprocess.STDOUT if self.verbose else subprocess.DEVNULL
         subprocess.call(f"java -jar {self.jar_file} {self._format_args()} {self._format_kwargs()}".split(),
                         stdout=stdout, stderr=subprocess.STDOUT)

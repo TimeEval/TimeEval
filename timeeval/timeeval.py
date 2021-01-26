@@ -14,8 +14,8 @@ from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
 
 AlgorithmParameter = Union[np.ndarray, Path]
-TSFunction = Callable[[AlgorithmParameter], AlgorithmParameter]
-TSFunctionPost = Callable[[AlgorithmParameter], np.ndarray]
+TSFunction = Callable[[AlgorithmParameter, dict], AlgorithmParameter]
+TSFunctionPost = Callable[[AlgorithmParameter, dict], np.ndarray]
 
 
 @dataclass
@@ -37,10 +37,10 @@ class Times:
         return {f"{k}_time": v for k, v in asdict(self).items()}
 
     @staticmethod
-    def from_algorithm(algorithm: Algorithm, X: AlgorithmParameter) -> Tuple[np.ndarray, 'Times']:
-        x, pre_time = timer(algorithm.preprocess, X) if algorithm.preprocess else (X, None)
-        x, main_time = timer(algorithm.main, x)
-        x, post_time = timer(algorithm.postprocess, x) if algorithm.postprocess else(x, None)
+    def from_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> Tuple[np.ndarray, 'Times']:
+        x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, None)
+        x, main_time = timer(algorithm.main, x, args)
+        x, post_time = timer(algorithm.postprocess, x, args) if algorithm.postprocess else(x, None)
         return x, Times(main_time, preprocess=pre_time, postprocess=post_time)
 
 
@@ -73,11 +73,13 @@ class TimeEval:
                  dataset_mgr: Datasets,
                  datasets: List[Tuple[str, str]],
                  algorithms: List[Algorithm],
+                 results_path: Path = Path("./results"),
                  distributed: bool = False,
                  ssh_cluster_kwargs: Optional[dict] = None):
         self.dataset_names = datasets
         self.algorithms = algorithms
         self.dmgr = dataset_mgr
+        self.results_path = results_path
 
         self.distributed = distributed
         self.cluster_kwargs = ssh_cluster_kwargs or {}
@@ -86,6 +88,11 @@ class TimeEval:
         if self.distributed:
             self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
+
+    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str]) -> dict:
+        return {
+            "results_path": self.results_path / Path(algorithm_name) / Path(dataset_name[0]) / Path(dataset_name[1])
+        }
 
     def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
         return self.dmgr.get_dataset_df(name)
@@ -114,11 +121,12 @@ class TimeEval:
                 result: Optional[Dict] = None
 
                 X, y_true = self._get_X_and_y(dataset_name, data_as_file=algorithm.data_as_file)
+                args = self._gen_args(algorithm.name, dataset_name)
 
                 if self.distributed:
-                    future_result = self.remote.add_task(TimeEval.evaluate, algorithm, X, y_true)
+                    future_result = self.remote.add_task(TimeEval.evaluate, algorithm, X, y_true, args)
                 else:
-                    result = TimeEval.evaluate(algorithm, X, y_true)
+                    result = TimeEval.evaluate(algorithm, X, y_true, args)
                 self._record_results(algorithm.name, dataset_name, result, future_result)
 
             except Exception as e:
@@ -128,9 +136,9 @@ class TimeEval:
                 self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
 
     @staticmethod
-    def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray) -> Dict:
+    def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray, args: dict) -> Dict:
         # todo: save results to docker:/results
-        y_scores, times = Times.from_algorithm(algorithm, X)
+        y_scores, times = Times.from_algorithm(algorithm, X, args)
         score = roc(y_scores, y_true.astype(np.float), plot=False)
         result = {"score": score}
         result.update(times.to_dict())
@@ -167,6 +175,10 @@ class TimeEval:
         self.remote.fetch_results()
         self.results[keys] = self.results["future_result"].apply(get_future_result).tolist()
         self.results = self.results.drop(['future_result'], axis=1)
+
+    def save_results(self, results_path: Optional[Path] = None):
+        results_path = results_path or (self.results_path / Path("results.csv"))
+        self.results.to_csv(results_path, index=False)
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
