@@ -1,6 +1,6 @@
 import numpy as np
 import subprocess
-from typing import List, Callable
+from typing import List, Callable, Optional
 import logging
 import getpass
 
@@ -33,9 +33,9 @@ class DistributedAdapter(BaseAdapter):
         ssh_process.stdin.write(f"screen -dm bash -c \"{self.remote_command}\"")
         ssh_process.stdin.close()
 
-    def _call(self, dataset: np.ndarray, args: dict):
+    def _call(self, dataset: np.ndarray, args: Optional[dict] = None):
         # remote call
         for remote_host in self.remote_hosts:
             self._remote_command(remote_host)
         # local call
-        return self.algorithm(dataset, args)
+        return self.algorithm(dataset, args or {})

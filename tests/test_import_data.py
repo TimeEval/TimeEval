@@ -11,13 +11,13 @@ from timeeval.timeeval import AlgorithmParameter
 def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
 
-    def preprocess(x: AlgorithmParameter) -> np.ndarray:
+    def preprocess(x: AlgorithmParameter, args) -> np.ndarray:
         if isinstance(x, (PosixPath, WindowsPath)):
             x = pd.read_csv(x).values[:, 1:-1]
         return x
 
     def deviating_from(fn: Callable) -> Callable[[np.ndarray], np.ndarray]:
-        def call(data: np.ndarray) -> np.ndarray:
+        def call(data: np.ndarray, args) -> np.ndarray:
             diffs = np.abs((data - fn(data)))
             diffs = diffs / diffs.max()
 
@@ -39,7 +39,7 @@ def generates_results_multi(dataset) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
 
     def deviating_from(fn: Callable) -> Callable[[np.ndarray], np.ndarray]:
-        def call(data: np.ndarray) -> np.ndarray:
+        def call(data: np.ndarray, args) -> np.ndarray:
             diffs = np.abs((data - fn(data, axis=0)))
             diffs = diffs / diffs.max(axis=0)
 
