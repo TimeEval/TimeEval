@@ -15,15 +15,15 @@
 | TSBitmap                               |   x   |            | **No labels!** |
 | UCI ML Repository / 3W                 |   x   | [🗎][3W]    | Hard to transform into TS AD task. |
 | UCI ML Repository / CalIt2             |   ✓   | [🗎][CalIt2]|  |
-| UCI ML Repository / Condition monitoring|      |            |  |
-| UCI ML Repository / Daphnet            |       |            |  |
-| UCI ML Repository / Dodgers            |       |            |  |
-| UCI ML Repository / HEPMASS            |       |            |  |
-| UCI ML Repository / Kitsune Network Attack|    |            |  |
-| UCI ML Repository / Metro              |       |            |  |
-| UCI ML Repository / OPPORTUNITY        |       |            |  |
-| UCI ML Repository / Occupancy Detection|       |            |  |
-| UCI ML Repository / URLReputation      |       |            |  |
+| UCI ML Repository / Condition monitoring|  x   | [🗎][Cond]  | Whole-sequence annotations; multiple condition annotations per sequence! |
+| UCI ML Repository / Daphnet            |   ✓   | [🗎][Daph]  |  |
+| UCI ML Repository / Dodgers            |   ✓   |[🗎][Dodgers]| Missing values are marked as anomalies as well. |
+| UCI ML Repository / HEPMASS            |   x   |            | Classification dataset; time component arbitrary |
+| UCI ML Repository / Kitsune Network Attack|✓   |[🗎][Kitsune]| Very large datasets; distance between points (network packets) unclear |
+| UCI ML Repository / Metro              |   ✓   | [🗎][Metro] |  |
+| UCI ML Repository / OPPORTUNITY        |   ✓   | [🗎][OPP]   | To-Lie is regarded as anomaly. A lot of missing values! |
+| UCI ML Repository / Occupancy Detection|   ✓   | [🗎][Occu]  |  |
+| UCI ML Repository / URLReputation      |   x   |            | No real time series; labels are per item, but no way to follow an item over the time period. |
 | Webscope-S5                            |   ✓   | [🗎][Yahoo] |  |
 | credit-card-fraud                      |   x   |            | Timestamps are not equi-distant. |
 | genesis-demonstrator                   |   ✓   | [🗎][gen]   | A single dataset |
@@ -52,3 +52,10 @@ Check against datasets in [John's benchmark framework](https://github.com/johnpa
 [ATLAS]: ./ATLAS%20Higgs%20Boson%20Challenge.ipynb
 [3W]: ./UCI-3W.ipynb
 [CalIt2]: ./UCI-CalI2.ipynb
+[Cond]: ./UCI-Condition%20Monitoring.ipynb
+[daph]: ./UCI-Daphnet.ipynb
+[Dodgers]: ./UCI-Dodgers.ipynb
+[Kitsune]: ./UCI-Kitsune.ipynb
+[Metro]: ./UCI-Metro.ipynb
+[OPP]: ./UCI-Opportunity.ipynb
+[Occu]: ./UCI-Occupancy.ipynb
