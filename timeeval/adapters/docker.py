@@ -46,12 +46,12 @@ class DockerAdapter(BaseAdapter):
             f'--inputstring {algorithm_interface.to_json_string()}',
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
-                str(args.get("results_path").absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
+                str(args.get("results_path", Path("./results")).absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
             }
         )
 
     def _read_results(self, args: dict) -> np.ndarray:
-        return np.loadtxt(args.get("results_path") / Path(SCORES_FILE_NAME))
+        return np.loadtxt(args.get("results_path", Path("./results")) / Path(SCORES_FILE_NAME))
 
     def _call(self, dataset: Union[np.ndarray, Path], args: Optional[dict] = None) -> AlgorithmParameter:
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
