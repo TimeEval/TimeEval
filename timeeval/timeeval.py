@@ -8,6 +8,7 @@ from enum import Enum
 import numpy as np
 import pandas as pd
 import tqdm
+import asyncio
 
 from .remote import Remote
 from timeeval.datasets import Datasets
@@ -108,7 +109,9 @@ class TimeEval:
         return X, y
 
     def _run_algorithm(self, algorithm: Algorithm):
-        for dataset_name in tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name}", position=1):
+        if not self.distributed:
+            pbar = tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name}", position=1)
+        for dataset_name in self.dataset_names:
             try:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
@@ -126,6 +129,11 @@ class TimeEval:
                     f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
                 logging.error(str(e))
                 self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
+
+            if not self.distributed:
+                pbar.update()
+        if not self.distributed:
+            pbar.close()
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray) -> Dict:
@@ -157,22 +165,26 @@ class TimeEval:
         self.results.replace(to_replace=[None], value=np.nan, inplace=True)
 
     def _get_future_results(self):
+        self.remote.fetch_results()
+
         keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
 
         def get_future_result(f: Future) -> List[float]:
             r = f.result()
             return [r[k] for k in keys]
 
-        self.remote.fetch_results()
         self.results[keys] = self.results["future_result"].apply(get_future_result).tolist()
         self.results = self.results.drop(['future_result'], axis=1)
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
 
-        for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0):
-            self._run_algorithm(algorithm)
-
         if self.distributed:
+            for algorithm in self.algorithms:
+                self._run_algorithm(algorithm)
+
             self._get_future_results()
             self.remote.close()
+        else:
+            for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0):
+                self._run_algorithm(algorithm)
