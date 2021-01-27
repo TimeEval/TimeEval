@@ -243,3 +243,8 @@ timeeval = TimeEval(Datasets("data_folder"), datasets, algorithms)
 TimeEval is able to run multiple tests in parallel on a cluster. It uses [Dask's SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster) to distribute tasks.
 In order to use this feature, the `TimeEval` class accepts a `distributed: bool` flag and additional configurations `ssh_cluster_kwargs: dict` to setup the [SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster).
 
+### Average Scores
+
+TimeEval has the ability to run an experiment multiple times. Therefore, the `TimeEval` class has the parameter `repetitions: int = 1`. Each algorithm on every dataset is run `repetitions` times.
+To retrieve the aggregated results, the `TimeEval` class has the method `get_results` which wants to know whether the results should be `aggregated: bool = True`. Erroneous experiments are excluded from an aggregate. For example, if you have `repetitions = 5` and one of five experiments failed, the average is built only over the 4 successful runs.
+To retrieve the raw results, you can either `timeeval.get_results(aggregated=False)` or call the results object directly: `timeeval.results`.
