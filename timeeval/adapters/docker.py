@@ -16,8 +16,16 @@ SCORES_FILE_NAME = "anomaly_scores.ts"
 
 @dataclass
 class AlgorithmInterface:
-    input_file: Path
+    dataset_path: Path
+    results_path: Path
     hyper_parameters: dict
+
+    def to_json_string(self) -> str:
+        dictionary = asdict(self)
+        for k, v in dictionary.items():
+            if isinstance(v, (PosixPath, WindowsPath)):
+                dictionary[k] = str(v)
+        return json.dumps(json.dumps(dictionary))
 
 
 class DockerAdapter(BaseAdapter):
@@ -25,25 +33,25 @@ class DockerAdapter(BaseAdapter):
         self.image_name = image_name
         self.hyper_parameters = hyper_parameters
         self.client = docker.from_env()
-        self.container: Optional[Container] = None
 
     def _run_container(self, dataset_path: Path, args: dict):
-        input_json = {
-            "dataset_path": str((Path(DATASET_TARGET_PATH) / dataset_path.name).absolute()),
-            "results_path": str((Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute())
-        }
-        input_json.update(self.hyper_parameters)
+        algorithm_interface = AlgorithmInterface(
+            dataset_path=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
+            results_path=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute(),
+            hyper_parameters=self.hyper_parameters
+        )
 
-        self.container = self.client.containers.run(
+        self.client.containers.run(
             f"{self.image_name}:latest",
-            f'--inputstring {json.dumps(json.dumps(input_json))}',
+            f'--inputstring {algorithm_interface.to_json_string()}',
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
-                str(args.get("results_path", Path("./results")).absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
-            })
+                str(args.get("results_path").absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
+            }
+        )
 
     def _read_results(self, args: dict) -> np.ndarray:
-        return np.loadtxt(args.get("results_path", Path("./results")) / Path(SCORES_FILE_NAME))
+        return np.loadtxt(args.get("results_path") / Path(SCORES_FILE_NAME))
 
     def _call(self, dataset: Union[np.ndarray, Path], args: Optional[dict] = None) -> AlgorithmParameter:
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
