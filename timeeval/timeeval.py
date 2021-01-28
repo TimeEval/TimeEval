@@ -91,7 +91,7 @@ class TimeEval:
 
     def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str]) -> dict:
         return {
-            "results_path": self.results_path / Path(algorithm_name) / Path(dataset_name[0]) / Path(dataset_name[1])
+            "results_path": self.results_path / algorithm_name / dataset_name[0] / dataset_name[1]
         }
 
     def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
@@ -137,7 +137,6 @@ class TimeEval:
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray, args: dict) -> Dict:
-        # todo: save results to docker:/results
         y_scores, times = Times.from_algorithm(algorithm, X, args)
         score = roc(y_scores, y_true.astype(np.float), plot=False)
         result = {"score": score}

@@ -18,32 +18,29 @@ SCORES_FILE_NAME = "anomaly_scores.ts"
 class AlgorithmInterface:
     dataset_path: Path
     results_path: Path
-    hyper_parameters: dict
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)
         for k, v in dictionary.items():
             if isinstance(v, (PosixPath, WindowsPath)):
                 dictionary[k] = str(v)
-        return json.dumps(json.dumps(dictionary))
+        return json.dumps(dictionary)
 
 
 class DockerAdapter(BaseAdapter):
-    def __init__(self, image_name: str, hyper_parameters: dict):
+    def __init__(self, image_name: str):
         self.image_name = image_name
-        self.hyper_parameters = hyper_parameters
         self.client = docker.from_env()
 
     def _run_container(self, dataset_path: Path, args: dict):
         algorithm_interface = AlgorithmInterface(
             dataset_path=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
-            results_path=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute(),
-            hyper_parameters=self.hyper_parameters
+            results_path=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute()
         )
 
         self.client.containers.run(
             f"{self.image_name}:latest",
-            f'--inputstring {algorithm_interface.to_json_string()}',
+            f"--inputstring '{algorithm_interface.to_json_string()}'",
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
                 str(args.get("results_path", Path("./results")).absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
