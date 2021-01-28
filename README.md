@@ -190,11 +190,11 @@ example file `datasets.json`:
 {
   "dataset_name": {
     "data": "path/to/data.ts",
-     "train_type": "test"
+    "train_type": "test"
   },
   "other_dataset": {
     "dataset": "dataset2.csv",
-     "train_type": "test"
+    "train_type": "test"
   }
 }
 ```
@@ -238,12 +238,67 @@ algorithms = [
 timeeval = TimeEval(Datasets("data_folder"), datasets, algorithms)
 ```
 
-### Distributed
+#### Algorithm adapters
+
+Algorithm adapters allow you to use different algorithm types within TimeEval.
+
+You can implement your own adapters.
+Example:
+
+```python
+import numpy as np
+from timeeval.adapters.base import BaseAdapter
+
+class MyAdapter(BaseAdapter):
+
+    def _call(self, dataset: np.ndarray) -> np.ndarray:
+        # e.g. create another process or call make a call to another language
+        pass
+
+    # optional preprocessing of the dataset
+    def _preprocess_data(self, data: np.ndarray) -> np.ndarray:
+        return data
+
+    # optional postprocessing of the algorithm results
+    def _postprocess_data(self, data: np.ndarray) -> np.ndarray:
+        return data
+
+```
+
+##### Distributed adapter
+
+The [`DistributedAdapter`](./timeeval/adapters/distributed.py) allows you to execute an already distributed algorithm on multiple machines.
+Supply a list of `remote_hosts` and a `remote_command` to this adapter.
+It will use SSH to connect to the remote hosts and execute the `remote_command` on these hosts before starting the main algorithm locally. 
+
+> **Attention!**
+>
+> - Password-less ssh to the remote machines required!
+> - **Do not combine with the distributed execution of TimeEval ("TimeEval.Distributed" using `TimeEval(..., distributed=True)`)!**
+>   This will affect the timing results.
+
+##### Jar adapter
+
+The [`JarAdapter`](./timeeval/adapters/distributed.py) lets you evaluate Java algorithms in TimeEval.
+You can supply the path to the Jar-File (executable) and any additional arguments to the Java-process call.
+
+##### Adapter to apply univariate methods to multivariate data
+
+The [`MultivarAdapter`](./timeeval/adapters/distributed.py) allows you to apply an univariate algorithm to each dimension of a multivariate dataset individually and receive a single aggregated result.
+You can currently choose between three different result aggregation strategies that work on single points:
+
+- `timeeval.adapters.multivar.AggregationMethod.MEAN`
+- `timeeval.adapters.multivar.AggregationMethod.MEDIAN`
+- `timeeval.adapters.multivar.AggregationMethod.MAX`
+
+If `n_jobs > 1`, the algorithms are executed in parallel.
+
+### TimeEval.Distributed
 
 TimeEval is able to run multiple tests in parallel on a cluster. It uses [Dask's SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster) to distribute tasks.
 In order to use this feature, the `TimeEval` class accepts a `distributed: bool` flag and additional configurations `ssh_cluster_kwargs: dict` to setup the [SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster).
 
-### Average Scores
+### Repetitive runs and scoring
 
 TimeEval has the ability to run an experiment multiple times. Therefore, the `TimeEval` class has the parameter `repetitions: int = 1`. Each algorithm on every dataset is run `repetitions` times.
 To retrieve the aggregated results, the `TimeEval` class has the method `get_results` which wants to know whether the results should be `aggregated: bool = True`. Erroneous experiments are excluded from an aggregate. For example, if you have `repetitions = 5` and one of five experiments failed, the average is built only over the 4 successful runs.
