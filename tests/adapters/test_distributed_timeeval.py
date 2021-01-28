@@ -42,8 +42,8 @@ class MockClient:
         f.set_result(result)
         return f
 
-    def gather(self, _futures: List[Future]) -> None:
-        pass
+    async def gather(self, _futures: List[Future], *args, **kwargs):
+        return True
 
     def close(self) -> None:
         pass
