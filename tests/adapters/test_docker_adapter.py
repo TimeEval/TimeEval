@@ -46,7 +46,11 @@ class TestDockerAdapter(unittest.TestCase):
             result = adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
         np.testing.assert_array_equal(result, np.arange(10, dtype=np.float))
 
-    def test_assertion_error(self):
+    @patch("timeeval.adapters.docker.docker.from_env")
+    def test_assertion_error(self, mock_client):
+        mock_docker_client = MockDockerClient()
+        mock_client.return_value = mock_docker_client
+
         with self.assertRaises(AssertionError):
             adapter = DockerAdapter("test-image:latest")
             adapter(np.random.rand(10), {})
