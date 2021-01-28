@@ -30,7 +30,7 @@ class TestTimeEvalExceptions(unittest.TestCase):
     def test_evaluation_continues_after_exception_in_algorithm(self):
         ERROR_MESSAGE = "error message test"
 
-        def exception_algorithm(_x):
+        def exception_algorithm(_x, args):
             raise ValueError(ERROR_MESSAGE)
 
         algorithms = [

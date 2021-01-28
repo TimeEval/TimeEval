@@ -13,3 +13,4 @@ dependencies:
       - tqdm==4.54.*
       - dask[distributed]==2021.1.*
       - asyncssh==2.5.*
+      - docker==4.4.*

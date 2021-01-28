@@ -16,11 +16,11 @@ def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
     return diffs
 
 
-def deviating_from_mean(data: np.ndarray) -> np.ndarray:
+def deviating_from_mean(data: np.ndarray, args) -> np.ndarray:
     return deviating_from(data, np.mean)
 
 
-def deviating_from_median(data: np.ndarray) -> np.ndarray:
+def deviating_from_median(data: np.ndarray, args) -> np.ndarray:
     return deviating_from(data, np.median)
 
 

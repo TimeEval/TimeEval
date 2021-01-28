@@ -1,10 +1,11 @@
 import numpy as np
 import subprocess
-from typing import List, Callable
+from typing import List, Callable, Optional
 import logging
 import getpass
 
 from .base import BaseAdapter
+from ..timeeval import TSFunction
 
 
 class DistributedAdapter(BaseAdapter):
@@ -12,7 +13,7 @@ class DistributedAdapter(BaseAdapter):
     Please, be aware that you need password-less ssh to the remote machines!
     """
 
-    def __init__(self, algorithm: Callable[[np.ndarray], np.ndarray], remote_command: str, remote_user: str, remote_hosts: List[str]):
+    def __init__(self, algorithm: TSFunction, remote_command: str, remote_user: str, remote_hosts: List[str]):
         self.algorithm = algorithm
         self.remote_command = remote_command
         self.remote_user = remote_user
@@ -32,9 +33,9 @@ class DistributedAdapter(BaseAdapter):
         ssh_process.stdin.write(f"screen -dm bash -c \"{self.remote_command}\"")
         ssh_process.stdin.close()
 
-    def _call(self, dataset: np.ndarray):
+    def _call(self, dataset: np.ndarray, args: Optional[dict] = None):
         # remote call
         for remote_host in self.remote_hosts:
             self._remote_command(remote_host)
         # local call
-        return self.algorithm(dataset)
+        return self.algorithm(dataset, args or {})

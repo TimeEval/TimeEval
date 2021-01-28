@@ -4,17 +4,17 @@ import numpy as np
 from timeeval.timeeval import Algorithm, Times, AlgorithmParameter
 
 
-def pre(x: AlgorithmParameter) -> AlgorithmParameter:
+def pre(x: AlgorithmParameter, args) -> AlgorithmParameter:
     time.sleep(0.2)
     return x
 
 
-def main(x: AlgorithmParameter) -> AlgorithmParameter:
+def main(x: AlgorithmParameter, args) -> AlgorithmParameter:
     time.sleep(0.3)
     return x
 
 
-def post(x: AlgorithmParameter) -> np.ndarray:
+def post(x: AlgorithmParameter, args) -> np.ndarray:
     time.sleep(0.1)
     return x
 
@@ -22,7 +22,7 @@ def post(x: AlgorithmParameter) -> np.ndarray:
 class TestAlgorithmTimer(unittest.TestCase):
     def test_algorithm_times(self):
         algorithm = Algorithm(main=main, preprocess=pre, postprocess=post, name="test")
-        score, times = Times.from_algorithm(algorithm, np.random.rand(10))
+        score, times = Times.from_algorithm(algorithm, np.random.rand(10), {})
         self.assertAlmostEqual(times.preprocess, 0.2, places=1)
         self.assertAlmostEqual(times.main, 0.3, places=1)
         self.assertAlmostEqual(times.postprocess, 0.1, places=1)
