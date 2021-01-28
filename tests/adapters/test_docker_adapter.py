@@ -45,3 +45,8 @@ class TestDockerAdapter(unittest.TestCase):
             adapter = DockerAdapter("test-image:latest")
             result = adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
         np.testing.assert_array_equal(result, np.arange(10, dtype=np.float))
+
+    def test_assertion_error(self):
+        with self.assertRaises(AssertionError):
+            adapter = DockerAdapter("test-image:latest")
+            adapter(np.random.rand(10), {})
