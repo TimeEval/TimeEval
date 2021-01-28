@@ -21,3 +21,6 @@ class BaseAdapter(ABC):
         dataset = self._preprocess_data(dataset, args)
         dataset = self._call(dataset, args)
         return self._postprocess_data(dataset, args)
+
+    def make_available(self):
+        pass

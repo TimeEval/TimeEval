@@ -28,8 +28,9 @@ class AlgorithmInterface:
 
 
 class DockerAdapter(BaseAdapter):
-    def __init__(self, image_name: str):
+    def __init__(self, image_name: str, tag: str = "latest"):
         self.image_name = image_name
+        self.tag = tag
         self.client = docker.from_env()
 
     def _run_container(self, dataset_path: Path, args: dict):
@@ -39,7 +40,7 @@ class DockerAdapter(BaseAdapter):
         )
 
         self.client.containers.run(
-            f"{self.image_name}:latest",
+            f"{self.image_name}:{self.tag}",
             f"--inputstring '{algorithm_interface.to_json_string()}'",
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
@@ -56,3 +57,6 @@ class DockerAdapter(BaseAdapter):
         args = args or {}
         self._run_container(dataset, args)
         return self._read_results(args)
+
+    def make_available(self):
+        self.client.images.pull(self.image_name, tag=self.tag)

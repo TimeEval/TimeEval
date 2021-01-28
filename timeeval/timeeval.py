@@ -11,6 +11,7 @@ import tqdm
 import asyncio
 
 from .remote import Remote
+from .adapters.base import BaseAdapter
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
 
@@ -57,6 +58,11 @@ class Status(Enum):
     OK = 0
     ERROR = 1
     TIMEOUT = 2  # not yet implemented
+
+
+def test_same_installed_packages(packages: List):
+    import pkg_resources
+
 
 
 class TimeEval:
@@ -214,16 +220,33 @@ class TimeEval:
         results_path = results_path or (self.results_path / Path("results.csv"))
         self.results.to_csv(results_path, index=False)
 
+    def load_results(self, results_path: Optional[Path] = None):
+        pass
+
+    def _distributed_prepare(self):
+        tasks: List[(Callable, Tuple)] = []
+        for algorithm in self.algorithms:
+            if isinstance(algorithm.main, BaseAdapter):
+                tasks.append((algorithm.main.make_available, ()))
+
+        self.remote.run_on_all_hosts(tasks)
+
+    def _distributed_execute(self):
+        for algorithm in self.algorithms:
+            self._run_algorithm(algorithm)
+
+    def _distributed_finalize(self):
+        self._get_future_results()
+        self.remote.prune()
+        self.remote.close()
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
 
         if self.distributed:
-            for algorithm in self.algorithms:
-                self._run_algorithm(algorithm)
-
-            self._get_future_results()
-            self.remote.close()
+            self._distributed_prepare()
+            self._distributed_execute()
+            self._distributed_finalize()
         else:
             for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0):
                 self._run_algorithm(algorithm)
