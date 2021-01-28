@@ -8,7 +8,7 @@ from timeeval.adapters.multivar import AggregationMethod
 from timeeval.adapters.base import BaseAdapter
 
 
-def deviating_from_median(data: np.ndarray) -> np.ndarray:
+def deviating_from_median(data: np.ndarray, args: dict = {}) -> np.ndarray:
     diffs = np.abs((data - np.median(data)))
     return diffs / diffs.max()
 

@@ -1,8 +1,8 @@
 import numpy as np
 from enum import Enum
-from typing import Callable, List
+from typing import Callable, List, Optional
 import multiprocessing as mp
-from .base import BaseAdapter
+from .base import BaseAdapter, AlgorithmParameter
 
 
 class AggregationMethod(Enum):
@@ -27,12 +27,12 @@ class MultivarAdapter(BaseAdapter):
         self.aggregation = aggregation
         self.n_jobs = n_jobs
 
-    def _parallel_call(self, data: np.ndarray) -> np.ndarray:
+    def _parallel_call(self, data: np.ndarray) -> List[np.ndarray]:
         pool = mp.Pool(self.n_jobs)
         scores = pool.map(self.fn, [data[:, c] for c in range(data.shape[1])])
         return scores
 
-    def _call(self, dataset: np.ndarray) -> np.ndarray:
+    def _call(self, dataset: np.ndarray, args: Optional[dict] = None) -> np.ndarray:
         if self.n_jobs > 1:
             scores = self._parallel_call(dataset)
         else:
