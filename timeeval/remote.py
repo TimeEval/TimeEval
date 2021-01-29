@@ -1,5 +1,5 @@
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
-from typing import List, Callable, Optional
+from typing import List, Callable
 from dask.distributed import Client, SSHCluster
 import tqdm
 import time
@@ -8,18 +8,11 @@ import time
 class Remote:
     def __init__(self, **kwargs):
         self.ssh_cluster_kwargs = kwargs or {}
-        self.client: Optional[Client] = None
-        self.cluster: Optional[SSHCluster] = None
         self.futures: List[Future] = []
-
-    def _start_cluster(self):
         self.cluster = SSHCluster(**self.ssh_cluster_kwargs)
         self.client = Client(self.cluster.scheduler_address)
 
     def add_task(self, task: Callable, *args) -> Future:
-        if not self.client:
-            self._start_cluster()
-        assert self.client is not None
         future = self.client.submit(task, *args)
         self.futures.append(future)
         return future
@@ -41,6 +34,6 @@ class Remote:
         progress_bar.close()
 
     def close(self):
+        self.cluster.close()
         self.client.shutdown()
         self.client.close()
-        self.cluster.close()

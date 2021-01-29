@@ -1,18 +1,19 @@
+import asyncio
 import logging
+from enum import Enum
 from pathlib import Path
 from typing import List, Tuple, Dict, Optional
-from distributed.client import Future
-from enum import Enum
+
 import numpy as np
 import pandas as pd
 import tqdm
-import asyncio
+from distributed.client import Future
 
-from .remote import Remote
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
-from .data_types import AlgorithmParameter
 from .algorithm import Algorithm
+from .data_types import AlgorithmParameter
+from .remote import Remote
 from .times import Times
 
 
@@ -100,10 +101,19 @@ class TimeEval:
                     self._record_results(algorithm.name, dataset_name, result, future_result, repetition=repetition)
 
                 except Exception as e:
-                    logging.error(
+                    logging.exception(
                         f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
-                    logging.error(str(e))
-                    self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
+                    f: asyncio.Future = asyncio.Future()
+                    f.set_result({
+                        "score": np.nan,
+                        "main_time": np.nan,
+                        "preprocess_time": np.nan,
+                        "postprocess_time": np.nan
+                    })
+                    self._record_results(algorithm.name, dataset_name,
+                                         future_result=f,
+                                         status=Status.ERROR,
+                                         error_message=str(e))
 
             if not self.distributed:
                 pbar.update()
@@ -176,7 +186,6 @@ class TimeEval:
     def save_results(self, results_path: Optional[Path] = None):
         results_path = results_path or (self.results_path / Path("results.csv"))
         self.results.to_csv(results_path, index=False)
-
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
