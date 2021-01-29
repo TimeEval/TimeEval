@@ -29,7 +29,7 @@ class TestDockerAdapter(unittest.TestCase):
         mock_docker_client = MockDockerClient()
         mock_client.return_value = mock_docker_client
         results_path = Path("./results/")
-        input_string = '\'{' \
+        input_string = 'execute-algorithm \'{' \
                        '"dataInput": "/data/test.csv", ' \
                        '"dataOutput": "/results/anomaly_scores.ts", ' \
                        '"customParameters": {}, ' \
