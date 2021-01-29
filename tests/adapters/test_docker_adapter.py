@@ -29,7 +29,14 @@ class TestDockerAdapter(unittest.TestCase):
         mock_docker_client = MockDockerClient()
         mock_client.return_value = mock_docker_client
         results_path = Path("./results/")
-        input_string = '--inputstring \'{"dataset_path": "/data/test.csv", "results_path": "/results/anomaly_scores.ts"}\''
+        input_string = '\'{' \
+                       '"dataInput": "/data/test.csv", ' \
+                       '"dataOutput": "/results/anomaly_scores.ts", ' \
+                       '"customParameters": {}, ' \
+                       '"executionType": "execute", ' \
+                       '"modelInput": null, ' \
+                       '"modelOutput": null' \
+                       '}\''
 
         adapter = DockerAdapter("test-image:latest")
         adapter._run_container(Path("/tmp/test.csv"), {"results_path": results_path})

@@ -1,9 +1,9 @@
 import numpy as np
-from typing import Union, Optional
+from typing import Union, Optional, Any
 from pathlib import Path, WindowsPath, PosixPath
 import docker
-from docker.models.containers import Container
-from dataclasses import dataclass, asdict
+from enum import Enum
+from dataclasses import dataclass, asdict, field
 import json
 
 from .base import BaseAdapter, AlgorithmParameter
@@ -14,17 +14,32 @@ RESULTS_TARGET_PATH = "/results"
 SCORES_FILE_NAME = "anomaly_scores.ts"
 
 
+class DockerJSONEncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, ExecutionType):
+            return o.name.lower()
+        elif isinstance(o, (PosixPath, WindowsPath)):
+            return str(o)
+        return super().default(o)
+
+
+class ExecutionType(Enum):
+    TRAIN = 0
+    EXECUTE = 1
+
+
 @dataclass
 class AlgorithmInterface:
-    dataset_path: Path
-    results_path: Path
+    dataInput: Path
+    dataOutput: Path
+    customParameters: dict = field(default_factory=dict)
+    executionType: ExecutionType = ExecutionType.EXECUTE
+    modelInput: Optional[Path] = None
+    modelOutput: Optional[Path] = None
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)
-        for k, v in dictionary.items():
-            if isinstance(v, (PosixPath, WindowsPath)):
-                dictionary[k] = str(v)
-        return json.dumps(dictionary)
+        return json.dumps(dictionary, cls=DockerJSONEncoder)
 
 
 class DockerAdapter(BaseAdapter):
@@ -35,13 +50,13 @@ class DockerAdapter(BaseAdapter):
 
     def _run_container(self, dataset_path: Path, args: dict):
         algorithm_interface = AlgorithmInterface(
-            dataset_path=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
-            results_path=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute()
+            dataInput=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
+            dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute()
         )
 
         self.client.containers.run(
             f"{self.image_name}:{self.tag}",
-            f"--inputstring '{algorithm_interface.to_json_string()}'",
+            f"'{algorithm_interface.to_json_string()}'",
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
                 str(args.get("results_path", Path("./results")).absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}

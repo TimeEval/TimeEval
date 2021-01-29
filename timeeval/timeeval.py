@@ -1,9 +1,7 @@
-import time
 import logging
 from pathlib import Path
-from typing import List, Callable, Tuple, Any, Dict, Union, Optional
+from typing import List, Tuple, Dict, Optional
 from distributed.client import Future
-from dataclasses import dataclass, asdict
 from enum import Enum
 import numpy as np
 import pandas as pd
@@ -14,44 +12,9 @@ from .remote import Remote
 from .adapters.base import BaseAdapter
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
-
-AlgorithmParameter = Union[np.ndarray, Path]
-TSFunction = Callable[[AlgorithmParameter, dict], AlgorithmParameter]
-TSFunctionPost = Callable[[AlgorithmParameter, dict], np.ndarray]
-
-
-@dataclass
-class Algorithm:
-    name: str
-    main: TSFunction
-    preprocess: Optional[TSFunction] = None
-    postprocess: Optional[TSFunctionPost] = None
-    data_as_file: bool = False
-
-
-@dataclass
-class Times:
-    main: float
-    preprocess: Optional[float] = None
-    postprocess: Optional[float] = None
-
-    def to_dict(self) -> Dict:
-        return {f"{k}_time": v for k, v in asdict(self).items()}
-
-    @staticmethod
-    def from_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> Tuple[np.ndarray, 'Times']:
-        x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, None)
-        x, main_time = timer(algorithm.main, x, args)
-        x, post_time = timer(algorithm.postprocess, x, args) if algorithm.postprocess else(x, None)
-        return x, Times(main_time, preprocess=pre_time, postprocess=post_time)
-
-
-def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, float]:
-    start = time.time()
-    fn_result = fn(*args, **kwargs)
-    end = time.time()
-    duration = end - start
-    return fn_result, duration
+from .data_types import AlgorithmParameter
+from .algorithm import Algorithm
+from .times import Times
 
 
 class Status(Enum):

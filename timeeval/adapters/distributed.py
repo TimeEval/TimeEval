@@ -5,7 +5,7 @@ import logging
 import getpass
 
 from .base import BaseAdapter
-from ..timeeval import TSFunction
+from ..data_types import TSFunction
 
 
 class DistributedAdapter(BaseAdapter):
