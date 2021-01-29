@@ -41,6 +41,6 @@ class Remote:
         progress_bar.close()
 
     def close(self):
+        self.cluster.close()
         self.client.shutdown()
         self.client.close()
-        self.cluster.close()
