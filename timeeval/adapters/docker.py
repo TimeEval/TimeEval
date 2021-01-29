@@ -1,13 +1,13 @@
-import numpy as np
-from typing import Union, Optional, Any
-from pathlib import Path, WindowsPath, PosixPath
-import docker
-from enum import Enum
-from dataclasses import dataclass, asdict, field
 import json
+from dataclasses import dataclass, asdict, field
+from enum import Enum
+from pathlib import Path, WindowsPath, PosixPath
+from typing import Union, Optional, Any
+
+import docker
+import numpy as np
 
 from .base import BaseAdapter, AlgorithmParameter
-
 
 DATASET_TARGET_PATH = "/data/"
 RESULTS_TARGET_PATH = "/results"
@@ -55,7 +55,7 @@ class DockerAdapter(BaseAdapter):
 
         self.client.containers.run(
             f"{self.image_name}:latest",
-            f"'{algorithm_interface.to_json_string()}'",
+            f"execute-algorithm '{algorithm_interface.to_json_string()}'",
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
                 str(args.get("results_path", Path("./results")).absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
@@ -63,7 +63,7 @@ class DockerAdapter(BaseAdapter):
         )
 
     def _read_results(self, args: dict) -> np.ndarray:
-        return np.loadtxt(args.get("results_path", Path("./results")) / Path(SCORES_FILE_NAME))
+        return np.loadtxt(args.get("results_path", Path("./results")) / SCORES_FILE_NAME)
 
     def _call(self, dataset: Union[np.ndarray, Path], args: Optional[dict] = None) -> AlgorithmParameter:
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
