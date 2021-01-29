@@ -111,13 +111,24 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval.run()
         np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
 
+    @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
     @patch("timeeval.remote.Client")
     @patch("timeeval.remote.SSHCluster")
-    def test_distributed_phases(self, mock_cluster, mock_client, mock_docker):
+    def test_distributed_phases(self, mock_cluster, mock_client, mock_docker, mock_call):
+        class Rsync:
+            def __init__(self):
+                self.params = []
+
+            def __call__(self, *args, **kwargs):
+                self.params.append(args[0])
+
+        rsync = Rsync()
+
         mock_client.return_value = MockClient()
         mock_cluster.return_value = MockCluster()
         mock_docker.return_value = MockDockerClient()
+        mock_call.side_effect = rsync
 
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
@@ -126,10 +137,12 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())),
                                 [Algorithm(name="docker", main=adapter, data_as_file=True)],
-                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host"]}, results_path=Path(tmp_path))
+                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]}, results_path=Path(tmp_path))
             timeeval.run()
 
             self.assertTrue(adapter.client.images.pulled)
             self.assertTrue((Path(tmp_path) / "docker" / "custom" / "dataset.1").exists())
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)
+            self.assertListEqual(rsync.params[0], ["rsync", "-a", str(tmp_path)+"/", "test-host:"+str(tmp_path)])
+            self.assertListEqual(rsync.params[1], ["rsync", "-a", str(tmp_path) + "/", "test-host2:" + str(tmp_path)])

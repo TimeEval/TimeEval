@@ -6,7 +6,7 @@ from enum import Enum
 import numpy as np
 import pandas as pd
 import tqdm
-import asyncio
+import subprocess
 
 from .remote import Remote
 from .adapters.base import BaseAdapter
@@ -180,8 +180,11 @@ class TimeEval:
         results_path = results_path or (self.results_path / Path("results.csv"))
         self.results.to_csv(results_path, index=False)
 
-    def load_results(self, results_path: Optional[Path] = None):
-        pass
+    def rsync_results(self, results_path: Optional[Path] = None):
+        results_path = results_path or self.results_path
+        hosts = self.cluster_kwargs.get("hosts", list())
+        for host in hosts:
+            subprocess.call(["rsync", "-a", f"{results_path}/", f"{host}:{results_path}"])
 
     def _distributed_prepare(self):
         logging.debug("Pulling images on every cluster node...")
@@ -204,6 +207,7 @@ class TimeEval:
         self._get_future_results()
         self.remote.prune()
         self.remote.close()
+        self.rsync_results()
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
