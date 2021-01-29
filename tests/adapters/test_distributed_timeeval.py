@@ -62,6 +62,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             Algorithm(name="deviating_from_median", main=deviating_from_median)
         ]
 
+    @unittest.skipIf(os.getenv("CI"), reason="CI test runs in a slim Docker container and does not support SSH-connections")
     def test_distributed_results_and_shutdown_cluster(self):
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)

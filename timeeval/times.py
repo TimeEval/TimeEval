@@ -18,9 +18,9 @@ class Times:
 
     @staticmethod
     def from_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> Tuple[np.ndarray, 'Times']:
-        x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, None)
+        x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, np.nan)
         x, main_time = timer(algorithm.main, x, args)
-        x, post_time = timer(algorithm.postprocess, x, args) if algorithm.postprocess else(x, None)
+        x, post_time = timer(algorithm.postprocess, x, args) if algorithm.postprocess else(x, np.nan)
         return x, Times(main_time, preprocess=pre_time, postprocess=post_time)
 
 
