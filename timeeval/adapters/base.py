@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Union, Optional
 from pathlib import Path
 
-from ..timeeval import AlgorithmParameter
+from ..data_types import AlgorithmParameter
 
 
 class BaseAdapter(ABC):

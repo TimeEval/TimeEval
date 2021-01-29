@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict, Optional, Callable
 from distributed.client import Future
 from enum import Enum
 import numpy as np
@@ -21,11 +21,6 @@ class Status(Enum):
     OK = 0
     ERROR = 1
     TIMEOUT = 2  # not yet implemented
-
-
-def test_same_installed_packages(packages: List):
-    import pkg_resources
-
 
 
 class TimeEval:
@@ -153,6 +148,8 @@ class TimeEval:
         keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
 
         def get_future_result(f: Future) -> List[float]:
+            if type(f) == float and np.nan(f):
+                return [np.nan for _ in keys]
             r = f.result()
             return [r[k] for k in keys]
 
@@ -187,11 +184,16 @@ class TimeEval:
         pass
 
     def _distributed_prepare(self):
-        tasks: List[(Callable, Tuple)] = []
+        logging.debug("Pulling images on every cluster node...")
+        logging.debug("Generating result folder structure on every cluster node...")
+        tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.algorithms:
             if isinstance(algorithm.main, BaseAdapter):
-                tasks.append((algorithm.main.make_available, ()))
-
+                tasks.append((algorithm.main.make_available, [], {}))
+            for dataset_name in self.dataset_names:
+                # todo for repetition in range(self.repetitions):
+                tasks.append((self._gen_args(algorithm.name, dataset_name).get("results_path", Path("./results")).mkdir,
+                              [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_execute(self):

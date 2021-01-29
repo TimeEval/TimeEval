@@ -1,5 +1,5 @@
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
-from typing import List, Callable, Optional, Tuple
+from typing import List, Callable, Optional, Tuple, Dict
 from dask.distributed import Client, SSHCluster
 import tqdm
 import time
@@ -16,22 +16,23 @@ class Remote:
         self.cluster = SSHCluster(**self.ssh_cluster_kwargs)
         self.client = Client(self.cluster.scheduler_address)
 
-    def add_task(self, task: Callable, *args, config: Optional[dict] = None) -> Future:
+    def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
         config = config or {}
         if not self.client:
             self._start_cluster()
         assert self.client is not None
-        future = self.client.submit(task, *args, **config)
+        future = self.client.submit(task, *args, **config, **kwargs)
         self.futures.append(future)
         return future
 
-    def run_on_all_hosts(self, tasks: List[(Callable, Tuple)]):
+    def run_on_all_hosts(self, tasks: List[Tuple[Callable, List, Dict]]):
         if not self.client:
             self._start_cluster()
+        assert self.client is not None
         futures = []
-        for task, args in tasks:
+        for task, args, kwargs in tasks:
             for host in self.ssh_cluster_kwargs.get("hosts"):
-                futures.append(self.add_task(task, *args, config={"workers": [host]}))
+                futures.append(self.add_task(task, *args, config={"workers": [host]}, **kwargs))
         self.client.gather(futures)
 
     def prune(self):
