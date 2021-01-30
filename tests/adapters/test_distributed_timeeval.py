@@ -7,6 +7,8 @@ from typing import Callable, List, Union, Coroutine, Optional
 from asyncio import Future
 from itertools import cycle
 import tempfile
+import os
+
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import DockerAdapter
@@ -94,22 +96,18 @@ class TestDistributedTimeEval(unittest.TestCase):
             Algorithm(name="deviating_from_median", main=deviating_from_median)
         ]
 
-    @patch("timeeval.adapters.docker.docker.from_env")
-    @patch("timeeval.remote.Client")
-    @patch("timeeval.remote.SSHCluster")
-    def test_distributed_results(self, mock_cluster, mock_client, mock_docker):
-        mock_client.return_value = MockClient()
-        mock_cluster.return_value = MockCluster()
-        mock_docker.return_value = MockDockerClient()
-
+    @unittest.skipIf(os.getenv("CI"), reason="CI test runs in a slim Docker container and does not support SSH-connections")
+    def test_distributed_results_and_shutdown_cluster(self):
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
-                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host"]}, results_path=Path(tmp_path))
+                                distributed=True, results_path=Path(tmp_path), ssh_cluster_kwargs={"hosts": ["localhost", "localhost"],
+                                                                      "remote_python": os.popen("which python").read().rstrip("\n")})
             timeeval.run()
-        np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
+            np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
+            self.assertEqual(os.popen("pgrep -f distributed.cli.dask").read(), "")
 
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")

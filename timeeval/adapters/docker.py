@@ -46,15 +46,16 @@ class DockerAdapter(BaseAdapter):
     def __init__(self, image_name: str, tag: str = "latest"):
         self.image_name = image_name
         self.tag = tag
-        self.client = docker.from_env()
 
     def _run_container(self, dataset_path: Path, args: dict):
+        client = docker.from_env()
+
         algorithm_interface = AlgorithmInterface(
             dataInput=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
             dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute()
         )
 
-        self.client.containers.run(
+        client.containers.run(
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
             volumes={

@@ -8,36 +8,22 @@ import time
 class Remote:
     def __init__(self, **kwargs):
         self.ssh_cluster_kwargs = kwargs or {}
-        self.client: Optional[Client] = None
-        self.cluster: Optional[SSHCluster] = None
         self.futures: List[Future] = []
-
-    def _start_cluster(self):
         self.cluster = SSHCluster(**self.ssh_cluster_kwargs)
         self.client = Client(self.cluster.scheduler_address)
 
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
         config = config or {}
-        if not self.client:
-            self._start_cluster()
-        assert self.client is not None
         future = self.client.submit(task, *args, **config, **kwargs)
         self.futures.append(future)
         return future
 
     def run_on_all_hosts(self, tasks: List[Tuple[Callable, List, Dict]]):
-        if not self.client:
-            self._start_cluster()
-        assert self.client is not None
         futures = []
         for task, args, kwargs in tasks:
             for host in self.ssh_cluster_kwargs.get("hosts"):
-                futures.append(self.add_task(task, *args, config={"workers": [host]}, **kwargs))
+                futures.append(self.client.submit(task, *args, workers=[host], **kwargs))
         self.client.gather(futures)
-
-    def prune(self):
-        if self.cluster:
-            self.client.containers.prune()
 
     def fetch_results(self):
         n_experiments = len(self.futures)
@@ -56,6 +42,6 @@ class Remote:
         progress_bar.close()
 
     def close(self):
+        self.cluster.close()
         self.client.shutdown()
         self.client.close()
-        self.cluster.close()

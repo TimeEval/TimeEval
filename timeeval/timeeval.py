@@ -1,19 +1,22 @@
+import asyncio
 import logging
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional, Callable
-from distributed.client import Future
+from typing import Callable
 from enum import Enum
+from typing import List, Tuple, Dict, Optional
+
 import numpy as np
 import pandas as pd
 import tqdm
+from distributed.client import Future
 import subprocess
 
-from .remote import Remote
 from .adapters.base import BaseAdapter
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
-from .data_types import AlgorithmParameter
 from .algorithm import Algorithm
+from .data_types import AlgorithmParameter
+from .remote import Remote
 from .times import Times
 
 
@@ -101,10 +104,19 @@ class TimeEval:
                     self._record_results(algorithm.name, dataset_name, result, future_result, repetition=repetition)
 
                 except Exception as e:
-                    logging.error(
+                    logging.exception(
                         f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
-                    logging.error(str(e))
-                    self._record_results(algorithm.name, dataset_name, status=Status.ERROR, error_message=str(e))
+                    f: asyncio.Future = asyncio.Future()
+                    f.set_result({
+                        "score": np.nan,
+                        "main_time": np.nan,
+                        "preprocess_time": np.nan,
+                        "postprocess_time": np.nan
+                    })
+                    self._record_results(algorithm.name, dataset_name,
+                                         future_result=f,
+                                         status=Status.ERROR,
+                                         error_message=str(e))
 
             if not self.distributed:
                 pbar.update()
