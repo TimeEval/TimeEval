@@ -74,5 +74,11 @@ class DockerAdapter(BaseAdapter):
         self._run_container(dataset, args)
         return self._read_results(args)
 
-    def make_available(self):
-        self.client.images.pull(self.image_name, tag=self.tag)
+    def prepare(self):
+        client = docker.from_env()
+        client.images.pull(self.image_name, tag=self.tag)
+
+    def prune(self):
+        client = docker.from_env()
+        client.containers.prune()
+

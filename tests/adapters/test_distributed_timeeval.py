@@ -37,8 +37,7 @@ class MockCluster:
 
 
 class MockContainer:
-    def prune(self):
-        pass
+    pass
 
 
 class MockClient:
@@ -76,10 +75,12 @@ class MockDockerContainer:
         if real_path.startswith("/tmp"):
             np.arange(3600, dtype=np.float).tofile(real_path / Path("anomaly_scores.ts"), sep="\n")
 
+    def prune(self):
+        pass
 
 class MockImages:
     def pull(self, image, tag):
-        self.pulled = True
+        pass
 
 
 class MockDockerClient:
@@ -138,7 +139,6 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]}, results_path=Path(tmp_path))
             timeeval.run()
 
-            self.assertTrue(adapter.client.images.pulled)
             self.assertTrue((Path(tmp_path) / "docker" / "custom" / "dataset.1").exists())
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)

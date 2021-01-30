@@ -10,7 +10,9 @@ import pandas as pd
 import tqdm
 from distributed.client import Future
 import subprocess
+import socket
 
+from .adapters import DockerAdapter
 from .adapters.base import BaseAdapter
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
@@ -49,7 +51,7 @@ class TimeEval:
         self.dataset_names = datasets
         self.algorithms = algorithms
         self.dmgr = dataset_mgr
-        self.results_path = results_path
+        self.results_path = results_path.absolute()
 
         self.distributed = distributed
         self.cluster_kwargs = ssh_cluster_kwargs or {}
@@ -160,8 +162,6 @@ class TimeEval:
         keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
 
         def get_future_result(f: Future) -> List[float]:
-            if type(f) == float and np.nan(f):
-                return [np.nan for _ in keys]
             r = f.result()
             return [r[k] for k in keys]
 
@@ -192,19 +192,25 @@ class TimeEval:
         results_path = results_path or (self.results_path / Path("results.csv"))
         self.results.to_csv(results_path, index=False)
 
-    def rsync_results(self, results_path: Optional[Path] = None):
-        results_path = results_path or self.results_path
+    def rsync_results(self):
         hosts = self.cluster_kwargs.get("hosts", list())
+        hostname = socket.gethostname()
         for host in hosts:
-            subprocess.call(["rsync", "-a", f"{results_path}/", f"{host}:{results_path}"])
+            if host != hostname:
+                subprocess.call(["rsync", "-a", f"{self.results_path}/", f"{host}:{self.results_path}"])
+
+    def _prune_docker(self):
+        tasks: List[Tuple[Callable, List, Dict]] = []
+        for algorithm in self.algorithms:
+            if isinstance(algorithm.main, DockerAdapter):
+                tasks.append((algorithm.main.prune, [], {}))
+        self.remote.run_on_all_hosts(tasks)
 
     def _distributed_prepare(self):
-        logging.debug("Pulling images on every cluster node...")
-        logging.debug("Generating result folder structure on every cluster node...")
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.algorithms:
             if isinstance(algorithm.main, BaseAdapter):
-                tasks.append((algorithm.main.make_available, [], {}))
+                tasks.append((algorithm.main.prepare, [], {}))
             for dataset_name in self.dataset_names:
                 # todo for repetition in range(self.repetitions):
                 tasks.append((self._gen_args(algorithm.name, dataset_name).get("results_path", Path("./results")).mkdir,
@@ -217,7 +223,7 @@ class TimeEval:
 
     def _distributed_finalize(self):
         self._get_future_results()
-        self.remote.prune()
+        self._prune_docker()
         self.remote.close()
         self.rsync_results()
 
