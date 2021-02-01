@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from typing import Callable
 from pathlib import Path, PosixPath, WindowsPath
+import tempfile
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.timeeval import AlgorithmParameter
@@ -30,8 +31,10 @@ def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
     ]
 
     datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
-    timeeval = TimeEval(datasets, [dataset], algorithms)
-    timeeval.run()
+
+    with tempfile.TemporaryDirectory() as tmp_path:
+        timeeval = TimeEval(datasets, [dataset], algorithms, results_path=Path(tmp_path))
+        timeeval.run()
     return timeeval.results
 
 
@@ -52,8 +55,9 @@ def generates_results_multi(dataset) -> pd.DataFrame:
     ]
 
     datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
-    timeeval = TimeEval(datasets, [dataset], algorithms)
-    timeeval.run()
+    with tempfile.TemporaryDirectory() as tmp_file:
+        timeeval = TimeEval(datasets, [dataset], algorithms, results_path=Path(tmp_file))
+        timeeval.run()
     return timeeval.results
 
 

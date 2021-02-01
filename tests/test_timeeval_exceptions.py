@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import tempfile
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.timeeval import Status
@@ -18,14 +19,16 @@ class TestTimeEvalExceptions(unittest.TestCase):
         algorithm = Algorithm(name="test", main=lambda x: x, data_as_file=False)
         df = pd.DataFrame(np.random.rand(10, 2))
         mock_load.side_effect = [df]
-        timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [algorithm])
-        timeeval.run()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [algorithm], results_path=Path(tmp_path))
+            timeeval.run()
         self.assertTrue("has a shape that was not expected" in timeeval.results.iloc[0].error_message)
 
     def test_no_algorithms(self):
-        with self.assertRaises(AssertionError):
-            timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [])
-            timeeval.run()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            with self.assertRaises(AssertionError):
+                timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [], results_path=Path(tmp_path))
+                timeeval.run()
 
     def test_evaluation_continues_after_exception_in_algorithm(self):
         ERROR_MESSAGE = "error message test"
@@ -37,9 +40,9 @@ class TestTimeEvalExceptions(unittest.TestCase):
             Algorithm(name="exception", main=exception_algorithm, data_as_file=False),
             Algorithm(name="test", main=lambda x: x, data_as_file=False)
         ]
-
-        timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], algorithms)
-        timeeval.run()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], algorithms, results_path=Path(tmp_path))
+            timeeval.run()
 
         r = timeeval.results
 

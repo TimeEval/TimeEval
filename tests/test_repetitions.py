@@ -4,6 +4,7 @@ import pandas as pd
 from typing import Callable
 from pathlib import Path
 from itertools import cycle
+import tempfile
 
 from timeeval import TimeEval, Algorithm, Datasets
 
@@ -47,8 +48,10 @@ class TestRepetitions(unittest.TestCase):
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
 
-        timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms, repetitions=3)
-        timeeval.run()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
+                                repetitions=3, results_path=Path(tmp_path))
+            timeeval.run()
         results = timeeval.get_results()
 
         np.testing.assert_array_almost_equal(results["score_mean"].values, self.results["score"].values)
@@ -57,10 +60,10 @@ class TestRepetitions(unittest.TestCase):
     def test_return_no_aggregation(self):
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
-
-        timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
-                            repetitions=3)
-        timeeval.run()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
+                                repetitions=3, results_path=Path(tmp_path))
+            timeeval.run()
         results = timeeval.get_results(aggregated=False)
         self.assertEqual(len(timeeval.dataset_names) * len(self.algorithms) * 3, len(results))
 
@@ -72,10 +75,10 @@ class TestRepetitions(unittest.TestCase):
             Algorithm(name="deviating_from_mean", main=ErroneousAlgorithm(deviating_from_mean)),
             Algorithm(name="deviating_from_median", main=deviating_from_median)
         ]
-
-        timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), algorithms,
-                            repetitions=3)
-        timeeval.run()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), algorithms,
+                                repetitions=3, results_path=Path(tmp_path))
+            timeeval.run()
         results = timeeval.get_results()
 
         np.testing.assert_array_almost_equal(results["score_mean"].values, self.results["score"].values)
