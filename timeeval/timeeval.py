@@ -7,6 +7,10 @@ from typing import List, Tuple, Dict, Optional
 import numpy as np
 import pandas as pd
 import tqdm
+from io import StringIO
+import sys
+from contextlib import redirect_stdout
+import datetime as dt
 from distributed.client import Future
 
 from timeeval.datasets import Datasets
@@ -15,6 +19,10 @@ from .algorithm import Algorithm
 from .data_types import AlgorithmParameter
 from .remote import Remote
 from .times import Times
+
+METRICS_CSV = "metrics.csv"
+EXECUTION_LOG = "execution.log"
+ANOMALY_SCORES_TS = "anomaly_scores.ts"
 
 
 class Status(Enum):
@@ -47,6 +55,7 @@ class TimeEval:
         self.algorithms = algorithms
         self.dmgr = dataset_mgr
         self.results_path = results_path
+        self.start_date: Optional[str] = None
 
         self.distributed = distributed
         self.cluster_kwargs = ssh_cluster_kwargs or {}
@@ -57,9 +66,12 @@ class TimeEval:
             self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
 
-    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str]) -> dict:
+    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int) -> dict:
+        assert self.start_date, "The start date isn't set! Run TimeEval.run() first!"
+        results_path = self.results_path / self.start_date / algorithm_name / dataset_name[0] / dataset_name[1] / str(repetition)
+
         return {
-            "results_path": self.results_path / algorithm_name / dataset_name[0] / dataset_name[1]
+            "results_path": results_path
         }
 
     def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
@@ -92,7 +104,7 @@ class TimeEval:
                     result: Optional[Dict] = None
 
                     X, y_true = self._get_X_and_y(dataset_name, data_as_file=algorithm.data_as_file)
-                    args = self._gen_args(algorithm.name, dataset_name)
+                    args = self._gen_args(algorithm.name, dataset_name, repetition)
 
                     if self.distributed:
                         future_result = self.remote.add_task(TimeEval.evaluate, algorithm, X, y_true, args)
@@ -122,10 +134,19 @@ class TimeEval:
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray, args: dict) -> Dict:
-        y_scores, times = Times.from_algorithm(algorithm, X, args)
+        results_path = args.get("results_path", Path("./results"))
+        results_path.mkdir(parents=True, exist_ok=True)
+
+        logs_file = (results_path / EXECUTION_LOG).open("w")
+        with redirect_stdout(logs_file):
+            y_scores, times = Times.from_algorithm(algorithm, X, args)
         score = roc(y_scores, y_true.astype(np.float), plot=False)
         result = {"score": score}
         result.update(times.to_dict())
+
+        y_scores.tofile(results_path / ANOMALY_SCORES_TS, sep="\n")
+        pd.DataFrame([result]).to_csv(results_path / METRICS_CSV, index=False)
+
         return result
 
     def _record_results(self,
@@ -189,6 +210,7 @@ class TimeEval:
 
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
+        self.start_date = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         if self.distributed:
             for algorithm in self.algorithms:

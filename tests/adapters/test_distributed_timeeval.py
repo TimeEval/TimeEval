@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Callable, List
 from asyncio import Future
 from itertools import cycle
+import tempfile
 import os
-
 
 from timeeval import TimeEval, Algorithm, Datasets
 
@@ -66,11 +66,11 @@ class TestDistributedTimeEval(unittest.TestCase):
     def test_distributed_results_and_shutdown_cluster(self):
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
-
-        timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
-                            distributed=True, ssh_cluster_kwargs={"hosts": ["localhost", "localhost"],
-                                                                  "remote_python": os.popen("which python").read().rstrip("\n")})
-        timeeval.run()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
+                                distributed=True, results_path=Path(tmp_path), ssh_cluster_kwargs={"hosts": ["localhost", "localhost"],
+                                                                      "remote_python": os.popen("which python").read().rstrip("\n")})
+            timeeval.run()
         np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
 
         self.assertEqual(os.popen("pgrep -f distributed.cli.dask").read(), "")
