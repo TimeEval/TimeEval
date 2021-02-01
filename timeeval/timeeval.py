@@ -233,9 +233,10 @@ class TimeEval:
             if isinstance(algorithm.main, BaseAdapter):
                 tasks.append((algorithm.main.prepare, [], {}))
             for dataset_name in self.dataset_names:
-                # todo for repetition in range(self.repetitions):
-                tasks.append((self._gen_args(algorithm.name, dataset_name).get("results_path", Path("./results")).mkdir,
-                              [], {"parents": True, "exist_ok": True}))
+                for repetition in range(self.repetitions):
+                    tasks.append((self._gen_args(algorithm.name, dataset_name, repetition)
+                                  .get("results_path", Path("./results")).mkdir,
+                                  [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_execute(self):

@@ -21,8 +21,8 @@ class Remote:
     def run_on_all_hosts(self, tasks: List[Tuple[Callable, List, Dict]]):
         futures = []
         for task, args, kwargs in tasks:
-            for host in self.ssh_cluster_kwargs.get("hosts"):
-                futures.append(self.client.submit(task, *args, workers=[host], **kwargs))
+            for _, worker in self.cluster.workers.items():
+                futures.append(self.client.submit(task, *args, workers=[worker.address], **kwargs))
         self.client.gather(futures)
 
     def fetch_results(self):

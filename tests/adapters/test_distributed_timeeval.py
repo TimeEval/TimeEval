@@ -8,8 +8,11 @@ from asyncio import Future
 from itertools import cycle
 import tempfile
 import os
+import psutil
+import time
 
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.remote import Remote
 from timeeval.adapters import DockerAdapter
 
 
@@ -33,6 +36,10 @@ class MockCluster:
 
     def close(self) -> None:
         pass
+
+    @property
+    def workers(self):
+        return {}
 
 
 class MockContainer:
@@ -107,7 +114,21 @@ class TestDistributedTimeEval(unittest.TestCase):
                                                                       "remote_python": os.popen("which python").read().rstrip("\n")})
             timeeval.run()
             np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
-            self.assertEqual(os.popen("pgrep -f distributed.cli.dask").read(), "")
+            self.assertFalse(any(("distributed.cli.dask_worker" in c) or ("distributed.cli.dask_scheduler" in c)
+                                 for p in psutil.process_iter() for c in p.cmdline()))
+
+    @unittest.skipIf(os.getenv("CI"), reason="CI test runs in a slim Docker container and does not support SSH-connections")
+    def test_run_on_all_hosts(self):
+        def _test_func(*args, **kwargs):
+            a = time.time_ns()
+            os.mkdir(args[0] / str(a))
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            remote = Remote(**{"hosts": ["localhost", "localhost", "localhost"],
+                             "remote_python": os.popen("which python").read().rstrip("\n")})
+            remote.run_on_all_hosts([(_test_func, [Path(tmp_path)], {})])
+            remote.close()
+            self.assertEqual(len(os.listdir(tmp_path)), 2)
 
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
@@ -138,7 +159,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]}, results_path=Path(tmp_path))
             timeeval.run()
 
-            self.assertTrue((Path(tmp_path) / "docker" / "custom" / "dataset.1").exists())
+            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / "custom" / "dataset.1" / "1").exists())
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)
             self.assertListEqual(rsync.params[0], ["rsync", "-a", str(tmp_path)+"/", "test-host:"+str(tmp_path)])
