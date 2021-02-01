@@ -19,7 +19,7 @@ class AggregationMethod(Enum):
         else:  # if self == self.MAX:
             fn = np.max
 
-        return fn(np.stack(data, axis=1), axis=1).reshape(-1, 1)
+        return fn(np.stack(data, axis=1), axis=1).reshape(-1)
 
 
 class MultivarAdapter(BaseAdapter):
