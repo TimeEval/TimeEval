@@ -2,7 +2,8 @@ import numpy as np
 from enum import Enum
 from typing import Callable, List, Optional
 import multiprocessing as mp
-from .base import BaseAdapter, AlgorithmParameter
+from .base import BaseAdapter
+from ..data_types import AlgorithmParameter
 
 
 class AggregationMethod(Enum):
@@ -18,7 +19,7 @@ class AggregationMethod(Enum):
         else:  # if self == self.MAX:
             fn = np.max
 
-        return fn(np.stack(data, axis=1), axis=1)
+        return fn(np.stack(data, axis=1), axis=1).reshape(-1, 1)
 
 
 class MultivarAdapter(BaseAdapter):
@@ -32,11 +33,14 @@ class MultivarAdapter(BaseAdapter):
         scores = pool.map(self.fn, [data[:, c] for c in range(data.shape[1])])
         return scores
 
-    def _call(self, dataset: np.ndarray, args: Optional[dict] = None) -> np.ndarray:
-        if self.n_jobs > 1:
-            scores = self._parallel_call(dataset)
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> np.ndarray:
+        if isinstance(dataset, np.ndarray):
+            if self.n_jobs > 1:
+                scores = self._parallel_call(dataset)
+            else:
+                scores = list()
+                for dim in range(dataset.shape[1]):
+                    scores.append(self.fn(dataset[:, dim]))
+            return self.aggregation(scores)
         else:
-            scores = list()
-            for dim in range(dataset.shape[1]):
-                scores.append(self.fn(dataset[:, dim]))
-        return self.aggregation(scores)
+            raise ValueError("MultivarAdapter can only handle np.ndarray as input. Make sure that `Algorithm(..., data_as_file=False)`!")

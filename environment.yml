@@ -7,7 +7,7 @@ dependencies:
   - pip=20
   - scikit-learn=0.23.*
   - matplotlib=3.3.*
-  - numpy
+  - numpy=1.20.*
   - pandas
   - pip:
       - tqdm==4.54.*

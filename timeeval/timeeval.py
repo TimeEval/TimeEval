@@ -145,7 +145,7 @@ class TimeEval:
         logs_file = (results_path / EXECUTION_LOG).open("w")
         with redirect_stdout(logs_file):
             y_scores, times = Times.from_algorithm(algorithm, X, args)
-        score = roc(y_scores, y_true.astype(np.float), plot=False)
+        score = roc(y_scores, y_true.astype(np.float64), plot=False)
         result = {"score": score}
         result.update(times.to_dict())
 
