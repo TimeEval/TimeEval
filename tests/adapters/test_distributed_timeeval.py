@@ -9,7 +9,6 @@ from itertools import cycle
 import tempfile
 import os
 
-
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import DockerAdapter
 
