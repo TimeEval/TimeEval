@@ -95,11 +95,11 @@ class Datasets(ContextManager['Datasets']):
             raise KeyError(f"Dataset {dataset_id} was not found!") from e
 
     def _build_custom_df(self):
-        def safe_extract_path(name: str, train: bool) -> str:
+        def safe_extract_path(name: str, train: bool) -> Optional[str]:
             try:
                 return str(self._custom_datasets.get_path(name, train))
             except ValueError:
-                return np.nan
+                return None
 
         collection_names = self._custom_datasets.get_collection_names()
         if len(collection_names) > 0:
@@ -269,7 +269,7 @@ class Datasets(ContextManager['Datasets']):
             return data_path
         else:
             path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
-            if not path or (isinstance(path, (np.float, np.int)) and np.isnan(path)):
+            if not path or (isinstance(path, (np.float64, np.int64)) and np.isnan(path)):
                 raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
             return self._filepath.parent / path
 

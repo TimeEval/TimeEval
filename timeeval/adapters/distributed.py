@@ -5,7 +5,7 @@ import logging
 import getpass
 
 from .base import BaseAdapter
-from ..data_types import TSFunction
+from ..data_types import TSFunction, AlgorithmParameter
 
 
 class DistributedAdapter(BaseAdapter):
@@ -33,7 +33,7 @@ class DistributedAdapter(BaseAdapter):
         ssh_process.stdin.write(f"screen -dm bash -c \"{self.remote_command}\"")
         ssh_process.stdin.close()
 
-    def _call(self, dataset: np.ndarray, args: Optional[dict] = None):
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None):
         # remote call
         for remote_host in self.remote_hosts:
             self._remote_command(remote_host)

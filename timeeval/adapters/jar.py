@@ -4,6 +4,7 @@ from typing import Optional
 import numpy as np
 
 from .base import BaseAdapter
+from ..data_types import AlgorithmParameter
 
 
 class JarAdapter(BaseAdapter):
@@ -23,7 +24,7 @@ class JarAdapter(BaseAdapter):
     def _read_results(self) -> np.ndarray:
         return np.loadtxt(self.output_file)
 
-    def _call(self, _: np.ndarray, args: Optional[dict] = None) -> np.ndarray:
+    def _call(self, _: AlgorithmParameter, args: Optional[dict] = None) -> np.ndarray:
         stdout = subprocess.STDOUT if self.verbose else subprocess.DEVNULL
         subprocess.call(f"java -jar {self.jar_file} {self._format_args()} {self._format_kwargs()}".split(),
                         stdout=stdout, stderr=subprocess.STDOUT)

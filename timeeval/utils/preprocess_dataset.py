@@ -26,7 +26,7 @@ def create_parser() -> argparse.Namespace:
 def process(data_file: Union[Path, str], label_file: Union[Path, str], out_file: Union[Path, str],
             convert_datetime: bool, unit: str) -> None:
     data = np.loadtxt(data_file)
-    labels = np.loadtxt(label_file, dtype=np.long).reshape(-1)
+    labels = np.loadtxt(label_file, dtype=np.uint).reshape(-1)
     if data.shape[0] != labels.shape[0]:
         labels = id2labels(labels, data.shape[0])
 

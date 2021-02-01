@@ -1,7 +1,8 @@
 import asyncio
 import logging
-from enum import Enum
 from pathlib import Path
+from typing import Callable
+from enum import Enum
 from typing import List, Tuple, Dict, Optional
 
 import numpy as np
@@ -12,7 +13,11 @@ import sys
 from contextlib import redirect_stdout
 import datetime as dt
 from distributed.client import Future
+import subprocess
+import socket
 
+from .adapters import DockerAdapter
+from .adapters.base import BaseAdapter
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
 from .algorithm import Algorithm
@@ -54,7 +59,7 @@ class TimeEval:
         self.dataset_names = datasets
         self.algorithms = algorithms
         self.dmgr = dataset_mgr
-        self.results_path = results_path
+        self.results_path = results_path.absolute()
         self.start_date: Optional[str] = None
 
         self.distributed = distributed
@@ -140,7 +145,7 @@ class TimeEval:
         logs_file = (results_path / EXECUTION_LOG).open("w")
         with redirect_stdout(logs_file):
             y_scores, times = Times.from_algorithm(algorithm, X, args)
-        score = roc(y_scores, y_true.astype(np.float), plot=False)
+        score = roc(y_scores, y_true.astype(np.float64), plot=False)
         result = {"score": score}
         result.update(times.to_dict())
 
@@ -208,16 +213,50 @@ class TimeEval:
         results_path = results_path or (self.results_path / Path("results.csv"))
         self.results.to_csv(results_path, index=False)
 
+    def rsync_results(self):
+        hosts = self.cluster_kwargs.get("hosts", list())
+        hostname = socket.gethostname()
+        for host in hosts:
+            if host != hostname:
+                subprocess.call(["rsync", "-a", f"{self.results_path}/", f"{host}:{self.results_path}"])
+
+    def _prune_docker(self):
+        tasks: List[Tuple[Callable, List, Dict]] = []
+        for algorithm in self.algorithms:
+            if isinstance(algorithm.main, DockerAdapter):
+                tasks.append((algorithm.main.prune, [], {}))
+        self.remote.run_on_all_hosts(tasks)
+
+    def _distributed_prepare(self):
+        tasks: List[Tuple[Callable, List, Dict]] = []
+        for algorithm in self.algorithms:
+            if isinstance(algorithm.main, BaseAdapter):
+                tasks.append((algorithm.main.prepare, [], {}))
+            for dataset_name in self.dataset_names:
+                for repetition in range(self.repetitions):
+                    tasks.append((self._gen_args(algorithm.name, dataset_name, repetition)
+                                  .get("results_path", Path("./results")).mkdir,
+                                  [], {"parents": True, "exist_ok": True}))
+        self.remote.run_on_all_hosts(tasks)
+
+    def _distributed_execute(self):
+        for algorithm in self.algorithms:
+            self._run_algorithm(algorithm)
+
+    def _distributed_finalize(self):
+        self._get_future_results()
+        self._prune_docker()
+        self.remote.close()
+        self.rsync_results()
+
     def run(self):
         assert len(self.algorithms) > 0, "No algorithms given for evaluation"
         self.start_date = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         if self.distributed:
-            for algorithm in self.algorithms:
-                self._run_algorithm(algorithm)
-
-            self._get_future_results()
-            self.remote.close()
+            self._distributed_prepare()
+            self._distributed_execute()
+            self._distributed_finalize()
         else:
             for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0):
                 self._run_algorithm(algorithm)

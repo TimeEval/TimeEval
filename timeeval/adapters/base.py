@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Union, Optional
 from pathlib import Path
 
-from ..timeeval import AlgorithmParameter
+from ..data_types import AlgorithmParameter
 
 
 class BaseAdapter(ABC):
@@ -21,3 +21,6 @@ class BaseAdapter(ABC):
         dataset = self._preprocess_data(dataset, args)
         dataset = self._call(dataset, args)
         return self._postprocess_data(dataset, args)
+
+    def prepare(self):
+        pass
