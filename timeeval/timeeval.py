@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath
 from typing import Callable
 from enum import Enum
 from typing import List, Tuple, Dict, Optional
@@ -82,21 +82,28 @@ class TimeEval:
     def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
         return self.dmgr.get_dataset_df(name)
 
+    @staticmethod
+    def _extract_labels(df: pd.DataFrame) -> np.ndarray:
+        return df.values[:, -1]
+
+    @staticmethod
+    def _extract_features(df: pd.DataFrame) -> np.ndarray:
+        return df.values[:, 1:-1]
+
     def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
         return self.dmgr.get_dataset_path(name, train=False)
 
-    def _get_X_and_y(self, dataset_name: Tuple[str, str], data_as_file: bool = False) -> Tuple[AlgorithmParameter, np.ndarray]:
+    def _get_X_and_y(self, dataset_name: Tuple[str, str], data_as_file: bool = False) -> Tuple[AlgorithmParameter, AlgorithmParameter]:
         dataset = self._load_dataset(dataset_name)
         if data_as_file:
-            X = self._get_dataset_path(dataset_name)
+            X: AlgorithmParameter = self._get_dataset_path(dataset_name)
+            y: AlgorithmParameter = X
         else:
-            if dataset.shape[1] > 3:
-                X = dataset.values[:, 1:-1]
-            elif dataset.shape[1] == 3:
-                X = dataset.values[:, 1]
+            if dataset.shape[1] >= 3:
+                X = self._extract_features(dataset)
             else:
                 raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
-        y = dataset.values[:, -1]
+            y = self._extract_labels(dataset)
         return X, y
 
     def _run_algorithm(self, algorithm: Algorithm):
@@ -138,9 +145,16 @@ class TimeEval:
             pbar.close()
 
     @staticmethod
-    def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y_true: np.ndarray, args: dict) -> Dict:
+    def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
         results_path = args.get("results_path", Path("./results"))
         results_path.mkdir(parents=True, exist_ok=True)
+
+        if isinstance(y, (PosixPath, WindowsPath)):
+            y_true = TimeEval._extract_labels(pd.read_csv(y))
+        elif isinstance(y, np.ndarray):
+            y_true = y
+        else:
+            raise ValueError("y must be of type AlgorithmParameter")
 
         logs_file = (results_path / EXECUTION_LOG).open("w")
         with redirect_stdout(logs_file):
