@@ -79,7 +79,7 @@ class MockDockerContainer:
 
         real_path = list(volumes.items())[1][0]
         if real_path.startswith("/tmp"):
-            np.arange(3600, dtype=np.float).tofile(real_path / Path("anomaly_scores.ts"), sep="\n")
+            np.arange(3600, dtype=np.float64).tofile(real_path / Path("anomaly_scores.ts"), sep="\n")
 
     def prune(self):
         pass

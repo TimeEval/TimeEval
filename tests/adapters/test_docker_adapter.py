@@ -15,7 +15,7 @@ class MockDockerContainer:
 
         real_path = list(volumes.items())[1][0]
         if real_path.startswith("/tmp"):
-            np.arange(10, dtype=np.float).tofile(real_path / Path("anomaly_scores.ts"), sep="\n")
+            np.arange(10, dtype=np.float64).tofile(real_path / Path("anomaly_scores.ts"), sep="\n")
 
 
 class MockDockerClient:
@@ -51,7 +51,7 @@ class TestDockerAdapter(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter("test-image:latest")
             result = adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
-        np.testing.assert_array_equal(result, np.arange(10, dtype=np.float))
+        np.testing.assert_array_equal(result, np.arange(10, dtype=np.float64))
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_assertion_error(self, mock_client):
