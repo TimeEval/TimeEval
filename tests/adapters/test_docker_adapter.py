@@ -8,7 +8,7 @@ from timeeval.adapters import DockerAdapter
 
 
 class MockDockerContainer:
-    def run(self, image: str, cmd: str, volumes: dict):
+    def run(self, image: str, cmd: str, volumes: dict, **kwargs):
         self.image = image
         self.cmd = cmd
         self.volumes = volumes

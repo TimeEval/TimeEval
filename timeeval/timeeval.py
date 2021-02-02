@@ -1,25 +1,23 @@
 import asyncio
+import datetime as dt
 import logging
+import socket
+import subprocess
+from contextlib import redirect_stdout
+from enum import Enum
 from pathlib import Path, PosixPath, WindowsPath
 from typing import Callable
-from enum import Enum
 from typing import List, Tuple, Dict, Optional
 
 import numpy as np
 import pandas as pd
 import tqdm
-from io import StringIO
-import sys
-from contextlib import redirect_stdout
-import datetime as dt
 from distributed.client import Future
-import subprocess
-import socket
 
-from .adapters import DockerAdapter
-from .adapters.base import BaseAdapter
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
+from .adapters import DockerAdapter
+from .adapters.base import BaseAdapter
 from .algorithm import Algorithm
 from .data_types import AlgorithmParameter
 from .remote import Remote
@@ -147,7 +145,6 @@ class TimeEval:
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
         results_path = args.get("results_path", Path("./results"))
-        results_path.mkdir(parents=True, exist_ok=True)
 
         if isinstance(y, (PosixPath, WindowsPath)):
             y_true = TimeEval._extract_labels(pd.read_csv(y))
@@ -241,16 +238,29 @@ class TimeEval:
                 tasks.append((algorithm.main.prune, [], {}))
         self.remote.run_on_all_hosts(tasks)
 
+    def _prepare(self):
+        for algorithm in self.algorithms:
+            if isinstance(algorithm.main, BaseAdapter):
+                algorithm.main.prepare()
+            for dataset_name in self.dataset_names:
+                for repetition in range(1, self.repetitions + 1):
+                    path = self._gen_args(algorithm.name, dataset_name, repetition).get("results_path", Path("./results"))
+                    path.mkdir(parents=True, exist_ok=True)
+
+    def _finalize(self):
+        for algorithm in self.algorithms:
+            if isinstance(algorithm.main, DockerAdapter):
+                algorithm.main.prune()
+
     def _distributed_prepare(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.algorithms:
             if isinstance(algorithm.main, BaseAdapter):
                 tasks.append((algorithm.main.prepare, [], {}))
             for dataset_name in self.dataset_names:
-                for repetition in range(self.repetitions):
-                    tasks.append((self._gen_args(algorithm.name, dataset_name, repetition)
-                                  .get("results_path", Path("./results")).mkdir,
-                                  [], {"parents": True, "exist_ok": True}))
+                for repetition in range(1, self.repetitions + 1):
+                    path = self._gen_args(algorithm.name, dataset_name, repetition).get("results_path", Path("./results"))
+                    tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_execute(self):
@@ -272,5 +282,7 @@ class TimeEval:
             self._distributed_execute()
             self._distributed_finalize()
         else:
+            self._prepare()
             for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0):
                 self._run_algorithm(algorithm)
+            self._finalize()

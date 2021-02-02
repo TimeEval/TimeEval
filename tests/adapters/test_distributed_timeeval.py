@@ -1,19 +1,20 @@
+import os
+import tempfile
+import time
 import unittest
-from unittest.mock import patch
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from typing import Callable, List, Union, Coroutine, Optional
 from asyncio import Future
 from itertools import cycle
-import tempfile
-import os
+from pathlib import Path
+from typing import Callable, List, Union, Coroutine, Optional
+from unittest.mock import patch
+
+import numpy as np
+import pandas as pd
 import psutil
-import time
 
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.remote import Remote
 from timeeval.adapters import DockerAdapter
+from timeeval.remote import Remote
 
 
 def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
@@ -30,16 +31,25 @@ def deviating_from_median(data: np.ndarray, args) -> np.ndarray:
     return deviating_from(data, np.median)
 
 
-class MockCluster:
+class MockWorker:
     def __init__(self):
+        self.address = "localhost"
+
+
+class MockCluster:
+    def __init__(self, workers: int):
         self.scheduler_address = "localhost:8000"
+        self.n_workers = workers
 
     def close(self) -> None:
         pass
 
     @property
     def workers(self):
-        return {}
+        dd = {}
+        for i in range(self.n_workers):
+            dd[i] = MockWorker()
+        return dd
 
 
 class MockContainer:
@@ -72,7 +82,7 @@ class MockClient:
 
 
 class MockDockerContainer:
-    def run(self, image: str, cmd: str, volumes: dict):
+    def run(self, image: str, cmd: str, volumes: dict, **kwargs):
         self.image = image
         self.cmd = cmd
         self.volumes = volumes
@@ -145,7 +155,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         rsync = Rsync()
 
         mock_client.return_value = MockClient()
-        mock_cluster.return_value = MockCluster()
+        mock_cluster.return_value = MockCluster(workers=2)
         mock_docker.return_value = MockDockerClient()
         mock_call.side_effect = rsync
 
@@ -164,3 +174,18 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertTrue(timeeval.remote.client.did_shutdown)
             self.assertListEqual(rsync.params[0], ["rsync", "-a", str(tmp_path)+"/", "test-host:"+str(tmp_path)])
             self.assertListEqual(rsync.params[1], ["rsync", "-a", str(tmp_path) + "/", "test-host2:" + str(tmp_path)])
+
+    @patch("timeeval.adapters.docker.docker.from_env")
+    def test_phases(self, mock_docker):
+        mock_docker.return_value = MockDockerClient()
+
+        datasets_config = Path("./tests/example_data/datasets.json")
+        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        adapter = DockerAdapter("test-image:latest")
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())),
+                                [Algorithm(name="docker", main=adapter, data_as_file=True)], results_path=Path(tmp_path))
+            timeeval.run()
+
+            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / "custom" / "dataset.1" / "1").exists())
