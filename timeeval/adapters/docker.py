@@ -1,4 +1,5 @@
 import json
+import subprocess
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
@@ -43,9 +44,20 @@ class AlgorithmInterface:
 
 
 class DockerAdapter(BaseAdapter):
-    def __init__(self, image_name: str, tag: str = "latest"):
+    def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False):
         self.image_name = image_name
         self.tag = tag
+        self.group = group_privileges
+        self.skip_pull = skip_pull
+
+    @staticmethod
+    def _get_gid(group: str) -> str:
+        CMD = "getent group %s | cut -d ':' -f 3"
+        return subprocess.run(CMD % group, capture_output=True, text=True, shell=True).stdout.strip()
+
+    @staticmethod
+    def _get_uid() -> str:
+        return subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
 
     def _run_container(self, dataset_path: Path, args: dict):
         client = docker.from_env()
@@ -55,12 +67,18 @@ class DockerAdapter(BaseAdapter):
             dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute()
         )
 
+        gid = DockerAdapter._get_gid(self.group)
+        uid = DockerAdapter._get_uid()
         client.containers.run(
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
                 str(args.get("results_path", Path("./results")).absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
+            },
+            environment={
+                "LOCAL_GID": gid,
+                "LOCAL_UID": uid
             }
         )
 
@@ -76,9 +94,9 @@ class DockerAdapter(BaseAdapter):
 
     def prepare(self):
         client = docker.from_env()
-        client.images.pull(self.image_name, tag=self.tag)
+        if not self.skip_pull:
+            client.images.pull(self.image_name, tag=self.tag)
 
     def prune(self):
         client = docker.from_env()
         client.containers.prune()
-
