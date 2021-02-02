@@ -225,10 +225,16 @@ class TimeEval:
         self.results.to_csv(results_path, index=False)
 
     def rsync_results(self):
+        excluded_aliases = [
+            hostname := socket.gethostname(),
+            socket.gethostbyname(hostname),
+            "localhost",
+            socket.gethostbyname("localhost")
+        ]
+
         hosts = self.cluster_kwargs.get("hosts", list())
-        hostname = socket.gethostname()
         for host in hosts:
-            if host != hostname:
+            if host not in excluded_aliases:
                 subprocess.call(["rsync", "-a", f"{host}:{self.results_path}/", f"{self.results_path}"])
 
     def _prune_docker(self):
