@@ -66,6 +66,9 @@ class MockClient:
         f.set_result(result)
         return f
 
+    def run(self, task, *args, **kwargs):
+        task(*args, **kwargs)
+
     def gather(self, _futures: List[Future], *args, asynchronous=False, **kwargs) -> Union[Coroutine, bool]:
         if asynchronous:
             return self._gather(_futures, *args, **kwargs)
@@ -172,8 +175,8 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / "custom" / "dataset.1" / "1").exists())
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)
-            self.assertListEqual(rsync.params[0], ["rsync", "-a", str(tmp_path)+"/", "test-host:"+str(tmp_path)])
-            self.assertListEqual(rsync.params[1], ["rsync", "-a", str(tmp_path) + "/", "test-host2:" + str(tmp_path)])
+            self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host:"+str(tmp_path)+"/", str(tmp_path)])
+            self.assertListEqual(rsync.params[1], ["rsync", "-a", "test-host2:"+str(tmp_path)+"/", str(tmp_path)])
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_phases(self, mock_docker):

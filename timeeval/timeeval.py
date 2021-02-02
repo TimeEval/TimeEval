@@ -229,7 +229,7 @@ class TimeEval:
         hostname = socket.gethostname()
         for host in hosts:
             if host != hostname:
-                subprocess.call(["rsync", "-a", f"{self.results_path}/", f"{host}:{self.results_path}"])
+                subprocess.call(["rsync", "-a", f"{host}:{self.results_path}/", f"{self.results_path}"])
 
     def _prune_docker(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
