@@ -58,7 +58,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Phillip Wenig and Sebastian Schmidl",
     author_email="phillip.wenig@hpi.de",
-    url="https://gitlab.hpi.de/bp2020fn1/timeeval",
+    url="https://gitlab.hpi.de/akita/bp2020fn1/timeeval",
     license="MIT",
     classifiers=[
         "License :: OSI Approved :: MIT License",
