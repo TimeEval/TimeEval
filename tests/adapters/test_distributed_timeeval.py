@@ -11,6 +11,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import psutil
+import socket
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import DockerAdapter
@@ -192,3 +193,34 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval.run()
 
             self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / "custom" / "dataset.1" / "1").exists())
+
+    @patch("timeeval.timeeval.subprocess.call")
+    @patch("timeeval.adapters.docker.docker.from_env")
+    @patch("timeeval.remote.Client")
+    @patch("timeeval.remote.SSHCluster")
+    def test_aliases_excluded(self, mock_cluster, mock_client, mock_docker, mock_call):
+        class Rsync:
+            def __init__(self):
+                self.params = []
+
+            def __call__(self, *args, **kwargs):
+                self.params.append(args[0])
+
+        rsync = Rsync()
+
+        mock_client.return_value = MockClient()
+        mock_cluster.return_value = MockCluster(workers=2)
+        mock_docker.return_value = MockDockerClient()
+        mock_call.side_effect = rsync
+
+        datasets = Datasets("./tests/example_data")
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, [], [], distributed=True,
+                                ssh_cluster_kwargs={
+                                    "hosts": ["localhost", socket.gethostname(), "127.0.0.1",
+                                              socket.gethostbyname(socket.gethostname()), "test-host"]
+                                }, results_path=Path(tmp_path))
+            timeeval.rsync_results()
+            self.assertEqual(len(rsync.params), 1)
+            self.assertTrue(rsync.params[0], ["rsync", "-a", f"test-host:{tmp_path}/", tmp_path])
