@@ -32,10 +32,10 @@ class TestDockerAdapter(unittest.TestCase):
         input_string = 'execute-algorithm \'{' \
                        '"dataInput": "/data/test.csv", ' \
                        '"dataOutput": "/results/anomaly_scores.ts", ' \
+                       '"modelInput": "/results/model.pkl", ' \
+                       '"modelOutput": "/results/model.pkl", ' \
                        '"customParameters": {}, ' \
-                       '"executionType": "execute", ' \
-                       '"modelInput": null, ' \
-                       '"modelOutput": null' \
+                       '"executionType": "execute"' \
                        '}\''
 
         adapter = DockerAdapter("test-image:latest")

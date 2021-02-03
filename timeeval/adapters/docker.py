@@ -13,6 +13,7 @@ from .base import BaseAdapter, AlgorithmParameter
 DATASET_TARGET_PATH = "/data/"
 RESULTS_TARGET_PATH = "/results"
 SCORES_FILE_NAME = "anomaly_scores.ts"
+MODEL_FILE_NAME = "model.pkl"
 
 
 class DockerJSONEncoder(json.JSONEncoder):
@@ -33,10 +34,10 @@ class ExecutionType(Enum):
 class AlgorithmInterface:
     dataInput: Path
     dataOutput: Path
+    modelInput: Path
+    modelOutput: Path
     customParameters: dict = field(default_factory=dict)
     executionType: ExecutionType = ExecutionType.EXECUTE
-    modelInput: Optional[Path] = None
-    modelOutput: Optional[Path] = None
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)
@@ -64,7 +65,9 @@ class DockerAdapter(BaseAdapter):
 
         algorithm_interface = AlgorithmInterface(
             dataInput=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
-            dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute()
+            dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute(),
+            modelInput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
+            modelOutput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute()
         )
 
         gid = DockerAdapter._get_gid(self.group)
