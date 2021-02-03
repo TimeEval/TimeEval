@@ -3,11 +3,14 @@
 [![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
 [![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
 
-Evaluation Tool for Anomaly Detection Algorithms on time series
+Evaluation Tool for Anomaly Detection Algorithms on time series.
+
+See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) for algorithms that are compatible to this tool.
+The algorithms in this repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
 
 ## Features
 
-- Large integrated benchmark dataset collection with more than 800 datasets
+- Large integrated benchmark dataset collection with more than 700 datasets
 - Benchmark dataset interface to select datasets easily
 - Adapter architecture for algorithm integration
   - JarAdapter
