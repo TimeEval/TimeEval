@@ -373,3 +373,19 @@ or
 ```bash
 pytest
 ```
+
+### Default Tests
+
+By default, tests that are marked with the following keys are skipped:
+
+- docker
+- dask
+
+To run these tests, add the respective keys as parameters: 
+```bash
+pytest --[key] # e.g. --docker
+```
+
+## Timeout Algorithms consuming too much time
+
+Some algorithms are not suitable for very large datasets and, thus, can take a long time until they finish. Therefore, the `DockerAdapter` class can take in a `timeout` parameter that defines the maximum amount of time the algorithm is allowed to run. The parameter takes in a `durations.Duration` object. If the timeout is exceeded, a `DockerTimeoutError` is raised and the specific algorithm for the current dataset is canceled.

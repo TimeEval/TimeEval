@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import psutil
 import socket
+import pytest
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import DockerAdapter
@@ -117,7 +118,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             Algorithm(name="deviating_from_median", main=deviating_from_median)
         ]
 
-    @unittest.skipIf(os.getenv("CI"), reason="CI test runs in a slim Docker container and does not support SSH-connections")
+    @pytest.mark.dask
     def test_distributed_results_and_shutdown_cluster(self):
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
@@ -131,7 +132,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertFalse(any(("distributed.cli.dask_worker" in c) or ("distributed.cli.dask_scheduler" in c)
                                  for p in psutil.process_iter() for c in p.cmdline()))
 
-    @unittest.skipIf(os.getenv("CI"), reason="CI test runs in a slim Docker container and does not support SSH-connections")
+    @pytest.mark.dask
     def test_run_on_all_hosts(self):
         def _test_func(*args, **kwargs):
             a = time.time_ns()
