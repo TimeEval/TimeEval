@@ -3,19 +3,65 @@
 [![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
 [![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
 
-Evaluation Tool for Anomaly Detection Algorithms on Time Series
+Evaluation Tool for Anomaly Detection Algorithms on time series
 
-## Installation using `pip`
+## Features
+
+- Large integrated benchmark dataset collection with more than 800 datasets
+- Benchmark dataset interface to select datasets easily
+- Adapter architecture for algorithm integration
+  - JarAdapter
+  - DistributedAdapter
+  - MultivarAdapter
+  - DockerAdapter
+  - ... (add your own adapter)
+- Automatic algorithm detection quality scoring using [AUC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve) (Area under the ROC curve, also _c-statistic_) metric
+- Automatic timing of the algorithm execution (differentiates pre-, main-, and post-processing)
+- Distributed experiment execution
+- Output and logfile tracking for subsequent inspection
+
+## Mechanics
+
+TimeEval takes your input and automatically creates experiment configurations by taking the cross-product of your inputs.
+It executes all experiments configuration one after the other or - when distributed - in parallel and records the anomaly detection quality and the runtime of the algorithms.
+
+TimeEval takes 4 different inputs for the experiment creation:
+
+- Algorithms
+- Datasets
+- Algorithm ParameterGrids - **WIP**
+- A repetition number
+
+### TimeEval.Distributed
+
+TimeEval is able to run multiple tests in parallel on a cluster. It uses [Dask's SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster) to distribute tasks.
+In order to use this feature, the `TimeEval` class accepts a `distributed: bool` flag and additional configurations `ssh_cluster_kwargs: dict` to setup the [SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster).
+
+### Repetitive runs and scoring
+
+TimeEval has the ability to run an experiment multiple times.
+Therefore, the `TimeEval` class has the parameter `repetitions: int = 1`.
+Each algorithm on every dataset is run `repetitions` times.
+To retrieve the aggregated results, the `TimeEval` class provides the method `get_results` which wants to know whether the results should be `aggregated: bool = True`.
+Erroneous experiments are excluded from an aggregate.
+For example, if you have `repetitions = 5` and one of five experiments failed, the average is built only over the 4 successful runs.
+To retrieve the raw results, you can either `timeeval.get_results(aggregated=False)` or call the results object directly: `timeeval.results`.
+
+## Installation
+
+TimeEval can be installed as package or from source.
+
+### Installation using `pip`
 
 Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/bp2020fn1/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
 
-### Prerequisites
+#### Prerequisites
 
 - python 3
 - pip
 - A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` for [gitlab.hpi.de](https://gitlab.hpi.de/).
 
-### Steps
+#### Steps
 
 You can use `pip` to install TimeEval using:
 
@@ -23,7 +69,7 @@ You can use `pip` to install TimeEval using:
 pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@gitlab.hpi.de/api/v4/projects/4041/packages/pypi/simple
 ```
 
-## Installation from source
+### Installation from source
 
 **tl;dr**
 
@@ -35,14 +81,14 @@ conda activate timeeval
 python setup.py install
 ```
 
-### Prerequisites
+#### Prerequisites
 
 The following tools are required to install TimeEval from source:
 
 - git
 - conda (anaconda or miniconda)
 
-### Steps
+#### Steps
 
 1. Clone this repository using git and change into its root directory.
 2. Create a conda-environment and install all required dependencies.
@@ -52,20 +98,6 @@ The following tools are required to install TimeEval from source:
    `python setup.py install`.
 4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
-
-## Tests
-
-Run tests in `./tests/` as follows
-
-```bash
-python setup.py test
-```
-
-or
-
-```bash
-pytest
-```
 
 ## Usage
 
@@ -325,17 +357,16 @@ Algorithm(
 > Using a `DockerAdapter` implies that `data_as_file=True` in the `Algorithm` construction.
 > The adapter supplies the dataset to the algorithm via bind-mounting and does not support passing the data as numpy array.
 
-### TimeEval.Distributed
+## Tests
 
-TimeEval is able to run multiple tests in parallel on a cluster. It uses [Dask's SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster) to distribute tasks.
-In order to use this feature, the `TimeEval` class accepts a `distributed: bool` flag and additional configurations `ssh_cluster_kwargs: dict` to setup the [SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster).
+Run tests in `./tests/` as follows
 
-### Repetitive runs and scoring
+```bash
+python setup.py test
+```
 
-TimeEval has the ability to run an experiment multiple times.
-Therefore, the `TimeEval` class has the parameter `repetitions: int = 1`.
-Each algorithm on every dataset is run `repetitions` times.
-To retrieve the aggregated results, the `TimeEval` class provides the method `get_results` which wants to know whether the results should be `aggregated: bool = True`.
-Erroneous experiments are excluded from an aggregate.
-For example, if you have `repetitions = 5` and one of five experiments failed, the average is built only over the 4 successful runs.
-To retrieve the raw results, you can either `timeeval.get_results(aggregated=False)` or call the results object directly: `timeeval.results`.
+or
+
+```bash
+pytest
+```
