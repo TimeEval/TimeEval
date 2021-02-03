@@ -37,4 +37,4 @@ class HPI_CLUSTER:
         thor01_ip, thor02_ip, thor03_ip, thor04_ip
     ]
 
-    akita_benchmark_path: Final[str] = Path("/home/projects/akita/data/benchmark-data/data-processed")
+    akita_benchmark_path: Final[Path] = Path("/home/projects/akita/data/benchmark-data/data-processed")
