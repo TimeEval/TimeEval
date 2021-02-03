@@ -14,6 +14,7 @@ Builds of `TimeEval` are published to the [internal package registry](https://gi
 - python 3
 - pip
 - A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` for [gitlab.hpi.de](https://gitlab.hpi.de/).
+
 ### Steps
 
 You can use `pip` to install TimeEval using:
@@ -27,7 +28,7 @@ pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@g
 **tl;dr**
 
 ```bash
-git clone git@gitlab.hpi.de:bp2020fn1/timeeval.git
+git clone git@gitlab.hpi.de:akita/bp2020fn1/timeeval.git
 cd timeeval/
 conda env create --file environment.yml
 conda activate timeeval
@@ -87,7 +88,7 @@ algorithms = [
     # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
-        function=my_algorithm,
+        main=my_algorithm,
         data_as_file=False
     )
 ]
@@ -97,7 +98,7 @@ timeeval = TimeEval(dm, datasets, algorithms)
 timeeval.run()
 
 # retrieve results
-print(timeeval.results)
+print(timeeval.get_results())
 ```
 
 ### Datasets
@@ -109,7 +110,8 @@ Existing datasets in another format must first be transformed into the canonical
 
 TimeEval's canonical file format is based on CSV.
 Each file requires a header, cells (values) are separated by commas (decimal seperator is `.`), and records are separated by newlines (unix-style LF: `\n`).
-The first column of the dataset is its index, either in integer- or datetime-format (multiple timestamp-formats are supported but [RFC 3339](https://tools.ietf.org/html/rfc3339) is preferred, e.g. `2017-03-22 15:16:45.433502912`).
+The first column of the dataset is its index, either in integer- or datetime-format
+(multiple timestamp-formats are supported but [RFC 3339](https://tools.ietf.org/html/rfc3339) is preferred, e.g. `2017-03-22 15:16:45.433502912`).
 The index follows a single or multiple (if multivariate dataset) time series columns.
 The last column contains the annotations, `0` for normal points and `1` for anomalies.
 
@@ -175,8 +177,9 @@ They can directly be used using the dataset manager `Datasets`:
 
 ```python
 from timeeval import Datasets
+from timeeval.constants import HPI_CLUSTER
 
-dm = Datasets("data_folder")
+dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
 datasets = dm.select()
 ```
 
@@ -214,9 +217,14 @@ dm.load_custom_datasets("path/to/custom/datasets.json")
 
 ### Algorithms
 
-Any algorithm that can be called with a numpy array as parameter and a numpy array as return value can be evaluated. However, so far only __unsupervised__ algorithms are supported.
+Any algorithm that can be called with a numpy array as parameter and a numpy array as return value can be evaluated.
+TimeEval also supports passing only the filepath to an algorithm and let the algorithm perform the file reading and parsing.
+In this case, the algorithm must be able to read to data format described [earlier](#Canonical-file-format).
+Use `data_as_file=True` as a keyword argument to the algorithm declaration.
 
-#### Registering algorithm
+Currently only __unsupervised__ algorithms are supported.
+
+#### Registering algorithms
 
 ```python
 from timeeval import TimeEval, Datasets, Algorithm
@@ -230,7 +238,7 @@ algorithms = [
     # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
-        function=my_algorithm,
+        main=my_algorithm,
         data_as_file=False
     )
 ]
@@ -246,23 +254,24 @@ You can implement your own adapters.
 Example:
 
 ```python
-import numpy as np
+from typing import Optional
 from timeeval.adapters.base import BaseAdapter
+from timeeval.data_types import AlgorithmParameter
 
 class MyAdapter(BaseAdapter):
 
-    def _call(self, dataset: np.ndarray) -> np.ndarray:
+   # AlgorithmParameter = Union[np.ndarray, Path]
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         # e.g. create another process or call make a call to another language
         pass
 
     # optional preprocessing of the dataset
-    def _preprocess_data(self, data: np.ndarray) -> np.ndarray:
+    def _preprocess_data(self, data: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         return data
 
     # optional postprocessing of the algorithm results
-    def _postprocess_data(self, data: np.ndarray) -> np.ndarray:
+    def _postprocess_data(self, data: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         return data
-
 ```
 
 ##### Distributed adapter
@@ -284,7 +293,8 @@ You can supply the path to the Jar-File (executable) and any additional argument
 
 ##### Adapter to apply univariate methods to multivariate data
 
-The [`MultivarAdapter`](./timeeval/adapters/distributed.py) allows you to apply an univariate algorithm to each dimension of a multivariate dataset individually and receive a single aggregated result.
+The [`MultivarAdapter`](./timeeval/adapters/distributed.py) allows you to apply an univariate algorithm to each dimension of a multivariate dataset individually
+and receive a single aggregated result.
 You can currently choose between three different result aggregation strategies that work on single points:
 
 - `timeeval.adapters.multivar.AggregationMethod.MEAN`
@@ -293,6 +303,28 @@ You can currently choose between three different result aggregation strategies t
 
 If `n_jobs > 1`, the algorithms are executed in parallel.
 
+#### Docker adapter
+
+The [`DockerAdapter`](./timeeval/adapters/docker.py) allows you to run an algorithm as a Docker container.
+This means that the algorithm is available as a Docker image.
+Usage example:
+
+```python
+from timeeval import Algorithm
+from timeeval.adapters import DockerAdapter
+
+Algorithm(
+    name="MyDockerAlgorithm",
+    main=DockerAdapter(image_name="algorithm-docker-image", tag="latest"),
+    data_as_file=True  # important here!
+)
+```
+
+> **Attention!**
+>
+> Using a `DockerAdapter` implies that `data_as_file=True` in the `Algorithm` construction.
+> The adapter supplies the dataset to the algorithm via bind-mounting and does not support passing the data as numpy array.
+
 ### TimeEval.Distributed
 
 TimeEval is able to run multiple tests in parallel on a cluster. It uses [Dask's SSHCluster](https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster) to distribute tasks.
@@ -300,6 +332,10 @@ In order to use this feature, the `TimeEval` class accepts a `distributed: bool`
 
 ### Repetitive runs and scoring
 
-TimeEval has the ability to run an experiment multiple times. Therefore, the `TimeEval` class has the parameter `repetitions: int = 1`. Each algorithm on every dataset is run `repetitions` times.
-To retrieve the aggregated results, the `TimeEval` class has the method `get_results` which wants to know whether the results should be `aggregated: bool = True`. Erroneous experiments are excluded from an aggregate. For example, if you have `repetitions = 5` and one of five experiments failed, the average is built only over the 4 successful runs.
+TimeEval has the ability to run an experiment multiple times.
+Therefore, the `TimeEval` class has the parameter `repetitions: int = 1`.
+Each algorithm on every dataset is run `repetitions` times.
+To retrieve the aggregated results, the `TimeEval` class provides the method `get_results` which wants to know whether the results should be `aggregated: bool = True`.
+Erroneous experiments are excluded from an aggregate.
+For example, if you have `repetitions = 5` and one of five experiments failed, the average is built only over the 4 successful runs.
 To retrieve the raw results, you can either `timeeval.get_results(aggregated=False)` or call the results object directly: `timeeval.results`.
