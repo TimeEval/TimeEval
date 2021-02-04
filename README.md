@@ -108,10 +108,12 @@ The following tools are required to install TimeEval from source:
 
 ```python
 from timeeval import TimeEval, Datasets, Algorithm
+from timeeval.adapters import FunctionAdapter
+from timeeval.constants import HPI_CLUSTER
 import numpy as np
 
 # Load dataset metadata
-dm = Datasets("data_folder")
+dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
 
 # Define algorithm
 def my_algorithm(data: np.ndarray) -> np.ndarray:
@@ -123,7 +125,7 @@ algorithms = [
     # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
-        main=my_algorithm,
+        main=FunctionAdapter(my_algorithm),
         data_as_file=False
     )
 ]
@@ -241,12 +243,13 @@ You can add custom datasets to the dataset manager using two ways:
 
 ```python
 from timeeval import Datasets
+from timeeval.constants import HPI_CLUSTER
 
 # Directly during initialization
-dm = Datasets("data_folder", custom_datasets_file="path/to/custom/datasets.json")
+dm = Datasets(HPI_CLUSTER.akita_benchmark_path, custom_datasets_file="path/to/custom/datasets.json")
 
 # Later on
-dm = Datasets("data_folder")
+dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
 dm.load_custom_datasets("path/to/custom/datasets.json")
 ```
 
@@ -257,12 +260,17 @@ TimeEval also supports passing only the filepath to an algorithm and let the alg
 In this case, the algorithm must be able to read to data format described [earlier](#Canonical-file-format).
 Use `data_as_file=True` as a keyword argument to the algorithm declaration.
 
+The `main` function of an algorithm must implement the `timeeval.adapters.Adapter`-interface.
+TimeEval comes with four different adapter types described in section [Algorithm adapters](#Algorithm-adapters).
+
 Currently only __unsupervised__ algorithms are supported.
 
 #### Registering algorithms
 
 ```python
 from timeeval import TimeEval, Datasets, Algorithm
+from timeeval.adapters import FunctionAdapter
+from timeeval.constants import HPI_CLUSTER
 import numpy as np
 
 def my_algorithm(data: np.ndarray) -> np.ndarray:
@@ -273,40 +281,59 @@ algorithms = [
     # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
-        main=my_algorithm,
+        main=FunctionAdapter(my_algorithm),
         data_as_file=False
     )
 ]
 
-timeeval = TimeEval(Datasets("data_folder"), datasets, algorithms)
+timeeval = TimeEval(Datasets(HPI_CLUSTER.akita_benchmark_path), datasets, algorithms)
 ```
 
 #### Algorithm adapters
 
 Algorithm adapters allow you to use different algorithm types within TimeEval.
+The most basic adapter just wraps a python-function.
 
 You can implement your own adapters.
 Example:
 
 ```python
 from typing import Optional
-from timeeval.adapters.base import BaseAdapter
+from timeeval.adapters.base import Adapter
 from timeeval.data_types import AlgorithmParameter
 
-class MyAdapter(BaseAdapter):
 
-   # AlgorithmParameter = Union[np.ndarray, Path]
+class MyAdapter(Adapter):
+
+    # AlgorithmParameter = Union[np.ndarray, Path]
     def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         # e.g. create another process or call make a call to another language
         pass
+```
 
-    # optional preprocessing of the dataset
-    def _preprocess_data(self, data: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        return data
+##### Function adapter
 
-    # optional postprocessing of the algorithm results
-    def _postprocess_data(self, data: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        return data
+The [`FunctionAdapter`](./timeeval/adapters/function.py) allows you to use Python functions and methods as the algorithm
+main code.
+You can use this adapter by wrapping your function:
+
+```python
+from timeeval import Algorithm
+from timeeval.adapters import FunctionAdapter
+from timeeval.data_types import AlgorithmParameter
+import numpy as np
+
+def your_function(data: AlgorithmParameter, args: dict) -> np.ndarray:
+    if isinstance(data, np.ndarray):
+        return np.zeros_like(data)
+    else: # data = pathlib.Path
+        return np.genfromtxt(data)[0]
+
+Algorithm(
+    name="MyPythonFunctionAlgorithm",
+    main=FunctionAdapter(your_function),
+    data_as_file=False
+)
 ```
 
 ##### Distributed adapter

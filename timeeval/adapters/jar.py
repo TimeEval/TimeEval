@@ -3,11 +3,11 @@ from typing import Optional
 
 import numpy as np
 
-from .base import BaseAdapter
+from .base import Adapter
 from ..data_types import AlgorithmParameter
 
 
-class JarAdapter(BaseAdapter):
+class JarAdapter(Adapter):
     def __init__(self, jar_file: str, output_file: str, args: list, kwargs: dict, verbose: bool = False):
         self.jar_file = jar_file
         self.output_file = output_file

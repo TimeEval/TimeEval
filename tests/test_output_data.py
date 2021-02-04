@@ -1,27 +1,24 @@
+import tempfile
 import unittest
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import tempfile
-from pathlib import Path
 from freezegun import freeze_time
 from sklearn.model_selection import ParameterGrid
 
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.timeeval import AlgorithmParameter, ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
+from timeeval.adapters import FunctionAdapter
+from timeeval.timeeval import AlgorithmParameter, ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, \
+    RESULTS_CSV
 from timeeval.utils.hash_dict import hash_dict
 
 
 def deviating_from_mean(X: AlgorithmParameter, args: dict):
-    print(args.get("results_path"))
-    diffs = np.abs((X - np.mean(X)))
+    # Keep this print statement! It is captured in the execution log!
+    print(args.get("results_path", TimeEval.DEFAULT_RESULT_PATH))
+    diffs = np.abs((X - np.mean(X)))  # type: ignore
     diffs = diffs / diffs.max()
-    return diffs
-
-
-def deviating_from_mean_own_scores(X: AlgorithmParameter, args: dict):
-    diffs = deviating_from_mean(X, args)
-    args.get("results_path").mkdir(parents=True, exist_ok=True)
-    np.zeros_like(diffs).tofile(args.get("results_path") / ANOMALY_SCORES_TS, sep="\n")
     return diffs
 
 
@@ -33,7 +30,7 @@ class TestOutputData(unittest.TestCase):
         self.hyper_params = ParameterGrid({"a": [0]})
         self.hash = hash_dict(self.hyper_params[0])
         self.algorithms = [
-            Algorithm(name="deviating_from_mean", main=deviating_from_mean, param_grid=self.hyper_params)
+            Algorithm(name="deviating_from_mean", main=FunctionAdapter(deviating_from_mean), param_grid=self.hyper_params)
         ]
 
     def test_output_files_exists(self):

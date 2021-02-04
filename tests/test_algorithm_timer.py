@@ -1,6 +1,8 @@
 import unittest
 import time
 import numpy as np
+
+from timeeval.adapters import FunctionAdapter
 from timeeval.timeeval import Algorithm, Times, AlgorithmParameter
 
 
@@ -16,12 +18,12 @@ def main(x: AlgorithmParameter, args) -> AlgorithmParameter:
 
 def post(x: AlgorithmParameter, args) -> np.ndarray:
     time.sleep(0.1)
-    return x
+    return x  # type: ignore
 
 
 class TestAlgorithmTimer(unittest.TestCase):
     def test_algorithm_times(self):
-        algorithm = Algorithm(main=main, preprocess=pre, postprocess=post, name="test")
+        algorithm = Algorithm(main=FunctionAdapter(main), preprocess=pre, postprocess=post, name="test")
         score, times = Times.from_algorithm(algorithm, np.random.rand(10), {})
         self.assertAlmostEqual(times.preprocess, 0.2, places=1)
         self.assertAlmostEqual(times.main, 0.3, places=1)

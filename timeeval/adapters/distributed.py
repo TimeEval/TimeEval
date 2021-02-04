@@ -1,14 +1,13 @@
-import numpy as np
-import subprocess
-from typing import List, Callable, Optional
-import logging
 import getpass
+import logging
+import subprocess
+from typing import List, Optional
 
-from .base import BaseAdapter
+from .base import Adapter
 from ..data_types import TSFunction, AlgorithmParameter
 
 
-class DistributedAdapter(BaseAdapter):
+class DistributedAdapter(Adapter):
     """
     Please, be aware that you need password-less ssh to the remote machines!
     """

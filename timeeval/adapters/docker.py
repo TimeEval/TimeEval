@@ -3,15 +3,15 @@ import subprocess
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Union, Optional, Any
-import requests
-from durations import Duration
+from typing import Optional, Any, Callable
 
 import docker
-from docker.models.containers import Container
 import numpy as np
+import requests
+from docker.models.containers import Container
+from durations import Duration
 
-from .base import BaseAdapter, AlgorithmParameter
+from .base import Adapter, AlgorithmParameter
 
 DATASET_TARGET_PATH = "/data/"
 RESULTS_TARGET_PATH = "/results"
@@ -57,8 +57,9 @@ class AlgorithmInterface:
         return json.dumps(dictionary, cls=DockerJSONEncoder)
 
 
-class DockerAdapter(BaseAdapter):
-    def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False, timeout=DEFAULT_TIMEOUT):
+class DockerAdapter(Adapter):
+    def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False,
+                 timeout=DEFAULT_TIMEOUT):
         self.image_name = image_name
         self.tag = tag
         self.group = group_privileges
@@ -118,7 +119,9 @@ class DockerAdapter(BaseAdapter):
     def _read_results(self, args: dict) -> np.ndarray:
         return np.loadtxt(args.get("results_path", Path("./results")) / SCORES_FILE_NAME)
 
-    def _call(self, dataset: Union[np.ndarray, Path], args: Optional[dict] = None) -> AlgorithmParameter:
+    # Adapter overwrites
+
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
             "Docker adapters cannot handle NumPy arrays! Please put in the path to the dataset."
         args = args or {}
@@ -127,11 +130,22 @@ class DockerAdapter(BaseAdapter):
 
         return self._read_results(args)
 
-    def prepare(self):
-        client = docker.from_env()
+    def get_prepare_fn(self) -> Optional[Callable[[], None]]:
         if not self.skip_pull:
-            client.images.pull(self.image_name, tag=self.tag)
+            # capture variables for the function closure
+            image = self.image_name
+            tag = self.tag
 
-    def prune(self):
-        client = docker.from_env()
-        client.containers.prune()
+            def prepare():
+                client = docker.from_env()
+                client.images.pull(image, tag=tag)
+            return prepare
+        else:
+            return None
+
+    def get_finalize_fn(self) -> Optional[Callable[[], None]]:
+        def finalize():
+            client = docker.from_env()
+            client.containers.prune()
+        return finalize
+

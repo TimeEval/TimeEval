@@ -1,8 +1,10 @@
-import numpy as np
+import multiprocessing as mp
 from enum import Enum
 from typing import Callable, List, Optional
-import multiprocessing as mp
-from .base import BaseAdapter
+
+import numpy as np
+
+from .base import Adapter
 from ..data_types import AlgorithmParameter
 
 
@@ -22,25 +24,28 @@ class AggregationMethod(Enum):
         return fn(np.stack(data, axis=1), axis=1).reshape(-1)
 
 
-class MultivarAdapter(BaseAdapter):
-    def __init__(self, fn: Callable[[np.ndarray], np.ndarray], aggregation: AggregationMethod = AggregationMethod.MEAN, n_jobs: int = 1):
+class MultivarAdapter(Adapter):
+    def __init__(self, fn: Callable[[np.ndarray, dict], np.ndarray], aggregation: AggregationMethod = AggregationMethod.MEAN,
+                 n_jobs: int = 1):
         self.fn = fn
         self.aggregation = aggregation
         self.n_jobs = n_jobs
 
-    def _parallel_call(self, data: np.ndarray) -> List[np.ndarray]:
+    def _parallel_call(self, data: np.ndarray, args: dict) -> List[np.ndarray]:
         pool = mp.Pool(self.n_jobs)
-        scores = pool.map(self.fn, [data[:, c] for c in range(data.shape[1])])
+        scores = pool.starmap(self.fn, [(data[:, c], args) for c in range(data.shape[1])])
         return scores
 
     def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> np.ndarray:
+        args = args or {}
         if isinstance(dataset, np.ndarray):
             if self.n_jobs > 1:
-                scores = self._parallel_call(dataset)
+                scores = self._parallel_call(dataset, args)
             else:
                 scores = list()
                 for dim in range(dataset.shape[1]):
-                    scores.append(self.fn(dataset[:, dim]))
+                    scores.append(self.fn(dataset[:, dim], args))
             return self.aggregation(scores)
         else:
-            raise ValueError("MultivarAdapter can only handle np.ndarray as input. Make sure that `Algorithm(..., data_as_file=False)`!")
+            raise ValueError(
+                "MultivarAdapter can only handle np.ndarray as input. Make sure that `Algorithm(..., data_as_file=False)`!")

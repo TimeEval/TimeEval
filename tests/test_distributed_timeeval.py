@@ -1,4 +1,5 @@
 import os
+import socket
 import tempfile
 import time
 import unittest
@@ -11,27 +12,14 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import psutil
-import socket
 import pytest
 
+from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.adapters import DockerAdapter
+from timeeval.adapters import DockerAdapter, FunctionAdapter
+from timeeval.data_types import AlgorithmParameter
 from timeeval.remote import Remote
 from timeeval.utils.hash_dict import hash_dict
-
-
-def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
-    diffs = np.abs((data - fn(data)))
-    diffs = diffs / diffs.max()
-    return diffs
-
-
-def deviating_from_mean(data: np.ndarray, args) -> np.ndarray:
-    return deviating_from(data, np.mean)
-
-
-def deviating_from_median(data: np.ndarray, args) -> np.ndarray:
-    return deviating_from(data, np.median)
 
 
 class MockWorker:
@@ -65,7 +53,7 @@ class MockClient:
 
     def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
         result = task(*args, **kwargs)
-        f = Future()
+        f = Future()  # type: ignore
         f.set_result(result)
         return f
 
@@ -100,6 +88,7 @@ class MockDockerContainer:
     def prune(self):
         pass
 
+
 class MockImages:
     def pull(self, image, tag):
         pass
@@ -115,8 +104,8 @@ class TestDistributedTimeEval(unittest.TestCase):
     def setUp(self) -> None:
         self.results = pd.read_csv("tests/example_data/results.csv")
         self.algorithms = [
-            Algorithm(name="deviating_from_mean", main=deviating_from_mean),
-            Algorithm(name="deviating_from_median", main=deviating_from_median)
+            Algorithm(name="deviating_from_mean", main=DeviatingFromMean()),
+            Algorithm(name="deviating_from_median", main=DeviatingFromMedian())
         ]
 
     @pytest.mark.dask
@@ -126,12 +115,16 @@ class TestDistributedTimeEval(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
-                                distributed=True, results_path=Path(tmp_path), ssh_cluster_kwargs={"hosts": ["localhost", "localhost"],
-                                                                      "remote_python": os.popen("which python").read().rstrip("\n")})
+                                distributed=True, results_path=Path(tmp_path), ssh_cluster_kwargs={
+                    "hosts": ["localhost", "localhost"],
+                    "remote_python": os.popen("which python").read().rstrip("\n")
+                })
             timeeval.run()
             np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
-            self.assertFalse(any(("distributed.cli.dask_worker" in c) or ("distributed.cli.dask_scheduler" in c)
-                                 for p in psutil.process_iter() for c in p.cmdline()))
+            self.assertFalse(any(
+                ("distributed.cli.dask_worker" in c) or ("distributed.cli.dask_scheduler" in c)
+                for p in psutil.process_iter() for c in p.cmdline()
+            ))
 
     @pytest.mark.dask
     def test_run_on_all_hosts(self):
@@ -140,8 +133,10 @@ class TestDistributedTimeEval(unittest.TestCase):
             os.mkdir(args[0] / str(a))
 
         with tempfile.TemporaryDirectory() as tmp_path:
-            remote = Remote(**{"hosts": ["localhost", "localhost", "localhost"],
-                             "remote_python": os.popen("which python").read().rstrip("\n")})
+            remote = Remote(**{
+                "hosts": ["localhost", "localhost", "localhost"],
+                "remote_python": os.popen("which python").read().rstrip("\n")
+            })
             remote.run_on_all_hosts([(_test_func, [Path(tmp_path)], {})])
             remote.close()
             self.assertEqual(len(os.listdir(tmp_path)), 2)
@@ -172,14 +167,17 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())),
                                 [Algorithm(name="docker", main=adapter, data_as_file=True)],
-                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]}, results_path=Path(tmp_path))
+                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]},
+                                results_path=Path(tmp_path))
             timeeval.run()
 
-            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists())
+            self.assertTrue(
+                (Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
+            )
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)
-            self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host:"+str(tmp_path)+"/", str(tmp_path)])
-            self.assertListEqual(rsync.params[1], ["rsync", "-a", "test-host2:"+str(tmp_path)+"/", str(tmp_path)])
+            self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host:" + str(tmp_path) + "/", str(tmp_path)])
+            self.assertListEqual(rsync.params[1], ["rsync", "-a", "test-host2:" + str(tmp_path) + "/", str(tmp_path)])
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_phases(self, mock_docker):
@@ -194,7 +192,9 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 [Algorithm(name="docker", main=adapter, data_as_file=True)], results_path=Path(tmp_path))
             timeeval.run()
 
-            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists())
+            self.assertTrue(
+                (Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
+            )
 
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
@@ -218,11 +218,11 @@ class TestDistributedTimeEval(unittest.TestCase):
         datasets = Datasets("./tests/example_data")
 
         with tempfile.TemporaryDirectory() as tmp_path:
-            timeeval = TimeEval(datasets, [], [], distributed=True,
-                                ssh_cluster_kwargs={
-                                    "hosts": ["localhost", socket.gethostname(), "127.0.0.1",
-                                              socket.gethostbyname(socket.gethostname()), "test-host"]
-                                }, results_path=Path(tmp_path))
+            hosts = [
+                "localhost", socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
+            ]
+            timeeval = TimeEval(datasets, [], [], distributed=True, ssh_cluster_kwargs={ "hosts": hosts },
+                                results_path=Path(tmp_path))
             timeeval.rsync_results()
             self.assertEqual(len(rsync.params), 1)
             self.assertTrue(rsync.params[0], ["rsync", "-a", f"test-host:{tmp_path}/", tmp_path])

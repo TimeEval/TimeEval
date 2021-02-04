@@ -1,14 +1,17 @@
-import unittest
-from unittest.mock import patch
-from pathlib import Path
 import tempfile
-import numpy as np
-from durations import Duration
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
 import docker
+import numpy as np
 import pytest
+from durations import Duration
 
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
+
+DUMMY_CONTAINER = "algorithm-template-dummy"
 
 
 TEST_IMAGE = "mut:5000/akita/timeeval-test-algorithm"

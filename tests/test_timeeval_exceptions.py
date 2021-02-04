@@ -1,11 +1,14 @@
-import unittest
-from unittest.mock import patch
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
 
+import numpy as np
+import pandas as pd
+
+from tests.fixtures.algorithms import ErroneousAlgorithm
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.adapters import FunctionAdapter
 from timeeval.timeeval import Status
 
 
@@ -13,14 +16,14 @@ class TestTimeEvalExceptions(unittest.TestCase):
     def setUp(self) -> None:
         self.datasets_config = Path("./tests/example_data/datasets.json")
         self.datasets = Datasets("./tests/example_data", custom_datasets_file=self.datasets_config)
+        self.identity_algorithm = Algorithm(name="test", main=FunctionAdapter.identity(), data_as_file=False)
 
     @patch("timeeval.TimeEval._load_dataset")
     def test_wrong_df_shape(self, mock_load):
-        algorithm = Algorithm(name="test", main=lambda x: x, data_as_file=False)
         df = pd.DataFrame(np.random.rand(10, 2))
         mock_load.side_effect = [df]
         with tempfile.TemporaryDirectory() as tmp_path:
-            timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [algorithm], results_path=Path(tmp_path))
+            timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], [self.identity_algorithm], results_path=Path(tmp_path))
             timeeval.run()
         self.assertTrue("has a shape that was not expected" in timeeval.results.iloc[0].error_message)
 
@@ -33,12 +36,9 @@ class TestTimeEvalExceptions(unittest.TestCase):
     def test_evaluation_continues_after_exception_in_algorithm(self):
         ERROR_MESSAGE = "error message test"
 
-        def exception_algorithm(_x, args):
-            raise ValueError(ERROR_MESSAGE)
-
         algorithms = [
-            Algorithm(name="exception", main=exception_algorithm, data_as_file=False),
-            Algorithm(name="test", main=lambda x: x, data_as_file=False)
+            Algorithm(name="exception", main=ErroneousAlgorithm(error_message=ERROR_MESSAGE), data_as_file=False),
+            self.identity_algorithm
         ]
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], algorithms, results_path=Path(tmp_path))

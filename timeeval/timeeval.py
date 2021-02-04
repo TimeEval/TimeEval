@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+import json
 import logging
 import socket
 import subprocess
@@ -8,7 +9,6 @@ from enum import Enum
 from pathlib import Path, PosixPath, WindowsPath
 from typing import Callable
 from typing import List, Tuple, Dict, Optional
-import json
 
 import numpy as np
 import pandas as pd
@@ -16,10 +16,8 @@ import tqdm
 from distributed.client import Future
 
 from timeeval.datasets import Datasets
-from timeeval.utils.metrics import roc
 from timeeval.utils.hash_dict import hash_dict
-from .adapters import DockerAdapter
-from .adapters.base import BaseAdapter
+from timeeval.utils.metrics import roc
 from .algorithm import Algorithm
 from .data_types import AlgorithmParameter
 from .remote import Remote
@@ -50,11 +48,13 @@ class TimeEval:
                    "error_message",
                    "repetition")
 
+    DEFAULT_RESULT_PATH = Path("./results")
+
     def __init__(self,
                  dataset_mgr: Datasets,
                  datasets: List[Tuple[str, str]],
                  algorithms: List[Algorithm],
-                 results_path: Path = Path("./results"),
+                 results_path: Path = DEFAULT_RESULT_PATH,
                  distributed: bool = False,
                  ssh_cluster_kwargs: Optional[dict] = None,
                  repetitions: int = 1):
@@ -73,12 +73,14 @@ class TimeEval:
             self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
 
-    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int, hyper_params: Optional[dict] = None) -> dict:
+    def _create_result_path(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int, hyper_params: dict) -> Path:
         assert self.start_date, "The start date isn't set! Run TimeEval.run() first!"
-        hyper_params = hyper_params or {}
         hyper_params_dir = hash_dict(hyper_params)
-        results_path = self.results_path / self.start_date / algorithm_name / hyper_params_dir / dataset_name[0] / dataset_name[1] / str(repetition)
+        return self.results_path / self.start_date / algorithm_name / hyper_params_dir / dataset_name[0] / dataset_name[1] / str(repetition)
 
+    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int, hyper_params: Optional[dict] = None) -> dict:
+        hyper_params = hyper_params or {}
+        results_path = self._create_result_path(algorithm_name, dataset_name, repetition, hyper_params)
         return {
             "results_path": results_path,
             "hyper_params": hyper_params
@@ -147,7 +149,7 @@ class TimeEval:
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
-        results_path = args.get("results_path", Path("./results"))
+        results_path = args["results_path"]
 
         if isinstance(y, (PosixPath, WindowsPath)):
             y_true = TimeEval._extract_labels(pd.read_csv(y))
@@ -231,7 +233,7 @@ class TimeEval:
         return results
 
     def save_results(self, results_path: Optional[Path] = None):
-        results_path = results_path or (self.results_path / Path("results.csv"))
+        results_path = results_path or (self.results_path / RESULTS_CSV)
         self.results.to_csv(results_path, index=False)
 
     def rsync_results(self):
@@ -247,45 +249,37 @@ class TimeEval:
             if host not in excluded_aliases:
                 subprocess.call(["rsync", "-a", f"{host}:{self.results_path}/", f"{self.results_path}"])
 
-    def _prune_docker(self):
-        tasks: List[Tuple[Callable, List, Dict]] = []
-        for algorithm in self.algorithms:
-            if isinstance(algorithm.main, DockerAdapter):
-                tasks.append((algorithm.main.prune, [], {}))
-        self.remote.run_on_all_hosts(tasks)
-
     def _prepare(self):
         for algorithm in self.algorithms:
-            if isinstance(algorithm.main, BaseAdapter):
-                algorithm.main.prepare()
+            algorithm.prepare()
             for algorithm_config in algorithm.param_grid:
                 for dataset_name in self.dataset_names:
                     for repetition in range(1, self.repetitions + 1):
-                        path = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)\
-                            .get("results_path", Path("./results"))
+                        path = self._create_result_path(algorithm.name, dataset_name, repetition, algorithm_config)
                         path.mkdir(parents=True, exist_ok=True)
 
     def _finalize(self):
         for algorithm in self.algorithms:
-            if isinstance(algorithm.main, DockerAdapter):
-                algorithm.main.prune()
+            algorithm.finalize()
 
     def _distributed_prepare(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.algorithms:
-            if isinstance(algorithm.main, BaseAdapter):
-                tasks.append((algorithm.main.prepare, [], {}))
+            if prepare_fn := algorithm.prepare_fn():
+                tasks.append((prepare_fn, [], {}))
             for algorithm_config in algorithm.param_grid:
                 for dataset_name in self.dataset_names:
                     for repetition in range(1, self.repetitions + 1):
-                        path = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)\
-                            .get("results_path", Path("./results"))
+                        path = self._create_result_path(algorithm.name, dataset_name, repetition, algorithm_config)
                         tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_finalize(self):
+        tasks: List[Tuple[Callable, List, Dict]] = [
+            (finalize_fn, [], {}) for algorithm in self.algorithms if (finalize_fn := algorithm.finalize_fn())
+        ]
+        self.remote.run_on_all_hosts(tasks)
         self._get_future_results()
-        self._prune_docker()
         self.remote.close()
         self.rsync_results()
 

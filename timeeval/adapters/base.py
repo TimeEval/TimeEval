@@ -1,24 +1,20 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Callable
 
 from ..data_types import AlgorithmParameter
 
 
-class BaseAdapter(ABC):
+class Adapter(ABC):
+
     @abstractmethod
     def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:  # pragma: no cover
-        raise NotImplementedError()
+        raise NotImplementedError("A subclass of Adapter must implement _call()!")
 
-    def _preprocess_data(self, data: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        return data
-
-    def _postprocess_data(self, data: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        return data
+    def get_prepare_fn(self) -> Optional[Callable[[], None]]:
+        return None
 
     def __call__(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        dataset = self._preprocess_data(dataset, args)
-        dataset = self._call(dataset, args)
-        return self._postprocess_data(dataset, args)
+        return self._call(dataset, args)
 
-    def prepare(self):
-        pass
+    def get_finalize_fn(self) -> Optional[Callable[[], None]]:
+        return None
