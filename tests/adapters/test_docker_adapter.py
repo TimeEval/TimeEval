@@ -42,12 +42,12 @@ class TestDockerAdapter(unittest.TestCase):
                        '"dataOutput": "/results/anomaly_scores.ts", ' \
                        '"modelInput": "/results/model.pkl", ' \
                        '"modelOutput": "/results/model.pkl", ' \
-                       '"customParameters": {}, ' \
+                       '"customParameters": {"a": 0}, ' \
                        '"executionType": "execute"' \
                        '}\''
 
         adapter = DockerAdapter("test-image:latest")
-        adapter._run_container(Path("/tmp/test.csv"), {"results_path": results_path})
+        adapter._run_container(Path("/tmp/test.csv"), {"results_path": results_path, "hyper_params": {"a": 0}})
 
         self.assertEqual(mock_docker_client.containers.cmd, input_string)
 
