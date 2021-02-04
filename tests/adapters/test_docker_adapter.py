@@ -11,6 +11,9 @@ from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
 
 
+TEST_IMAGE = "mut:5000/akita/timeeval-test-algorithm"
+
+
 class MockDockerContainer:
     def wait(self, timeout=None):
         return {"Error": None, "StatusCode": 0}
@@ -72,25 +75,22 @@ class TestDockerAdapter(unittest.TestCase):
 
     @pytest.mark.docker
     def test_timeout_docker(self):
-        DUMMY_CONTAINER = "algorithm-template-dummy"
         with self.assertRaises(DockerTimeoutError):
-            adapter = DockerAdapter(DUMMY_CONTAINER, timeout=Duration("100 miliseconds"))
+            adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("100 miliseconds"))
             adapter(Path("dummy"))
-        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": DUMMY_CONTAINER}), [])
+        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": TEST_IMAGE}), [])
 
     @pytest.mark.docker
     def test_algorithm_error_docker(self):
-        DUMMY_CONTAINER = "algorithm-template-dummy"
         with self.assertRaises(DockerAlgorithmFailedError):
-            adapter = DockerAdapter(DUMMY_CONTAINER, timeout=Duration("1 minute"))
+            adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("1 minute"))
             adapter(Path("dummy"), {"hyper_params": {"raise": True}})
-        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": DUMMY_CONTAINER}), [])
+        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": TEST_IMAGE}), [])
 
     @pytest.mark.docker
     def test_faster_than_timeout_docker(self):
-        DUMMY_CONTAINER = "algorithm-template-dummy"
         with tempfile.TemporaryDirectory() as tmp_path:
-            adapter = DockerAdapter(DUMMY_CONTAINER, timeout=Duration("1 minute, 40 seconds"))
+            adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("1 minute, 40 seconds"))
             result = adapter(Path(tmp_path))
             np.testing.assert_array_equal(np.zeros(3600), result)
-        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": DUMMY_CONTAINER}), [])
+        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": TEST_IMAGE}), [])
