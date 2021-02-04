@@ -3,16 +3,15 @@ import subprocess
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Union, Optional, Any, Callable
-import requests
-from durations import Duration
+from typing import Optional, Any, Callable
 
 import docker
-from docker.models.containers import Container
 import numpy as np
+import requests
+from docker.models.containers import Container
+from durations import Duration
 
 from .base import Adapter, AlgorithmParameter
-
 
 DATASET_TARGET_PATH = "/data/"
 RESULTS_TARGET_PATH = "/results"
@@ -122,7 +121,7 @@ class DockerAdapter(Adapter):
 
     # Adapter overwrites
 
-    def _call(self, dataset: Union[np.ndarray, Path], args: Optional[dict] = None) -> AlgorithmParameter:
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
             "Docker adapters cannot handle NumPy arrays! Please put in the path to the dataset."
         args = args or {}

@@ -16,6 +16,7 @@ import pytest
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import DockerAdapter, FunctionAdapter
+from timeeval.data_types import AlgorithmParameter
 from timeeval.remote import Remote
 from timeeval.utils.hash_dict import hash_dict
 
@@ -26,11 +27,11 @@ def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
     return diffs
 
 
-def deviating_from_mean(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
+def deviating_from_mean(data: AlgorithmParameter, args: dict) -> np.ndarray:
     return deviating_from(data, np.mean)  # type: ignore
 
 
-def deviating_from_median(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
+def deviating_from_median(data: AlgorithmParameter, args: dict) -> np.ndarray:
     return deviating_from(data, np.median)  # type: ignore
 
 

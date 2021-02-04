@@ -1,9 +1,10 @@
+import tempfile
 import unittest
+from pathlib import Path
+from typing import Callable
+
 import numpy as np
 import pandas as pd
-from typing import Callable, Union
-from pathlib import Path, PosixPath, WindowsPath
-import tempfile
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import FunctionAdapter
@@ -20,7 +21,7 @@ def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
             return pd.read_csv(x).values[:, 1:-1]
 
     def deviating_from(fn: Callable) -> FunctionAdapter:
-        def call(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
+        def call(data: AlgorithmParameter, args: dict) -> np.ndarray:
             diffs = np.abs((data - fn(data)))
             diffs = diffs / diffs.max()
 
@@ -44,7 +45,7 @@ def generates_results_multi(dataset) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
 
     def deviating_from(fn: Callable) -> FunctionAdapter:
-        def call(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
+        def call(data: AlgorithmParameter, args: dict) -> np.ndarray:
             diffs = np.abs((data - fn(data, axis=0)))
             diffs = diffs / diffs.max(axis=0)
 
