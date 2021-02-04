@@ -8,6 +8,7 @@ from enum import Enum
 from pathlib import Path, PosixPath, WindowsPath
 from typing import Callable
 from typing import List, Tuple, Dict, Optional
+import json
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,9 @@ from distributed.client import Future
 
 from timeeval.datasets import Datasets
 from timeeval.utils.metrics import roc
+from timeeval.utils.hash_dict import hash_dict
+from .adapters import DockerAdapter
+from .adapters.base import Adapter
 from .algorithm import Algorithm
 from .data_types import AlgorithmParameter
 from .remote import Remote
@@ -24,6 +28,8 @@ from .times import Times
 METRICS_CSV = "metrics.csv"
 EXECUTION_LOG = "execution.log"
 ANOMALY_SCORES_TS = "anomaly_scores.ts"
+HYPER_PARAMETERS = "hyper_params.json"
+RESULTS_CSV = "results.csv"
 
 
 class Status(Enum):
@@ -69,14 +75,17 @@ class TimeEval:
             self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
 
-    def _create_result_path(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int):
+    def _create_result_path(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int, hyper_params: dict) -> Path:
         assert self.start_date, "The start date isn't set! Run TimeEval.run() first!"
-        return self.results_path / self.start_date / algorithm_name / dataset_name[0] / dataset_name[1] / str(repetition)
+        hyper_params_dir = hash_dict(hyper_params)
+        return self.results_path / self.start_date / algorithm_name / hyper_params_dir / dataset_name[0] / dataset_name[1] / str(repetition)
 
-    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int) -> dict:
-        results_path = self._create_result_path(algorithm_name, dataset_name, repetition)
+    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int, hyper_params: Optional[dict] = None) -> dict:
+        hyper_params = hyper_params or {}
+        results_path = self._create_result_path(algorithm_name, dataset_name, repetition, hyper_params)
         return {
-            "results_path": results_path
+            "results_path": results_path,
+            "hyper_params": hyper_params
         }
 
     def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
@@ -107,42 +116,38 @@ class TimeEval:
         return X, y
 
     def _run_algorithm(self, algorithm: Algorithm):
-        if not self.distributed:
-            pbar = tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name}", position=1)
-        for dataset_name in self.dataset_names:
-            for repetition in range(1, self.repetitions + 1):
-                try:
-                    future_result: Optional[Future] = None
-                    result: Optional[Dict] = None
+        for algorithm_config in tqdm.tqdm(algorithm.param_grid, desc=f"Evaluating {algorithm.name}", position=1, disable=self.distributed):
+            for dataset_name in tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name} configurations", position=2, disable=self.distributed):
+                for repetition in range(1, self.repetitions + 1):
+                    try:
+                        future_result: Optional[Future] = None
+                        result: Optional[Dict] = None
 
-                    X, y_true = self._get_X_and_y(dataset_name, data_as_file=algorithm.data_as_file)
-                    args = self._gen_args(algorithm.name, dataset_name, repetition)
+                        X, y_true = self._get_X_and_y(dataset_name, data_as_file=algorithm.data_as_file)
+                        args = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)
 
-                    if self.distributed:
-                        future_result = self.remote.add_task(TimeEval.evaluate, algorithm, X, y_true, args)
-                    else:
-                        result = TimeEval.evaluate(algorithm, X, y_true, args)
-                    self._record_results(algorithm.name, dataset_name, result, future_result, repetition=repetition)
+                        if self.distributed:
+                            future_result = self.remote.add_task(TimeEval.evaluate, algorithm, X, y_true, args)
+                        else:
+                            result = TimeEval.evaluate(algorithm, X, y_true, args)
+                        self._record_results(algorithm.name, dataset_name, result, future_result, repetition=repetition,
+                                             hyper_params=algorithm_config)
 
-                except Exception as e:
-                    logging.exception(
-                        f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
-                    f: asyncio.Future = asyncio.Future()
-                    f.set_result({
-                        "score": np.nan,
-                        "main_time": np.nan,
-                        "preprocess_time": np.nan,
-                        "postprocess_time": np.nan
-                    })
-                    self._record_results(algorithm.name, dataset_name,
-                                         future_result=f,
-                                         status=Status.ERROR,
-                                         error_message=str(e))
-
-            if not self.distributed:
-                pbar.update()
-        if not self.distributed:
-            pbar.close()
+                    except Exception as e:
+                        logging.exception(
+                            f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
+                        f: asyncio.Future = asyncio.Future()
+                        f.set_result({
+                            "score": np.nan,
+                            "main_time": np.nan,
+                            "preprocess_time": np.nan,
+                            "postprocess_time": np.nan
+                        })
+                        self._record_results(algorithm.name, dataset_name,
+                                             future_result=f,
+                                             status=Status.ERROR,
+                                             error_message=str(e),
+                                             hyper_params=algorithm_config)
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
@@ -165,6 +170,9 @@ class TimeEval:
         y_scores.tofile(results_path / ANOMALY_SCORES_TS, sep="\n")
         pd.DataFrame([result]).to_csv(results_path / METRICS_CSV, index=False)
 
+        with (results_path / HYPER_PARAMETERS).open("w") as f:
+            json.dump(args.get("hyper_params", {}), f)
+
         return result
 
     def _record_results(self,
@@ -174,14 +182,18 @@ class TimeEval:
                         future_result: Optional[Future] = None,
                         status: Status = Status.OK,
                         error_message: Optional[str] = None,
-                        repetition: int = 1):
+                        repetition: int = 1,
+                        hyper_params: Optional[dict] = None):
+        hyper_params = hyper_params or {}
         new_row = {
             "algorithm": algorithm_name,
             "collection": dataset_name[0],
             "dataset": dataset_name[1],
             "status": status.name,
             "error_message": error_message,
-            "repetition": repetition
+            "repetition": repetition,
+            "hyper_params": json.dumps(hyper_params),
+            "hyper_params_id": hash_dict(hyper_params)
         }
         if result is not None and future_result is None:
             new_row.update(result)
@@ -214,7 +226,7 @@ class TimeEval:
             df = df[df.status == Status.OK.name]
 
         keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
-        grouped_results = df.groupby(["algorithm", "collection", "dataset"])
+        grouped_results = df.groupby(["algorithm", "collection", "dataset", "hyper_params_id"])
         repetitions = [len(v) for k, v in grouped_results.groups.items()]
         mean_results: pd.DataFrame = grouped_results.mean()[keys]
         std_results = grouped_results.std()[keys]
@@ -242,14 +254,12 @@ class TimeEval:
     def _prepare(self):
         for algorithm in self.algorithms:
             algorithm.prepare()
-            for dataset_name in self.dataset_names:
-                for repetition in range(1, self.repetitions + 1):
-                    path = self._create_result_path(algorithm.name, dataset_name, repetition)
-                    path.mkdir(parents=True, exist_ok=True)
-
-    def _execute(self):
-        for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0):
-            self._run_algorithm(algorithm)
+            for algorithm_config in algorithm.param_grid:
+                for dataset_name in self.dataset_names:
+                    for repetition in range(1, self.repetitions + 1):
+                        path = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)\
+                            .get("results_path", Path("./results"))
+                        path.mkdir(parents=True, exist_ok=True)
 
     def _finalize(self):
         for algorithm in self.algorithms:
@@ -259,15 +269,13 @@ class TimeEval:
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.algorithms:
             tasks.append((algorithm.prepare, [], {}))
-            for dataset_name in self.dataset_names:
-                for repetition in range(1, self.repetitions + 1):
-                    path = self._create_result_path(algorithm.name, dataset_name, repetition)
-                    tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
+            for algorithm_config in algorithm.param_grid:
+                for dataset_name in self.dataset_names:
+                    for repetition in range(1, self.repetitions + 1):
+                        path = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)\
+                            .get("results_path", Path("./results"))
+                        tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
-
-    def _distributed_execute(self):
-        for algorithm in self.algorithms:
-            self._run_algorithm(algorithm)
 
     def _distributed_finalize(self):
         tasks: List[Tuple[Callable, List, Dict]] = [
@@ -284,9 +292,14 @@ class TimeEval:
 
         if self.distributed:
             self._distributed_prepare()
-            self._distributed_execute()
-            self._distributed_finalize()
         else:
             self._prepare()
-            self._execute()
+
+        for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0, disable=self.distributed):
+            self._run_algorithm(algorithm)
+
+        if self.distributed:
+            self._distributed_finalize()
+        else:
             self._finalize()
+        self.results.to_csv(self.results_path / self.start_date / RESULTS_CSV, index=False)

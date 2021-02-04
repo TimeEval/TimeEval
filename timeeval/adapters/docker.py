@@ -4,8 +4,11 @@ from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
 from typing import Union, Optional, Any
+import requests
+from durations import Duration
 
 import docker
+from docker.models.containers import Container
 import numpy as np
 
 from .base import Adapter, AlgorithmParameter
@@ -15,6 +18,8 @@ DATASET_TARGET_PATH = "/data/"
 RESULTS_TARGET_PATH = "/results"
 SCORES_FILE_NAME = "anomaly_scores.ts"
 MODEL_FILE_NAME = "model.pkl"
+
+DEFAULT_TIMEOUT = Duration("8 hours")
 
 
 class DockerJSONEncoder(json.JSONEncoder):
@@ -29,6 +34,14 @@ class DockerJSONEncoder(json.JSONEncoder):
 class ExecutionType(Enum):
     TRAIN = 0
     EXECUTE = 1
+
+
+class DockerTimeoutError(BaseException):
+    pass
+
+
+class DockerAlgorithmFailedError(BaseException):
+    pass
 
 
 @dataclass
@@ -46,11 +59,12 @@ class AlgorithmInterface:
 
 
 class DockerAdapter(Adapter):
-    def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False):
+    def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False, timeout=DEFAULT_TIMEOUT):
         self.image_name = image_name
         self.tag = tag
         self.group = group_privileges
         self.skip_pull = skip_pull
+        self.timeout = timeout
 
     @staticmethod
     def _get_gid(group: str) -> str:
@@ -61,19 +75,20 @@ class DockerAdapter(Adapter):
     def _get_uid() -> str:
         return subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
 
-    def _run_container(self, dataset_path: Path, args: dict):
+    def _run_container(self, dataset_path: Path, args: dict) -> Container:
         client = docker.from_env()
 
         algorithm_interface = AlgorithmInterface(
             dataInput=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
             dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute(),
             modelInput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
-            modelOutput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute()
+            modelOutput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
+            customParameters=args.get("hyper_params", {})
         )
 
         gid = DockerAdapter._get_gid(self.group)
         uid = DockerAdapter._get_uid()
-        client.containers.run(
+        return client.containers.run(
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
             volumes={
@@ -83,8 +98,23 @@ class DockerAdapter(Adapter):
             environment={
                 "LOCAL_GID": gid,
                 "LOCAL_UID": uid
-            }
+            },
+            detach=True
         )
+
+    def _run_until_timeout(self, container: Container, args: dict):
+        try:
+            result = container.wait(timeout=self.timeout.to_seconds())
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+            if "timed out" in str(e):
+                container.stop()
+                raise DockerTimeoutError(f"{self.image_name} timed out after {self.timeout}") from e
+            else:
+                raise e
+
+        if result["StatusCode"] != 0:
+            result_path = str(args.get("results_path", Path("./results")).absolute())
+            raise DockerAlgorithmFailedError(f"Please consider log files in {result_path}!")
 
     def _read_results(self, args: dict) -> np.ndarray:
         return np.loadtxt(args.get("results_path", Path("./results")) / SCORES_FILE_NAME)
@@ -93,7 +123,9 @@ class DockerAdapter(Adapter):
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
             "Docker adapters cannot handle NumPy arrays! Please put in the path to the dataset."
         args = args or {}
-        self._run_container(dataset, args)
+        container = self._run_container(dataset, args)
+        self._run_until_timeout(container, args)
+
         return self._read_results(args)
 
     def prepare(self):

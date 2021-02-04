@@ -26,7 +26,7 @@ class Remote:
         n_experiments = len(self.futures)
         coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
 
-        progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0)  # todo add repetitions
+        progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0)
 
         while not coroutine_future.done():
             n_done = sum([f.done() for f in self.futures])
