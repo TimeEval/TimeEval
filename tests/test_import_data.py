@@ -1,11 +1,12 @@
 import unittest
 import numpy as np
 import pandas as pd
-from typing import Callable
+from typing import Callable, Union
 from pathlib import Path, PosixPath, WindowsPath
 import tempfile
 
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.adapters import FunctionAdapter
 from timeeval.timeeval import AlgorithmParameter
 
 
@@ -13,17 +14,18 @@ def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
 
     def preprocess(x: AlgorithmParameter, args) -> np.ndarray:
-        if isinstance(x, (PosixPath, WindowsPath)):
-            x = pd.read_csv(x).values[:, 1:-1]
-        return x
+        if isinstance(x, np.ndarray):
+            return x
+        else:  # if isinstance(x, (PosixPath, WindowsPath)):
+            return pd.read_csv(x).values[:, 1:-1]
 
-    def deviating_from(fn: Callable) -> Callable[[np.ndarray], np.ndarray]:
-        def call(data: np.ndarray, args) -> np.ndarray:
+    def deviating_from(fn: Callable) -> FunctionAdapter:
+        def call(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
             diffs = np.abs((data - fn(data)))
             diffs = diffs / diffs.max()
 
             return diffs
-        return call
+        return FunctionAdapter(call)
 
     algorithms = [
         Algorithm(name="deviating_from_mean", main=deviating_from(np.mean), preprocess=preprocess, data_as_file=from_file),
@@ -41,13 +43,13 @@ def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
 def generates_results_multi(dataset) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
 
-    def deviating_from(fn: Callable) -> Callable[[np.ndarray], np.ndarray]:
-        def call(data: np.ndarray, args) -> np.ndarray:
+    def deviating_from(fn: Callable) -> FunctionAdapter:
+        def call(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
             diffs = np.abs((data - fn(data, axis=0)))
             diffs = diffs / diffs.max(axis=0)
 
             return diffs.mean(axis=1)
-        return call
+        return FunctionAdapter(call)
 
     algorithms = [
         Algorithm(name="deviating_from_mean", main=deviating_from(np.mean), data_as_file=False),

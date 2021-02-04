@@ -290,12 +290,13 @@ Example:
 
 ```python
 from typing import Optional
-from timeeval.adapters.base import BaseAdapter
+from timeeval.adapters.base import Adapter
 from timeeval.data_types import AlgorithmParameter
 
-class MyAdapter(BaseAdapter):
 
-   # AlgorithmParameter = Union[np.ndarray, Path]
+class MyAdapter(Adapter):
+
+    # AlgorithmParameter = Union[np.ndarray, Path]
     def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         # e.g. create another process or call make a call to another language
         pass

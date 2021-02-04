@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.adapters import FunctionAdapter
 from timeeval.timeeval import Status
 
 
@@ -16,7 +17,7 @@ class TestTimeEvalExceptions(unittest.TestCase):
 
     @patch("timeeval.TimeEval._load_dataset")
     def test_wrong_df_shape(self, mock_load):
-        algorithm = Algorithm(name="test", main=lambda x: x, data_as_file=False)
+        algorithm = Algorithm(name="test", main=FunctionAdapter.identity(), data_as_file=False)
         df = pd.DataFrame(np.random.rand(10, 2))
         mock_load.side_effect = [df]
         with tempfile.TemporaryDirectory() as tmp_path:
@@ -37,8 +38,8 @@ class TestTimeEvalExceptions(unittest.TestCase):
             raise ValueError(ERROR_MESSAGE)
 
         algorithms = [
-            Algorithm(name="exception", main=exception_algorithm, data_as_file=False),
-            Algorithm(name="test", main=lambda x: x, data_as_file=False)
+            Algorithm(name="exception", main=FunctionAdapter(exception_algorithm), data_as_file=False),
+            Algorithm(name="test", main=FunctionAdapter.identity(), data_as_file=False)
         ]
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], algorithms, results_path=Path(tmp_path))

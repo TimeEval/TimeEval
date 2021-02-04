@@ -5,7 +5,7 @@ import subprocess
 
 from timeeval.adapters import MultivarAdapter, DistributedAdapter, JarAdapter
 from timeeval.adapters.multivar import AggregationMethod
-from timeeval.adapters.base import BaseAdapter
+from timeeval.adapters.base import Adapter
 
 
 def deviating_from_median(data: np.ndarray, args: dict = {}) -> np.ndarray:
@@ -148,4 +148,4 @@ class TestJarAdapter(unittest.TestCase):
 class TestBaseAdapter(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
-            BaseAdapter()
+            Adapter()

@@ -10,11 +10,11 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-import psutil
+import psutil  # type: ignore
 import socket
 
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.adapters import DockerAdapter
+from timeeval.adapters import DockerAdapter, FunctionAdapter
 from timeeval.remote import Remote
 
 
@@ -24,12 +24,12 @@ def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
     return diffs
 
 
-def deviating_from_mean(data: np.ndarray, args) -> np.ndarray:
-    return deviating_from(data, np.mean)
+def deviating_from_mean(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
+    return deviating_from(data, np.mean)  # type: ignore
 
 
-def deviating_from_median(data: np.ndarray, args) -> np.ndarray:
-    return deviating_from(data, np.median)
+def deviating_from_median(data: Union[np.ndarray, Path], args: dict) -> np.ndarray:
+    return deviating_from(data, np.median)  # type: ignore
 
 
 class MockWorker:
@@ -63,7 +63,7 @@ class MockClient:
 
     def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
         result = task(*args, **kwargs)
-        f = Future()
+        f = Future()  # type: ignore
         f.set_result(result)
         return f
 
@@ -98,6 +98,7 @@ class MockDockerContainer:
     def prune(self):
         pass
 
+
 class MockImages:
     def pull(self, image, tag):
         pass
@@ -113,8 +114,8 @@ class TestDistributedTimeEval(unittest.TestCase):
     def setUp(self) -> None:
         self.results = pd.read_csv("tests/example_data/results.csv")
         self.algorithms = [
-            Algorithm(name="deviating_from_mean", main=deviating_from_mean),
-            Algorithm(name="deviating_from_median", main=deviating_from_median)
+            Algorithm(name="deviating_from_mean", main=FunctionAdapter(deviating_from_mean)),
+            Algorithm(name="deviating_from_median", main=FunctionAdapter(deviating_from_median))
         ]
 
     @unittest.skipIf(os.getenv("CI"), reason="CI test runs in a slim Docker container and does not support SSH-connections")
@@ -170,7 +171,8 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())),
                                 [Algorithm(name="docker", main=adapter, data_as_file=True)],
-                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]}, results_path=Path(tmp_path))
+                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]},
+                                results_path=Path(tmp_path))
             timeeval.run()
 
             self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / "custom" / "dataset.1" / "1").exists())

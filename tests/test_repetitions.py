@@ -1,12 +1,14 @@
 import unittest
 import numpy as np
 import pandas as pd
-from typing import Callable
+from typing import Callable, Optional
 from pathlib import Path
 from itertools import cycle
 import tempfile
 
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.adapters.base import Adapter
+from timeeval.data_types import AlgorithmParameter
 
 
 def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
@@ -15,23 +17,27 @@ def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
     return diffs
 
 
-def deviating_from_mean(data: np.ndarray, _args) -> np.ndarray:
-    return deviating_from(data, np.mean)
+class DeviatingFromMean(Adapter):
+
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+        return deviating_from(dataset, np.mean)  # type: ignore
 
 
-def deviating_from_median(data: np.ndarray, _args) -> np.ndarray:
-    return deviating_from(data, np.median)
+class DeviatingFromMedian(Adapter):
+
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+        return deviating_from(dataset, np.median)  # type: ignore
 
 
-class ErroneousAlgorithm:
+class ErroneousAlgorithm(Adapter):
     def __init__(self, fn):
         self.fn = fn
         self.count = 0
 
-    def __call__(self, *args, **kwargs):
+    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None):
         self.count += 1
         if self.count != 2:
-            return self.fn(*args, **kwargs)
+            return self.fn(dataset, args)
         else:
             raise ValueError("test error")
 
@@ -40,8 +46,8 @@ class TestRepetitions(unittest.TestCase):
     def setUp(self) -> None:
         self.results = pd.read_csv("tests/example_data/results.csv")
         self.algorithms = [
-            Algorithm(name="deviating_from_mean", main=deviating_from_mean),
-            Algorithm(name="deviating_from_median", main=deviating_from_median)
+            Algorithm(name="deviating_from_mean", main=DeviatingFromMean()),
+            Algorithm(name="deviating_from_median", main=DeviatingFromMedian())
         ]
 
     def test_multiple_results(self):
@@ -72,8 +78,8 @@ class TestRepetitions(unittest.TestCase):
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
 
         algorithms = [
-            Algorithm(name="deviating_from_mean", main=ErroneousAlgorithm(deviating_from_mean)),
-            Algorithm(name="deviating_from_median", main=deviating_from_median)
+            Algorithm(name="deviating_from_mean", main=ErroneousAlgorithm(DeviatingFromMean())),
+            Algorithm(name="deviating_from_median", main=DeviatingFromMedian())
         ]
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), algorithms,

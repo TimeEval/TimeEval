@@ -8,7 +8,8 @@ from typing import Union, Optional, Any
 import docker
 import numpy as np
 
-from .base import BaseAdapter, AlgorithmParameter
+from .base import Adapter, AlgorithmParameter
+
 
 DATASET_TARGET_PATH = "/data/"
 RESULTS_TARGET_PATH = "/results"
@@ -44,7 +45,7 @@ class AlgorithmInterface:
         return json.dumps(dictionary, cls=DockerJSONEncoder)
 
 
-class DockerAdapter(BaseAdapter):
+class DockerAdapter(Adapter):
     def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False):
         self.image_name = image_name
         self.tag = tag
@@ -100,6 +101,6 @@ class DockerAdapter(BaseAdapter):
         if not self.skip_pull:
             client.images.pull(self.image_name, tag=self.tag)
 
-    def prune(self):
+    def finalize(self):
         client = docker.from_env()
         client.containers.prune()

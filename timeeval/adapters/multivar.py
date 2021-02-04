@@ -1,8 +1,10 @@
-import numpy as np
+import multiprocessing as mp
 from enum import Enum
 from typing import Callable, List, Optional
-import multiprocessing as mp
-from .base import BaseAdapter
+
+import numpy as np
+
+from .base import Adapter
 from ..data_types import AlgorithmParameter
 
 
@@ -22,8 +24,9 @@ class AggregationMethod(Enum):
         return fn(np.stack(data, axis=1), axis=1).reshape(-1)
 
 
-class MultivarAdapter(BaseAdapter):
-    def __init__(self, fn: Callable[[np.ndarray], np.ndarray], aggregation: AggregationMethod = AggregationMethod.MEAN, n_jobs: int = 1):
+class MultivarAdapter(Adapter):
+    def __init__(self, fn: Callable[[np.ndarray], np.ndarray], aggregation: AggregationMethod = AggregationMethod.MEAN,
+                 n_jobs: int = 1):
         self.fn = fn
         self.aggregation = aggregation
         self.n_jobs = n_jobs
@@ -43,4 +46,5 @@ class MultivarAdapter(BaseAdapter):
                     scores.append(self.fn(dataset[:, dim]))
             return self.aggregation(scores)
         else:
-            raise ValueError("MultivarAdapter can only handle np.ndarray as input. Make sure that `Algorithm(..., data_as_file=False)`!")
+            raise ValueError(
+                "MultivarAdapter can only handle np.ndarray as input. Make sure that `Algorithm(..., data_as_file=False)`!")
