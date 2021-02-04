@@ -46,7 +46,7 @@ class MyPyCheckCommand(Command):
         pass
 
     def run(self) -> None:
-        args = ["--pretty", "timeeval"]
+        args = ["--pretty", "timeeval", "tests"]
         mypy(None, stdout=sys.stdout, stderr=sys.stderr, args=args)
 
 

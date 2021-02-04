@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-import psutil  # type: ignore
+import psutil
 import socket
 import pytest
 
