@@ -17,6 +17,7 @@ import pytest
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import DockerAdapter
 from timeeval.remote import Remote
+from timeeval.utils.hash_dict import hash_dict
 
 
 def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
@@ -174,7 +175,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]}, results_path=Path(tmp_path))
             timeeval.run()
 
-            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / "custom" / "dataset.1" / "1").exists())
+            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists())
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)
             self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host:"+str(tmp_path)+"/", str(tmp_path)])
@@ -193,7 +194,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 [Algorithm(name="docker", main=adapter, data_as_file=True)], results_path=Path(tmp_path))
             timeeval.run()
 
-            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / "custom" / "dataset.1" / "1").exists())
+            self.assertTrue((Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists())
 
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
