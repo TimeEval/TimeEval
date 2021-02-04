@@ -267,7 +267,8 @@ class TimeEval:
     def _distributed_prepare(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.algorithms:
-            tasks.append((algorithm.prepare, [], {}))
+            if prepare_fn := algorithm.prepare_fn():
+                tasks.append((prepare_fn, [], {}))
             for algorithm_config in algorithm.param_grid:
                 for dataset_name in self.dataset_names:
                     for repetition in range(1, self.repetitions + 1):
@@ -277,7 +278,7 @@ class TimeEval:
 
     def _distributed_finalize(self):
         tasks: List[Tuple[Callable, List, Dict]] = [
-            (algorithm.finalize, [], {}) for algorithm in self.algorithms
+            (finalize_fn, [], {}) for algorithm in self.algorithms if (finalize_fn := algorithm.finalize_fn())
         ]
         self.remote.run_on_all_hosts(tasks)
         self._get_future_results()
