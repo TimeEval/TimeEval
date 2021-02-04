@@ -46,11 +46,13 @@ class TimeEval:
                    "error_message",
                    "repetition")
 
+    DEFAULT_RESULT_PATH = Path("./results")
+
     def __init__(self,
                  dataset_mgr: Datasets,
                  datasets: List[Tuple[str, str]],
                  algorithms: List[Algorithm],
-                 results_path: Path = Path("./results"),
+                 results_path: Path = DEFAULT_RESULT_PATH,
                  distributed: bool = False,
                  ssh_cluster_kwargs: Optional[dict] = None,
                  repetitions: int = 1):
@@ -69,10 +71,12 @@ class TimeEval:
             self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
 
-    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int) -> dict:
+    def _create_result_path(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int):
         assert self.start_date, "The start date isn't set! Run TimeEval.run() first!"
-        results_path = self.results_path / self.start_date / algorithm_name / dataset_name[0] / dataset_name[1] / str(repetition)
+        return self.results_path / self.start_date / algorithm_name / dataset_name[0] / dataset_name[1] / str(repetition)
 
+    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int) -> dict:
+        results_path = self._create_result_path(algorithm_name, dataset_name, repetition)
         return {
             "results_path": results_path
         }
@@ -144,7 +148,7 @@ class TimeEval:
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
-        results_path = args.get("results_path", Path("./results"))
+        results_path = args.get("results_path", TimeEval.DEFAULT_RESULT_PATH)
 
         if isinstance(y, (PosixPath, WindowsPath)):
             y_true = TimeEval._extract_labels(pd.read_csv(y))
@@ -250,7 +254,7 @@ class TimeEval:
                 algorithm.main.prepare()
             for dataset_name in self.dataset_names:
                 for repetition in range(1, self.repetitions + 1):
-                    path = self._gen_args(algorithm.name, dataset_name, repetition).get("results_path", Path("./results"))
+                    path = self._create_result_path(algorithm.name, dataset_name, repetition)
                     path.mkdir(parents=True, exist_ok=True)
 
     def _finalize(self):
@@ -265,7 +269,7 @@ class TimeEval:
                 tasks.append((algorithm.main.prepare, [], {}))
             for dataset_name in self.dataset_names:
                 for repetition in range(1, self.repetitions + 1):
-                    path = self._gen_args(algorithm.name, dataset_name, repetition).get("results_path", Path("./results"))
+                    path = self._create_result_path(algorithm.name, dataset_name, repetition)
                     tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
