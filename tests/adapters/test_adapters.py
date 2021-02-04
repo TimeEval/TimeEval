@@ -149,13 +149,3 @@ class TestBaseAdapter(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             BaseAdapter()
-
-    def test_preprocess_data(self):
-        data = np.random.rand(3)
-        algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MEAN)
-        np.testing.assert_array_equal(data, algorithm._preprocess_data(data))
-
-    def test_postprocess_data(self):
-        data = np.random.rand(3)
-        algorithm = MultivarAdapter(deviating_from_median, AggregationMethod.MEAN)
-        np.testing.assert_array_equal(data, algorithm._postprocess_data(data))
