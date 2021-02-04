@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+import json
 import logging
 import socket
 import subprocess
@@ -8,7 +9,6 @@ from enum import Enum
 from pathlib import Path, PosixPath, WindowsPath
 from typing import Callable
 from typing import List, Tuple, Dict, Optional
-import json
 
 import numpy as np
 import pandas as pd
@@ -16,10 +16,8 @@ import tqdm
 from distributed.client import Future
 
 from timeeval.datasets import Datasets
-from timeeval.utils.metrics import roc
 from timeeval.utils.hash_dict import hash_dict
-from .adapters import DockerAdapter
-from .adapters.base import Adapter
+from timeeval.utils.metrics import roc
 from .algorithm import Algorithm
 from .data_types import AlgorithmParameter
 from .remote import Remote
