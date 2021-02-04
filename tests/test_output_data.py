@@ -23,7 +23,6 @@ def deviating_from_mean(X: AlgorithmParameter, args: dict):
 def deviating_from_mean_own_scores(X: AlgorithmParameter, args: dict):
     diffs = deviating_from_mean(X, args)
     result_path = args.get("results_path", TimeEval.DEFAULT_RESULT_PATH)
-    result_path.mkdir(parents=True, exist_ok=True)  # FIXME: should be handled by TimeEval --> remove
     np.zeros_like(diffs).tofile(result_path / ANOMALY_SCORES_TS, sep="\n")
     return diffs
 
