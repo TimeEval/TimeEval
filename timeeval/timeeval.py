@@ -151,7 +151,7 @@ class TimeEval:
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
-        results_path = args.get("results_path", TimeEval.DEFAULT_RESULT_PATH)
+        results_path = args["results_path"]
 
         if isinstance(y, (PosixPath, WindowsPath)):
             y_true = TimeEval._extract_labels(pd.read_csv(y))
@@ -235,7 +235,7 @@ class TimeEval:
         return results
 
     def save_results(self, results_path: Optional[Path] = None):
-        results_path = results_path or (self.results_path / Path("results.csv"))
+        results_path = results_path or (self.results_path / RESULTS_CSV)
         self.results.to_csv(results_path, index=False)
 
     def rsync_results(self):
@@ -257,8 +257,7 @@ class TimeEval:
             for algorithm_config in algorithm.param_grid:
                 for dataset_name in self.dataset_names:
                     for repetition in range(1, self.repetitions + 1):
-                        path = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)\
-                            .get("results_path", Path("./results"))
+                        path = self._create_result_path(algorithm.name, dataset_name, repetition, algorithm_config)
                         path.mkdir(parents=True, exist_ok=True)
 
     def _finalize(self):
@@ -272,8 +271,7 @@ class TimeEval:
             for algorithm_config in algorithm.param_grid:
                 for dataset_name in self.dataset_names:
                     for repetition in range(1, self.repetitions + 1):
-                        path = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)\
-                            .get("results_path", Path("./results"))
+                        path = self._create_result_path(algorithm.name, dataset_name, repetition, algorithm_config)
                         tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
