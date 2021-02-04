@@ -1,36 +1,31 @@
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Callable
 
 import numpy as np
 import pandas as pd
 
+from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.adapters import FunctionAdapter
 from timeeval.timeeval import AlgorithmParameter
+
+
+class DeviationFromMedian(object):
+    pass
 
 
 def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
 
-    def preprocess(x: AlgorithmParameter, args) -> np.ndarray:
+    def preprocess(x: AlgorithmParameter, args: dict) -> np.ndarray:
         if isinstance(x, np.ndarray):
             return x
         else:  # if isinstance(x, (PosixPath, WindowsPath)):
             return pd.read_csv(x).values[:, 1:-1]
 
-    def deviating_from(fn: Callable) -> FunctionAdapter:
-        def call(data: AlgorithmParameter, args: dict) -> np.ndarray:
-            diffs = np.abs((data - fn(data)))
-            diffs = diffs / diffs.max()
-
-            return diffs
-        return FunctionAdapter(call)
-
     algorithms = [
-        Algorithm(name="deviating_from_mean", main=deviating_from(np.mean), preprocess=preprocess, data_as_file=from_file),
-        Algorithm(name="deviating_from_median", main=deviating_from(np.median), preprocess=preprocess, data_as_file=from_file)
+        Algorithm(name="deviating_from_mean", main=DeviatingFromMean(), preprocess=preprocess, data_as_file=from_file),
+        Algorithm(name="deviating_from_median", main=DeviatingFromMedian(), preprocess=preprocess, data_as_file=from_file)
     ]
 
     datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
@@ -44,17 +39,9 @@ def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
 def generates_results_multi(dataset) -> pd.DataFrame:
     datasets_config = Path("./tests/example_data/datasets.json")
 
-    def deviating_from(fn: Callable) -> FunctionAdapter:
-        def call(data: AlgorithmParameter, args: dict) -> np.ndarray:
-            diffs = np.abs((data - fn(data, axis=0)))
-            diffs = diffs / diffs.max(axis=0)
-
-            return diffs.mean(axis=1)
-        return FunctionAdapter(call)
-
     algorithms = [
-        Algorithm(name="deviating_from_mean", main=deviating_from(np.mean), data_as_file=False),
-        Algorithm(name="deviating_from_median", main=deviating_from(np.median), data_as_file=False)
+        Algorithm(name="deviating_from_mean", main=DeviatingFromMean(), data_as_file=False),
+        Algorithm(name="deviating_from_median", main=DeviatingFromMedian(), data_as_file=False)
     ]
 
     datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)

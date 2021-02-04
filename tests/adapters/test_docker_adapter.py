@@ -1,14 +1,17 @@
-import unittest
-from unittest.mock import patch
-from pathlib import Path
 import tempfile
-import numpy as np
-from durations import Duration
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
 import docker
+import numpy as np
 import pytest
+from durations import Duration
 
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
+
+DUMMY_CONTAINER = "algorithm-template-dummy"
 
 
 class MockDockerContainer:
@@ -72,7 +75,6 @@ class TestDockerAdapter(unittest.TestCase):
 
     @pytest.mark.docker
     def test_timeout_docker(self):
-        DUMMY_CONTAINER = "algorithm-template-dummy"
         with self.assertRaises(DockerTimeoutError):
             adapter = DockerAdapter(DUMMY_CONTAINER, timeout=Duration("100 miliseconds"))
             adapter(Path("dummy"))
@@ -80,7 +82,6 @@ class TestDockerAdapter(unittest.TestCase):
 
     @pytest.mark.docker
     def test_algorithm_error_docker(self):
-        DUMMY_CONTAINER = "algorithm-template-dummy"
         with self.assertRaises(DockerAlgorithmFailedError):
             adapter = DockerAdapter(DUMMY_CONTAINER, timeout=Duration("1 minute"))
             adapter(Path("dummy"), {"hyper_params": {"raise": True}})
@@ -88,7 +89,6 @@ class TestDockerAdapter(unittest.TestCase):
 
     @pytest.mark.docker
     def test_faster_than_timeout_docker(self):
-        DUMMY_CONTAINER = "algorithm-template-dummy"
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter(DUMMY_CONTAINER, timeout=Duration("1 minute, 40 seconds"))
             result = adapter(Path(tmp_path))

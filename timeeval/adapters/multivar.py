@@ -25,25 +25,26 @@ class AggregationMethod(Enum):
 
 
 class MultivarAdapter(Adapter):
-    def __init__(self, fn: Callable[[np.ndarray], np.ndarray], aggregation: AggregationMethod = AggregationMethod.MEAN,
+    def __init__(self, fn: Callable[[np.ndarray, dict], np.ndarray], aggregation: AggregationMethod = AggregationMethod.MEAN,
                  n_jobs: int = 1):
         self.fn = fn
         self.aggregation = aggregation
         self.n_jobs = n_jobs
 
-    def _parallel_call(self, data: np.ndarray) -> List[np.ndarray]:
+    def _parallel_call(self, data: np.ndarray, args: dict) -> List[np.ndarray]:
         pool = mp.Pool(self.n_jobs)
-        scores = pool.map(self.fn, [data[:, c] for c in range(data.shape[1])])
+        scores = pool.starmap(self.fn, [(data[:, c], args) for c in range(data.shape[1])])
         return scores
 
     def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> np.ndarray:
+        args = args or {}
         if isinstance(dataset, np.ndarray):
             if self.n_jobs > 1:
-                scores = self._parallel_call(dataset)
+                scores = self._parallel_call(dataset, args)
             else:
                 scores = list()
                 for dim in range(dataset.shape[1]):
-                    scores.append(self.fn(dataset[:, dim]))
+                    scores.append(self.fn(dataset[:, dim], args))
             return self.aggregation(scores)
         else:
             raise ValueError(

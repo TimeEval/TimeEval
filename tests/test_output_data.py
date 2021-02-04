@@ -1,14 +1,16 @@
+import tempfile
 import unittest
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import tempfile
-from pathlib import Path
 from freezegun import freeze_time
 from sklearn.model_selection import ParameterGrid
 
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import FunctionAdapter
-from timeeval.timeeval import AlgorithmParameter, ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
+from timeeval.timeeval import AlgorithmParameter, ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, \
+    RESULTS_CSV
 from timeeval.utils.hash_dict import hash_dict
 
 
@@ -17,13 +19,6 @@ def deviating_from_mean(X: AlgorithmParameter, args: dict):
     print(args.get("results_path", TimeEval.DEFAULT_RESULT_PATH))
     diffs = np.abs((X - np.mean(X)))  # type: ignore
     diffs = diffs / diffs.max()
-    return diffs
-
-
-def deviating_from_mean_own_scores(X: AlgorithmParameter, args: dict):
-    diffs = deviating_from_mean(X, args)
-    result_path = args.get("results_path", TimeEval.DEFAULT_RESULT_PATH)
-    np.zeros_like(diffs).tofile(result_path / ANOMALY_SCORES_TS, sep="\n")
     return diffs
 
 

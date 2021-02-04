@@ -1,45 +1,13 @@
+import tempfile
 import unittest
+from itertools import cycle
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from typing import Callable, Optional
-from pathlib import Path
-from itertools import cycle
-import tempfile
 
+from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian, ErroneousAlgorithm
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.adapters.base import Adapter
-from timeeval.data_types import AlgorithmParameter
-
-
-def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
-    diffs = np.abs((data - fn(data)))
-    diffs = diffs / diffs.max()
-    return diffs
-
-
-class DeviatingFromMean(Adapter):
-
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        return deviating_from(dataset, np.mean)  # type: ignore
-
-
-class DeviatingFromMedian(Adapter):
-
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        return deviating_from(dataset, np.median)  # type: ignore
-
-
-class ErroneousAlgorithm(Adapter):
-    def __init__(self, fn):
-        self.fn = fn
-        self.count = 0
-
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None):
-        self.count += 1
-        if self.count != 2:
-            return self.fn(dataset, args)
-        else:
-            raise ValueError("test error")
 
 
 class TestRepetitions(unittest.TestCase):
@@ -78,7 +46,8 @@ class TestRepetitions(unittest.TestCase):
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
 
         algorithms = [
-            Algorithm(name="deviating_from_mean", main=ErroneousAlgorithm(DeviatingFromMean())),
+            # two datasets with 3 repitions each: skip only one repetition of the second dataset: 5
+            Algorithm(name="deviating_from_mean", main=ErroneousAlgorithm(raise_after_n_calls=5)),
             Algorithm(name="deviating_from_median", main=DeviatingFromMedian())
         ]
         with tempfile.TemporaryDirectory() as tmp_path:
@@ -86,6 +55,8 @@ class TestRepetitions(unittest.TestCase):
                                 repetitions=3, results_path=Path(tmp_path))
             timeeval.run()
         results = timeeval.get_results()
+        print(results)
 
         np.testing.assert_array_almost_equal(results["score_mean"].values, self.results["score"].values)
-        self.assertListEqual(results["repetitions"].unique().tolist(), [2, 3])
+        # first algorithm performs 5 reps (misses one on the second dataset), second algorithm performs all 6 reps
+        self.assertListEqual(results["repetitions"].tolist(), [3, 2, 3, 3])
