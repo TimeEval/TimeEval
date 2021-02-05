@@ -17,7 +17,10 @@ class Remote:
         self.cluster = self.start_or_restart_cluster()
         self.client = Client(self.cluster.scheduler_address)
 
-    def start_or_restart_cluster(self) -> SSHCluster:
+    def start_or_restart_cluster(self, n=0) -> SSHCluster:
+        if n >= 5:
+            raise RuntimeError("Could not start an SSHCluster because there is already one running, "
+                               "that cannot be stopped!")
         try:
             return SSHCluster(**self.ssh_cluster_kwargs)
         except Exception as e:
@@ -32,7 +35,7 @@ class Remote:
                 with Client(scheduler_address) as client:
                     client.shutdown()
 
-                return self.start_or_restart_cluster()
+                return self.start_or_restart_cluster(n+1)
             raise e
 
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:

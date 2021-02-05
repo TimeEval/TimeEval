@@ -16,6 +16,6 @@ class TestRemote(unittest.TestCase):
             new_remote.close()
 
     @pytest.mark.dask
-    def test_other_than_alread_running_exception(self):
+    def test_other_than_already_running_exception(self):
         with self.assertRaises(ValueError):
             Remote(hosts=[])
