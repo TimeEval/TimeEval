@@ -9,11 +9,10 @@ import pytest
 from durations import Duration
 
 from timeeval.adapters import DockerAdapter
+from timeeval.adapters.docker import DATASET_TARGET_PATH, RESULTS_TARGET_PATH, SCORES_FILE_NAME, MODEL_FILE_NAME
 from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
 
 DUMMY_CONTAINER = "algorithm-template-dummy"
-
-
 TEST_IMAGE = "mut:5000/akita/timeeval-test-algorithm"
 
 
@@ -28,7 +27,7 @@ class MockDockerContainer:
 
         real_path = list(volumes.items())[1][0]
         if real_path.startswith("/tmp"):
-            np.arange(10, dtype=np.float64).tofile(real_path / Path("anomaly_scores.ts"), sep="\n")
+            np.arange(10, dtype=np.float64).tofile(real_path / Path(SCORES_FILE_NAME), sep="\n")
         return self
 
 
@@ -44,10 +43,10 @@ class TestDockerAdapter(unittest.TestCase):
         mock_client.return_value = mock_docker_client
         results_path = Path("./results/")
         input_string = 'execute-algorithm \'{' \
-                       '"dataInput": "/data/test.csv", ' \
-                       '"dataOutput": "/results/anomaly_scores.ts", ' \
-                       '"modelInput": "/results/model.pkl", ' \
-                       '"modelOutput": "/results/model.pkl", ' \
+                       f'"dataInput": "{DATASET_TARGET_PATH}/test.csv", ' \
+                       f'"dataOutput": "{RESULTS_TARGET_PATH}/{SCORES_FILE_NAME}", ' \
+                       f'"modelInput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
+                       f'"modelOutput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
                        '"customParameters": {"a": 0}, ' \
                        '"executionType": "execute"' \
                        '}\''

@@ -13,9 +13,9 @@ from durations import Duration
 
 from .base import Adapter, AlgorithmParameter
 
-DATASET_TARGET_PATH = "/data/"
+DATASET_TARGET_PATH = "/data"
 RESULTS_TARGET_PATH = "/results"
-SCORES_FILE_NAME = "anomaly_scores.ts"
+SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
 DEFAULT_TIMEOUT = Duration("8 hours")
@@ -88,6 +88,7 @@ class DockerAdapter(Adapter):
 
         gid = DockerAdapter._get_gid(self.group)
         uid = DockerAdapter._get_uid()
+        print(f"Running container with uid={uid} and gid={gid} privileges")
         return client.containers.run(
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
