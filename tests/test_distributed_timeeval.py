@@ -172,12 +172,13 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval.run()
 
             self.assertTrue(
-                (Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
+                (timeeval.results_path / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
             )
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)
-            self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host:" + str(tmp_path) + "/", str(tmp_path)])
-            self.assertListEqual(rsync.params[1], ["rsync", "-a", "test-host2:" + str(tmp_path) + "/", str(tmp_path)])
+            target_path = timeeval.results_path  # == "/results/YYYY_mm_dd_hh_mm"
+            self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host:" + str(target_path) + "/", str(target_path)])
+            self.assertListEqual(rsync.params[1], ["rsync", "-a", "test-host2:" + str(target_path) + "/", str(target_path)])
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_phases(self, mock_docker):
@@ -193,7 +194,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval.run()
 
             self.assertTrue(
-                (Path(tmp_path) / timeeval.start_date / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
+                (timeeval.results_path / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
             )
 
     @patch("timeeval.timeeval.subprocess.call")

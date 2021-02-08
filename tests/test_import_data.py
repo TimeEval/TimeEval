@@ -7,7 +7,7 @@ import pandas as pd
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.timeeval import AlgorithmParameter
+from timeeval import AlgorithmParameter
 
 
 class DeviationFromMedian(object):
