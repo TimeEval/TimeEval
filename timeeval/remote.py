@@ -3,14 +3,40 @@ from typing import List, Callable, Optional, Tuple, Dict
 from dask.distributed import Client, SSHCluster
 import tqdm
 import time
+import logging
+
+
+DEFAULT_DASK_PORT = 8786
 
 
 class Remote:
     def __init__(self, **kwargs):
+        self.logger = logging.getLogger("Remote")
         self.ssh_cluster_kwargs = kwargs or {}
         self.futures: List[Future] = []
-        self.cluster = SSHCluster(**self.ssh_cluster_kwargs)
+        self.cluster = self.start_or_restart_cluster()
         self.client = Client(self.cluster.scheduler_address)
+
+    def start_or_restart_cluster(self, n=0) -> SSHCluster:
+        if n >= 5:
+            raise RuntimeError("Could not start an SSHCluster because there is already one running, "
+                               "that cannot be stopped!")
+        try:
+            return SSHCluster(**self.ssh_cluster_kwargs)
+        except Exception as e:
+            if "Worker failed to start" in str(e):
+                port = self.ssh_cluster_kwargs.get("connect_options", {}).get("port", DEFAULT_DASK_PORT)
+                scheduler_host = self.ssh_cluster_kwargs.get("hosts")[0]
+                scheduler_address = f"{scheduler_host}:{port}"
+
+                self.logger.warning(f"Failed to start cluster, because address already in use! "
+                                    f"Trying to restart cluster at {scheduler_address}!")
+
+                with Client(scheduler_address) as client:
+                    client.shutdown()
+
+                return self.start_or_restart_cluster(n+1)
+            raise e
 
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
         config = config or {}
