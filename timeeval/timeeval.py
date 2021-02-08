@@ -20,7 +20,7 @@ from timeeval.utils.hash_dict import hash_dict
 from timeeval.utils.metrics import roc
 from .algorithm import Algorithm
 from .data_types import AlgorithmParameter
-from .experiments import Experiments
+from .experiments import Experiments, Experiment
 from .remote import Remote
 from .times import Times
 
@@ -59,10 +59,10 @@ class TimeEval:
                  distributed: bool = False,
                  ssh_cluster_kwargs: Optional[dict] = None,
                  repetitions: int = 1):
-        self.exps = Experiments(datasets, algorithms, repetitions)
         self.dmgr = dataset_mgr
-        self.results_path = results_path.absolute()
-        self.start_date: Optional[str] = None
+        start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        self.results_path = results_path.absolute() / start_date
+        self.exps = Experiments(datasets, algorithms, self.results_path, repetitions=repetitions)
 
         self.distributed = distributed
         self.cluster_kwargs = ssh_cluster_kwargs or {}
@@ -71,19 +71,6 @@ class TimeEval:
         if self.distributed:
             self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
-
-    def _create_result_path(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int, hyper_params: dict) -> Path:
-        assert self.start_date, "The start date isn't set! Run TimeEval.run() first!"
-        hyper_params_dir = hash_dict(hyper_params)
-        return self.results_path / self.start_date / algorithm_name / hyper_params_dir / dataset_name[0] / dataset_name[1] / str(repetition)
-
-    def _gen_args(self, algorithm_name: str, dataset_name: Tuple[str, str], repetition: int, hyper_params: Optional[dict] = None) -> dict:
-        hyper_params = hyper_params or {}
-        results_path = self._create_result_path(algorithm_name, dataset_name, repetition, hyper_params)
-        return {
-            "results_path": results_path,
-            "hyper_params": hyper_params
-        }
 
     def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
         return self.dmgr.get_dataset_df(name)
@@ -119,14 +106,13 @@ class TimeEval:
                 result: Optional[Dict] = None
 
                 X, y_true = self._get_X_and_y(exp.dataset, data_as_file=exp.algorithm.data_as_file)
-                args = self._gen_args(exp.algorithm.name, exp.dataset, exp.repetition, hyper_params=exp.params)
+                args = exp.build_args()
 
                 if self.distributed:
                     future_result = self.remote.add_task(TimeEval.evaluate, exp.algorithm, X, y_true, args)
                 else:
                     result = TimeEval.evaluate(exp.algorithm, X, y_true, args)
-                self._record_results(exp.algorithm.name, exp.dataset, result, future_result, repetition=exp.repetition,
-                                     hyper_params=exp.params)
+                self._record_results(exp, result=result, future_result=future_result)
 
             except Exception as e:
                 logging.exception(
@@ -138,11 +124,7 @@ class TimeEval:
                     "preprocess_time": np.nan,
                     "postprocess_time": np.nan
                 })
-                self._record_results(exp.algorithm.name, exp.dataset,
-                                     future_result=f,
-                                     status=Status.ERROR,
-                                     error_message=str(e),
-                                     hyper_params=exp.params)
+                self._record_results(exp, future_result=f, status=Status.ERROR, error_message=str(e))
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
@@ -171,24 +153,20 @@ class TimeEval:
         return result
 
     def _record_results(self,
-                        algorithm_name: str,
-                        dataset_name: Tuple[str, str],
+                        exp: Experiment,
                         result: Optional[Dict] = None,
                         future_result: Optional[Future] = None,
                         status: Status = Status.OK,
-                        error_message: Optional[str] = None,
-                        repetition: int = 1,
-                        hyper_params: Optional[dict] = None):
-        hyper_params = hyper_params or {}
+                        error_message: Optional[str] = None,):
         new_row = {
-            "algorithm": algorithm_name,
-            "collection": dataset_name[0],
-            "dataset": dataset_name[1],
+            "algorithm": exp.algorithm.name,
+            "collection": exp.dataset_collection,
+            "dataset": exp.dataset_name,
             "status": status.name,
             "error_message": error_message,
-            "repetition": repetition,
-            "hyper_params": json.dumps(hyper_params),
-            "hyper_params_id": hash_dict(hyper_params)
+            "repetition": exp.repetition,
+            "hyper_params": json.dumps(exp.params),
+            "hyper_params_id": exp.params_id
         }
         if result is not None and future_result is None:
             new_row.update(result)
@@ -197,7 +175,7 @@ class TimeEval:
         self.results = self.results.append(new_row, ignore_index=True)
         self.results.replace(to_replace=[None], value=np.nan, inplace=True)
 
-    def _get_future_results(self):
+    def _resolve_future_results(self):
         self.remote.fetch_results()
 
         keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
@@ -230,8 +208,8 @@ class TimeEval:
         return results
 
     def save_results(self, results_path: Optional[Path] = None):
-        results_path = results_path or (self.results_path / RESULTS_CSV)
-        self.results.to_csv(results_path, index=False)
+        path = results_path or (self.results_path / RESULTS_CSV)
+        self.results.to_csv(path, index=False)
 
     def rsync_results(self):
         excluded_aliases = [
@@ -250,8 +228,7 @@ class TimeEval:
         for algorithm in self.exps.algorithms:
             algorithm.prepare()
         for exp in self.exps:
-            path = exp.results_path(self.results_path, self.start_date)
-            path.mkdir(parents=True, exist_ok=True)
+            exp.results_path.mkdir(parents=True, exist_ok=True)
 
     def _finalize(self):
         for algorithm in self.exps.algorithms:
@@ -263,8 +240,7 @@ class TimeEval:
             if prepare_fn := algorithm.prepare_fn():
                 tasks.append((prepare_fn, [], {}))
         for exp in self.exps:
-            path = exp.results_path(self.results_path, self.start_date)
-            tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
+            tasks.append((exp.results_path.mkdir, [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_finalize(self):
@@ -272,13 +248,12 @@ class TimeEval:
             (finalize_fn, [], {}) for algorithm in self.exps.algorithms if (finalize_fn := algorithm.finalize_fn())
         ]
         self.remote.run_on_all_hosts(tasks)
-        self._get_future_results()
+        self._resolve_future_results()
         self.remote.close()
         self.rsync_results()
 
     def run(self):
         assert len(self.exps.algorithms) > 0, "No algorithms given for evaluation"
-        self.start_date = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         if self.distributed:
             self._distributed_prepare()
@@ -291,4 +266,4 @@ class TimeEval:
             self._distributed_finalize()
         else:
             self._finalize()
-        self.results.to_csv(self.results_path / self.start_date / RESULTS_CSV, index=False)
+        self.results.to_csv(self.results_path / RESULTS_CSV, index=False)
