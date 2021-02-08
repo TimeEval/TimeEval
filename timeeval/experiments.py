@@ -59,8 +59,7 @@ class Experiment:
                 raise ValueError(
                     f"Dataset '{resolved_dataset_path.name}' has a shape that was not expected: {dataset.shape}")
 
-        logs_file = (self.results_path / EXECUTION_LOG).open("w")
-        with redirect_stdout(logs_file):
+        with (self.results_path / EXECUTION_LOG).open("w") as logs_file, redirect_stdout(logs_file):
             y_scores, times = Times.from_algorithm(self.algorithm, X, self.build_args())
         score = roc(y_scores, y_true.astype(np.float64), plot=False)
         result = {"score": score}
