@@ -4,7 +4,7 @@ from typing import Tuple
 import argparse
 
 
-def create_parser() -> argparse.Namespace:
+def _create_arg_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Concatenate dataset")
     parser.add_argument("--dataset-file", type=Path, required=True, help="File path for dataset")
     parser.add_argument("--labels-file", type=Path, required=True, help="File path for labels")
@@ -26,7 +26,7 @@ def concat_dataset(data: np.ndarray, labels: np.ndarray, reps: int) -> Tuple[np.
 
 
 def main():
-    args = create_parser()
+    args = _create_arg_parser()
     data = np.loadtxt(args.dataset_file)
     labels = np.loadtxt(args.labels_file).reshape(-1)
 
