@@ -20,6 +20,7 @@ from timeeval.utils.hash_dict import hash_dict
 from timeeval.utils.metrics import roc
 from .algorithm import Algorithm
 from .data_types import AlgorithmParameter
+from .experiments import Experiments
 from .remote import Remote
 from .times import Times
 
@@ -58,8 +59,7 @@ class TimeEval:
                  distributed: bool = False,
                  ssh_cluster_kwargs: Optional[dict] = None,
                  repetitions: int = 1):
-        self.dataset_names = datasets
-        self.algorithms = algorithms
+        self.exps = Experiments(datasets, algorithms, repetitions)
         self.dmgr = dataset_mgr
         self.results_path = results_path.absolute()
         self.start_date: Optional[str] = None
@@ -67,7 +67,6 @@ class TimeEval:
         self.distributed = distributed
         self.cluster_kwargs = ssh_cluster_kwargs or {}
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
-        self.repetitions = repetitions
 
         if self.distributed:
             self.remote = Remote(**self.cluster_kwargs)
@@ -113,39 +112,37 @@ class TimeEval:
             y = self._extract_labels(dataset)
         return X, y
 
-    def _run_algorithm(self, algorithm: Algorithm):
-        for algorithm_config in tqdm.tqdm(algorithm.param_grid, desc=f"Evaluating {algorithm.name}", position=1, disable=self.distributed):
-            for dataset_name in tqdm.tqdm(self.dataset_names, desc=f"Evaluating {algorithm.name} configurations", position=2, disable=self.distributed):
-                for repetition in range(1, self.repetitions + 1):
-                    try:
-                        future_result: Optional[Future] = None
-                        result: Optional[Dict] = None
+    def _run(self):
+        for exp in tqdm.tqdm(self.exps, desc=f"Evaluating", disable=self.distributed):
+            try:
+                future_result: Optional[Future] = None
+                result: Optional[Dict] = None
 
-                        X, y_true = self._get_X_and_y(dataset_name, data_as_file=algorithm.data_as_file)
-                        args = self._gen_args(algorithm.name, dataset_name, repetition, hyper_params=algorithm_config)
+                X, y_true = self._get_X_and_y(exp.dataset, data_as_file=exp.algorithm.data_as_file)
+                args = self._gen_args(exp.algorithm.name, exp.dataset, exp.repetition, hyper_params=exp.params)
 
-                        if self.distributed:
-                            future_result = self.remote.add_task(TimeEval.evaluate, algorithm, X, y_true, args)
-                        else:
-                            result = TimeEval.evaluate(algorithm, X, y_true, args)
-                        self._record_results(algorithm.name, dataset_name, result, future_result, repetition=repetition,
-                                             hyper_params=algorithm_config)
+                if self.distributed:
+                    future_result = self.remote.add_task(TimeEval.evaluate, exp.algorithm, X, y_true, args)
+                else:
+                    result = TimeEval.evaluate(exp.algorithm, X, y_true, args)
+                self._record_results(exp.algorithm.name, exp.dataset, result, future_result, repetition=exp.repetition,
+                                     hyper_params=exp.params)
 
-                    except Exception as e:
-                        logging.exception(
-                            f"Exception occured during the evaluation of {algorithm.name} on the dataset {dataset_name}:")
-                        f: asyncio.Future = asyncio.Future()
-                        f.set_result({
-                            "score": np.nan,
-                            "main_time": np.nan,
-                            "preprocess_time": np.nan,
-                            "postprocess_time": np.nan
-                        })
-                        self._record_results(algorithm.name, dataset_name,
-                                             future_result=f,
-                                             status=Status.ERROR,
-                                             error_message=str(e),
-                                             hyper_params=algorithm_config)
+            except Exception as e:
+                logging.exception(
+                    f"Exception occured during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}:")
+                f: asyncio.Future = asyncio.Future()
+                f.set_result({
+                    "score": np.nan,
+                    "main_time": np.nan,
+                    "preprocess_time": np.nan,
+                    "postprocess_time": np.nan
+                })
+                self._record_results(exp.algorithm.name, exp.dataset,
+                                     future_result=f,
+                                     status=Status.ERROR,
+                                     error_message=str(e),
+                                     hyper_params=exp.params)
 
     @staticmethod
     def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
@@ -250,33 +247,29 @@ class TimeEval:
                 subprocess.call(["rsync", "-a", f"{host}:{self.results_path}/", f"{self.results_path}"])
 
     def _prepare(self):
-        for algorithm in self.algorithms:
+        for algorithm in self.exps.algorithms:
             algorithm.prepare()
-            for algorithm_config in algorithm.param_grid:
-                for dataset_name in self.dataset_names:
-                    for repetition in range(1, self.repetitions + 1):
-                        path = self._create_result_path(algorithm.name, dataset_name, repetition, algorithm_config)
-                        path.mkdir(parents=True, exist_ok=True)
+        for exp in self.exps:
+            path = exp.results_path(self.results_path, self.start_date)
+            path.mkdir(parents=True, exist_ok=True)
 
     def _finalize(self):
-        for algorithm in self.algorithms:
+        for algorithm in self.exps.algorithms:
             algorithm.finalize()
 
     def _distributed_prepare(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
-        for algorithm in self.algorithms:
+        for algorithm in self.exps.algorithms:
             if prepare_fn := algorithm.prepare_fn():
                 tasks.append((prepare_fn, [], {}))
-            for algorithm_config in algorithm.param_grid:
-                for dataset_name in self.dataset_names:
-                    for repetition in range(1, self.repetitions + 1):
-                        path = self._create_result_path(algorithm.name, dataset_name, repetition, algorithm_config)
-                        tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
+        for exp in self.exps:
+            path = exp.results_path(self.results_path, self.start_date)
+            tasks.append((path.mkdir, [], {"parents": True, "exist_ok": True}))
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_finalize(self):
         tasks: List[Tuple[Callable, List, Dict]] = [
-            (finalize_fn, [], {}) for algorithm in self.algorithms if (finalize_fn := algorithm.finalize_fn())
+            (finalize_fn, [], {}) for algorithm in self.exps.algorithms if (finalize_fn := algorithm.finalize_fn())
         ]
         self.remote.run_on_all_hosts(tasks)
         self._get_future_results()
@@ -284,7 +277,7 @@ class TimeEval:
         self.rsync_results()
 
     def run(self):
-        assert len(self.algorithms) > 0, "No algorithms given for evaluation"
+        assert len(self.exps.algorithms) > 0, "No algorithms given for evaluation"
         self.start_date = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         if self.distributed:
@@ -292,8 +285,7 @@ class TimeEval:
         else:
             self._prepare()
 
-        for algorithm in tqdm.tqdm(self.algorithms, desc="Evaluating Algorithms", position=0, disable=self.distributed):
-            self._run_algorithm(algorithm)
+        self._run()
 
         if self.distributed:
             self._distributed_finalize()
