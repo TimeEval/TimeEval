@@ -183,9 +183,10 @@ class TimeEval:
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_finalize(self):
-        tasks: List[Tuple[Callable, List, Dict]] = [
-            (finalize_fn, [], {}) for algorithm in self.exps.algorithms if (finalize_fn := algorithm.finalize_fn())
-        ]
+        tasks: List[Tuple[Callable, List, Dict]] = []
+        for algorithm in self.exps.algorithms:
+            if finalize_fn := algorithm.finalize_fn():
+                tasks.append((finalize_fn, [], {}))
         self.remote.run_on_all_hosts(tasks)
         self._resolve_future_results()
         self.remote.close()
