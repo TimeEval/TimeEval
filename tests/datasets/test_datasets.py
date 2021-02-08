@@ -318,6 +318,9 @@ def test_get_dataset_path_missing(tmp_path):
     with pytest.raises(KeyError) as ex:
         dm.get_dataset_path((nab_record.collection_name, "unknown"))
         assert "not found" in str(ex.value)
+    with pytest.raises(KeyError) as ex:
+        dm.get_dataset_path(("custom", "unknown"))
+        assert "not found" in str(ex.value)
 
 
 def test_get_dataset_path_missing_path(tmp_path):
