@@ -27,7 +27,7 @@ def roc(y_score: Iterable[float], y_true: Iterable[float], plot: bool = False) -
     return area
 
 
-def _create_parser():
+def _create_arg_parser():
     parser = argparse.ArgumentParser(description=f"ROC Curve Plotter")
 
     parser.add_argument("--input-file", type=str, required=True, help="Path to input file")
@@ -38,7 +38,7 @@ def _create_parser():
 
 
 if __name__ == "__main__":
-    parser = _create_parser()
+    parser = _create_arg_parser()
     args = parser.parse_args()
 
     anomaly_scores = np.loadtxt(args.input_file)

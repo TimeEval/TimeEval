@@ -12,7 +12,7 @@ except ImportError:
     from label_formatting import id2labels  # type: ignore
 
 
-def create_parser() -> argparse.Namespace:
+def _create_arg_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Concatenate dataset")
     parser.add_argument("--data", type=Path, required=True, help="File path for dataset")
     parser.add_argument("--labels", type=Path, required=True,
@@ -47,7 +47,7 @@ def process(data_file: Union[Path, str], label_file: Union[Path, str], out_file:
 
 
 def main():
-    args = create_parser()
+    args = _create_arg_parser()
     process(args.data, args.labels, args.out, args.convert_to_datetime, args.datetime_unit)
 
 
