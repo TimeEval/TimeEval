@@ -1,9 +1,11 @@
-import unittest
 import time
+import unittest
+
 import numpy as np
 
+from timeeval import Algorithm, AlgorithmParameter
 from timeeval.adapters import FunctionAdapter
-from timeeval.timeeval import Algorithm, Times, AlgorithmParameter
+from timeeval.times import Times
 
 
 def pre(x: AlgorithmParameter, args) -> AlgorithmParameter:

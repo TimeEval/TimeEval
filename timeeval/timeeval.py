@@ -96,7 +96,7 @@ class TimeEval:
                         result: Optional[Dict] = None,
                         future_result: Optional[Future] = None,
                         status: Status = Status.OK,
-                        error_message: Optional[str] = None,):
+                        error_message: Optional[str] = None):
         new_row = {
             "algorithm": exp.algorithm.name,
             "collection": exp.dataset_collection,
