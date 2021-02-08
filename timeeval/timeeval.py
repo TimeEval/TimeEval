@@ -4,9 +4,8 @@ import json
 import logging
 import socket
 import subprocess
-from contextlib import redirect_stdout
 from enum import Enum
-from pathlib import Path, PosixPath, WindowsPath
+from pathlib import Path
 from typing import Callable
 from typing import List, Tuple, Dict, Optional
 
@@ -15,20 +14,11 @@ import pandas as pd
 import tqdm
 from distributed.client import Future
 
-from timeeval.datasets import Datasets
-from timeeval.utils.hash_dict import hash_dict
-from timeeval.utils.metrics import roc
 from .algorithm import Algorithm
-from .data_types import AlgorithmParameter
+from .constants import RESULTS_CSV
+from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote
-from .times import Times
-
-METRICS_CSV = "metrics.csv"
-EXECUTION_LOG = "execution.log"
-ANOMALY_SCORES_TS = "anomaly_scores.ts"
-HYPER_PARAMETERS = "hyper_params.json"
-RESULTS_CSV = "results.csv"
 
 
 class Status(Enum):
@@ -72,32 +62,8 @@ class TimeEval:
             self.remote = Remote(**self.cluster_kwargs)
             self.results["future_result"] = np.nan
 
-    def _load_dataset(self, name: Tuple[str, str]) -> pd.DataFrame:
-        return self.dmgr.get_dataset_df(name)
-
-    @staticmethod
-    def _extract_labels(df: pd.DataFrame) -> np.ndarray:
-        return df.values[:, -1]
-
-    @staticmethod
-    def _extract_features(df: pd.DataFrame) -> np.ndarray:
-        return df.values[:, 1:-1]
-
     def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
         return self.dmgr.get_dataset_path(name, train=False)
-
-    def _get_X_and_y(self, dataset_name: Tuple[str, str], data_as_file: bool = False) -> Tuple[AlgorithmParameter, AlgorithmParameter]:
-        dataset = self._load_dataset(dataset_name)
-        if data_as_file:
-            X: AlgorithmParameter = self._get_dataset_path(dataset_name)
-            y: AlgorithmParameter = X
-        else:
-            if dataset.shape[1] >= 3:
-                X = self._extract_features(dataset)
-            else:
-                raise ValueError(f"Dataset '{dataset_name}' has a shape that was not expected: {dataset.shape}")
-            y = self._extract_labels(dataset)
-        return X, y
 
     def _run(self):
         for exp in tqdm.tqdm(self.exps, desc=f"Evaluating", disable=self.distributed):
@@ -105,13 +71,12 @@ class TimeEval:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
 
-                X, y_true = self._get_X_and_y(exp.dataset, data_as_file=exp.algorithm.data_as_file)
-                args = exp.build_args()
+                dataset_path = self._get_dataset_path(exp.dataset)
 
                 if self.distributed:
-                    future_result = self.remote.add_task(TimeEval.evaluate, exp.algorithm, X, y_true, args)
+                    future_result = self.remote.add_task(exp.evaluate, dataset_path)
                 else:
-                    result = TimeEval.evaluate(exp.algorithm, X, y_true, args)
+                    result = exp.evaluate(dataset_path)
                 self._record_results(exp, result=result, future_result=future_result)
 
             except Exception as e:
@@ -125,32 +90,6 @@ class TimeEval:
                     "postprocess_time": np.nan
                 })
                 self._record_results(exp, future_result=f, status=Status.ERROR, error_message=str(e))
-
-    @staticmethod
-    def evaluate(algorithm: Algorithm, X: AlgorithmParameter, y: AlgorithmParameter, args: dict) -> Dict:
-        results_path = args["results_path"]
-
-        if isinstance(y, (PosixPath, WindowsPath)):
-            y_true = TimeEval._extract_labels(pd.read_csv(y))
-        elif isinstance(y, np.ndarray):
-            y_true = y
-        else:
-            raise ValueError("y must be of type AlgorithmParameter")
-
-        logs_file = (results_path / EXECUTION_LOG).open("w")
-        with redirect_stdout(logs_file):
-            y_scores, times = Times.from_algorithm(algorithm, X, args)
-        score = roc(y_scores, y_true.astype(np.float64), plot=False)
-        result = {"score": score}
-        result.update(times.to_dict())
-
-        y_scores.tofile(results_path / ANOMALY_SCORES_TS, sep="\n")
-        pd.DataFrame([result]).to_csv(results_path / METRICS_CSV, index=False)
-
-        with (results_path / HYPER_PARAMETERS).open("w") as f:
-            json.dump(args.get("hyper_params", {}), f)
-
-        return result
 
     def _record_results(self,
                         exp: Experiment,

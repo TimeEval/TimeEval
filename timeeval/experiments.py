@@ -1,9 +1,19 @@
+import json
+from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Tuple, List, Generator
 
+import numpy as np
+import pandas as pd
+
 from .algorithm import Algorithm
+from .constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
+from .data_types import AlgorithmParameter
+from .times import Times
+from .utils.datasets import extract_features, extract_labels, load_dataset
 from .utils.hash_dict import hash_dict
+from .utils.metrics import roc
 
 
 @dataclass
@@ -36,6 +46,33 @@ class Experiment:
             "results_path": self.results_path,
             "hyper_params": self.params
         }
+
+    def evaluate(self, resolved_dataset_path: Path) -> dict:
+        dataset = load_dataset(resolved_dataset_path)
+        y_true = extract_labels(dataset)
+        if self.algorithm.data_as_file:
+            X: AlgorithmParameter = resolved_dataset_path
+        else:
+            if dataset.shape[1] >= 3:
+                X = extract_features(dataset)
+            else:
+                raise ValueError(
+                    f"Dataset '{resolved_dataset_path.name}' has a shape that was not expected: {dataset.shape}")
+
+        logs_file = (self.results_path / EXECUTION_LOG).open("w")
+        with redirect_stdout(logs_file):
+            y_scores, times = Times.from_algorithm(self.algorithm, X, self.build_args())
+        score = roc(y_scores, y_true.astype(np.float64), plot=False)
+        result = {"score": score}
+        result.update(times.to_dict())
+
+        y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
+        pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
+
+        with (self.results_path / HYPER_PARAMETERS).open("w") as f:
+            json.dump(self.params, f)
+
+        return result
 
 
 class Experiments:

@@ -2,6 +2,13 @@ from typing import Final, List
 from pathlib import Path
 
 
+METRICS_CSV = "metrics.csv"
+EXECUTION_LOG = "execution.log"
+ANOMALY_SCORES_TS = "anomaly_scores.ts"
+HYPER_PARAMETERS = "hyper_params.json"
+RESULTS_CSV = "results.csv"
+
+
 class HPI_CLUSTER:
     odin01: Final[str] = "odin01"
     odin02: Final[str] = "odin02"
