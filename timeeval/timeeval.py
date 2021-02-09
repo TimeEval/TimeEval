@@ -49,7 +49,8 @@ class TimeEval:
                  results_path: Path = DEFAULT_RESULT_PATH,
                  distributed: bool = False,
                  ssh_cluster_kwargs: Optional[dict] = None,
-                 repetitions: int = 1):
+                 repetitions: int = 1,
+                 disable_progress_bar: bool = False):
         self.dmgr = dataset_mgr
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         self.results_path = results_path.absolute() / start_date
@@ -58,16 +59,17 @@ class TimeEval:
         self.distributed = distributed
         self.cluster_kwargs = ssh_cluster_kwargs or {}
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
+        self.disable_progress_bar = disable_progress_bar
 
         if self.distributed:
-            self.remote = Remote(**self.cluster_kwargs)
+            self.remote = Remote(disable_progress_bar=self.disable_progress_bar, **self.cluster_kwargs)
             self.results["future_result"] = np.nan
 
     def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
         return self.dmgr.get_dataset_path(name, train=False)
 
     def _run(self):
-        for exp in tqdm.tqdm(self.exps, desc=f"Evaluating", disable=self.distributed):
+        for exp in tqdm.tqdm(self.exps, desc=f"Evaluating", disable=self.distributed or self.disable_progress_bar):
             try:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None

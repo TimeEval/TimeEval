@@ -10,12 +10,13 @@ DEFAULT_DASK_PORT = 8786
 
 
 class Remote:
-    def __init__(self, **kwargs):
+    def __init__(self, disable_progress_bar: bool = False, **kwargs):
         self.logger = logging.getLogger("Remote")
         self.ssh_cluster_kwargs = kwargs or {}
         self.futures: List[Future] = []
         self.cluster = self.start_or_restart_cluster()
         self.client = Client(self.cluster.scheduler_address)
+        self.disable_progress_bar = disable_progress_bar
 
     def start_or_restart_cluster(self, n=0) -> SSHCluster:
         if n >= 5:
@@ -26,7 +27,7 @@ class Remote:
         except Exception as e:
             if "Worker failed to start" in str(e):
                 port = self.ssh_cluster_kwargs.get("connect_options", {}).get("port", DEFAULT_DASK_PORT)
-                scheduler_host = self.ssh_cluster_kwargs.get("hosts")[0]
+                scheduler_host = self.ssh_cluster_kwargs.get("hosts", [])[0]
                 scheduler_address = f"{scheduler_host}:{port}"
 
                 self.logger.warning(f"Failed to start cluster, because address already in use! "
@@ -52,7 +53,7 @@ class Remote:
         n_experiments = len(self.futures)
         coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
 
-        progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0)
+        progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
 
         while not coroutine_future.done():
             n_done = sum([f.done() for f in self.futures])
