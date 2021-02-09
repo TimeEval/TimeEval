@@ -16,7 +16,9 @@ import pytest
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from timeeval import TimeEval, Algorithm, Datasets
+from timeeval.timeeval import Status
 from timeeval.adapters import DockerAdapter, FunctionAdapter
+from timeeval.adapters.docker import DockerTimeoutError
 from timeeval.data_types import AlgorithmParameter
 from timeeval.remote import Remote
 from timeeval.utils.hash_dict import hash_dict
@@ -73,6 +75,24 @@ class MockClient:
 
     def shutdown(self) -> None:
         self.did_shutdown = True
+
+
+class ExceptionForTest(Exception):
+    pass
+
+
+class MockExceptionClient(MockClient):
+    def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
+        f = Future()  # type: ignore
+        f.set_exception(ExceptionForTest("test-exception"))
+        return f
+
+
+class MockDockerTimeoutExceptionClient(MockClient):
+    def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
+        f = Future()  # type: ignore
+        f.set_exception(DockerTimeoutError("test-exception-timeout"))
+        return f
 
 
 class MockDockerContainer:
@@ -227,3 +247,65 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval.rsync_results()
             self.assertEqual(len(rsync.params), 1)
             self.assertTrue(rsync.params[0], ["rsync", "-a", f"test-host:{tmp_path}/", tmp_path])
+
+    @patch("timeeval.timeeval.subprocess.call")
+    @patch("timeeval.adapters.docker.docker.from_env")
+    @patch("timeeval.remote.Client")
+    @patch("timeeval.remote.SSHCluster")
+    def test_catches_future_exception(self, mock_cluster, mock_client, mock_docker, mock_call):
+        class Rsync:
+            def __init__(self):
+                self.params = []
+
+            def __call__(self, *args, **kwargs):
+                self.params.append(args[0])
+
+        rsync = Rsync()
+
+        mock_client.return_value = MockExceptionClient()
+        mock_cluster.return_value = MockCluster(workers=2)
+        mock_docker.return_value = MockDockerClient()
+        mock_call.side_effect = rsync
+
+        datasets = Datasets("./tests/example_data")
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            hosts = [
+                "localhost", socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
+            ]
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [self.algorithms[0]], distributed=True, ssh_cluster_kwargs={"hosts": hosts},
+                                results_path=Path(tmp_path))
+            timeeval.run()
+            self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(), [Status.ERROR, "test-exception"])
+
+    @patch("timeeval.timeeval.subprocess.call")
+    @patch("timeeval.adapters.docker.docker.from_env")
+    @patch("timeeval.remote.Client")
+    @patch("timeeval.remote.SSHCluster")
+    def test_catches_future_timeout_exception(self, mock_cluster, mock_client, mock_docker, mock_call):
+        class Rsync:
+            def __init__(self):
+                self.params = []
+
+            def __call__(self, *args, **kwargs):
+                self.params.append(args[0])
+
+        rsync = Rsync()
+
+        mock_client.return_value = MockDockerTimeoutExceptionClient()
+        mock_cluster.return_value = MockCluster(workers=2)
+        mock_docker.return_value = MockDockerClient()
+        mock_call.side_effect = rsync
+
+        datasets = Datasets("./tests/example_data")
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            hosts = [
+                "localhost", socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
+            ]
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [self.algorithms[0]], distributed=True,
+                                ssh_cluster_kwargs={"hosts": hosts},
+                                results_path=Path(tmp_path))
+            timeeval.run()
+            self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(),
+                                 [Status.TIMEOUT, "test-exception-timeout"])
