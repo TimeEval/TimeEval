@@ -6,7 +6,7 @@ import socket
 import subprocess
 from enum import Enum
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Any
 from typing import List, Tuple, Dict, Optional
 
 import numpy as np
@@ -14,6 +14,7 @@ import pandas as pd
 import tqdm
 from distributed.client import Future
 
+from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
 from .datasets import Datasets
@@ -24,7 +25,7 @@ from .remote import Remote
 class Status(Enum):
     OK = 0
     ERROR = 1
-    TIMEOUT = 2  # not yet implemented
+    TIMEOUT = 2
 
 
 class TimeEval:
@@ -81,7 +82,7 @@ class TimeEval:
 
             except Exception as e:
                 logging.exception(
-                    f"Exception occured during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}:")
+                    f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}:")
                 f: asyncio.Future = asyncio.Future()
                 f.set_result({
                     "score": np.nan,
@@ -117,11 +118,24 @@ class TimeEval:
     def _resolve_future_results(self):
         self.remote.fetch_results()
 
-        keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
+        result_keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
+        status_keys = ["status", "error_message"]
+        keys = result_keys + status_keys
 
-        def get_future_result(f: Future) -> List[float]:
-            r = f.result()
-            return [r[k] for k in keys]
+        def get_future_result(f: Future) -> Tuple:
+            try:
+                r = f.result()
+                return tuple(r[k] for k in result_keys) + (Status.OK, None)
+            except DockerTimeoutError as e:
+                logging.exception(f"Exception {str(e)} occurred remotely.")
+                status = Status.TIMEOUT
+                error_message = str(e)
+            except Exception as e:
+                logging.exception(f"Exception {str(e)} occurred remotely.")
+                status = Status.ERROR
+                error_message = str(e)
+
+            return tuple(np.nan for _ in result_keys) + (status, error_message)
 
         self.results[keys] = self.results["future_result"].apply(get_future_result).tolist()
         self.results = self.results.drop(['future_result'], axis=1)
