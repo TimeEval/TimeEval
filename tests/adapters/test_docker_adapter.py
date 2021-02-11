@@ -30,6 +30,9 @@ class MockDockerContainer:
             np.arange(10, dtype=np.float64).tofile(real_path / Path(SCORES_FILE_NAME), sep="\n")
         return self
 
+    def logs(self):
+        return "".encode("utf-8")
+
 
 class MockDockerClient:
     def __init__(self):
