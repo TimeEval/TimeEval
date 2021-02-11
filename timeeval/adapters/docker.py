@@ -106,6 +106,9 @@ class DockerAdapter(Adapter):
     def _run_until_timeout(self, container: Container, args: dict):
         try:
             result = container.wait(timeout=self.timeout.to_seconds())
+            print("\n#### Docker container logs ####")
+            print(container.logs().decode("utf-8"))
+            print("###############################\n")
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             if "timed out" in str(e):
                 container.stop()
@@ -114,7 +117,7 @@ class DockerAdapter(Adapter):
                 raise e
 
         if result["StatusCode"] != 0:
-            result_path = str(args.get("results_path", Path("./results")).absolute())
+            result_path = args.get("results_path", Path("./results")).absolute()
             raise DockerAlgorithmFailedError(f"Please consider log files in {result_path}!")
 
     def _read_results(self, args: dict) -> np.ndarray:

@@ -108,6 +108,9 @@ class MockDockerContainer:
     def prune(self):
         pass
 
+    def logs(self):
+        return "".encode("utf-8")
+
 
 class MockImages:
     def pull(self, image, tag):
