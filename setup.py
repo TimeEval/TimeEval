@@ -1,11 +1,8 @@
 import sys
-import pytest
 import pathlib
 from distutils.cmd import Command
 from distutils.errors import DistutilsError
 from setuptools import setup, find_packages
-from mypy.main import main as mypy
-from pytest import ExitCode
 
 README = (pathlib.Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 
@@ -21,6 +18,9 @@ class PyTestCommand(Command):
         pass
 
     def run(self) -> None:
+        import pytest
+        from pytest import ExitCode
+
         exit_code = pytest.main(["--cov=timeeval", "-x", "tests"])
         if exit_code == ExitCode.TESTS_FAILED:
             raise DistutilsError("Tests failed!")
@@ -46,6 +46,8 @@ class MyPyCheckCommand(Command):
         pass
 
     def run(self) -> None:
+        from mypy.main import main as mypy
+
         args = ["--pretty", "timeeval", "tests"]
         mypy(None, stdout=sys.stdout, stderr=sys.stderr, args=args)
 
