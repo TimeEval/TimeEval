@@ -9,7 +9,7 @@ def main():
     # dm = Datasets("../tests/example_data")
 
     # Select datasets and algorithms
-    datasets = dm.select(collection_name="NAB", train_type="unsupervised", input_type="univariate")
+    datasets = dm.select(collection_name="NAB", train_type="unsupervised", input_type="univariate")[:1]
     # datasets = dm.select(collection_name="test", train_type="unsupervised", input_type="univariate")
     print(f"Selected datasets: {datasets}")
 
