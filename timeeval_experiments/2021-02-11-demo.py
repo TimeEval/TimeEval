@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from algorithms import *
+from timeeval_experiments.algorithms import *
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
 
