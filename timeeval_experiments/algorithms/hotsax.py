@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
+from durations import Duration
 from scipy.sparse import csc_matrix, hstack
 from sklearn.model_selection import ParameterGrid
 
 from timeeval import Algorithm, AlgorithmParameter
 from timeeval.adapters import DockerAdapter
-from .common import SKIP_PULL
+from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
 def _post_hotsax(algorithm_parameter: AlgorithmParameter, args: dict) -> np.ndarray:
@@ -35,10 +36,10 @@ def _post_hotsax(algorithm_parameter: AlgorithmParameter, args: dict) -> np.ndar
     return scores.A1
 
 
-def hotsax(params=None, skip_pull: bool = SKIP_PULL) -> Algorithm:
+def hotsax(params=None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
     return Algorithm(
         name="HOT-SAX-docker",
-        main=DockerAdapter(image_name="mut:5000/akita/hotsax", skip_pull=skip_pull),
+        main=DockerAdapter(image_name="mut:5000/akita/hotsax", skip_pull=skip_pull, timeout=timeout),
         postprocess=_post_hotsax,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True

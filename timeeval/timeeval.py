@@ -204,7 +204,6 @@ class TimeEval:
             if finalize_fn := algorithm.finalize_fn():
                 tasks.append((finalize_fn, [], {}))
         self.remote.run_on_all_hosts(tasks)
-        self._resolve_future_results()
         self.remote.close()
         self.rsync_results()
 
@@ -221,6 +220,8 @@ class TimeEval:
         print("Running EVALUATION phase")
         logging.info("Running EVALUATION phase")
         self._run()
+        if self.distributed:
+            self._resolve_future_results()
 
         print("Running FINALIZE phase")
         logging.info("Running FINALIZE phase")

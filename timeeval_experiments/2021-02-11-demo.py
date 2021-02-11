@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-from timeeval_experiments.algorithms import *
+from durations import Duration
+
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
+from timeeval_experiments.algorithms import *
 
 
 def main():
@@ -9,7 +11,7 @@ def main():
     # dm = Datasets("../tests/example_data")
 
     # Select datasets and algorithms
-    datasets = dm.select(collection_name="NAB", train_type="unsupervised", input_type="univariate")[:1]
+    datasets = dm.select(collection_name="NAB", train_type="unsupervised", input_type="univariate")
     # datasets = dm.select(collection_name="test", train_type="unsupervised", input_type="univariate")
     print(f"Selected datasets: {datasets}")
 
@@ -25,18 +27,18 @@ def main():
         series2graph({"convolution_size": [8, 16]}),
         norma(),
         grammarviz(),
-        hotsax({"window_size": [100, 120]}),
+        hotsax({"window_size": [100, 120]}, timeout=Duration("30 minutes")),
     ]
     print(f"Selected algorithms: {list(map(lambda algo: algo.name, algorithms))}")
 
     cluster_config = {
-        "hosts": HPI_CLUSTER.nodes,
+        "hosts": [HPI_CLUSTER.odin01] + HPI_CLUSTER.nodes,
         "remote_python": "/home/sebastian.schmidl/.conda/envs/timeeval/bin/python"
     }
     timeeval = TimeEval(dm, datasets, algorithms, repetitions=1, distributed=True, ssh_cluster_kwargs=cluster_config)
 
     timeeval.run()
-    print(timeeval.get_results(aggregated=False))
+    print(timeeval.get_results())
 
 
 if __name__ == "__main__":
