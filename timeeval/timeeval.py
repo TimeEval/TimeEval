@@ -211,13 +211,16 @@ class TimeEval:
     def run(self):
         assert len(self.exps.algorithms) > 0, "No algorithms given for evaluation"
 
+        logging.info("Running PREPARE phase")
         if self.distributed:
             self._distributed_prepare()
         else:
             self._prepare()
 
+        logging.info("Running EVALUATION phase")
         self._run()
 
+        logging.info("Running FINALIZE phase")
         if self.distributed:
             self._distributed_finalize()
         else:
