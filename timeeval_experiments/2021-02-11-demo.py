@@ -27,7 +27,7 @@ def main():
         series2graph({"convolution_size": [8, 16]}),
         norma(),
         grammarviz(),
-        hotsax({"window_size": [100, 120]}, timeout=Duration("30 minutes")),
+        hotsax({"window_size": [100, 120]}, timeout=Duration("1 hour")),
     ]
     print(f"Selected algorithms: {list(map(lambda algo: algo.name, algorithms))}")
 
