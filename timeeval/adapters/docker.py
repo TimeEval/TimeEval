@@ -3,7 +3,7 @@ import subprocess
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Optional, Any, Callable
+from typing import Optional, Any, Callable, Final
 
 import docker
 import numpy as np
@@ -35,11 +35,11 @@ class ExecutionType(Enum):
     EXECUTE = 1
 
 
-class DockerTimeoutError(BaseException):
+class DockerTimeoutError(Exception):
     pass
 
 
-class DockerAlgorithmFailedError(BaseException):
+class DockerAlgorithmFailedError(Exception):
     pass
 
 
@@ -106,15 +106,16 @@ class DockerAdapter(Adapter):
     def _run_until_timeout(self, container: Container, args: dict):
         try:
             result = container.wait(timeout=self.timeout.to_seconds())
-            print("\n#### Docker container logs ####")
-            print(container.logs().decode("utf-8"))
-            print("###############################\n")
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             if "timed out" in str(e):
                 container.stop()
                 raise DockerTimeoutError(f"{self.image_name} timed out after {self.timeout}") from e
             else:
                 raise e
+        finally:
+            print("\n#### Docker container logs ####")
+            print(container.logs().decode("utf-8"))
+            print("###############################\n")
 
         if result["StatusCode"] != 0:
             result_path = args.get("results_path", Path("./results")).absolute()
@@ -137,8 +138,8 @@ class DockerAdapter(Adapter):
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:
         if not self.skip_pull:
             # capture variables for the function closure
-            image = self.image_name
-            tag = self.tag
+            image: Final[str] = self.image_name
+            tag: Final[str] = self.tag
 
             def prepare():
                 client = docker.from_env()

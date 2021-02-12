@@ -3,7 +3,7 @@ import sys
 import time
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
 from dataclasses import dataclass, field
-from typing import List, Callable, Optional, Tuple, Dict, Iterator
+from typing import List, Callable, Optional, Tuple, Dict
 
 import tqdm
 from dask.distributed import Client, SSHCluster
@@ -87,20 +87,19 @@ class Remote:
             self.client.run(task, *args, **kwargs)
 
     def fetch_results(self):
-        # n_experiments = len(self.futures)
-        # coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
-        coroutine_future = self.client.gather(self.futures)
-        print(coroutine_future, file=sys.stderr)
-        # progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
-        #
-        # n_done = sum([f.done() for f in coroutine_future])
-        # while n_done < n_experiments:
-        #     progress_bar.update(n_done - progress_bar.n)
-        #     time.sleep(0.5)
-        #     n_done = sum([f.done() for f in coroutine_future])
-        #
-        # progress_bar.update(n_experiments - progress_bar.n)
-        # progress_bar.close()
+        n_experiments = len(self.futures)
+        coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
+        progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
+
+        while not coroutine_future.done():
+            n_done = sum([f.done() for f in self.futures])
+            progress_bar.update(n_done - progress_bar.n)
+            if progress_bar.n == n_experiments:
+                break
+            time.sleep(0.5)
+
+        progress_bar.update(n_experiments - progress_bar.n)
+        progress_bar.close()
 
     def close(self):
         self.cluster.close()
