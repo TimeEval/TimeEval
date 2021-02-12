@@ -16,8 +16,8 @@ def main():
     print(f"Selected datasets: {datasets}")
 
     algorithms = [
-        # stamp({"window_size": [30, 40]}),
-        # stomp({"window_size": [30, 40]}),
+        stamp({"window_size": [30, 40]}),
+        stomp({"window_size": [30, 40]}),
         # valmod([
         #     {"verbose": [2], "window_min": [30]},
         #     {"verbose": [1], "window_min": [40]},
@@ -27,7 +27,7 @@ def main():
         # series2graph({"convolution_size": [8, 16]}),
         # norma(),
         # grammarviz(),
-        hotsax({"window_size": [100, 120]}),
+        # hotsax({"window_size": [100, 120]}),
     ]
     print(f"Selected algorithms: {list(map(lambda algo: algo.name, algorithms))}")
 

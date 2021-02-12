@@ -31,13 +31,13 @@ class RemoteConfiguration:
             #     "port": self.scheduler_port
             # },
             # https://distributed.dask.org/en/latest/worker.html?highlight=worker_options#distributed.worker.Worker
-            # "worker_options": {
-            #     "ncores": 1,
-            #     "nthreads": 2
-            # },
+            "worker_options": {
+                "ncores": 1,
+                "nthreads": 2
+            },
             # defaults are fine: https://distributed.dask.org/en/latest/scheduling-state.html?highlight=dask.distributed.Scheduler#distributed.scheduler.Scheduler
-            # "scheduler_options": {},
-            # "worker_module": "distributed.cli.dask_worker",  # default
+            "scheduler_options": {},
+            "worker_module": "distributed.cli.dask_worker",  # default
             "remote_python": self.remote_python
         }
         config.update(self.kwargs_overwrites)
@@ -77,8 +77,6 @@ class Remote:
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
         config = config or {}
         future = self.client.submit(task, *args, **config, **kwargs)
-        def test(f: Future): print(f"Future completed with {f.result()}", file=sys.stderr)
-        future.add_done_callback(test)
         self.futures.append(future)
         return future
 
