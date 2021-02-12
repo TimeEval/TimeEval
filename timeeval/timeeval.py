@@ -19,7 +19,7 @@ from .algorithm import Algorithm
 from .constants import RESULTS_CSV
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
-from .remote import Remote
+from .remote import Remote, RemoteConfiguration
 
 
 class Status(Enum):
@@ -48,7 +48,7 @@ class TimeEval:
                  algorithms: List[Algorithm],
                  results_path: Path = DEFAULT_RESULT_PATH,
                  distributed: bool = False,
-                 ssh_cluster_kwargs: Optional[dict] = None,
+                 remote_config: Optional[RemoteConfiguration] = None,
                  repetitions: int = 1,
                  disable_progress_bar: bool = False):
         self.dmgr = dataset_mgr
@@ -57,12 +57,12 @@ class TimeEval:
         self.exps = Experiments(datasets, algorithms, self.results_path, repetitions=repetitions)
 
         self.distributed = distributed
-        self.cluster_kwargs = ssh_cluster_kwargs or {}
+        self.remote_config = remote_config or RemoteConfiguration()
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
         self.disable_progress_bar = disable_progress_bar
 
         if self.distributed:
-            self.remote = Remote(disable_progress_bar=self.disable_progress_bar, **self.cluster_kwargs)
+            self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config)
             self.results["future_result"] = np.nan
 
     def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
@@ -174,7 +174,7 @@ class TimeEval:
             socket.gethostbyname("localhost")
         ]
 
-        hosts = self.cluster_kwargs.get("hosts", list())
+        hosts = self.remote_config.worker_hosts
         for host in hosts:
             if host not in excluded_aliases:
                 subprocess.call(["rsync", "-a", f"{host}:{self.results_path}/", f"{self.results_path}"])

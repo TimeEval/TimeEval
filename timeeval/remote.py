@@ -1,18 +1,53 @@
-from asyncio import Future, run_coroutine_threadsafe, get_event_loop
-from typing import List, Callable, Optional, Tuple, Dict
-from dask.distributed import Client, SSHCluster
-import tqdm
-import time
 import logging
+import sys
+import time
+from asyncio import Future, run_coroutine_threadsafe, get_event_loop
+from dataclasses import dataclass, field
+from typing import List, Callable, Optional, Tuple, Dict, Iterator
 
+import tqdm
+from dask.distributed import Client, SSHCluster
 
+DEFAULT_SCHEDULER_HOST = "localhost"
 DEFAULT_DASK_PORT = 8786
 
 
+@dataclass
+class RemoteConfiguration:
+    scheduler_host: str = DEFAULT_SCHEDULER_HOST
+    scheduler_port: int = DEFAULT_DASK_PORT
+    worker_hosts: List[str] = field(default_factory=lambda: [])
+    remote_python: str = sys.executable
+    kwargs_overwrites: dict = field(default_factory=lambda: {})
+
+    def to_ssh_cluster_kwargs(self):
+        """
+        Creates the kwargs for the Dask SSHCluster-constructor:
+        https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster
+        """
+        config = {
+            "hosts": [self.scheduler_host] + self.worker_hosts,
+            "connect_options": {
+                "port": self.scheduler_port
+            },
+            # https://distributed.dask.org/en/latest/worker.html?highlight=worker_options#distributed.worker.Worker
+            "worker_options": {
+                "ncores": 1,
+                "nthreads": 2
+            },
+            # defaults are fine: https://distributed.dask.org/en/latest/scheduling-state.html?highlight=dask.distributed.Scheduler#distributed.scheduler.Scheduler
+            "scheduler_options": {},
+            "worker_module": "distributed.cli.dask_worker",  # default
+            "remote_python": self.remote_python
+        }
+        config.update(self.kwargs_overwrites)
+        return config
+
+
 class Remote:
-    def __init__(self, disable_progress_bar: bool = False, **kwargs):
+    def __init__(self, disable_progress_bar: bool = False, remote_config: RemoteConfiguration = RemoteConfiguration()):
         self.logger = logging.getLogger("Remote")
-        self.ssh_cluster_kwargs = kwargs or {}
+        self.config = remote_config
         self.futures: List[Future] = []
         self.cluster = self.start_or_restart_cluster()
         self.client = Client(self.cluster.scheduler_address)
@@ -23,11 +58,11 @@ class Remote:
             raise RuntimeError("Could not start an SSHCluster because there is already one running, "
                                "that cannot be stopped!")
         try:
-            return SSHCluster(**self.ssh_cluster_kwargs)
+            return SSHCluster(**self.config.to_ssh_cluster_kwargs())
         except Exception as e:
             if "Worker failed to start" in str(e):
-                port = self.ssh_cluster_kwargs.get("connect_options", {}).get("port", DEFAULT_DASK_PORT)
-                scheduler_host = self.ssh_cluster_kwargs.get("hosts", [])[0]
+                scheduler_host = self.config.scheduler_host
+                port = self.config.scheduler_port
                 scheduler_address = f"{scheduler_host}:{port}"
 
                 self.logger.warning(f"Failed to start cluster, because address already in use! "
@@ -51,18 +86,18 @@ class Remote:
 
     def fetch_results(self):
         n_experiments = len(self.futures)
-        coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
-
+        # coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
+        coroutine_future: List[Future] = self.client.gather(self.futures, asynchronous=True)
+        print(coroutine_future, file=sys.stderr)
         progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
 
-        while not coroutine_future.done():
-            n_done = sum([f.done() for f in self.futures])
+        n_done = sum([f.done() for f in coroutine_future])
+        while n_done < n_experiments:
             progress_bar.update(n_done - progress_bar.n)
-            if progress_bar.n == n_experiments:
-                break
             time.sleep(0.5)
-        progress_bar.update(n_experiments - progress_bar.n)
+            n_done = sum([f.done() for f in coroutine_future])
 
+        progress_bar.update(n_experiments - progress_bar.n)
         progress_bar.close()
 
     def close(self):
