@@ -35,9 +35,6 @@ class RemoteConfiguration:
                 "nprocs": 1,
                 "nthreads": 1
             },
-            # defaults are fine: https://distributed.dask.org/en/latest/scheduling-state.html?highlight=dask.distributed.Scheduler#distributed.scheduler.Scheduler
-            # "scheduler_options": {},
-            # "worker_module": "distributed.cli.dask_worker",  # default
             "remote_python": self.remote_python
         }
         config.update(self.kwargs_overwrites)
