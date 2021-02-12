@@ -35,11 +35,11 @@ class ExecutionType(Enum):
     EXECUTE = 1
 
 
-class DockerTimeoutError(BaseException):
+class DockerTimeoutError(Exception):
     pass
 
 
-class DockerAlgorithmFailedError(BaseException):
+class DockerAlgorithmFailedError(Exception):
     pass
 
 
@@ -106,15 +106,16 @@ class DockerAdapter(Adapter):
     def _run_until_timeout(self, container: Container, args: dict):
         try:
             result = container.wait(timeout=self.timeout.to_seconds())
-            print("\n#### Docker container logs ####")
-            print(container.logs().decode("utf-8"))
-            print("###############################\n")
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             if "timed out" in str(e):
                 container.stop()
                 raise DockerTimeoutError(f"{self.image_name} timed out after {self.timeout}") from e
             else:
                 raise e
+        finally:
+            print("\n#### Docker container logs ####")
+            print(container.logs().decode("utf-8"))
+            print("###############################\n")
 
         if result["StatusCode"] != 0:
             result_path = args.get("results_path", Path("./results")).absolute()
