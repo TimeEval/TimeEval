@@ -86,16 +86,15 @@ class Remote:
 
     def fetch_results(self):
         n_experiments = len(self.futures)
-        # coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
-        coroutine_future: List[Future] = self.client.gather(self.futures, asynchronous=True)
-        print(coroutine_future, file=sys.stderr)
+        coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
         progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
 
-        n_done = sum([f.done() for f in coroutine_future])
-        while n_done < n_experiments:
+        while not coroutine_future.done():
+            n_done = sum([f.done() for f in self.futures])
             progress_bar.update(n_done - progress_bar.n)
+            if progress_bar.n == n_experiments:
+                break
             time.sleep(0.5)
-            n_done = sum([f.done() for f in coroutine_future])
 
         progress_bar.update(n_experiments - progress_bar.n)
         progress_bar.close()
