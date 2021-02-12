@@ -33,7 +33,7 @@ class RemoteConfiguration:
             # https://distributed.dask.org/en/latest/worker.html?highlight=worker_options#distributed.worker.Worker
             "worker_options": {
                 "nprocs": 1,
-                "nthreads": 2
+                "nthreads": 1
             },
             # defaults are fine: https://distributed.dask.org/en/latest/scheduling-state.html?highlight=dask.distributed.Scheduler#distributed.scheduler.Scheduler
             # "scheduler_options": {},
