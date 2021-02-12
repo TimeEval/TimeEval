@@ -6,24 +6,25 @@ import unittest
 from asyncio import Future
 from itertools import cycle
 from pathlib import Path
-from typing import Callable, List, Union, Coroutine, Optional
+from typing import List, Union, Coroutine, Optional
 from unittest.mock import patch
-from durations import Duration
 
 import numpy as np
 import pandas as pd
 import psutil
 import pytest
+from durations import Duration
 from sklearn.model_selection import ParameterGrid
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.timeeval import Status
-from timeeval.adapters import DockerAdapter, FunctionAdapter
+from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError
-from timeeval.data_types import AlgorithmParameter
 from timeeval.remote import Remote
+from timeeval.timeeval import Status
 from timeeval.utils.hash_dict import hash_dict
+
+TEST_DOCKER_IMAGE = "mut:5000/akita/timeeval-test-algorithm"
 
 
 class MockWorker:
@@ -319,18 +320,17 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.docker
     def test_catches_future_exception_dask(self):
         datasets = Datasets("./tests/example_data")
-
-        hosts = [
-            "localhost", "localhost"
-        ]
+        hosts = ["localhost", "localhost"]
         algo = Algorithm(name="docker-test-timeout",
-                         main=DockerAdapter("mut:5000/akita/timeeval-test-algorithm", skip_pull=True,
-                                            timeout=Duration("15 seconds")),
+                         main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
-        param_grid=ParameterGrid({"raise": [True]}))
-        timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo], distributed=True,
-                            ssh_cluster_kwargs={"hosts": hosts},
-                            results_path=Path("/tmp"))
+                         param_grid=ParameterGrid({"raise": [True], "sleep": [1]}))
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
+                                distributed=True,
+                                ssh_cluster_kwargs={"hosts": hosts},
+                                results_path=Path(tmp_path))
         timeeval.run()
         status = timeeval.results.loc[0, "status"]
         error_message = timeeval.results.loc[0, "error_message"]
@@ -342,21 +342,20 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.docker
     def test_catches_future_timeout_exception_dask(self):
         datasets = Datasets("./tests/example_data")
-
-        hosts = [
-            "localhost", "localhost"
-        ]
+        hosts = ["localhost", "localhost"]
         algo = Algorithm(name="docker-test-timeout",
-                         main=DockerAdapter("mut:5000/akita/timeeval-test-algorithm", skip_pull=True,
-                                            timeout=Duration("1 seconds")),
+                         main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("1 seconds")),
                          data_as_file=True)
-        timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo], distributed=True,
-                            ssh_cluster_kwargs={"hosts": hosts},
-                            results_path=Path("/tmp"))
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
+                                distributed=True,
+                                ssh_cluster_kwargs={"hosts": hosts},
+                                results_path=Path(tmp_path))
         timeeval.run()
+
         status = timeeval.results.loc[0, "status"]
         error_message = timeeval.results.loc[0, "error_message"]
-
         self.assertEqual(status, Status.TIMEOUT)
         self.assertTrue("timed out after" in error_message)
 
@@ -364,18 +363,18 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.docker
     def test_runs_docker_in_dask(self):
         datasets = Datasets("./tests/example_data")
-
-        hosts = [
-            "localhost", "localhost"
-        ]
+        hosts = ["localhost", "localhost"]
         algo = Algorithm(name="docker-test-timeout",
-                         main=DockerAdapter("mut:5000/akita/timeeval-test-algorithm", skip_pull=True,
-                                            timeout=Duration("15 seconds")),
-                         data_as_file=True)
-        timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo], distributed=True,
-                            ssh_cluster_kwargs={"hosts": hosts},
-                            results_path=Path("/tmp"))
-        timeeval.run()
-        status = timeeval.results.loc[0, "status"]
+                         main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
+                         data_as_file=True,
+                         param_grid=ParameterGrid({"sleep": [1]}))
 
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
+                                distributed=True,
+                                ssh_cluster_kwargs={"hosts": hosts},
+                                results_path=Path(tmp_path))
+        timeeval.run()
+
+        status = timeeval.results.loc[0, "status"]
         self.assertEqual(status, Status.OK)
