@@ -31,10 +31,10 @@ class RemoteConfiguration:
             #     "port": self.scheduler_port
             # },
             # https://distributed.dask.org/en/latest/worker.html?highlight=worker_options#distributed.worker.Worker
-            "worker_options": {
-                "ncores": 1,
-                "nthreads": 2
-            },
+            # "worker_options": {
+            #     "ncores": 1,
+            #     "nthreads": 2
+            # },
             # defaults are fine: https://distributed.dask.org/en/latest/scheduling-state.html?highlight=dask.distributed.Scheduler#distributed.scheduler.Scheduler
             # "scheduler_options": {},
             # "worker_module": "distributed.cli.dask_worker",  # default
