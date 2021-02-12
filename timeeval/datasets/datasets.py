@@ -266,12 +266,12 @@ class Datasets(ContextManager['Datasets']):
             data_path = self._custom_datasets.get_path(dataset_name, train)
             if not data_path:
                 raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
-            return data_path
+            return data_path.absolute()
         else:
             path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
             if not path or (isinstance(path, (np.float64, np.int64)) and np.isnan(path)):
                 raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
-            return self._filepath.parent / path
+            return self._filepath.parent.absolute() / path
 
     def get_dataset_df(self, dataset_id: DatasetId, train: bool = False) -> pd.DataFrame:
         path = self.get_dataset_path(dataset_id, train)
