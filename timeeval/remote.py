@@ -77,6 +77,8 @@ class Remote:
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
         config = config or {}
         future = self.client.submit(task, *args, **config, **kwargs)
+        def test(f: Future): print(f"Future completed with {f.result()}", file=sys.stderr)
+        future.add_done_callback(test)
         self.futures.append(future)
         return future
 
@@ -85,20 +87,20 @@ class Remote:
             self.client.run(task, *args, **kwargs)
 
     def fetch_results(self):
-        n_experiments = len(self.futures)
+        # n_experiments = len(self.futures)
         # coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
-        coroutine_future: List[Future] = self.client.gather(self.futures, asynchronous=True)
+        coroutine_future = self.client.gather(self.futures)
         print(coroutine_future, file=sys.stderr)
-        progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
-
-        n_done = sum([f.done() for f in coroutine_future])
-        while n_done < n_experiments:
-            progress_bar.update(n_done - progress_bar.n)
-            time.sleep(0.5)
-            n_done = sum([f.done() for f in coroutine_future])
-
-        progress_bar.update(n_experiments - progress_bar.n)
-        progress_bar.close()
+        # progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
+        #
+        # n_done = sum([f.done() for f in coroutine_future])
+        # while n_done < n_experiments:
+        #     progress_bar.update(n_done - progress_bar.n)
+        #     time.sleep(0.5)
+        #     n_done = sum([f.done() for f in coroutine_future])
+        #
+        # progress_bar.update(n_experiments - progress_bar.n)
+        # progress_bar.close()
 
     def close(self):
         self.cluster.close()
