@@ -96,6 +96,6 @@ class TestDockerAdapter(unittest.TestCase):
     def test_faster_than_timeout_docker(self):
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("1 minute, 40 seconds"))
-            result = adapter(Path(tmp_path))
+            result = adapter(Path("./tests/example_data/dataset.train.csv").absolute(), {"result_path": tmp_path, "hyper_params": {}})
             np.testing.assert_array_equal(np.zeros(3600), result)
         self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": TEST_IMAGE}), [])
