@@ -1,0 +1,3 @@
+include environment.yml
+include requirements.*
+include README.md
