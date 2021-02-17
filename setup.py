@@ -86,7 +86,7 @@ class MyPyCheckCommand(Command):
 
 setup(
     name="TimeEval",
-    version="0.3.1",
+    version="0.4.0",
     description="Evaluation Tool for Time Series Anomaly Detection",
     long_description=README,
     long_description_content_type="text/markdown",
