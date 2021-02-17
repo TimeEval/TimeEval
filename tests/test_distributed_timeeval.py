@@ -6,7 +6,8 @@ import unittest
 from asyncio import Future
 from itertools import cycle
 from pathlib import Path
-from typing import List, Union, Coroutine, Optional
+from typing import Generator
+from typing import List, Union, Optional
 from unittest.mock import patch
 
 import numpy as np
@@ -20,7 +21,7 @@ from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from timeeval import TimeEval, Algorithm, Datasets
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError
-from timeeval.remote import Remote
+from timeeval.remote import Remote, RemoteConfiguration
 from timeeval.timeeval import Status
 from timeeval.utils.hash_dict import hash_dict
 
@@ -65,12 +66,12 @@ class MockClient:
     def run(self, task, *args, **kwargs):
         task(*args, **kwargs)
 
-    def gather(self, _futures: List[Future], *args, asynchronous=False, **kwargs) -> Union[Coroutine, bool]:
+    def gather(self, _futures: List[Future], *args, asynchronous=False, **kwargs) -> Union[Generator[Future, None, None], bool]:
         if asynchronous:
-            return self._gather(_futures, *args, **kwargs)
-        return True
-
-    async def _gather(self, _futures: List[Future], *args, **kwargs):
+            for _ in _futures:
+                f = Future()  # type: ignore
+                f.set_result(True)
+                yield f
         return True
 
     def close(self) -> None:
@@ -141,10 +142,8 @@ class TestDistributedTimeEval(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
-                                distributed=True, results_path=Path(tmp_path), ssh_cluster_kwargs={
-                    "hosts": ["localhost", "localhost"],
-                    "remote_python": os.popen("which python").read().rstrip("\n")
-                })
+                                distributed=True, results_path=Path(tmp_path),
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]))
             timeeval.run()
             np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
             self.assertFalse(any(
@@ -193,7 +192,8 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())),
                                 [Algorithm(name="docker", main=adapter, data_as_file=True)],
-                                distributed=True, ssh_cluster_kwargs={"hosts": ["test-host", "test-host2"]},
+                                distributed=True,
+                                remote_config=RemoteConfiguration(scheduler_host="test-host", worker_hosts=["test-host2"]),
                                 results_path=Path(tmp_path))
             timeeval.run()
 
@@ -203,8 +203,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertTrue(timeeval.remote.client.closed)
             self.assertTrue(timeeval.remote.client.did_shutdown)
             target_path = timeeval.results_path  # == "/results/YYYY_mm_dd_hh_mm"
-            self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host:" + str(target_path) + "/", str(target_path)])
-            self.assertListEqual(rsync.params[1], ["rsync", "-a", "test-host2:" + str(target_path) + "/", str(target_path)])
+            self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host2:" + str(target_path) + "/", str(target_path)])
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_phases(self, mock_docker):
@@ -246,9 +245,10 @@ class TestDistributedTimeEval(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             hosts = [
-                "localhost", socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
+                socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
             ]
-            timeeval = TimeEval(datasets, [], [], distributed=True, ssh_cluster_kwargs={ "hosts": hosts },
+            timeeval = TimeEval(datasets, [], [], distributed=True,
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
                                 results_path=Path(tmp_path))
             timeeval.rsync_results()
             self.assertEqual(len(rsync.params), 1)
@@ -277,9 +277,10 @@ class TestDistributedTimeEval(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             hosts = [
-                "localhost", socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
+                socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
             ]
-            timeeval = TimeEval(datasets, [("test", "dataset-int")], [self.algorithms[0]], distributed=True, ssh_cluster_kwargs={"hosts": hosts},
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [self.algorithms[0]], distributed=True,
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
                                 results_path=Path(tmp_path))
             timeeval.run()
             self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(), [Status.ERROR, "test-exception"])
@@ -307,10 +308,10 @@ class TestDistributedTimeEval(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             hosts = [
-                "localhost", socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
+                socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
             ]
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [self.algorithms[0]], distributed=True,
-                                ssh_cluster_kwargs={"hosts": hosts},
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
                                 results_path=Path(tmp_path))
             timeeval.run()
             self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(),
@@ -320,7 +321,6 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.docker
     def test_catches_future_exception_dask(self):
         datasets = Datasets("./tests/example_data")
-        hosts = ["localhost", "localhost"]
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
@@ -329,7 +329,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
                                 distributed=True,
-                                ssh_cluster_kwargs={"hosts": hosts},
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
                                 results_path=Path(tmp_path))
         timeeval.run()
         status = timeeval.results.loc[0, "status"]
@@ -342,7 +342,6 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.docker
     def test_catches_future_timeout_exception_dask(self):
         datasets = Datasets("./tests/example_data")
-        hosts = ["localhost", "localhost"]
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("1 seconds")),
                          data_as_file=True)
@@ -350,7 +349,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
                                 distributed=True,
-                                ssh_cluster_kwargs={"hosts": hosts},
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
                                 results_path=Path(tmp_path))
         timeeval.run()
 
@@ -363,7 +362,6 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.docker
     def test_runs_docker_in_dask(self):
         datasets = Datasets("./tests/example_data")
-        hosts = ["localhost", "localhost"]
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
@@ -372,7 +370,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
                                 distributed=True,
-                                ssh_cluster_kwargs={"hosts": hosts},
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
                                 results_path=Path(tmp_path))
         timeeval.run()
 
