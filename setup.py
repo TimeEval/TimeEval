@@ -106,6 +106,7 @@ setup(
     packages=find_packages(exclude=("tests",)),
     package_data={"timeeval": ["py.typed"]},
     install_requires=load_dependencies(),
+    python_requires=">=3.7",
     cmdclass={
         "test": PyTestCommand,
         "typecheck": MyPyCheckCommand
