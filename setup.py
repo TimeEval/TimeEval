@@ -5,19 +5,18 @@ from distutils.cmd import Command
 from distutils.errors import DistutilsError
 from setuptools import setup, find_packages
 
-try:
-    import yaml
-except ImportError:
-    import pip
-    pip.main(["install", "pyyml"])
-    import yaml
-
-
 README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 HERE = Path(os.path.dirname(__file__)).absolute()
 
 
 def load_dependencies():
+    try:
+        import yaml
+    except ImportError:
+        import pip
+        pip.main(["install", "pyyml"])
+        import yaml
+
     EXCLUDES = ["python"]
     with open(HERE / "environment.yml", "r", encoding="UTF-8") as f:
         env = yaml.safe_load(f)
@@ -30,11 +29,7 @@ def load_dependencies():
         return pip, conda
 
     def to_pip(dep):
-        parts = dep.split("=")
-        if len(parts) == 1:
-            return dep
-        else:
-            return "==".join(parts)
+        return dep.replace("=", "==")
 
     def excluded(name):
         return any([excl in name for excl in EXCLUDES])
