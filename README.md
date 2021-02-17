@@ -84,19 +84,15 @@ The following tools are required to install TimeEval from source:
 4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
 
-### Installation using `pip` (WIP)
+### Installation using `pip`
 
-> **Attention!**
->
-> **This does not work at the moment**, because the conda dependencies in `environment.yml` are not automatically included as dependencies for the created dist/wheel.
-
-Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/bp2020fn1/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
+Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/bp2020fn1/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
 
 #### Prerequisites
 
-- python 3
+- python >3.7
 - pip
-- A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` for [gitlab.hpi.de](https://gitlab.hpi.de/).
+- A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` (read) or another type of access token able to read the package registry of TimeEval hosted at [gitlab.hpi.de](https://gitlab.hpi.de/).
 
 #### Steps
 

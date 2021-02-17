@@ -1,10 +1,42 @@
 import sys
-import pathlib
+import os
+from pathlib import Path
 from distutils.cmd import Command
 from distutils.errors import DistutilsError
 from setuptools import setup, find_packages
 
-README = (pathlib.Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
+README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
+HERE = Path(os.path.dirname(__file__)).absolute()
+
+
+def load_dependencies():
+    try:
+        import yaml
+    except ImportError:
+        import pip
+        pip.main(["install", "pyyaml"])
+        import yaml
+
+    EXCLUDES = ["python"]
+    with open(HERE / "environment.yml", "r", encoding="UTF-8") as f:
+        env = yaml.safe_load(f)
+
+    def split_deps(deps):
+        pip = list(filter(lambda x: isinstance(x, dict), deps))
+        if len(pip) == 1:
+            pip = pip[0].get("pip", []) or []
+        conda = list(filter(lambda x: not isinstance(x, dict), deps))
+        return pip, conda
+
+    def to_pip(dep):
+        return dep.replace("=", "==")
+
+    def excluded(name):
+        return any([excl in name for excl in EXCLUDES])
+
+    pip_deps, conda_deps = split_deps(env.get("dependencies", []))
+    conda_deps = [to_pip(dep) for dep in conda_deps if not excluded(dep)]
+    return conda_deps + pip_deps
 
 
 class PyTestCommand(Command):
@@ -68,6 +100,8 @@ setup(
     ],
     packages=find_packages(exclude=("tests",)),
     package_data={"timeeval": ["py.typed"]},
+    install_requires=load_dependencies(),
+    python_requires=">=3.7",
     cmdclass={
         "test": PyTestCommand,
         "typecheck": MyPyCheckCommand
