@@ -3,7 +3,7 @@ import subprocess
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Optional, Any, Callable
+from typing import Optional, Any, Callable, Final
 
 import docker
 import numpy as np
@@ -138,8 +138,8 @@ class DockerAdapter(Adapter):
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:
         if not self.skip_pull:
             # capture variables for the function closure
-            image = self.image_name
-            tag = self.tag
+            image: Final[str] = self.image_name
+            tag: Final[str] = self.tag
 
             def prepare():
                 client = docker.from_env()
