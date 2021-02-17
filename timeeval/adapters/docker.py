@@ -1,12 +1,15 @@
 import json
+import multiprocessing
 import subprocess
+import sys
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Optional, Any, Callable, Final
+from typing import Optional, Any, Callable, Final, Tuple
 
 import docker
 import numpy as np
+import psutil
 import requests
 from docker.models.containers import Container
 from durations import Duration
@@ -19,6 +22,8 @@ SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
 DEFAULT_TIMEOUT = Duration("8 hours")
+
+GB = 1024**3
 
 
 class DockerJSONEncoder(json.JSONEncoder):
@@ -75,6 +80,30 @@ class DockerAdapter(Adapter):
     def _get_uid() -> str:
         return subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
 
+    @staticmethod
+    def _get_resource_constraints(args: dict) -> Tuple[int, float]:
+        """
+        Per default: 1 task per node using all available cores and RAM (except small margin for OS).
+
+        When not specified via "task_memory_limit" or "task_cpu_limit", the resources are equally shared between all
+        concurrent tasks. This means that CPU limit is set based on node CPU count divided by the number of tasks and
+        memory limit is set based on total memory of node minus 1 GB (for OS) divided by the number of tasks.
+
+        Swap is always disabled.
+        """
+        tasks_per_node = args.get("tasks_per_node", 1)
+        try:
+            memory_limit = args["task_memory_limit"]
+        except KeyError:
+            memory = psutil.virtual_memory().total - 1 * GB
+            memory_limit = memory // tasks_per_node
+        try:
+            cpu_limit = args["task_cpu_limit"]
+        except KeyError:
+            cpus = multiprocessing.cpu_count()
+            cpu_limit = cpus / tasks_per_node
+        return memory_limit, cpu_limit
+
     def _run_container(self, dataset_path: Path, args: dict) -> Container:
         client = docker.from_env()
 
@@ -89,6 +118,11 @@ class DockerAdapter(Adapter):
         gid = DockerAdapter._get_gid(self.group)
         uid = DockerAdapter._get_uid()
         print(f"Running container with uid={uid} and gid={gid} privileges")
+
+        memory_limit, cpu_limit = DockerAdapter._get_resource_constraints(args)
+        cpu_shares = int(cpu_limit * 1e9)
+        print(f"Restricting container to {cpu_limit} CPUs and {memory_limit / GB:.3f} GB RAM")
+
         return client.containers.run(
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
@@ -100,6 +134,10 @@ class DockerAdapter(Adapter):
                 "LOCAL_GID": gid,
                 "LOCAL_UID": uid
             },
+            mem_swappiness=0,
+            mem_limit=memory_limit,
+            memswap_limit=memory_limit,
+            nano_cpus=cpu_shares,
             detach=True
         )
 
