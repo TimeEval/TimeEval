@@ -14,7 +14,7 @@ def load_dependencies():
         import yaml
     except ImportError:
         import pip
-        pip.main(["install", "pyyml"])
+        pip.main(["install", "pyyaml"])
         import yaml
 
     EXCLUDES = ["python"]
