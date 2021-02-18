@@ -1,4 +1,3 @@
-import multiprocessing
 import tempfile
 import unittest
 from pathlib import Path
@@ -101,7 +100,7 @@ class TestDockerAdapter(unittest.TestCase):
         # no swap means mem_limit and memswap_limit must be the same!
         self.assertEqual(run_kwargs["mem_limit"], run_kwargs["memswap_limit"])
         # must use all available CPUs
-        self.assertEqual(run_kwargs["nano_cpus"], multiprocessing.cpu_count()*1e9)
+        self.assertEqual(run_kwargs["nano_cpus"], psutil.cpu_count()*1e9)
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_overwrite_resource_constraints(self, mock_client):

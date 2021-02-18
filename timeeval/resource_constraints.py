@@ -1,4 +1,3 @@
-import multiprocessing
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
@@ -60,7 +59,7 @@ class ResourceConstraints:
         elif self.task_cpu_limit:
             cpu_limit = self.task_cpu_limit
         else:
-            cpus = multiprocessing.cpu_count()
+            cpus = psutil.cpu_count()
             cpu_limit = cpus / self.tasks_per_host
 
         return memory_limit, cpu_limit

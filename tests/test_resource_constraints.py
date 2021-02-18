@@ -2,13 +2,13 @@ import unittest
 
 import psutil
 
-from timeeval.resource_constraints import ResourceConstraints
+from timeeval.resource_constraints import ResourceConstraints, GB
 
 
 class TestResourceConstraints(unittest.TestCase):
     def setUp(self) -> None:
         # must reserve 1 GB for OS and other software
-        self.usable_memory = psutil.virtual_memory().total - 1024 ** 3
+        self.usable_memory = psutil.virtual_memory().total - GB
         self.usable_cpus = float(psutil.cpu_count())
 
     def test_default(self):
