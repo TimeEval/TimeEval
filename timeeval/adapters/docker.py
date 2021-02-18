@@ -3,7 +3,7 @@ import subprocess
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Optional, Any, Callable, Final
+from typing import Optional, Any, Callable, Final, Tuple
 
 import docker
 import numpy as np
@@ -12,6 +12,7 @@ from docker.models.containers import Container
 from durations import Duration
 
 from .base import Adapter, AlgorithmParameter
+from ..resource_constraints import ResourceConstraints, GB
 
 DATASET_TARGET_PATH = "/data"
 RESULTS_TARGET_PATH = "/results"
@@ -59,12 +60,15 @@ class AlgorithmInterface:
 
 class DockerAdapter(Adapter):
     def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False,
-                 timeout=DEFAULT_TIMEOUT):
+                 timeout=DEFAULT_TIMEOUT, memory_limit_overwrite: Optional[int] = None,
+                 cpu_limit_overwrite: Optional[float] = None):
         self.image_name = image_name
         self.tag = tag
         self.group = group_privileges
         self.skip_pull = skip_pull
         self.timeout = timeout
+        self.memory_limit = memory_limit_overwrite
+        self.cpu_limit = cpu_limit_overwrite
 
     @staticmethod
     def _get_gid(group: str) -> str:
@@ -74,6 +78,12 @@ class DockerAdapter(Adapter):
     @staticmethod
     def _get_uid() -> str:
         return subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
+
+    def _get_resource_constraints(self, args: dict) -> Tuple[int, float]:
+        return args.get("resource_constraints", ResourceConstraints()).get_resource_limits(
+            memory_overwrite=self.memory_limit,
+            cpu_overwrite=self.cpu_limit
+        )
 
     def _run_container(self, dataset_path: Path, args: dict) -> Container:
         client = docker.from_env()
@@ -89,6 +99,11 @@ class DockerAdapter(Adapter):
         gid = DockerAdapter._get_gid(self.group)
         uid = DockerAdapter._get_uid()
         print(f"Running container with uid={uid} and gid={gid} privileges")
+
+        memory_limit, cpu_limit = self._get_resource_constraints(args)
+        cpu_shares = int(cpu_limit * 1e9)
+        print(f"Restricting container to {cpu_limit} CPUs and {memory_limit / GB:.3f} GB RAM")
+
         return client.containers.run(
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
@@ -100,6 +115,10 @@ class DockerAdapter(Adapter):
                 "LOCAL_GID": gid,
                 "LOCAL_UID": uid
             },
+            mem_swappiness=0,
+            mem_limit=memory_limit,
+            memswap_limit=memory_limit,
+            nano_cpus=cpu_shares,
             detach=True
         )
 
@@ -144,6 +163,7 @@ class DockerAdapter(Adapter):
             def prepare():
                 client = docker.from_env()
                 client.images.pull(image, tag=tag)
+
             return prepare
         else:
             return None
@@ -152,5 +172,5 @@ class DockerAdapter(Adapter):
         def finalize():
             client = docker.from_env()
             client.containers.prune()
-        return finalize
 
+        return finalize

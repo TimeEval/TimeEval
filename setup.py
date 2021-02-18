@@ -17,7 +17,7 @@ def load_dependencies():
         pip.main(["install", "pyyaml"])
         import yaml
 
-    EXCLUDES = ["python"]
+    EXCLUDES = ["python", "pip"]
     with open(HERE / "environment.yml", "r", encoding="UTF-8") as f:
         env = yaml.safe_load(f)
 
