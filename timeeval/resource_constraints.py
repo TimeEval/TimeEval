@@ -18,7 +18,7 @@ class ResourceConstraints:
 
     tasks_per_host: int = 1
     task_memory_limit: Optional[int] = None
-    task_cpu_limit: Optional[int] = None
+    task_cpu_limit: Optional[float] = None
 
     def get_resource_limits(self,
                             memory_overwrite: Optional[int] = None,

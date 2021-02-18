@@ -1,3 +1,4 @@
+import multiprocessing
 import tempfile
 import unittest
 from pathlib import Path
@@ -5,6 +6,7 @@ from unittest.mock import patch
 
 import docker
 import numpy as np
+import psutil
 import pytest
 from durations import Duration
 
@@ -24,6 +26,7 @@ class MockDockerContainer:
         self.image = image
         self.cmd = cmd
         self.volumes = volumes
+        self.run_kwargs = kwargs
 
         real_path = list(volumes.items())[1][0]
         if real_path.startswith("/tmp"):
@@ -77,6 +80,47 @@ class TestDockerAdapter(unittest.TestCase):
         with self.assertRaises(AssertionError):
             adapter = DockerAdapter("test-image:latest")
             adapter(np.random.rand(10), {})
+
+    @patch("timeeval.adapters.docker.docker.from_env")
+    def test_sets_default_resource_constraints(self, mock_client):
+        docker_mock = MockDockerClient()
+        mock_client.return_value = docker_mock
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            adapter = DockerAdapter("test-image:latest")
+            adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
+
+        run_kwargs = docker_mock.containers.run_kwargs
+        self.assertIn("mem_swappiness", run_kwargs, msg="mem_swappiness was not set by DockerAdapter")
+        self.assertIn("mem_limit", run_kwargs, msg="mem_limit was not set by DockerAdapter")
+        self.assertIn("memswap_limit", run_kwargs, msg="memswap_limit was not set by DockerAdapter")
+        self.assertIn("nano_cpus", run_kwargs, msg="nano_cpus was not set by DockerAdapter")
+
+        # must always disable swapping:
+        self.assertEqual(run_kwargs["mem_swappiness"], 0)
+        # no swap means mem_limit and memswap_limit must be the same!
+        self.assertEqual(run_kwargs["mem_limit"], run_kwargs["memswap_limit"])
+        # must use all available CPUs
+        self.assertEqual(run_kwargs["nano_cpus"], multiprocessing.cpu_count()*1e9)
+
+    @patch("timeeval.adapters.docker.docker.from_env")
+    def test_overwrite_resource_constraints(self, mock_client):
+        docker_mock = MockDockerClient()
+        mock_client.return_value = docker_mock
+        mem_overwrite = 500
+        cpu_overwrite = 0.25
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            adapter = DockerAdapter("test-image:latest",
+                                    memory_limit_overwrite=mem_overwrite,
+                                    cpu_limit_overwrite=cpu_overwrite
+                                    )
+            adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
+
+        run_kwargs = docker_mock.containers.run_kwargs
+        self.assertEqual(run_kwargs["mem_limit"], mem_overwrite)
+        self.assertEqual(run_kwargs["memswap_limit"], mem_overwrite)
+        self.assertEqual(run_kwargs["nano_cpus"], cpu_overwrite*1e9)
 
     @pytest.mark.docker
     def test_timeout_docker(self):
