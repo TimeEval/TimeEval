@@ -9,6 +9,7 @@ dependencies:
   - matplotlib=3.3.*
   - numpy=1.20.*
   - pandas
+  - psutil
   - pip:
       - tqdm==4.54.*
       - dask[distributed]==2021.1.*

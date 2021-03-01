@@ -1,50 +1,22 @@
 import logging
-import sys
 import time
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
-from dataclasses import dataclass, field
 from typing import List, Callable, Optional, Tuple, Dict
 
 import tqdm
 from dask.distributed import Client, SSHCluster
 
-DEFAULT_SCHEDULER_HOST = "localhost"
-DEFAULT_DASK_PORT = 8786
-
-
-@dataclass
-class RemoteConfiguration:
-    scheduler_host: str = DEFAULT_SCHEDULER_HOST
-    scheduler_port: int = DEFAULT_DASK_PORT
-    worker_hosts: List[str] = field(default_factory=lambda: [])
-    remote_python: str = sys.executable
-    kwargs_overwrites: dict = field(default_factory=lambda: {})
-
-    def to_ssh_cluster_kwargs(self):
-        """
-        Creates the kwargs for the Dask SSHCluster-constructor:
-        https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster
-        """
-        config = {
-            "hosts": [self.scheduler_host] + self.worker_hosts,
-            # "connect_options": {
-            #     "port": self.scheduler_port
-            # },
-            # https://distributed.dask.org/en/latest/worker.html?highlight=worker_options#distributed.worker.Worker
-            "worker_options": {
-                "nprocs": 1,
-                "nthreads": 1
-            },
-            "remote_python": self.remote_python
-        }
-        config.update(self.kwargs_overwrites)
-        return config
+from timeeval.remote_configuration import RemoteConfiguration
+from timeeval.resource_constraints import ResourceConstraints
 
 
 class Remote:
-    def __init__(self, disable_progress_bar: bool = False, remote_config: RemoteConfiguration = RemoteConfiguration()):
+    def __init__(self, disable_progress_bar: bool = False,
+                 remote_config: RemoteConfiguration = RemoteConfiguration(),
+                 resource_constraints: ResourceConstraints = ResourceConstraints()):
         self.logger = logging.getLogger("Remote")
         self.config = remote_config
+        self.limits = resource_constraints
         self.futures: List[Future] = []
         self.cluster = self.start_or_restart_cluster()
         self.client = Client(self.cluster.scheduler_address)
@@ -55,7 +27,7 @@ class Remote:
             raise RuntimeError("Could not start an SSHCluster because there is already one running, "
                                "that cannot be stopped!")
         try:
-            return SSHCluster(**self.config.to_ssh_cluster_kwargs())
+            return SSHCluster(**self.config.to_ssh_cluster_kwargs(self.limits.tasks_per_host))
         except Exception as e:
             if "Worker failed to start" in str(e):
                 scheduler_host = self.config.scheduler_host
@@ -68,7 +40,7 @@ class Remote:
                 with Client(scheduler_address) as client:
                     client.shutdown()
 
-                return self.start_or_restart_cluster(n+1)
+                return self.start_or_restart_cluster(n + 1)
             raise e
 
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:

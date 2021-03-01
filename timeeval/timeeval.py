@@ -20,6 +20,7 @@ from .constants import RESULTS_CSV
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
+from .resource_constraints import ResourceConstraints
 
 
 class Status(Enum):
@@ -47,22 +48,34 @@ class TimeEval:
                  datasets: List[Tuple[str, str]],
                  algorithms: List[Algorithm],
                  results_path: Path = DEFAULT_RESULT_PATH,
+                 repetitions: int = 1,
                  distributed: bool = False,
                  remote_config: Optional[RemoteConfiguration] = None,
-                 repetitions: int = 1,
+                 resource_constraints: Optional[ResourceConstraints] = None,
                  disable_progress_bar: bool = False):
-        self.dmgr = dataset_mgr
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        resource_constraints = resource_constraints or ResourceConstraints()
+        if not distributed and resource_constraints.tasks_per_host > 1:
+            logging.warning(
+                f"`tasks_per_host` was set to {resource_constraints.tasks_per_host}. However, non-distributed "
+                "execution of TimeEval does currently not support parallelism! Reducing `tasks_per_host` to 1. "
+                "The automatic resource limitation will reflect this by increasing the limits for the single task. "
+                "Explicitly set constraints to limit the resources for local executions of TimeEval."
+            )
+            resource_constraints.tasks_per_host = 1
+        self.dmgr = dataset_mgr
+        self.disable_progress_bar = disable_progress_bar
+
         self.results_path = results_path.absolute() / start_date
-        self.exps = Experiments(datasets, algorithms, self.results_path, repetitions=repetitions)
+        self.exps = Experiments(datasets, algorithms, self.results_path, resource_constraints, repetitions=repetitions)
+        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
 
         self.distributed = distributed
         self.remote_config = remote_config or RemoteConfiguration()
-        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
-        self.disable_progress_bar = disable_progress_bar
 
         if self.distributed:
-            self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config)
+            self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config,
+                                 resource_constraints=resource_constraints)
             self.results["future_result"] = np.nan
 
     def _get_dataset_path(self, name: Tuple[str, str]) -> Path:

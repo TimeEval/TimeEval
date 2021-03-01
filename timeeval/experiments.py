@@ -6,10 +6,12 @@ from typing import Tuple, List, Generator
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 from .algorithm import Algorithm
 from .constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
 from .data_types import AlgorithmParameter
+from .resource_constraints import ResourceConstraints
 from .times import Times
 from .utils.datasets import extract_features, extract_labels, load_dataset
 from .utils.hash_dict import hash_dict
@@ -23,6 +25,7 @@ class Experiment:
     params: dict
     repetition: int
     base_results_dir: Path
+    resource_constraints: ResourceConstraints
 
     @property
     def dataset_collection(self) -> str:
@@ -44,6 +47,7 @@ class Experiment:
     def build_args(self) -> dict:
         return {
             "results_path": self.results_path,
+            "resource_constraints": self.resource_constraints,
             "hyper_params": self.params
         }
 
@@ -61,6 +65,10 @@ class Experiment:
 
         with (self.results_path / EXECUTION_LOG).open("w") as logs_file, redirect_stdout(logs_file):
             y_scores, times = Times.from_algorithm(self.algorithm, X, self.build_args())
+        # scale scores to [0, 1]
+        if len(y_scores.shape) == 1:
+            y_scores = y_scores.reshape(-1, 1)
+        y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
         score = roc(y_scores, y_true.astype(np.float64), plot=False)
         result = {"score": score}
         result.update(times.to_dict())
@@ -77,11 +85,12 @@ class Experiment:
 class Experiments:
 
     def __init__(self, datasets: List[Tuple[str, str]], algorithms: List[Algorithm], base_result_path: Path,
-                 repetitions: int = 1):
+                 resource_constraints: ResourceConstraints, repetitions: int = 1):
         self.dataset_names = datasets
         self.algorithms = algorithms
         self.repetitions = repetitions
         self.base_result_path = base_result_path
+        self.resource_constraints = resource_constraints
 
     def __iter__(self) -> Generator[Experiment, None, None]:
         for algorithm in self.algorithms:
@@ -93,7 +102,8 @@ class Experiments:
                             dataset=dataset_name,
                             params=algorithm_config,
                             repetition=repetition,
-                            base_results_dir=self.base_result_path
+                            base_results_dir=self.base_result_path,
+                            resource_constraints=self.resource_constraints
                         )
 
     def __len__(self) -> int:
