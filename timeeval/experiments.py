@@ -6,6 +6,7 @@ from typing import Tuple, List, Generator
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 from .algorithm import Algorithm
 from .constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
@@ -64,6 +65,10 @@ class Experiment:
 
         with (self.results_path / EXECUTION_LOG).open("w") as logs_file, redirect_stdout(logs_file):
             y_scores, times = Times.from_algorithm(self.algorithm, X, self.build_args())
+        # scale scores to [0, 1]
+        if len(y_scores.shape) == 1:
+            y_scores = y_scores.reshape(-1, 1)
+        y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
         score = roc(y_scores, y_true.astype(np.float64), plot=False)
         result = {"score": score}
         result.update(times.to_dict())
