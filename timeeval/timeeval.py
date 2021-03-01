@@ -23,6 +23,17 @@ from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
 
 
+###############################################################################
+# Requried to fix Dask workers!
+# Ref: https://github.com/dask/distributed/issues/4168#issuecomment-719932064
+# import multiprocessing.popen_spawn_posix
+try:
+    import multiprocessing.popen_spawn_posix as _
+except ImportError:
+    pass
+###############################################################################
+
+
 class Status(Enum):
     OK = 0
     ERROR = 1

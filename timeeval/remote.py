@@ -9,13 +9,6 @@ from dask.distributed import Client, SSHCluster
 from timeeval.remote_configuration import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints
 
-###############################################################################
-# Requried to fix Dask workers!
-# Ref: https://github.com/dask/distributed/issues/4168#issuecomment-719932064
-# import multiprocessing.popen_spawn_posix
-import multiprocessing.popen_spawn_posix
-###############################################################################
-
 
 class Remote:
     def __init__(self, disable_progress_bar: bool = False,
