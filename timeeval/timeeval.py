@@ -6,7 +6,7 @@ import socket
 import subprocess
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Any
+from typing import Callable
 from typing import List, Tuple, Dict, Optional
 
 import numpy as np
@@ -21,17 +21,6 @@ from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
-
-
-###############################################################################
-# Requried to fix Dask workers!
-# Ref: https://github.com/dask/distributed/issues/4168#issuecomment-719932064
-# import multiprocessing.popen_spawn_posix
-try:
-    import multiprocessing.popen_spawn_posix as _
-except ImportError:
-    pass
-###############################################################################
 
 
 class Status(Enum):
