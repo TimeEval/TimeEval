@@ -1,9 +1,10 @@
-import numpy as np
-from sklearn.metrics import roc_curve, auc
-import matplotlib.pyplot as plt
-from typing import Iterable, Callable, List
 import argparse
 from enum import Enum
+from typing import Iterable, Callable
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import roc_curve, auc
 
 
 class Metrics(Enum):
