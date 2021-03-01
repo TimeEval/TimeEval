@@ -21,17 +21,17 @@ class RemoteConfiguration:
         """
         config = {
             "hosts": [self.scheduler_host] + self.worker_hosts,
-            "connect_options": {
-                "port": self.scheduler_port
-            },
+            # "connect_options": {
+            #     "port": self.scheduler_port
+            # },
             # https://distributed.dask.org/en/latest/worker.html?highlight=worker_options#distributed.worker.Worker
             "worker_options": {
                 "ncores": tasks_per_host,
                 "nthreads": 1
             },
             # defaults are fine: https://distributed.dask.org/en/latest/scheduling-state.html?highlight=dask.distributed.Scheduler#distributed.scheduler.Scheduler
-            "scheduler_options": {},
-            "worker_module": "distributed.cli.dask_worker",  # default
+            # "scheduler_options": {},
+            # "worker_module": "distributed.cli.dask_worker",  # default
             "remote_python": self.remote_python
         }
         config.update(self.kwargs_overwrites)
