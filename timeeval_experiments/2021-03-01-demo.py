@@ -34,7 +34,8 @@ def main():
         worker_hosts=HPI_CLUSTER.nodes
     )
     limits = ResourceConstraints(
-        tasks_per_host=10
+        tasks_per_host=10,
+        task_cpu_limit=1.,
     )
     timeeval = TimeEval(dm, datasets, algorithms,
                         repetitions=1,
