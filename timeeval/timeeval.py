@@ -181,8 +181,8 @@ class TimeEval:
         return results
 
     def save_results(self, results_path: Optional[Path] = None):
-        path = results_path.absolute() or (self.results_path / RESULTS_CSV)
-        self.results.to_csv(path, index=False)
+        path = results_path or (self.results_path / RESULTS_CSV)
+        self.results.to_csv(path.absolute(), index=False)
 
     @staticmethod
     def rsync_results(results_path: Path, hosts: List[str]):
