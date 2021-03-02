@@ -8,6 +8,7 @@ from typing import Optional, Any, Callable, Final, Tuple
 import docker
 import numpy as np
 import requests
+from docker.errors import DockerException
 from docker.models.containers import Container
 from durations import Duration
 
@@ -171,6 +172,8 @@ class DockerAdapter(Adapter):
     def get_finalize_fn(self) -> Optional[Callable[[], None]]:
         def finalize():
             client = docker.from_env()
-            client.containers.prune()
-
+            try:
+                client.containers.prune()
+            except DockerException:
+                pass
         return finalize

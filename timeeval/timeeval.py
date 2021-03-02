@@ -217,7 +217,6 @@ class TimeEval:
             if finalize_fn := algorithm.finalize_fn():
                 tasks.append((finalize_fn, [], {}))
         self.remote.run_on_all_hosts(tasks)
-        self._resolve_future_results()
         self.remote.close()
         self.rsync_results()
 
@@ -230,9 +229,11 @@ class TimeEval:
             self._prepare()
 
         self._run()
+        if self.distributed:
+            self._resolve_future_results()
+        self.save_results()
 
         if self.distributed:
             self._distributed_finalize()
         else:
             self._finalize()
-        self.results.to_csv(self.results_path / RESULTS_CSV, index=False)
