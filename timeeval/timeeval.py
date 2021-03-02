@@ -207,8 +207,13 @@ class TimeEval:
         for algorithm in self.exps.algorithms:
             if prepare_fn := algorithm.prepare_fn():
                 tasks.append((prepare_fn, [], {}))
-        for exp in self.exps:
-            tasks.append((exp.results_path.mkdir, [], {"parents": True, "exist_ok": True}))
+
+        def mkdirs(dirs: List[Path]) -> None:
+            for d in dirs:
+                d.mkdir(parents=True, exist_ok=True)
+        dir_list = [exp.results_path for exp in self.exps]
+        tasks.append((mkdirs, [dir_list], {}))
+
         self.remote.run_on_all_hosts(tasks)
 
     def _distributed_finalize(self):
