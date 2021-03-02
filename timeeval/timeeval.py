@@ -180,21 +180,25 @@ class TimeEval:
         return results
 
     def save_results(self, results_path: Optional[Path] = None):
-        path = results_path or (self.results_path / RESULTS_CSV)
+        path = results_path.absolute() or (self.results_path / RESULTS_CSV)
         self.results.to_csv(path, index=False)
 
-    def rsync_results(self):
+    @staticmethod
+    def rsync_results(results_path: Path, hosts: List[str]):
         excluded_aliases = [
             hostname := socket.gethostname(),
             socket.gethostbyname(hostname),
             "localhost",
             socket.gethostbyname("localhost")
         ]
-
-        hosts = self.remote_config.worker_hosts
         for host in hosts:
             if host not in excluded_aliases:
-                subprocess.call(["rsync", "-a", f"{host}:{self.results_path}/", f"{self.results_path}"])
+                subprocess.call(["rsync", "-a", f"{host}:{results_path}/", f"{results_path}"])
+
+    def _rsync_results(self):
+        path = self.results_path / RESULTS_CSV
+        hosts = self.remote_config.worker_hosts
+        TimeEval.rsync_results(path, hosts)
 
     def _prepare(self):
         n = len(self.exps)
@@ -238,7 +242,7 @@ class TimeEval:
         self.log.debug(f"Collected {len(tasks)} algorithm finalize steps")
         self.remote.run_on_all_hosts(tasks, msg="Finalizing")
         self.remote.close()
-        self.rsync_results()
+        self._rsync_results()
 
     def run(self):
         assert len(self.exps.algorithms) > 0, "No algorithms given for evaluation"

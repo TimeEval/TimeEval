@@ -250,7 +250,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval = TimeEval(datasets, [], [], distributed=True,
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
                                 results_path=Path(tmp_path))
-            timeeval.rsync_results()
+            timeeval._rsync_results()
             self.assertEqual(len(rsync.params), 1)
             self.assertTrue(rsync.params[0], ["rsync", "-a", f"test-host:{tmp_path}/", tmp_path])
 
