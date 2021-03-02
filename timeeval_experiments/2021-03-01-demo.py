@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
+import logging
 
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
 from timeeval.remote import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints
 from timeeval_experiments.algorithms import *
+
+# Setup logging
+logging.basicConfig(
+    filename="timeeval.log",
+    filemode="a",
+    level=logging.DEBUG,
+    force=True,
+    encoding="UTF-8",
+    format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
+    # datefmt="%y-%m%d %H:M:%S",
+)
 
 
 def main():
