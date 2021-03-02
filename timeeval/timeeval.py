@@ -259,6 +259,7 @@ class TimeEval:
         self._run()
         if self.distributed:
             self._resolve_future_results()
+        self.save_results()
 
         print("Running FINALIZE phase")
         self.log.info("Running FINALIZE phase")
@@ -266,7 +267,6 @@ class TimeEval:
             self._distributed_finalize()
         else:
             self._finalize()
-        self.save_results()
         msg = f"FINALIZE phase done. Stored results at {self.results_path / RESULTS_CSV}"
         print(msg)
         self.log.info(msg)

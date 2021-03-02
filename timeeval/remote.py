@@ -49,7 +49,7 @@ class Remote:
 
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
         config = config or {}
-        self.log.debug(f"Submitting task {task.__name__} to cluster")
+        self.log.debug(f"Submitting task {task} to cluster")
         future = self.client.submit(task, *args, **config, **kwargs)
         self.futures.append(future)
         return future
