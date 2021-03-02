@@ -177,7 +177,7 @@ class TimeEval:
 
     def save_results(self, results_path: Optional[Path] = None):
         path = results_path or (self.results_path / RESULTS_CSV)
-        self.results.to_csv(path, index=False)
+        self.results.to_csv(path.absolute(), index=False)
 
     def rsync_results(self):
         excluded_aliases = [
