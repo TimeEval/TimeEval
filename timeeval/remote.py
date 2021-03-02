@@ -49,7 +49,7 @@ class Remote:
 
     def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
         config = config or {}
-        self.log.debug(f"Submitting task {task.__name__} to cluster")
+        self.log.debug(f"Submitting task {task} to cluster")
         future = self.client.submit(task, *args, **config, **kwargs)
         self.futures.append(future)
         return future
@@ -59,6 +59,7 @@ class Remote:
                          progress: bool = True):
         self.log.debug(f"Running {len(tasks)} tasks on all cluster nodes and waiting for results")
         for task, args, kwargs in tqdm.tqdm(tasks, desc=msg, disable=self.disable_progress_bar or not progress):
+            self.log.debug(f"({msg}) Running task '{task}' with args {args} and kwargs {kwargs}")
             self.client.run(task, *args, **kwargs)
 
     def fetch_results(self):

@@ -6,7 +6,7 @@ import socket
 import subprocess
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Any
+from typing import Callable
 from typing import List, Tuple, Dict, Optional
 
 import numpy as np
@@ -86,7 +86,8 @@ class TimeEval:
         return self.dmgr.get_dataset_path(name, train=False)
 
     def _run(self):
-        for exp in tqdm.tqdm(self.exps, desc=f"Evaluating", disable=self.distributed or self.disable_progress_bar):
+        desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
+        for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.distributed or self.disable_progress_bar):
             try:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
@@ -254,7 +255,7 @@ class TimeEval:
         else:
             self._finalize()
         self.save_results()
-        
+
         msg = f"FINALIZE phase done. Stored results at {self.results_path / RESULTS_CSV}"
         print(msg)
         self.log.info(msg)
