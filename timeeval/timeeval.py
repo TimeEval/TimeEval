@@ -86,7 +86,8 @@ class TimeEval:
         return self.dmgr.get_dataset_path(name, train=False)
 
     def _run(self):
-        for exp in tqdm.tqdm(self.exps, desc=f"Evaluating", disable=self.distributed or self.disable_progress_bar):
+        desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
+        for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.disable_progress_bar):
             try:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
