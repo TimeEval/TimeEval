@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import logging
-from pathlib import Path
+# from pathlib import Path
 
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
@@ -62,5 +62,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    TimeEval.rsync_results(Path("/home/sebastian.schmidl/projects/timeeval/timeeval_experiments/results/2021_03_02_12_32_20"), HPI_CLUSTER.nodes)
+    main()
+    # TimeEval.rsync_results(Path("/home/sebastian.schmidl/projects/timeeval/timeeval_experiments/results/2021_03_02_12_32_20"), HPI_CLUSTER.nodes)
