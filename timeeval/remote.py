@@ -59,6 +59,7 @@ class Remote:
                          progress: bool = True):
         self.log.debug(f"Running {len(tasks)} tasks on all cluster nodes and waiting for results")
         for task, args, kwargs in tqdm.tqdm(tasks, desc=msg, disable=self.disable_progress_bar or not progress):
+            self.log.debug(f"({msg} Running task {task.__name__} with args {args}")
             self.client.run(task, *args, **kwargs)
 
     def fetch_results(self):
