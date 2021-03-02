@@ -216,8 +216,17 @@ class TimeEval:
             if prepare_fn := algorithm.prepare_fn():
                 tasks.append((prepare_fn, [], {}))
         self.log.debug(f"Collected {len(tasks)} algorithm prepare steps")
+        # dir_list = []
+        # for exp in self.exps:
+        #     dir_list.append(exp.results_path)
+        #
+        # def mkdirs(dirs: List[Path]) -> None:
+        #     for d in dirs:
+        #         d.mkdir(parents=True, exist_ok=True)
+        #
+        # tasks.append((mkdirs, [dir_list], {}))
         for exp in self.exps:
-            tasks.append((exp.results_path.mkdir, [], {"parents": True, "exist_ok": True}))
+            tasks.append((exp.results_path.exists, [], {}))
         self.log.debug(f"Collected {len(self.exps)} directory creation steps to run on remote nodes")
         self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
