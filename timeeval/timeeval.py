@@ -6,7 +6,7 @@ import socket
 import subprocess
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Any
+from typing import Callable
 from typing import List, Tuple, Dict, Optional
 
 import numpy as np
@@ -53,10 +53,11 @@ class TimeEval:
                  remote_config: Optional[RemoteConfiguration] = None,
                  resource_constraints: Optional[ResourceConstraints] = None,
                  disable_progress_bar: bool = False):
+        self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         resource_constraints = resource_constraints or ResourceConstraints()
         if not distributed and resource_constraints.tasks_per_host > 1:
-            logging.warning(
+            self.log.warning(
                 f"`tasks_per_host` was set to {resource_constraints.tasks_per_host}. However, non-distributed "
                 "execution of TimeEval does currently not support parallelism! Reducing `tasks_per_host` to 1. "
                 "The automatic resource limitation will reflect this by increasing the limits for the single task. "
@@ -67,6 +68,7 @@ class TimeEval:
         self.disable_progress_bar = disable_progress_bar
 
         self.results_path = results_path.absolute() / start_date
+        self.log.info(f"Results are recorded in the directory {self.results_path}")
         self.exps = Experiments(datasets, algorithms, self.results_path, resource_constraints, repetitions=repetitions)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
 
@@ -74,15 +76,18 @@ class TimeEval:
         self.remote_config = remote_config or RemoteConfiguration()
 
         if self.distributed:
+            self.log.info("TimeEval is running in distributed environment, setting up remoting ...")
             self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config,
                                  resource_constraints=resource_constraints)
             self.results["future_result"] = np.nan
+            self.log.info("... remoting setup done.")
 
     def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
         return self.dmgr.get_dataset_path(name, train=False)
 
     def _run(self):
-        for exp in tqdm.tqdm(self.exps, desc=f"Evaluating", disable=self.distributed or self.disable_progress_bar):
+        desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
+        for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.distributed or self.disable_progress_bar):
             try:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
@@ -96,7 +101,7 @@ class TimeEval:
                 self._record_results(exp, result=result, future_result=future_result)
 
             except Exception as e:
-                logging.exception(
+                self.log.exception(
                     f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}:")
                 f: asyncio.Future = asyncio.Future()
                 f.set_result({
@@ -142,11 +147,11 @@ class TimeEval:
                 r = f.result()
                 return tuple(r[k] for k in result_keys) + (Status.OK, None)
             except DockerTimeoutError as e:
-                logging.exception(f"Exception {str(e)} occurred remotely.")
+                self.log.exception(f"Exception {str(e)} occurred remotely.")
                 status = Status.TIMEOUT
                 error_message = str(e)
             except Exception as e:
-                logging.exception(f"Exception {str(e)} occurred remotely.")
+                self.log.exception(f"Exception {str(e)} occurred remotely.")
                 status = Status.ERROR
                 error_message = str(e)
 
@@ -162,7 +167,7 @@ class TimeEval:
         df = self.results
 
         if Status.ERROR.name in df.status.unique():
-            logging.warning("The results contain errors which are filtered out for the final aggregation. "
+            self.log.warning("The results contain errors which are filtered out for the final aggregation. "
                             "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
@@ -193,12 +198,16 @@ class TimeEval:
                 subprocess.call(["rsync", "-a", f"{host}:{self.results_path}/", f"{self.results_path}"])
 
     def _prepare(self):
+        n = len(self.exps)
+        self.log.debug(f"Running {n} algorithm prepare steps")
         for algorithm in self.exps.algorithms:
             algorithm.prepare()
+        self.log.debug(f"Creating {n} result directories")
         for exp in self.exps:
             exp.results_path.mkdir(parents=True, exist_ok=True)
 
     def _finalize(self):
+        self.log.debug(f"Running {len(self.exps)} algorithm finalize steps")
         for algorithm in self.exps.algorithms:
             algorithm.finalize()
 
@@ -207,32 +216,46 @@ class TimeEval:
         for algorithm in self.exps.algorithms:
             if prepare_fn := algorithm.prepare_fn():
                 tasks.append((prepare_fn, [], {}))
+        self.log.debug(f"Collected {len(tasks)} algorithm prepare steps")
         for exp in self.exps:
             tasks.append((exp.results_path.mkdir, [], {"parents": True, "exist_ok": True}))
-        self.remote.run_on_all_hosts(tasks)
+        self.log.debug(f"Collected {len(self.exps)} directory creation steps to run on remote nodes")
+        self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
     def _distributed_finalize(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.exps.algorithms:
             if finalize_fn := algorithm.finalize_fn():
                 tasks.append((finalize_fn, [], {}))
-        self.remote.run_on_all_hosts(tasks)
-        self._resolve_future_results()
+        self.log.debug(f"Collected {len(tasks)} algorithm finalize steps")
+        self.remote.run_on_all_hosts(tasks, msg="Finalizing")
         self.remote.close()
         self.rsync_results()
 
     def run(self):
         assert len(self.exps.algorithms) > 0, "No algorithms given for evaluation"
 
+        print("Running PREPARE phase")
+        self.log.info("Running PREPARE phase")
         if self.distributed:
             self._distributed_prepare()
         else:
             self._prepare()
 
+        print("Running EVALUATION phase")
+        self.log.info("Running EVALUATION phase")
         self._run()
+        if self.distributed:
+            self._resolve_future_results()
 
+        print("Running FINALIZE phase")
+        self.log.info("Running FINALIZE phase")
         if self.distributed:
             self._distributed_finalize()
         else:
             self._finalize()
-        self.results.to_csv(self.results_path / RESULTS_CSV, index=False)
+        self.save_results()
+
+        msg = f"FINALIZE phase done. Stored results at {self.results_path / RESULTS_CSV}"
+        print(msg)
+        self.log.info(msg)
