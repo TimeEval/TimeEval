@@ -182,7 +182,7 @@ class TimeEval:
 
     def save_results(self, results_path: Optional[Path] = None):
         path = results_path or (self.results_path / RESULTS_CSV)
-        self.results.to_csv(path, index=False)
+        self.results.to_csv(path.absolute(), index=False)
 
     @staticmethod
     def rsync_results(results_path: Path, hosts: List[str]):
@@ -219,9 +219,14 @@ class TimeEval:
             if prepare_fn := algorithm.prepare_fn():
                 tasks.append((prepare_fn, [], {}))
         self.log.debug(f"Collected {len(tasks)} algorithm prepare steps")
-        for exp in self.exps:
-            tasks.append((exp.results_path.mkdir, [], {"parents": True, "exist_ok": True}))
-        self.log.debug(f"Collected {len(self.exps)} directory creation steps to run on remote nodes")
+
+        def mkdirs(dirs: List[Path]) -> None:
+            for d in dirs:
+                d.mkdir(parents=True, exist_ok=True)
+        dir_list = [exp.results_path for exp in self.exps]
+        tasks.append((mkdirs, [dir_list], {}))
+        self.log.debug(f"Collected {len(dir_list)} directories to create on remote nodes")
+
         self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
     def _distributed_finalize(self):
@@ -249,6 +254,7 @@ class TimeEval:
         self._run()
         if self.distributed:
             self._resolve_future_results()
+        self.save_results()
 
         print("Running FINALIZE phase")
         self.log.info("Running FINALIZE phase")
@@ -256,7 +262,6 @@ class TimeEval:
             self._distributed_finalize()
         else:
             self._finalize()
-        self.save_results()
 
         msg = f"FINALIZE phase done. Stored results at {self.results_path / RESULTS_CSV}"
         print(msg)
