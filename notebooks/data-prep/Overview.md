@@ -27,17 +27,19 @@
 | Webscope-S5                            |   ✓   | [🗎][Yahoo] |  |
 | credit-card-fraud                      |   x   |            | Timestamps are not equi-distant. |
 | genesis-demonstrator                   |   ✓   | [🗎][gen]   | A single dataset |
+| GHL                                    |   ✓   | [🗎][ghl]  | |
+| SSA                                    |   ✓   | [🗎][ssa]  | Annotation source unclear, brittle datasets. |
 
 ## TODO
 
 Check against datasets in [John's benchmark framework](https://github.com/johnpaparrizos/AnomalyDetection/tree/master/benchmark/dataset):
 
 - ECG (source are mitdb, ltdb, and svdb, label source unknown)
-- GHL (what is this?)
+- GHL ✓
 - NAB ✓
 - SMAP ✓
 - SMD ✓
-- SSA (tbd)
+- SSA ✓
 - YAHOO ✓
 
 [gen]: ./Genesis%20Demonstrator.ipynb
@@ -59,3 +61,5 @@ Check against datasets in [John's benchmark framework](https://github.com/johnpa
 [Metro]: ./UCI-Metro.ipynb
 [OPP]: ./UCI-Opportunity.ipynb
 [Occu]: ./UCI-Occupancy.ipynb
+[ghl]: ./GHL.ipynb
+[ssa]: ./SSA.ipynb
