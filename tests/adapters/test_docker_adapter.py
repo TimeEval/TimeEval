@@ -126,14 +126,24 @@ class TestDockerAdapter(unittest.TestCase):
         with self.assertRaises(DockerTimeoutError):
             adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("100 miliseconds"))
             adapter(Path("dummy"))
-        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": TEST_IMAGE}), [])
+        containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
 
     @pytest.mark.docker
     def test_algorithm_error_docker(self):
         with self.assertRaises(DockerAlgorithmFailedError):
             adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("1 minute"))
             adapter(Path("dummy"), {"hyper_params": {"raise": True}})
-        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": TEST_IMAGE}), [])
+        containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
 
     @pytest.mark.docker
     def test_faster_than_timeout_docker(self):
@@ -141,4 +151,20 @@ class TestDockerAdapter(unittest.TestCase):
             adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("1 minute, 40 seconds"))
             result = adapter(Path("./tests/example_data/dataset.train.csv").absolute(), {"result_path": tmp_path, "hyper_params": {}})
             np.testing.assert_array_equal(np.zeros(3600), result)
-        self.assertListEqual(docker.from_env().containers.list(all=True, filters={"name": TEST_IMAGE}), [])
+        containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_prune_docker(self):
+        docker_client = docker.from_env()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            adapter = DockerAdapter(TEST_IMAGE)
+            result = adapter(Path("./tests/example_Data/dataset.train.csv").absolute(), {"result_path": tmp_path, "hyper_params": {"sleep": 2}})
+        containers = docker_client.containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        self.assertEqual(len(containers), 1)
+        adapter.get_finalize_fn()()
+        self.assertListEqual(docker_client.containers.list(all=True, filters={"ancestor": TEST_IMAGE}), [])

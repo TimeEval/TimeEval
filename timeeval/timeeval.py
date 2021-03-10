@@ -168,7 +168,7 @@ class TimeEval:
 
         if Status.ERROR.name in df.status.unique():
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
-                            "To see all results, call .get_results(aggregated=False)")
+                             "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
         keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
@@ -197,9 +197,7 @@ class TimeEval:
                 subprocess.call(["rsync", "-a", f"{host}:{results_path}/", f"{results_path}"])
 
     def _rsync_results(self):
-        path = self.results_path / RESULTS_CSV
-        hosts = self.remote_config.worker_hosts
-        TimeEval.rsync_results(path, hosts)
+        TimeEval.rsync_results(self.results_path, self.remote_config.worker_hosts)
 
     def _prepare(self):
         n = len(self.exps)
@@ -221,18 +219,14 @@ class TimeEval:
             if prepare_fn := algorithm.prepare_fn():
                 tasks.append((prepare_fn, [], {}))
         self.log.debug(f"Collected {len(tasks)} algorithm prepare steps")
-        dir_list = []
-        for exp in self.exps:
-            dir_list.append(exp.results_path)
 
         def mkdirs(dirs: List[Path]) -> None:
             for d in dirs:
                 d.mkdir(parents=True, exist_ok=True)
 
+        dir_list = [exp.results_path for exp in self.exps]
         tasks.append((mkdirs, [dir_list], {}))
-        # for exp in self.exps:
-        #     tasks.append((exp.results_path.exists, [], {}))
-        self.log.debug(f"Collected {len(self.exps)} directory creation steps to run on remote nodes")
+        self.log.debug(f"Collected {len(dir_list)} directories to create on remote nodes")
         self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
     def _distributed_finalize(self):
@@ -268,6 +262,7 @@ class TimeEval:
             self._distributed_finalize()
         else:
             self._finalize()
+
         msg = f"FINALIZE phase done. Stored results at {self.results_path / RESULTS_CSV}"
         print(msg)
         self.log.info(msg)
