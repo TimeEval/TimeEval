@@ -12,7 +12,7 @@ from timeeval_experiments.algorithms import *
 logging.basicConfig(
     filename="timeeval.log",
     filemode="a",
-    level=logging.DEBUG,
+    level=logging.INFO,
     force=True,
     encoding="UTF-8",
     format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
