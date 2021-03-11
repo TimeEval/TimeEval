@@ -223,17 +223,17 @@ datasets = dm.select()
 TimeEval can also use **custom datasets** for the evaluation.
 To tell the TimeEval tool where it can find those custom datasets, a configuration file is needed.
 The custom datasets config file contains all custom datasets organized by their identifier which is used later on.
-Each entry in the config file must contain the path to the dataset and its dedication (usable for training or for testing);
+Each entry in the config file must contain the **absolute** path to the dataset and its dedication (if it's usable for training or for testing);
 example file `datasets.json`:
 
 ```json
 {
   "dataset_name": {
-    "data": "path/to/data.ts",
+    "data": "/path/to/data.ts",
     "train_type": "test"
   },
   "other_dataset": {
-    "dataset": "dataset2.csv",
+    "dataset": "/absolute-path/dataset2.csv",
     "train_type": "test"
   }
 }
