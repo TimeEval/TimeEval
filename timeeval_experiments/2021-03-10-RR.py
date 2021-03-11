@@ -21,7 +21,7 @@ logging.basicConfig(
 
 
 def main():
-    rr_data = Path("home/projects/akita/data/01_20201211_UseCase_FZG/03_Analysis/stgg_anomaly/datasets.json")
+    rr_data = Path("/home/projects/akita/data/01_20201211_UseCase_FZG/03_Analysis/stgg_anomaly/datasets.json")
     dm = Datasets(HPI_CLUSTER.akita_benchmark_path, custom_datasets_file=rr_data)
 
     # Select datasets and algorithms
