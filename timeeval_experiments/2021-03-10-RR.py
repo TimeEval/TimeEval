@@ -21,15 +21,14 @@ logging.basicConfig(
 
 
 def main():
-    # rr_data = Path("home/projects/akita/data/01_20201211_UseCase_FZG/03_Analysis/stgg_anomaly/datasets.json")
+    rr_data = Path("home/projects/akita/data/01_20201211_UseCase_FZG/03_Analysis/stgg_anomaly/datasets.json")
     dm = Datasets(HPI_CLUSTER.akita_benchmark_path, custom_datasets_file=rr_data)
 
     # Select datasets and algorithms
     benchmark_datasets = dm.select(train_type="unsupervised", input_type="univariate")
-    # rr_datasets = dm.select(collection_name="custom")
-    # datasets = benchmark_datasets + rr_datasets
-    datasets = benchmark_datasets[0:1]
-    print(f"Selected datasets: {datasets}")
+    rr_datasets = dm.select(collection_name="custom")
+    datasets = benchmark_datasets + rr_datasets
+    print(f"Selected datasets: {len(datasets)}")
 
     algorithms = [
         arima(),
@@ -53,7 +52,7 @@ def main():
         series2graph({"window_size": [30, 50]}),
         stamp({"window_size": [30, 50]}),
         stomp({"window_size": [30, 50]}),
-        torsk(),
+        # torsk(), # has some errors
         ts_bitmap(),
         valmod(),
         valmod([
