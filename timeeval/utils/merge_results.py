@@ -18,18 +18,9 @@ class ResultMerger:
         self.right_folder = right_folder
         self.target_folder = target_folder
 
-    def prepare_target_folder(self) -> None:
-        if self.left_folder == self.target_folder or self.right_folder == self.target_folder:
-            raise ValueError("The merge result can only be stored in a new empty folder for safety reasons!")
-        if self.target_folder.exists():
-            if not list(self.target_folder.iterdir()):
-                self.target_folder.rmdir()
-            else:
-                raise ValueError("Target folder exists and is not empty!")
-        shutil.copytree(self.left_folder, self.target_folder)
-
     def _copy_run(self, run: pd.Series, overwrite: bool = False) -> None:
-        subfolder = Path(".") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(run["repetition"])
+        subfolder = Path(".") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(
+            run["repetition"])
         if overwrite:
             shutil.rmtree(self.target_folder / subfolder)
         shutil.copytree(self.right_folder / subfolder, self.target_folder / subfolder)
@@ -41,35 +32,37 @@ class ResultMerger:
             masks.append(ref[c] == record[c])
         return reduce(lambda x, y: np.logical_and(x, y), masks)  # type: ignore
 
-    def copy_misc_files(self) -> None:
-        misc_files = [f for f in self.right_folder.iterdir() if f.is_file() and f.name != "results.csv"]
-        for file in misc_files:
-            target_filename = self.target_folder / file.name
-            # rename file if the name already exists in the target folder:
-            counter = 0
-            while target_filename.exists():
-                counter += 1
-                target_filename = self.target_folder / f"{file.stem}-{counter}{file.suffix}"
-
-            logging.info(f"Copying additional file {target_filename.name}")
-            shutil.copy2(file, target_filename)
-
     def _append(self, df_ref: pd.DataFrame, record: pd.Series, change_filesystem: bool = False) -> pd.DataFrame:
         new_idx = len(df_ref)
-        logging.info(
-            f"Run ({record[self.KEY_COLUMNS].values}) not in reference experiment; adding it as {new_idx}.")
+        self._logger.info(f"Found a run not contained in reference experiment; adding it as {new_idx}.")
         if change_filesystem:
             self._copy_run(record, overwrite=False)
+        self._logger.debug(f"Appended run {new_idx} from right side: {record.values}")
         return df_ref.append(record, ignore_index=True)
 
     def _replace(self, df_ref: pd.DataFrame, idx: int, record: pd.Series, change_filesystem: bool = False) -> None:
-        logging.info(f"Found replacement for reference experiment {idx} ({record.values})"
-                     f"with new status {record['status']}; replacing it")
+        self._logger.info(f"Found replacement for reference run {idx} (status={df_ref.loc[idx, 'status']}) "
+                          f"with new status {record['status']}; replacing it")
         if change_filesystem:
             self._copy_run(record, overwrite=True)
         df_ref.iloc[idx] = record
+        self._logger.debug(f"Replaced run {idx} with right side: {record.values}")
+
+    def prepare_target_folder(self) -> None:
+        if self.left_folder == self.target_folder or self.right_folder == self.target_folder:
+            raise ValueError("The merge result can only be stored in a new empty folder for safety reasons!")
+        if self.target_folder.exists():
+            if not list(self.target_folder.iterdir()):
+                self._logger.debug(f"Target folder exists and is empty. Removing it in order to copy the reference "
+                                   f"experiment (left) to target.")
+                self.target_folder.rmdir()
+            else:
+                raise ValueError("Target folder exists and is not empty!")
+        self._logger.info(f"Populating target folder with results from left (reference experiment)")
+        shutil.copytree(self.left_folder, self.target_folder)
 
     def merge_runs(self, change_filesystem: bool = False) -> Tuple[pd.DataFrame, List[int]]:
+        self._logger.debug(f"Changing filesystem is {'enabled' if change_filesystem else 'disabled'}!")
         df_ref = pd.read_csv(self.left_folder / "results.csv")
         df_right = pd.read_csv(self.right_folder / "results.csv")
         changed_idxs = []
@@ -89,21 +82,37 @@ class ResultMerger:
                 elif ref_status == "Status.TIMEOUT" and right_status == "Status.OK":
                     self._replace(df_ref, idx, record, change_filesystem)
                     changed_idxs.append(idx)
-                # skip all others
+                else:
+                    # skip all others
+                    self._logger.debug(
+                        f"Skipping right run {i}, bc. it does not improve result coverage of reference experiment.")
             else:
-                logging.warning(f"There are ambiguous matched for reference indices {ref_indices} and right index {i}!"
-                                f"This should not happen; skipping those!")
+                self._logger.warning(f"There are ambiguous matched for reference indices {ref_indices} and right "
+                                     f"index {i}! This should not happen; skipping those!")
 
         if change_filesystem:
             df_ref.to_csv(self.target_folder / "results.csv", index=False)
         return df_ref, changed_idxs
 
+    def copy_misc_files(self) -> None:
+        misc_files = [f for f in self.right_folder.iterdir() if f.is_file() and f.name != "results.csv"]
+        for file in misc_files:
+            target_filename = self.target_folder / file.name
+            # rename file if the name already exists in the target folder:
+            counter = 0
+            while target_filename.exists():
+                counter += 1
+                target_filename = self.target_folder / f"{file.stem}-{counter}{file.suffix}"
+
+            logging.info(f"Copying additional file {file.name} --> {target_filename.name}")
+            shutil.copy2(file, target_filename)
+
     def merge(self):
         self.prepare_target_folder()
         _, changed_idxs = self.merge_runs(change_filesystem=True)
         self.copy_misc_files()
-        logging.info(f"Added {len(changed_idxs)} runs from {self.right_folder} to {self.left_folder}."
-                     f"Result stored at {self.target_folder}")
+        self._logger.info(f"Added {len(changed_idxs)} runs from {self.right_folder} to {self.left_folder}."
+                          f"Result stored at {self.target_folder}")
 
 
 def _create_arg_parser() -> argparse.Namespace:
