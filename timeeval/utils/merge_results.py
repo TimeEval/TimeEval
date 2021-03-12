@@ -95,7 +95,7 @@ class ResultMerger:
                                 f"This should not happen; skipping those!")
 
         if change_filesystem:
-            df_ref.to_csv(self.target_folder / "results.csv")
+            df_ref.to_csv(self.target_folder / "results.csv", index=False)
         return df_ref, changed_idxs
 
     def merge(self):
@@ -115,9 +115,12 @@ def _create_arg_parser() -> argparse.Namespace:
                         help="Folder of another experiment containing additional runs that will be merged to `left`.")
     parser.add_argument("target", type=Path,
                         help="Path where the merged results are written to.")
+    parser.add_argument("--loglevel", default="INFO", choices=("ERROR", "WARNING", "INFO", "DEBUG"),
+                        help="Set logging verbosity (default: %(default)s)")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _create_arg_parser()
+    logging.basicConfig(level=args.loglevel)
     ResultMerger(args.left, args.right, args.target).merge()
