@@ -2,7 +2,7 @@ import json
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple, List, Generator
+from typing import Tuple, List, Generator, Optional
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ from .resource_constraints import ResourceConstraints
 from .times import Times
 from .utils.datasets import extract_features, extract_labels, load_dataset
 from .utils.hash_dict import hash_dict
-from .utils.metrics import roc
+from .utils.metrics import Metric
 
 
 @dataclass
@@ -26,6 +26,7 @@ class Experiment:
     repetition: int
     base_results_dir: Path
     resource_constraints: ResourceConstraints
+    metrics: List[Metric]
 
     @property
     def dataset_collection(self) -> str:
@@ -69,8 +70,10 @@ class Experiment:
         if len(y_scores.shape) == 1:
             y_scores = y_scores.reshape(-1, 1)
         y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
-        score = roc(y_scores, y_true.astype(np.float64), plot=False)
-        result = {"score": score}
+        result = {}
+        for metric in self.metrics:
+            score = metric(y_scores, y_true.astype(np.float64))
+            result[metric.name] = score
         result.update(times.to_dict())
 
         y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
@@ -85,12 +88,13 @@ class Experiment:
 class Experiments:
 
     def __init__(self, datasets: List[Tuple[str, str]], algorithms: List[Algorithm], base_result_path: Path,
-                 resource_constraints: ResourceConstraints, repetitions: int = 1):
+                 resource_constraints: ResourceConstraints, repetitions: int = 1, metrics: Optional[List[Metric]] = None):
         self.dataset_names = datasets
         self.algorithms = algorithms
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
+        self.metrics = metrics or Metric.default()
 
     def __iter__(self) -> Generator[Experiment, None, None]:
         for algorithm in self.algorithms:
@@ -103,7 +107,8 @@ class Experiments:
                             params=algorithm_config,
                             repetition=repetition,
                             base_results_dir=self.base_result_path,
-                            resource_constraints=self.resource_constraints
+                            resource_constraints=self.resource_constraints,
+                            metrics=self.metrics
                         )
 
     def __len__(self) -> int:

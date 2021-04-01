@@ -74,6 +74,6 @@ class TestOutputData(unittest.TestCase):
             true_results = pd.read_csv("./tests/example_data/results.csv")
             results = pd.read_csv(tmp_path / "2021_01_01_00_00_00" / RESULTS_CSV)
 
-            self.assertEqual(true_results.iloc[0, 3], results.iloc[0, 3])
+            self.assertEqual(true_results.loc[0, "ROC_AUC"], results.loc[0, "ROC_AUC"])
             self.assertEqual(results.hyper_params.values[0], '{"a": 0}')
             self.assertEqual(str(results.hyper_params_id.values[0]), hash_dict({"a": 0}))
