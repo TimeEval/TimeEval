@@ -13,9 +13,10 @@ class Metrics(Enum):
     RANGE_PRECISION = 1
     RANGE_RECALL = 2
     RANGE_F1 = 3
+    RANGE_PR_AUC = 4
 
     def _validate_scores(self, scores: np.ndarray):
-        if self != Metrics.ROC:
+        if self not in [Metrics.ROC, Metrics.RANGE_PR_AUC]:
             if scores.dtype != np.int_:
                 raise ValueError("When using Metrics other than ROC (like Precision, Recall or F1-Score), "
                                  "the scores must be integers and have the values {0, 1}."
@@ -30,8 +31,24 @@ class Metrics(Enum):
             return ts_precision(y_true, y_score, **kwargs)
         elif self == Metrics.RANGE_RECALL:
             return ts_recall(y_true, y_score, **kwargs)
-        else:  # if self == Metrics.RANGE_F1
+        elif self == Metrics.RANGE_F1:
             return ts_fscore(y_true, y_score, **kwargs)
+        else:  # if self == Metrics.RANGE_PR_AUC:
+            return ts_precision_recall_auc(y_true, y_score)
+
+
+def ts_precision_recall_auc(y_true: np.ndarray, y_score: np.ndarray) -> float:
+    thresholds = np.unique(y_score)
+    thresholds.sort()
+    recalls = np.zeros_like(thresholds)
+    precisions = np.zeros_like(thresholds)
+    for i, threshold in enumerate(thresholds):
+        y_pred = (y_score >= threshold).astype(np.int64)
+        recalls[i] = ts_recall(y_true, y_pred)
+        precisions[i] = ts_precision(y_true, y_pred)
+    sorted_idx = recalls.argsort()
+    area = auc(np.r_[0, recalls[sorted_idx]], np.r_[1, precisions[sorted_idx]])
+    return area
 
 
 def _substitute_nans(y_scores: Iterable[float], y_true: np.ndarray) -> np.ndarray:

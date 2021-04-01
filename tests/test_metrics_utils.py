@@ -50,3 +50,9 @@ class TestMetrics(unittest.TestCase):
         y_true = np.array([0, 1, 0, 0])
         with self.assertRaises(ValueError):
             Metrics.RANGE_F1(y_pred, y_true)
+
+    def test_range_based_pr_curve(self):
+        y_pred = np.array([0, 0.1, 1.,.5, 0, 0])
+        y_true = np.array([0, 1, 1, 1, 0, 0])
+        result = Metrics.RANGE_PR_AUC(y_pred, y_true)
+        self.assertAlmostEqual(result, 0.91666, places=4)
