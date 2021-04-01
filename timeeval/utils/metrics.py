@@ -9,14 +9,16 @@ from prts import ts_precision, ts_recall, ts_fscore
 
 
 class Metric(Enum):
-    ROC = 0
+    ROC_AUC = 0
     RANGE_PRECISION = 1
     RANGE_RECALL = 2
     RANGE_F1 = 3
     RANGE_PR_AUC = 4
 
+    DEFAULT_METRICS = [ROC_AUC]
+
     def _validate_scores(self, scores: np.ndarray):
-        if self not in [Metric.ROC, Metric.RANGE_PR_AUC]:
+        if self not in [Metric.ROC_AUC, Metric.RANGE_PR_AUC]:
             if scores.dtype != np.int_:
                 raise ValueError("When using Metrics other than ROC (like Precision, Recall or F1-Score), "
                                  "the scores must be integers and have the values {0, 1}."
@@ -25,7 +27,7 @@ class Metric(Enum):
     def __call__(self, y_score: np.ndarray, y_true: np.ndarray, **kwargs) -> float:
         self._validate_scores(y_score)
 
-        if self == Metric.ROC:
+        if self == Metric.ROC_AUC:
             return roc(y_score, y_true, **kwargs)
         elif self == Metric.RANGE_PRECISION:
             return ts_precision(y_true, y_score, **kwargs)
@@ -87,7 +89,7 @@ def _create_arg_parser():
 
     parser.add_argument("--input-file", type=str, required=True, help="Path to input file")
     parser.add_argument("--targets-file", type=str, required=True, help="Path to targets file")
-    parser.add_argument("--metric", type=Metric, default=Metric.ROC, help="Metric to plot")
+    parser.add_argument("--metric", type=Metric, default=Metric.ROC_AUC, help="Metric to plot")
 
     return parser
 
@@ -99,5 +101,5 @@ if __name__ == "__main__":
     anomaly_scores = np.loadtxt(args.input_file)
     anomaly_labels = np.loadtxt(args.targets_file)
 
-    if args.metric == Metric.ROC:
+    if args.metric == Metric.ROC_AUC:
         roc(anomaly_scores, anomaly_labels, plot=True)

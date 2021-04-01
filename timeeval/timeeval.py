@@ -70,7 +70,7 @@ class TimeEval:
 
         self.results_path = results_path.absolute() / start_date
         self.log.info(f"Results are recorded in the directory {self.results_path}")
-        self.metrics = metrics or [Metric.ROC]
+        self.metrics = metrics or Metric.DEFAULT_METRICS
         self.metric_names = [m.name for m in self.metrics]
         self.exps = Experiments(datasets, algorithms, self.results_path, resource_constraints, repetitions=repetitions)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)

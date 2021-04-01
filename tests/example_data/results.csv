@@ -1,4 +1,4 @@
-algorithm,collection,dataset,ROC,preprocessing_time,main_time,postprocessing_time
+algorithm,collection,dataset,ROC_AUC,preprocessing_time,main_time,postprocessing_time
 deviating_from_mean,custom,dataset.1,0.8102250625173659,,0.0009088516235351562,
 deviating_from_mean,custom,dataset.3,0.8102250625173659,,0.0007221698760986328,
 deviating_from_median,custom,dataset.1,0.8466240622395109,,0.0009541511535644531,
