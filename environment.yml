@@ -16,3 +16,4 @@ dependencies:
       - asyncssh==2.5.*
       - docker==4.4.*
       - durations==0.3.*
+      - prts==1.0.0.3

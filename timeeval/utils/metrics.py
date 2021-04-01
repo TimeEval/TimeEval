@@ -5,10 +5,35 @@ from typing import Iterable, Callable
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import roc_curve, auc
+from prts import ts_precision, ts_recall, ts_fscore
 
 
 class Metrics(Enum):
     ROC = 0
+    RANGE_PRECISION = 1
+    RANGE_RECALL = 2
+    RANGE_F1 = 3
+
+    def _validate_scores(self, scores: np.ndarray):
+        if self != Metrics.ROC:
+            if scores.dtype != np.int_:
+                raise ValueError("When using Metrics other than ROC (like Precision, Recall or F1-Score), "
+                                 "the scores must be integers and have the values {0, 1}."
+                                 "Please consider applying a threshold to the scores!")
+
+    def __call__(self, y_score: np.ndarray, y_true: np.ndarray, **kwargs) -> float:
+        self._validate_scores(y_score)
+
+        if self == Metrics.ROC:
+            return roc(y_score, y_true, **kwargs)
+        elif self == Metrics.RANGE_PRECISION:
+            print("Precision")
+            return ts_precision(y_true, y_score, **kwargs)
+        elif self == Metrics.RANGE_RECALL:
+            print("Recall")
+            return ts_recall(y_true, y_score, **kwargs)
+        else:  # if self == Metrics.RANGE_F1
+            return ts_fscore(y_true, y_score, **kwargs)
 
 
 def _substitute_nans(y_scores: Iterable[float], y_true: np.ndarray) -> np.ndarray:
