@@ -21,7 +21,7 @@ from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
-from .utils.metrics import Metrics
+from .utils.metrics import Metric
 
 
 class Status(Enum):
@@ -53,7 +53,7 @@ class TimeEval:
                  remote_config: Optional[RemoteConfiguration] = None,
                  resource_constraints: Optional[ResourceConstraints] = None,
                  disable_progress_bar: bool = False,
-                 metrics: Optional[List[Metrics]] = None):
+                 metrics: Optional[List[Metric]] = None):
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         resource_constraints = resource_constraints or ResourceConstraints()
@@ -70,7 +70,7 @@ class TimeEval:
 
         self.results_path = results_path.absolute() / start_date
         self.log.info(f"Results are recorded in the directory {self.results_path}")
-        self.metrics = metrics or [Metrics.ROC]
+        self.metrics = metrics or [Metric.ROC]
         self.metric_names = [m.name for m in self.metrics]
         self.exps = Experiments(datasets, algorithms, self.results_path, resource_constraints, repetitions=repetitions)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)

@@ -15,7 +15,7 @@ from .resource_constraints import ResourceConstraints
 from .times import Times
 from .utils.datasets import extract_features, extract_labels, load_dataset
 from .utils.hash_dict import hash_dict
-from .utils.metrics import Metrics
+from .utils.metrics import Metric
 
 
 @dataclass
@@ -26,7 +26,7 @@ class Experiment:
     repetition: int
     base_results_dir: Path
     resource_constraints: ResourceConstraints
-    metrics: List[Metrics]
+    metrics: List[Metric]
 
     @property
     def dataset_collection(self) -> str:
@@ -88,13 +88,13 @@ class Experiment:
 class Experiments:
 
     def __init__(self, datasets: List[Tuple[str, str]], algorithms: List[Algorithm], base_result_path: Path,
-                 resource_constraints: ResourceConstraints, repetitions: int = 1, metrics: Optional[List[Metrics]] = None):
+                 resource_constraints: ResourceConstraints, repetitions: int = 1, metrics: Optional[List[Metric]] = None):
         self.dataset_names = datasets
         self.algorithms = algorithms
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
-        self.metrics = metrics or [Metrics.ROC]
+        self.metrics = metrics or [Metric.ROC]
 
     def __iter__(self) -> Generator[Experiment, None, None]:
         for algorithm in self.algorithms:

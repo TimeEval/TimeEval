@@ -8,7 +8,7 @@ from sklearn.metrics import roc_curve, auc
 from prts import ts_precision, ts_recall, ts_fscore
 
 
-class Metrics(Enum):
+class Metric(Enum):
     ROC = 0
     RANGE_PRECISION = 1
     RANGE_RECALL = 2
@@ -16,7 +16,7 @@ class Metrics(Enum):
     RANGE_PR_AUC = 4
 
     def _validate_scores(self, scores: np.ndarray):
-        if self not in [Metrics.ROC, Metrics.RANGE_PR_AUC]:
+        if self not in [Metric.ROC, Metric.RANGE_PR_AUC]:
             if scores.dtype != np.int_:
                 raise ValueError("When using Metrics other than ROC (like Precision, Recall or F1-Score), "
                                  "the scores must be integers and have the values {0, 1}."
@@ -25,13 +25,13 @@ class Metrics(Enum):
     def __call__(self, y_score: np.ndarray, y_true: np.ndarray, **kwargs) -> float:
         self._validate_scores(y_score)
 
-        if self == Metrics.ROC:
+        if self == Metric.ROC:
             return roc(y_score, y_true, **kwargs)
-        elif self == Metrics.RANGE_PRECISION:
+        elif self == Metric.RANGE_PRECISION:
             return ts_precision(y_true, y_score, **kwargs)
-        elif self == Metrics.RANGE_RECALL:
+        elif self == Metric.RANGE_RECALL:
             return ts_recall(y_true, y_score, **kwargs)
-        elif self == Metrics.RANGE_F1:
+        elif self == Metric.RANGE_F1:
             return ts_fscore(y_true, y_score, **kwargs)
         else:  # if self == Metrics.RANGE_PR_AUC:
             return ts_precision_recall_auc(y_true, y_score)
@@ -87,7 +87,7 @@ def _create_arg_parser():
 
     parser.add_argument("--input-file", type=str, required=True, help="Path to input file")
     parser.add_argument("--targets-file", type=str, required=True, help="Path to targets file")
-    parser.add_argument("--metric", type=Metrics, default=Metrics.ROC, help="Metric to plot")
+    parser.add_argument("--metric", type=Metric, default=Metric.ROC, help="Metric to plot")
 
     return parser
 
@@ -99,5 +99,5 @@ if __name__ == "__main__":
     anomaly_scores = np.loadtxt(args.input_file)
     anomaly_labels = np.loadtxt(args.targets_file)
 
-    if args.metric == Metrics.ROC:
+    if args.metric == Metric.ROC:
         roc(anomaly_scores, anomaly_labels, plot=True)
