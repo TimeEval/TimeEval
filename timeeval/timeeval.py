@@ -21,6 +21,7 @@ from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
+from .utils.metrics import Metrics
 
 
 class Status(Enum):
@@ -30,16 +31,15 @@ class Status(Enum):
 
 
 class TimeEval:
-    RESULT_KEYS = ("algorithm",
+    RESULT_KEYS = ["algorithm",
                    "collection",
                    "dataset",
-                   "score",
                    "preprocess_time",
                    "main_time",
                    "postprocess_time",
                    "status",
                    "error_message",
-                   "repetition")
+                   "repetition"]
 
     DEFAULT_RESULT_PATH = Path("./results")
 
@@ -52,7 +52,8 @@ class TimeEval:
                  distributed: bool = False,
                  remote_config: Optional[RemoteConfiguration] = None,
                  resource_constraints: Optional[ResourceConstraints] = None,
-                 disable_progress_bar: bool = False):
+                 disable_progress_bar: bool = False,
+                 metrics: Optional[List[Metrics]] = None):
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         resource_constraints = resource_constraints or ResourceConstraints()
@@ -69,8 +70,10 @@ class TimeEval:
 
         self.results_path = results_path.absolute() / start_date
         self.log.info(f"Results are recorded in the directory {self.results_path}")
+        self.metrics = metrics or [Metrics.ROC]
+        self.metric_names = [m.name for m in self.metrics]
         self.exps = Experiments(datasets, algorithms, self.results_path, resource_constraints, repetitions=repetitions)
-        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
+        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
         self.distributed = distributed
         self.remote_config = remote_config or RemoteConfiguration()
@@ -105,7 +108,7 @@ class TimeEval:
                     f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}:")
                 f: asyncio.Future = asyncio.Future()
                 f.set_result({
-                    "score": np.nan,
+                    **{m.name: np.nan for m in self.metrics},
                     "main_time": np.nan,
                     "preprocess_time": np.nan,
                     "postprocess_time": np.nan
@@ -138,7 +141,7 @@ class TimeEval:
     def _resolve_future_results(self):
         self.remote.fetch_results()
 
-        result_keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
+        result_keys = self.metric_names + ["preprocess_time", "main_time", "postprocess_time"]
         status_keys = ["status", "error_message"]
         keys = result_keys + status_keys
 
@@ -171,7 +174,7 @@ class TimeEval:
                             "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
-        keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
+        keys = self.metric_names + ["preprocess_time", "main_time", "postprocess_time"]
         grouped_results = df.groupby(["algorithm", "collection", "dataset", "hyper_params_id"])
         repetitions = [len(v) for k, v in grouped_results.groups.items()]
         mean_results: pd.DataFrame = grouped_results.mean()[keys]

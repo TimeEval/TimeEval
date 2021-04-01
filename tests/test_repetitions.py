@@ -28,7 +28,7 @@ class TestRepetitions(unittest.TestCase):
             timeeval.run()
         results = timeeval.get_results()
 
-        np.testing.assert_array_almost_equal(results["score_mean"].values, self.results["score"].values)
+        np.testing.assert_array_almost_equal(results["ROC_mean"].values, self.results["ROC"].values)
         self.assertEqual(results["repetitions"].unique()[0], 3)
 
     def test_return_no_aggregation(self):
@@ -57,6 +57,6 @@ class TestRepetitions(unittest.TestCase):
         results = timeeval.get_results()
         print(results)
 
-        np.testing.assert_array_almost_equal(results["score_mean"].values, self.results["score"].values)
+        np.testing.assert_array_almost_equal(results["ROC_mean"].values, self.results["ROC"].values)
         # first algorithm performs 5 reps (misses one on the second dataset), second algorithm performs all 6 reps
         self.assertListEqual(results["repetitions"].tolist(), [3, 2, 3, 3])

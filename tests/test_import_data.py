@@ -58,27 +58,28 @@ class TestImportData(unittest.TestCase):
         #  (columns: "preprocessing_time", "main_time", "postprocessing_time", "status", "error_messages").
         self.results = pd.read_csv("./tests/example_data/results.csv")
         self.multi_results = pd.read_csv("./tests/example_data/results_multi.csv")
+        self.KEYS = ['algorithm', 'collection', 'dataset', 'ROC']
 
     def test_generates_correct_results(self):
         DATASET = ("custom", "dataset.1")
         generated_results = generates_results(DATASET)
         true_results = self.results[self.results.dataset == DATASET[1]]
 
-        np.testing.assert_array_equal(generated_results.iloc[:, :4].values, true_results.iloc[:, :4].values)
+        np.testing.assert_array_equal(generated_results[self.KEYS].values, true_results[self.KEYS].values)
 
     def test_generates_correct_results_from_multi_file(self):
         DATASET = ("custom", "dataset.4")
         generated_results = generates_results_multi(DATASET)
         true_results = self.multi_results[self.multi_results.dataset == DATASET[1]]
 
-        np.testing.assert_array_equal(generated_results.iloc[:, :4].values, true_results.iloc[:, :4].values)
+        np.testing.assert_array_equal(generated_results[self.KEYS].values, true_results[self.KEYS].values)
 
     def test_algorithm_with_filename(self):
         DATASET = ("custom", "dataset.1")
         generated_results = generates_results(DATASET, from_file=True)
         true_results = self.results[self.results.dataset == DATASET[1]]
 
-        np.testing.assert_array_equal(generated_results.iloc[:, :4].values, true_results.iloc[:, :4].values)
+        np.testing.assert_array_equal(generated_results[self.KEYS].values, true_results[self.KEYS].values)
 
 
 if __name__ == "__main__":

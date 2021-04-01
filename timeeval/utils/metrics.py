@@ -27,10 +27,8 @@ class Metrics(Enum):
         if self == Metrics.ROC:
             return roc(y_score, y_true, **kwargs)
         elif self == Metrics.RANGE_PRECISION:
-            print("Precision")
             return ts_precision(y_true, y_score, **kwargs)
         elif self == Metrics.RANGE_RECALL:
-            print("Recall")
             return ts_recall(y_true, y_score, **kwargs)
         else:  # if self == Metrics.RANGE_F1
             return ts_fscore(y_true, y_score, **kwargs)
