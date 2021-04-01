@@ -58,7 +58,7 @@ class TestImportData(unittest.TestCase):
         #  (columns: "preprocessing_time", "main_time", "postprocessing_time", "status", "error_messages").
         self.results = pd.read_csv("./tests/example_data/results.csv")
         self.multi_results = pd.read_csv("./tests/example_data/results_multi.csv")
-        self.KEYS = ['algorithm', 'collection', 'dataset', 'ROC']
+        self.KEYS = ['algorithm', 'collection', 'dataset', 'ROC_AUC']
 
     def test_generates_correct_results(self):
         DATASET = ("custom", "dataset.1")

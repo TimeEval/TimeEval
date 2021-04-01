@@ -1,6 +1,6 @@
 import argparse
 from enum import Enum
-from typing import Iterable, Callable
+from typing import Iterable, Callable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,7 +15,9 @@ class Metric(Enum):
     RANGE_F1 = 3
     RANGE_PR_AUC = 4
 
-    DEFAULT_METRICS = [ROC_AUC]
+    @staticmethod
+    def default() -> List['Metric']:
+        return [Metric.ROC_AUC]
 
     def _validate_scores(self, scores: np.ndarray):
         if self not in [Metric.ROC_AUC, Metric.RANGE_PR_AUC]:

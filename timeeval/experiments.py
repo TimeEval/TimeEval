@@ -94,7 +94,7 @@ class Experiments:
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
-        self.metrics = metrics or Metric.DEFAULT_METRICS
+        self.metrics = metrics or Metric.default()
 
     def __iter__(self) -> Generator[Experiment, None, None]:
         for algorithm in self.algorithms:
