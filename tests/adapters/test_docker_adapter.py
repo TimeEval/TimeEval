@@ -12,6 +12,7 @@ from durations import Duration
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DATASET_TARGET_PATH, RESULTS_TARGET_PATH, SCORES_FILE_NAME, MODEL_FILE_NAME
 from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
+from timeeval.data_types import ExecutionType
 
 DUMMY_CONTAINER = "algorithm-template-dummy"
 TEST_IMAGE = "mut:5000/akita/timeeval-test-algorithm"
@@ -52,13 +53,18 @@ class TestDockerAdapter(unittest.TestCase):
                        f'"dataOutput": "{RESULTS_TARGET_PATH}/{SCORES_FILE_NAME}", ' \
                        f'"modelInput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
                        f'"modelOutput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
-                       '"customParameters": {"a": 0}, ' \
-                       '"executionType": "execute"' \
+                       '"executionType": "train", ' \
+                       '"customParameters": {"a": 0}' \
                        '}\''
 
         adapter = DockerAdapter("test-image:latest")
-        adapter._run_container(Path("/tmp/test.csv"), {"results_path": results_path, "hyper_params": {"a": 0}})
+        adapter._run_container(Path("/tmp/test.csv"), {
+            "results_path": results_path,
+            "hyper_params": {"a": 0},
+            "executionType": ExecutionType.TRAIN
+        })
 
+        self.maxDiff = None
         self.assertEqual(mock_docker_client.containers.cmd, input_string)
 
     @patch("timeeval.adapters.docker.docker.from_env")

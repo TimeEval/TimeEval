@@ -4,7 +4,8 @@ from typing import Optional, Callable
 from sklearn.model_selection import ParameterGrid
 
 from .adapters.base import Adapter
-from .data_types import TSFunction, TSFunctionPost
+from .data_types import TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter
+
 
 
 @dataclass
@@ -15,6 +16,16 @@ class Algorithm:
     postprocess: Optional[TSFunctionPost] = None
     data_as_file: bool = False
     param_grid: ParameterGrid = ParameterGrid({})
+
+    def train(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+        args = args or {}
+        args["executionType"] = ExecutionType.TRAIN
+        return self.main(dataset, args)
+
+    def execute(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+        args = args or {}
+        args["executionType"] = ExecutionType.EXECUTE
+        return self.main(dataset, args)
 
     def prepare_fn(self) -> Optional[Callable[[], None]]:
         return self.main.get_prepare_fn()

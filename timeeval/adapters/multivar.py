@@ -1,6 +1,6 @@
 import multiprocessing as mp
 from enum import Enum
-from typing import Callable, List, Optional
+from typing import Callable, List
 
 import numpy as np
 
@@ -36,8 +36,7 @@ class MultivarAdapter(Adapter):
         scores = pool.starmap(self.fn, [(data[:, c], args) for c in range(data.shape[1])])
         return scores
 
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> np.ndarray:
-        args = args or {}
+    def _call(self, dataset: AlgorithmParameter, args: dict) -> np.ndarray:
         if isinstance(dataset, np.ndarray):
             if self.n_jobs > 1:
                 scores = self._parallel_call(dataset, args)
