@@ -37,13 +37,13 @@ class SupervisedDeviatingFromMean(Adapter):
     def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:
         model_path = args["results_path"] / "model.txt"
         if args["executionType"] == ExecutionType.TRAIN:
-            mean = np.mean(dataset[:, 1])
+            mean: np.float64 = np.mean(dataset[:, 1])  # type: ignore
             with open(model_path, "w") as f:
                 f.write(str(mean))
             return dataset
         else:
             with open(model_path, "r") as f:
-                mean = float(f.read())
+                mean = np.float64(f.read())
 
             def fn(_, **kwargs):
                 return mean
