@@ -5,6 +5,21 @@ from typing import Union, Callable
 import numpy as np
 
 
+class TrainingType(Enum):
+    UNSUPERVISED = "unsupervised"
+    SEMI_SUPERVISED = "semi-supervised"
+    SUPERVISED = "supervised"
+
+    @staticmethod
+    def from_text(name: str) -> 'TrainingType':
+        if name.lower() == TrainingType.SUPERVISED.value:
+            return TrainingType.SUPERVISED
+        elif name.lower() == TrainingType.SEMI_SUPERVISED.value:
+            return TrainingType.SEMI_SUPERVISED
+        else:  # if name.lower() == TrainingType.UNSUPERVISED.value:
+            return TrainingType.UNSUPERVISED
+
+
 class ExecutionType(Enum):
     TRAIN = "train"
     EXECUTE = "execute"

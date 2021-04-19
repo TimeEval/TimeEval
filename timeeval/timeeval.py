@@ -15,7 +15,8 @@ import tqdm
 from distributed.client import Future
 
 from .adapters.docker import DockerTimeoutError
-from .algorithm import Algorithm, TrainingType
+from .algorithm import Algorithm
+from .data_types import TrainingType
 from .constants import RESULTS_CSV
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
@@ -97,14 +98,17 @@ class TimeEval:
 
                 test_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=False)
                 train_dataset_path: Optional[Path] = None
-                if (exp.algorithm.train_type == TrainingType.SUPERVISED or
-                    exp.algorithm.train_type == TrainingType.SEMI_SUPERVISED):
+                if (exp.algorithm.training_type == TrainingType.SUPERVISED or
+                    exp.algorithm.training_type == TrainingType.SEMI_SUPERVISED):
                     # Intentionally raise KeyError here if no training dataset is specified.
                     # The Error will be caught by the except clause below.
                     train_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=True)
 
-                # TODO: check semi-supervised compatibility between algorithm and dataset!
-                # if(exp.algorithm.train_type == TrainingType.SEMI_SUPERVISED and not self.dmgr.train_is_normal(exp.dataset))
+                    # This check is not necessary for unsupervised algorithms, because they can be executed on all
+                    # datasets.
+                    if exp.algorithm.training_type != (dataset_tpe := self.dmgr.get_training_type(exp.dataset)):
+                        raise ValueError(f"Dataset training type ({dataset_tpe}) incompatible to algorithm "
+                                         f"training type ({exp.algorithm.training_type})!")
 
                 if self.distributed:
                     future_result = self.remote.add_task(exp.evaluate, train_dataset_path, test_dataset_path)

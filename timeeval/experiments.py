@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-from .algorithm import Algorithm, TrainingType
+from .algorithm import Algorithm
 from .constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
-from .data_types import AlgorithmParameter
+from .data_types import AlgorithmParameter, TrainingType
 from .resource_constraints import ResourceConstraints
 from .times import Times
 from .utils.datasets import extract_features, extract_labels, load_dataset
@@ -88,7 +88,7 @@ class Experiment:
         return result
 
     def _perform_training(self, train_dataset_path: Optional[Path]) -> dict:
-        if self.algorithm.train_type == TrainingType.UNSUPERVISED:
+        if self.algorithm.training_type == TrainingType.UNSUPERVISED:
             return {}
 
         if not train_dataset_path:
@@ -100,7 +100,7 @@ class Experiment:
             X = load_dataset(train_dataset_path).values
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file, redirect_stdout(logs_file):
-            print(f"Performing training for {self.algorithm.train_type.name} algorithm {self.algorithm.name}")
+            print(f"Performing training for {self.algorithm.training_type.name} algorithm {self.algorithm.name}")
             times = Times.from_train_algorithm(self.algorithm, X, self.build_args())
         return times.to_dict()
 
@@ -115,7 +115,7 @@ class Experiment:
                     f"Dataset '{dataset_path.name}' has a shape that was not expected: {dataset.shape}")
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file, redirect_stdout(logs_file):
-            print(f"Performing execution for {self.algorithm.train_type.name} algorithm {self.algorithm.name}")
+            print(f"Performing execution for {self.algorithm.training_type.name} algorithm {self.algorithm.name}")
             y_scores, times = Times.from_execute_algorithm(self.algorithm, X, self.build_args())
         return y_scores, times.to_dict()
 

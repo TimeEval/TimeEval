@@ -1,3 +1,4 @@
+import logging
 from functools import reduce
 from pathlib import Path
 from types import TracebackType
@@ -6,6 +7,7 @@ from typing import Final, ContextManager, Optional, Tuple, List, Type, NamedTupl
 import numpy as np
 import pandas as pd
 
+from timeeval.data_types import TrainingType
 from timeeval.datasets.custom import CustomDatasets
 from timeeval.datasets.custom_base import CustomDatasetsBase
 from timeeval.datasets.custom_noop import NoOpCustomDatasets
@@ -50,6 +52,7 @@ class Datasets(ContextManager['Datasets']):
         :param data_folder: Path to the folder, where the benchmark data is stored.
           This folder consists of the file `datasets.csv` and the datasets in an hierarchical storage layout.
         """
+        self.log = logging.getLogger(self.__class__.__name__)
         self._filepath = Path(data_folder) / self.FILENAME
         self._dirty = False
         if not self._filepath.exists():
@@ -285,3 +288,20 @@ class Datasets(ContextManager['Datasets']):
         path = self.get_dataset_path(dataset_id, train)
         # TODO: supply numpy with type information, especially for datasets with datetime_index == True
         return np.genfromtxt(path, delimiter=",", skip_header=1)
+
+    def get_training_type(self, dataset_id: DatasetId) -> TrainingType:
+        collection_name, dataset_name = dataset_id
+        if collection_name in self._custom_datasets.get_collection_names():
+            self.log.warning(f"Custom datasets lack all meta information! "
+                             f"Assuming {TrainingType.UNSUPERVISED} for {dataset_id}")
+            return TrainingType.UNSUPERVISED
+        else:
+            train_is_normal = self._get_value_internal(dataset_id, "train_is_normal")
+            train_type_name = self._get_value_internal(dataset_id, "train_type")
+            training_type = TrainingType.from_text(train_type_name)
+            if training_type == TrainingType.SEMI_SUPERVISED and not train_is_normal:
+                self.log.warning(f"Dataset {dataset_id} is specified as {training_type} ('train_type'). However, "
+                                 f"'train_is_normal' is False! Reverting back to {TrainingType.SUPERVISED}!\n"
+                                 f"Please check your dataset configuration!")
+                training_type = TrainingType.SUPERVISED
+            return training_type

@@ -6,7 +6,7 @@ import numpy as np
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
 from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.algorithm import TrainingType
+from timeeval.data_types import TrainingType
 from timeeval.experiments import Experiment
 from timeeval.resource_constraints import ResourceConstraints
 from timeeval.timeeval import Status
@@ -19,20 +19,35 @@ class TestRepetitions(unittest.TestCase):
         self.dmgr = Datasets("./tests/example_data")
         self.algorithms = [
             Algorithm(name="supervised_deviating_from_mean", main=SupervisedDeviatingFromMean(),
-                      train_type=TrainingType.SUPERVISED, data_as_file=False)
+                      training_type=TrainingType.SUPERVISED, data_as_file=False)
         ]
 
     def test_supervised_algorithm(self):
         with tempfile.TemporaryDirectory() as tmp_path:
-            timeeval = TimeEval(self.dmgr, [("test", "dataset-datetime")], self.algorithms, repetitions=1, results_path=Path(tmp_path))
+            timeeval = TimeEval(self.dmgr, [("test", "dataset-datetime")], self.algorithms, repetitions=1,
+                                results_path=Path(tmp_path))
             timeeval.run()
         results = timeeval.get_results(aggregated=False)
 
         np.testing.assert_array_almost_equal(results["ROC_AUC"].values, [0.810225])
 
+    def test_mismatched_algorithm_learning_Type(self):
+        algo = Algorithm(name="supervised_deviating_from_mean", main=SupervisedDeviatingFromMean(),
+                         training_type=TrainingType.SEMI_SUPERVISED, data_as_file=False)
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(self.dmgr, [("test", "dataset-datetime")], [algo], repetitions=1,
+                                results_path=Path(tmp_path))
+            timeeval.run()
+        results = timeeval.get_results(aggregated=False)
+
+        self.assertEqual(results.loc[0, "status"], Status.ERROR.name)
+        self.assertIn("training type", results.loc[0, "error_message"])
+        self.assertIn("incompatible", results.loc[0, "error_message"])
+
     def test_missing_training_dataset_timeeval(self):
         with tempfile.TemporaryDirectory() as tmp_path:
-            timeeval = TimeEval(self.dmgr, [("test", "dataset-int")], self.algorithms, repetitions=1, results_path=Path(tmp_path))
+            timeeval = TimeEval(self.dmgr, [("test", "dataset-int")], self.algorithms, repetitions=1,
+                                results_path=Path(tmp_path))
             timeeval.run()
         results = timeeval.get_results(aggregated=False)
 
