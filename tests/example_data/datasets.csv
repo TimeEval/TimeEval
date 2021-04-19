@@ -1,3 +1,3 @@
 collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length
-test,dataset-datetime,,dataset.test.csv,synthetic,True,,unsupervised,False,univariate,0
+test,dataset-datetime,dataset.train.csv,dataset.test.csv,synthetic,True,,supervised,False,univariate,0
 test,dataset-int,,dataset.train.csv,synthetic,False,,unsupervised,False,univariate,0

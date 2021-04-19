@@ -2,6 +2,7 @@ import unittest
 
 import psutil
 
+from timeeval import TimeEval, Datasets
 from timeeval.resource_constraints import ResourceConstraints, GB
 
 
@@ -53,3 +54,9 @@ class TestResourceConstraints(unittest.TestCase):
 
         self.assertEqual(mem, mem_overwrite)
         self.assertEqual(cpu, cpu_overwrite)
+
+    def test_tasks_per_node_overwrite_when_non_distributed(self):
+        limits = ResourceConstraints(tasks_per_host=4)
+
+        timeeval = TimeEval(Datasets("./tests/example_data"), [], [], distributed=False, resource_constraints=limits)
+        self.assertEqual(1, timeeval.exps.resource_constraints.tasks_per_host)

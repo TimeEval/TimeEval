@@ -27,6 +27,9 @@ def post(x: AlgorithmParameter, args) -> np.ndarray:
 class TestAlgorithmTimer(unittest.TestCase):
     def test_algorithm_times(self):
         algorithm = Algorithm(main=FunctionAdapter(main), preprocess=pre, postprocess=post, name="test")
+        train_times = Times.from_train_algorithm(algorithm, np.random.rand(10), {})
+        self.assertAlmostEqual(train_times.preprocess, 0.2, places=1)
+        self.assertAlmostEqual(train_times.main, 0.3, places=1)
         score, times = Times.from_execute_algorithm(algorithm, np.random.rand(10), {})
         self.assertAlmostEqual(times.preprocess, 0.2, places=1)
         self.assertAlmostEqual(times.main, 0.3, places=1)
