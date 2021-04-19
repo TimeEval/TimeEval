@@ -64,7 +64,6 @@ class TestDockerAdapter(unittest.TestCase):
             "executionType": ExecutionType.TRAIN
         })
 
-        self.maxDiff = None
         self.assertEqual(mock_docker_client.containers.cmd, input_string)
 
     @patch("timeeval.adapters.docker.docker.from_env")

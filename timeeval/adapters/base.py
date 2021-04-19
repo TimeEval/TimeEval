@@ -12,7 +12,8 @@ class Adapter(ABC):
 
     def __call__(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         args = args or {}
-        args["executionType"] = ExecutionType.EXECUTE
+        if "executionType" not in args:
+            args["executionType"] = ExecutionType.EXECUTE
         return self._call(dataset, args)
 
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:
