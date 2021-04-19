@@ -5,6 +5,7 @@ import numpy as np
 
 from timeeval import Algorithm, AlgorithmParameter
 from timeeval.adapters import FunctionAdapter
+from timeeval.data_types import ExecutionType
 from timeeval.times import Times
 
 
@@ -26,7 +27,7 @@ def post(x: AlgorithmParameter, args) -> np.ndarray:
 class TestAlgorithmTimer(unittest.TestCase):
     def test_algorithm_times(self):
         algorithm = Algorithm(main=FunctionAdapter(main), preprocess=pre, postprocess=post, name="test")
-        score, times = Times.from_algorithm(algorithm, np.random.rand(10), {})
+        score, times = Times.from_execute_algorithm(algorithm, np.random.rand(10), {})
         self.assertAlmostEqual(times.preprocess, 0.2, places=1)
         self.assertAlmostEqual(times.main, 0.3, places=1)
         self.assertAlmostEqual(times.postprocess, 0.1, places=1)
@@ -35,5 +36,5 @@ class TestAlgorithmTimer(unittest.TestCase):
         pre = 0.2
         main = 0.3
         post = 0.1
-        times = Times(main=main, preprocess=pre, postprocess=post)
-        self.assertDictEqual(times.to_dict(), {"preprocess_time": pre, "main_time": main, "postprocess_time": post})
+        times = Times(execution_type=ExecutionType.EXECUTE, main=main, preprocess=pre, postprocess=post)
+        self.assertDictEqual(times.to_dict(), {"execute_preprocess_time": pre, "execute_main_time": main, "execute_postprocess_time": post})

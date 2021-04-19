@@ -15,12 +15,13 @@ import tqdm
 from distributed.client import Future
 
 from .adapters.docker import DockerTimeoutError
-from .algorithm import Algorithm
+from .algorithm import Algorithm, TrainingType
 from .constants import RESULTS_CSV
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
+from .times import Times
 from .utils.metrics import Metric
 
 
@@ -34,9 +35,11 @@ class TimeEval:
     RESULT_KEYS = ["algorithm",
                    "collection",
                    "dataset",
-                   "preprocess_time",
-                   "main_time",
-                   "postprocess_time",
+                   "train_preprocess_time",
+                   "train_main_time",
+                   "execute_preprocess_time",
+                   "execute_main_time",
+                   "execute_postprocess_time",
                    "status",
                    "error_message",
                    "repetition"]
@@ -85,9 +88,6 @@ class TimeEval:
             self.results["future_result"] = np.nan
             self.log.info("... remoting setup done.")
 
-    def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
-        return self.dmgr.get_dataset_path(name, train=False)
-
     def _run(self):
         desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
         for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.distributed or self.disable_progress_bar):
@@ -95,23 +95,29 @@ class TimeEval:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
 
-                dataset_path = self._get_dataset_path(exp.dataset)
+                test_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=False)
+                train_dataset_path: Optional[Path] = None
+                if (exp.algorithm.train_type == TrainingType.SUPERVISED or
+                    exp.algorithm.train_type == TrainingType.SEMI_SUPERVISED):
+                    # Intentionally raise KeyError here if no training dataset is specified.
+                    # The Error will be caught by the except clause below.
+                    train_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=True)
+
+                # TODO: check semi-supervised compatibility between algorithm and dataset!
+                # if(exp.algorithm.train_type == TrainingType.SEMI_SUPERVISED and not self.dmgr.train_is_normal(exp.dataset))
 
                 if self.distributed:
-                    future_result = self.remote.add_task(exp.evaluate, dataset_path)
+                    future_result = self.remote.add_task(exp.evaluate, train_dataset_path, test_dataset_path)
                 else:
-                    result = exp.evaluate(dataset_path)
+                    result = exp.evaluate(train_dataset_path, test_dataset_path)
                 self._record_results(exp, result=result, future_result=future_result)
 
             except Exception as e:
                 self.log.exception(
-                    f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}:")
+                    f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
                 f: asyncio.Future = asyncio.Future()
                 f.set_result({
-                    **{m.name: np.nan for m in self.metrics},
-                    "main_time": np.nan,
-                    "preprocess_time": np.nan,
-                    "postprocess_time": np.nan
+                    **{m.name: np.nan for m in self.metrics}
                 })
                 self._record_results(exp, future_result=f, status=Status.ERROR, error_message=str(e))
 
@@ -141,14 +147,14 @@ class TimeEval:
     def _resolve_future_results(self):
         self.remote.fetch_results()
 
-        result_keys = self.metric_names + ["preprocess_time", "main_time", "postprocess_time"]
+        result_keys = self.metric_names + Times.result_keys()
         status_keys = ["status", "error_message"]
         keys = result_keys + status_keys
 
         def get_future_result(f: Future) -> Tuple:
             try:
                 r = f.result()
-                return tuple(r[k] for k in result_keys) + (Status.OK, None)
+                return tuple(r.get(k, None) for k in result_keys) + (Status.OK, None)
             except DockerTimeoutError as e:
                 self.log.exception(f"Exception {str(e)} occurred remotely.")
                 status = Status.TIMEOUT
@@ -174,7 +180,8 @@ class TimeEval:
                             "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
-        keys = self.metric_names + ["preprocess_time", "main_time", "postprocess_time"]
+        time_names = [key for key in Times.result_keys() if key in df.columns]
+        keys = self.metric_names + time_names
         grouped_results = df.groupby(["algorithm", "collection", "dataset", "hyper_params_id"])
         repetitions = [len(v) for k, v in grouped_results.groups.items()]
         mean_results: pd.DataFrame = grouped_results.mean()[keys]

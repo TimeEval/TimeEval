@@ -6,8 +6,8 @@ import numpy as np
 
 
 class ExecutionType(Enum):
-    TRAIN = 0
-    EXECUTE = 1
+    TRAIN = "train"
+    EXECUTE = "execute"
 
 
 AlgorithmParameter = Union[np.ndarray, Path]

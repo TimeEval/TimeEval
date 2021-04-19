@@ -1,27 +1,42 @@
 import time
 from dataclasses import dataclass, asdict
-from typing import Optional, Dict, Callable, Tuple, Any
+from typing import Optional, Dict, Callable, Tuple, Any, List
 import numpy as np
 
 from .algorithm import Algorithm
-from .data_types import AlgorithmParameter
+from .data_types import AlgorithmParameter, ExecutionType
 
 
 @dataclass
 class Times:
+    execution_type: ExecutionType
     main: float
     preprocess: Optional[float] = None
     postprocess: Optional[float] = None
 
+    @staticmethod
+    def result_keys() -> List[str]:
+        names = ["train_preprocess_time", "train_main_time",
+                 "execute_preprocess_time", "execute_main_time", "execute_postprocess_time"]
+        return names
+
     def to_dict(self) -> Dict:
-        return {f"{k}_time": v for k, v in asdict(self).items()}
+        dd = asdict(self)
+        del dd["execution_type"]
+        return {f"{self.execution_type.value}_{k}_time": v for k, v in dd.items()}
 
     @staticmethod
-    def from_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> Tuple[np.ndarray, 'Times']:
+    def from_execute_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> Tuple[np.ndarray, 'Times']:
         x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, np.nan)
-        x, main_time = timer(algorithm.main, x, args)  # type: ignore # => https://github.com/python/mypy/issues/5485
+        x, main_time = timer(algorithm.execute, x, args)  # type: ignore # => https://github.com/python/mypy/issues/5485
         x, post_time = timer(algorithm.postprocess, x, args) if algorithm.postprocess else(x, np.nan)
-        return x, Times(main_time, preprocess=pre_time, postprocess=post_time)
+        return x, Times(ExecutionType.EXECUTE, main_time, preprocess=pre_time, postprocess=post_time)
+
+    @staticmethod
+    def from_train_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> 'Times':
+        x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, np.nan)
+        x, main_time = timer(algorithm.train, x, args)  # type: ignore # => https://github.com/python/mypy/issues/5485
+        return Times(ExecutionType.TRAIN, main_time, preprocess=pre_time)
 
 
 def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, float]:

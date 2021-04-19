@@ -89,13 +89,13 @@ class DockerAdapter(Adapter):
             dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute(),
             modelInput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
             modelOutput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
-            executionType=args.get("executionType", ExecutionType.EXECUTE),
+            executionType=args.get("executionType", ExecutionType.EXECUTE.value),
             customParameters=args.get("hyper_params", {}),
         )
 
         gid = DockerAdapter._get_gid(self.group)
         uid = DockerAdapter._get_uid()
-        print(f"Running container with uid={uid} and gid={gid} privileges")
+        print(f"Running container with uid={uid} and gid={gid} privileges in {algorithm_interface.executionType} mode.")
 
         memory_limit, cpu_limit = self._get_resource_constraints(args)
         cpu_shares = int(cpu_limit * 1e9)
@@ -148,7 +148,10 @@ class DockerAdapter(Adapter):
         container = self._run_container(dataset, args)
         self._run_until_timeout(container, args)
 
-        return self._read_results(args)
+        if args.get("executionType", ExecutionType.EXECUTE) == ExecutionType.EXECUTE:
+            return self._read_results(args)
+        else:
+            return dataset
 
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:
         if not self.skip_pull:
