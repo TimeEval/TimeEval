@@ -53,7 +53,7 @@ class TestOutputData(unittest.TestCase):
             timeeval.run()
             parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / self.hash / "test" / "dataset-int" / "1"
 
-            self.assertEqual(str(parent_path)+"\n", (parent_path / EXECUTION_LOG).open("r").read())
+            self.assertIn(str(parent_path), (parent_path / EXECUTION_LOG).open("r").read())
 
     def test_hyper_params_json_exists_and_is_correct(self):
         with tempfile.TemporaryDirectory() as tmp_path:

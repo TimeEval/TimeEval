@@ -1,7 +1,7 @@
 import getpass
 import logging
 import subprocess
-from typing import List, Optional
+from typing import List
 
 from .base import Adapter
 from ..data_types import TSFunction, AlgorithmParameter
@@ -32,9 +32,9 @@ class DistributedAdapter(Adapter):
         ssh_process.stdin.write(f"screen -dm bash -c \"{self.remote_command}\"")
         ssh_process.stdin.close()
 
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None):
+    def _call(self, dataset: AlgorithmParameter, args: dict):
         # remote call
         for remote_host in self.remote_hosts:
             self._remote_command(remote_host)
         # local call
-        return self.algorithm(dataset, args or {})
+        return self.algorithm(dataset, args)

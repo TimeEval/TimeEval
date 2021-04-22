@@ -1,5 +1,4 @@
 import subprocess
-from typing import Optional
 
 import numpy as np
 
@@ -24,7 +23,7 @@ class JarAdapter(Adapter):
     def _read_results(self) -> np.ndarray:
         return np.loadtxt(self.output_file)
 
-    def _call(self, _: AlgorithmParameter, args: Optional[dict] = None) -> np.ndarray:
+    def _call(self, _1: AlgorithmParameter, _2: dict) -> np.ndarray:
         stdout = subprocess.STDOUT if self.verbose else subprocess.DEVNULL
         subprocess.call(f"java -jar {self.jar_file} {self._format_args()} {self._format_kwargs()}".split(),
                         stdout=stdout, stderr=subprocess.STDOUT)

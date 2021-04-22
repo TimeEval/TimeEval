@@ -1,7 +1,6 @@
 import json
 import subprocess
 from dataclasses import dataclass, asdict, field
-from enum import Enum
 from pathlib import Path, WindowsPath, PosixPath
 from typing import Optional, Any, Callable, Final, Tuple
 
@@ -13,6 +12,7 @@ from docker.models.containers import Container
 from durations import Duration
 
 from .base import Adapter, AlgorithmParameter
+from ..data_types import ExecutionType
 from ..resource_constraints import ResourceConstraints, GB
 
 DATASET_TARGET_PATH = "/data"
@@ -32,11 +32,6 @@ class DockerJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-class ExecutionType(Enum):
-    TRAIN = 0
-    EXECUTE = 1
-
-
 class DockerTimeoutError(Exception):
     pass
 
@@ -51,8 +46,8 @@ class AlgorithmInterface:
     dataOutput: Path
     modelInput: Path
     modelOutput: Path
+    executionType: ExecutionType
     customParameters: dict = field(default_factory=dict)
-    executionType: ExecutionType = ExecutionType.EXECUTE
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)
@@ -94,12 +89,13 @@ class DockerAdapter(Adapter):
             dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute(),
             modelInput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
             modelOutput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
-            customParameters=args.get("hyper_params", {})
+            executionType=args.get("executionType", ExecutionType.EXECUTE.value),
+            customParameters=args.get("hyper_params", {}),
         )
 
         gid = DockerAdapter._get_gid(self.group)
         uid = DockerAdapter._get_uid()
-        print(f"Running container with uid={uid} and gid={gid} privileges")
+        print(f"Running container with uid={uid} and gid={gid} privileges in {algorithm_interface.executionType} mode.")
 
         memory_limit, cpu_limit = self._get_resource_constraints(args)
         cpu_shares = int(cpu_limit * 1e9)
@@ -146,14 +142,16 @@ class DockerAdapter(Adapter):
 
     # Adapter overwrites
 
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+    def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
             "Docker adapters cannot handle NumPy arrays! Please put in the path to the dataset."
-        args = args or {}
         container = self._run_container(dataset, args)
         self._run_until_timeout(container, args)
 
-        return self._read_results(args)
+        if args.get("executionType", ExecutionType.EXECUTE) == ExecutionType.EXECUTE:
+            return self._read_results(args)
+        else:
+            return dataset
 
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:
         if not self.skip_pull:

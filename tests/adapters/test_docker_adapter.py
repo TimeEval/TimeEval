@@ -12,6 +12,7 @@ from durations import Duration
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DATASET_TARGET_PATH, RESULTS_TARGET_PATH, SCORES_FILE_NAME, MODEL_FILE_NAME
 from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
+from timeeval.data_types import ExecutionType
 
 DUMMY_CONTAINER = "algorithm-template-dummy"
 TEST_IMAGE = "mut:5000/akita/timeeval-test-algorithm"
@@ -52,12 +53,16 @@ class TestDockerAdapter(unittest.TestCase):
                        f'"dataOutput": "{RESULTS_TARGET_PATH}/{SCORES_FILE_NAME}", ' \
                        f'"modelInput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
                        f'"modelOutput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
-                       '"customParameters": {"a": 0}, ' \
-                       '"executionType": "execute"' \
+                       '"executionType": "train", ' \
+                       '"customParameters": {"a": 0}' \
                        '}\''
 
         adapter = DockerAdapter("test-image:latest")
-        adapter._run_container(Path("/tmp/test.csv"), {"results_path": results_path, "hyper_params": {"a": 0}})
+        adapter._run_container(Path("/tmp/test.csv"), {
+            "results_path": results_path,
+            "hyper_params": {"a": 0},
+            "executionType": ExecutionType.TRAIN
+        })
 
         self.assertEqual(mock_docker_client.containers.cmd, input_string)
 
@@ -163,8 +168,11 @@ class TestDockerAdapter(unittest.TestCase):
         docker_client = docker.from_env()
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter(TEST_IMAGE)
-            result = adapter(Path("./tests/example_Data/dataset.train.csv").absolute(), {"result_path": tmp_path, "hyper_params": {"sleep": 2}})
+            result = adapter(Path("./tests/example_data/dataset.train.csv").absolute(), {"result_path": tmp_path, "hyper_params": {"sleep": 2}})
         containers = docker_client.containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
         self.assertEqual(len(containers), 1)
         adapter.get_finalize_fn()()
         self.assertListEqual(docker_client.containers.list(all=True, filters={"ancestor": TEST_IMAGE}), [])
