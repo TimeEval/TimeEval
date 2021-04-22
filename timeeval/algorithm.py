@@ -18,6 +18,10 @@ class Algorithm:
     param_grid: ParameterGrid = ParameterGrid({})
 
     def train(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+        if self.training_type == TrainingType.UNSUPERVISED:
+            raise ValueError("Calling 'train()' on an unsupervised algorithm is not supported! "
+                             f"Algorithm '{self.name}' has training type '{self.training_type.value}', but you tried "
+                             f"to execute the training step. Please check the algorithm configuration for {self.name}!")
         args = args or {}
         args["executionType"] = ExecutionType.TRAIN
         return self.main(dataset, args)

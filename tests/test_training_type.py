@@ -13,7 +13,7 @@ from timeeval.timeeval import Status
 from timeeval.utils.metrics import Metric
 
 
-class TestRepetitions(unittest.TestCase):
+class TestTrainingType(unittest.TestCase):
 
     def setUp(self) -> None:
         self.dmgr = Datasets("./tests/example_data")
