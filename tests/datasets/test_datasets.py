@@ -64,7 +64,7 @@ custom_dataset_names = ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4"
 
 
 def _fill_file(path, lines=(content_nab,)):
-    with open(path / Datasets.FILENAME, "w") as f:
+    with open(path / Datasets.INDEX_FILENAME, "w") as f:
         f.write(header)
         f.write("\n")
         for l in lines:
@@ -73,8 +73,8 @@ def _fill_file(path, lines=(content_nab,)):
 
 
 def _read_file(path):
-    assert os.path.isfile(path / Datasets.FILENAME)
-    with open(path / Datasets.FILENAME, "r") as f:
+    assert os.path.isfile(path / Datasets.INDEX_FILENAME)
+    with open(path / Datasets.INDEX_FILENAME, "r") as f:
         return [l.strip() for l in f.readlines()]
 
 
@@ -95,13 +95,13 @@ def _add_dataset(dm):
 
 def test_initialize_empty_folder(tmp_path):
     Datasets(data_folder=tmp_path)
-    assert os.path.isfile(tmp_path / Datasets.FILENAME)
+    assert os.path.isfile(tmp_path / Datasets.INDEX_FILENAME)
 
 
 def test_initialize_missing_folder(tmp_path):
     target = tmp_path / "subfolder"
     Datasets(data_folder=target)
-    assert os.path.isfile(target / Datasets.FILENAME)
+    assert os.path.isfile(target / Datasets.INDEX_FILENAME)
 
 
 def test_initialize_existing(tmp_path):
@@ -167,7 +167,7 @@ def test_refresh(tmp_path):
     assert list(dm.get_collection_names()) == []
     assert list(dm.get_dataset_names()) == []
 
-    with open(tmp_path / Datasets.FILENAME, "a") as f:
+    with open(tmp_path / Datasets.INDEX_FILENAME, "a") as f:
         f.write(content_nab)
         f.write("\n")
 

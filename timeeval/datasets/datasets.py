@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from timeeval.data_types import TrainingType
+#from timeeval.datasets.metadata import DatasetAnalyzer
 from timeeval.datasets.custom import CustomDatasets
 from timeeval.datasets.custom_base import CustomDatasetsBase
 from timeeval.datasets.custom_noop import NoOpCustomDatasets
@@ -40,7 +41,8 @@ class Datasets(ContextManager['Datasets']):
     Read-only access is fine with multiple processes.
     """
 
-    FILENAME: Final[str] = "datasets.csv"
+    INDEX_FILENAME: Final[str] = "datasets.csv"
+    DATASET_METADATA_FILENAME: Final[str] = "metadata.json"
 
     _filepath: Path
     _dirty: bool
@@ -53,10 +55,10 @@ class Datasets(ContextManager['Datasets']):
           This folder consists of the file `datasets.csv` and the datasets in an hierarchical storage layout.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self._filepath = Path(data_folder) / self.FILENAME
+        self._filepath = Path(data_folder) / self.INDEX_FILENAME
         self._dirty = False
         if not self._filepath.exists():
-            self._df = self._create_metadata_file()
+            self._df = self._create_index_file()
         else:
             self.refresh(force=True)
 
@@ -79,10 +81,10 @@ class Datasets(ContextManager['Datasets']):
     def __str__(self) -> str:
         return f"{str(self._df)}\nCustom datasets:\n{str(self._custom_datasets)}"
 
-    def _create_metadata_file(self) -> pd.DataFrame:
+    def _create_index_file(self) -> pd.DataFrame:
         df_temp = pd.DataFrame(
-            columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index", "split_at",
-                     "train_type", "train_is_normal", "input_type", "length"])
+            columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index",
+                     "split_at", "train_type", "train_is_normal", "input_type", "length"])
         df_temp.set_index(["collection_name", "dataset_name"], inplace=True)
         dataset_dir = self._filepath.parent
         if not dataset_dir.is_dir():
@@ -255,7 +257,7 @@ class Datasets(ContextManager['Datasets']):
 
     def df(self) -> pd.DataFrame:
         """Returns a copy of the internal dataset metadata collection."""
-        df = pd.concat([self._df, self._build_custom_df()], axis=0)
+        df = pd.concat([self._df, self._build_custom_df()], axis=0, copy=True)
         df = df[~df.index.duplicated(keep="last")]
         df = df.sort_index()
         return df
@@ -305,3 +307,9 @@ class Datasets(ContextManager['Datasets']):
                                  f"Please check your dataset configuration!")
                 training_type = TrainingType.SUPERVISED
             return training_type
+
+    # def get_metadata(self, dataset_id: DatasetId, train: bool = False):
+    #     path = self.get_dataset_path(dataset_id, train)
+    #     if path.parent.exists():
+    #         metadata = DatasetAnalyzer.load_from_json(path.parent / self.DATASET_METADATA_FILENAME, train)
+

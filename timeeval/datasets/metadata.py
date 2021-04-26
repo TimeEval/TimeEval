@@ -5,7 +5,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 from functools import reduce
 from pathlib import Path
-from typing import Tuple, List, Optional, Dict, Generator, Any
+from typing import Tuple, List, Optional, Dict, Generator, Any, Union
 
 import numpy as np
 import pandas as pd
@@ -169,7 +169,7 @@ class DatasetMetadataEncoder(JSONEncoder):
                 stationarities_dict[k] = Stationarity[v.upper()]
 
             return DatasetMetadata(
-                dataset_id=tuple(dct["dataset_id"]),
+                dataset_id=tuple(dct["dataset_id"]),  # type: ignore
                 is_train=dct["is_train"],
                 length=dct["length"],
                 dimensions=dct["dimensions"],
@@ -219,7 +219,7 @@ class DatasetAnalyzer:
             trends=self.trends,
         )
 
-    def save_to_json(self, filename: str, overwrite: bool = False) -> None:
+    def save_to_json(self, filename: Union[str, Path], overwrite: bool = False) -> None:
         fp = Path(filename)
         metadata = []
         if fp.exists():
@@ -232,7 +232,7 @@ class DatasetAnalyzer:
                 if not isinstance(existing_metadata, List) or len(existing_metadata) == 0:
                     self.log.error(f"Existing metadata in file {fp} has the wrong format!"
                                    f"Creating backup before writing new metadata.")
-                    shutil.move(fp, fp.parent / f"{fp.name}.bak")
+                    shutil.move(fp.as_posix(), fp.parent / f"{fp.name}.bak")
                 else:
                     metadata = existing_metadata
         self.log.debug(f"Writing detailed metadata about {'training' if self.is_train else 'testing'} dataset "
@@ -241,6 +241,15 @@ class DatasetAnalyzer:
         with open(filename, "w") as f:
             json.dump(metadata, f, indent=2, sort_keys=True, cls=DatasetMetadataEncoder)
             f.write("\n")
+
+    @staticmethod
+    def load_from_json(filename: Union[str, Path], train: bool = False) -> DatasetMetadata:
+        with open(filename, "r") as f:
+            metadata_list: List[DatasetMetadata] = json.load(f, object_hook=DatasetMetadataEncoder.object_hook)
+            for metadata in metadata_list:
+                if metadata.is_train == train:
+                    return metadata
+            raise ValueError(f"No metadata for {'training' if train else 'testing'} dataset in file {filename} found!")
 
     def _find_base_metadata(self) -> None:
         self.length = len(self.df)
