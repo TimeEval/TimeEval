@@ -70,8 +70,8 @@ class DatasetMetadata:
     anomaly_length: AnomalyLength
     means: Dict[str, float]
     stddevs: Dict[str, float]
-    stationarities: Dict[str, Stationarity]
     trends: Dict[str, List[Trend]]
+    stationarities: Dict[str, Stationarity]
 
     @property
     def channels(self) -> int:
@@ -82,12 +82,28 @@ class DatasetMetadata:
         return self.length, self.dimensions
 
     @property
+    def mean(self) -> float:
+        # mypy can't infer that this actually is a float
+        if not self.means:
+            return 0
+        return np.mean(list(self.means.values()))  # type: ignore
+
+    @property
+    def stddev(self) -> float:
+        if not self.stddevs:
+            return 0
+        # mypy can't infer that this actually is a float
+        return np.mean(list(self.stddevs.values()))  # type: ignore
+
+    @property
     def trend(self) -> str:
         def highest_order_trend(l_trend: List[Trend]) -> Trend:
             return reduce(lambda t1, t2: t1 if t1.order >= t2.order else t2, l_trend)
 
         trend: Optional[Trend] = None
         for v in self.trends.values():
+            if not v:
+                continue
             t = highest_order_trend(v)
             if not trend:
                 trend = t
@@ -97,16 +113,6 @@ class DatasetMetadata:
             return trend.name
         else:
             return "no trend"
-
-    @property
-    def mean(self) -> float:
-        # mypy can't infer that this actually is a float
-        return np.mean(self.means.values())  # type: ignore
-
-    @property
-    def stddev(self) -> float:
-        # mypy can't infer that this actually is a float
-        return np.mean(self.stddevs.values())  # type: ignore
 
     @property
     def stationarity(self) -> Stationarity:
@@ -171,6 +177,8 @@ class DatasetAnalyzer:
         )
 
     def save_to_json(self, filename: str) -> None:
+        self.log.debug(f"Writing detailed metadata about {'training' if self.is_train else 'testing'} dataset "
+                       f"{self.dataset_id} to file {filename}")
         metadata = self.metadata
         with open(filename, "w") as f:
             json.dump(metadata, f, indent=2, sort_keys=True, cls=DatasetMetadataEncoder)
@@ -180,17 +188,19 @@ class DatasetAnalyzer:
         self.length = len(self.df)
         self.dimensions = len(self.df.columns) - 2
         self.contamination = len(self.df[self.df["is_anomaly"] == 1]) / self.length
+
         means = self.df.iloc[:, 1:-1].mean(axis=0)
         stddevs = self.df.iloc[:, 1:-1].std(axis=0)
         self.means = dict(means.items())
         self.stddevs = dict(stddevs.items())
+
         labels = self.df["is_anomaly"]
         label_groups = labels.groupby((labels.shift() != labels).cumsum())
         anomalies = [len(v) for k, v in label_groups if np.all(v)]
-        self.num_anomalies = len(anomalies)
         min_anomaly_length = np.min(anomalies)
         median_anomaly_length = int(np.median(anomalies))
         max_anomaly_length = np.max(anomalies)
+        self.num_anomalies = len(anomalies)
         self.anomaly_length = AnomalyLength(
             min=min_anomaly_length,
             median=median_anomaly_length,
