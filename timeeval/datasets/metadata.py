@@ -1,5 +1,6 @@
 import json
 import logging
+import shutil
 from dataclasses import dataclass, asdict
 from enum import Enum
 from functools import reduce
@@ -13,7 +14,8 @@ from statsmodels.tsa.stattools import adfuller, kpss
 
 import timeeval.utils.datasets as datasets_utils
 from timeeval.datasets.datasets import DatasetId, Datasets
-from json import JSONEncoder
+from json import JSONEncoder, JSONDecoder
+from copy import deepcopy
 
 
 @dataclass
@@ -125,6 +127,15 @@ class DatasetMetadata:
     def get_stationarity_name(self) -> str:
         return self.stationarity.name.lower()
 
+    def to_json(self, pretty: bool = False) -> str:
+        return json.dumps(self, cls=DatasetMetadataEncoder,
+                          indent=2 if pretty else None,
+                          sort_keys=True if pretty else False)
+
+    @staticmethod
+    def from_json(s: str) -> 'DatasetMetadata':
+        return json.loads(s, object_hook=DatasetMetadataEncoder.object_hook)
+
 
 class DatasetMetadataEncoder(JSONEncoder):
     def default(self, o: Any) -> Any:
@@ -140,6 +151,38 @@ class DatasetMetadataEncoder(JSONEncoder):
             return float(o)
         else:
             return super(DatasetMetadataEncoder, self).default(o)
+
+    @staticmethod
+    def object_hook(dct: dict) -> Any:
+        if "anomaly_length" in dct and "dataset_id" in dct and "is_train" in dct and "contamination" in dct:
+            anomaly_length_dict = dct["anomaly_length"]
+            anomaly_length = AnomalyLength(
+                min=anomaly_length_dict["min"],
+                median=anomaly_length_dict["median"],
+                max=anomaly_length_dict["max"]
+            )
+            trends = deepcopy(dct["trends"])
+            for k, obj in trends.items():
+                trends[k] = [Trend(TrendType[t["tpe"].upper()], t["coef"], t["confidence_r2"]) for t in obj]
+            stationarities_dict = deepcopy(dct["stationarities"])
+            for k, v in stationarities_dict.items():
+                stationarities_dict[k] = Stationarity[v.upper()]
+
+            return DatasetMetadata(
+                dataset_id=tuple(dct["dataset_id"]),
+                is_train=dct["is_train"],
+                length=dct["length"],
+                dimensions=dct["dimensions"],
+                contamination=dct["contamination"],
+                anomaly_length=anomaly_length,
+                num_anomalies=dct["num_anomalies"],
+                means=dct["means"],
+                stddevs=dct["stddevs"],
+                trends=trends,
+                stationarities=stationarities_dict,
+            )
+        else:
+            return dct
 
 
 class DatasetAnalyzer:
@@ -176,10 +219,25 @@ class DatasetAnalyzer:
             trends=self.trends,
         )
 
-    def save_to_json(self, filename: str) -> None:
+    def save_to_json(self, filename: str, overwrite: bool = False) -> None:
+        fp = Path(filename)
+        metadata = []
+        if fp.exists():
+            if overwrite:
+                self.log.warning(f"{fp} already exists, but 'overwrite' was specified! Ignoring existing contents.")
+            else:
+                self.log.info(f"{fp} already exists. Reading contents and appending new metadata.")
+                with open(fp, "r") as f:
+                    existing_metadata = json.load(f)
+                if not isinstance(existing_metadata, List) or len(existing_metadata) == 0:
+                    self.log.error(f"Existing metadata in file {fp} has the wrong format!"
+                                   f"Creating backup before writing new metadata.")
+                    shutil.move(fp, fp.parent / f"{fp.name}.bak")
+                else:
+                    metadata = existing_metadata
         self.log.debug(f"Writing detailed metadata about {'training' if self.is_train else 'testing'} dataset "
                        f"{self.dataset_id} to file {filename}")
-        metadata = self.metadata
+        metadata.append(self.metadata)
         with open(filename, "w") as f:
             json.dump(metadata, f, indent=2, sort_keys=True, cls=DatasetMetadataEncoder)
             f.write("\n")
