@@ -93,9 +93,9 @@ class DatasetAnalyzer:
         labels = self.df["is_anomaly"]
         label_groups = labels.groupby((labels.shift() != labels).cumsum())
         anomalies = [len(v) for k, v in label_groups if np.all(v)]
-        min_anomaly_length = np.min(anomalies)
-        median_anomaly_length = int(np.median(anomalies))
-        max_anomaly_length = np.max(anomalies)
+        min_anomaly_length = np.min(anomalies) if anomalies else 0
+        median_anomaly_length = int(np.median(anomalies)) if anomalies else 0
+        max_anomaly_length = np.max(anomalies) if anomalies else 0
         self.num_anomalies = len(anomalies)
         self.anomaly_length = AnomalyLength(
             min=min_anomaly_length,
