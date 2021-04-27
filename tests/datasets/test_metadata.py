@@ -7,7 +7,8 @@ from typing import List
 
 import numpy as np
 
-from timeeval.datasets.metadata import Trend, TrendType, DatasetMetadata, AnomalyLength, Stationarity, DatasetAnalyzer, \
+from timeeval.datasets.analyzer import DatasetAnalyzer
+from timeeval.datasets.metadata import Trend, TrendType, DatasetMetadata, AnomalyLength, Stationarity, \
     DatasetMetadataEncoder
 
 dataset_metadata = DatasetMetadata(

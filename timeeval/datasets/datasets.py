@@ -2,16 +2,17 @@ import logging
 from functools import reduce
 from pathlib import Path
 from types import TracebackType
-from typing import Final, ContextManager, Optional, Tuple, List, Type, NamedTuple, Union
+from typing import Final, ContextManager, Optional, List, Type, Union, NamedTuple
 
 import numpy as np
 import pandas as pd
 
 from timeeval.data_types import TrainingType
-#from timeeval.datasets.metadata import DatasetAnalyzer
+from timeeval.datasets.analyzer import DatasetAnalyzer
 from timeeval.datasets.custom import CustomDatasets
 from timeeval.datasets.custom_base import CustomDatasetsBase
 from timeeval.datasets.custom_noop import NoOpCustomDatasets
+from timeeval.datasets.metadata import DatasetId, DatasetMetadata
 
 
 class DatasetRecord(NamedTuple):
@@ -26,9 +27,6 @@ class DatasetRecord(NamedTuple):
     train_is_normal: bool
     input_type: str
     length: int
-
-
-DatasetId = Tuple[str, str]
 
 
 class Datasets(ContextManager['Datasets']):
@@ -308,8 +306,17 @@ class Datasets(ContextManager['Datasets']):
                 training_type = TrainingType.SUPERVISED
             return training_type
 
-    # def get_metadata(self, dataset_id: DatasetId, train: bool = False):
-    #     path = self.get_dataset_path(dataset_id, train)
-    #     if path.parent.exists():
-    #         metadata = DatasetAnalyzer.load_from_json(path.parent / self.DATASET_METADATA_FILENAME, train)
-
+    def get_metadata(self, dataset_id: DatasetId, train: bool = False) -> DatasetMetadata:
+        path = self.get_dataset_path(dataset_id, train)
+        metadata_file = path.parent / self.DATASET_METADATA_FILENAME
+        if metadata_file.exists():
+            try:
+                return DatasetAnalyzer.load_from_json(metadata_file, train)
+            except ValueError:
+                self.log.debug(f"Metadata file existed, but the requested file info was not found, recreating it.")
+        else:
+            self.log.debug(
+                f"No metadata file for {dataset_id} exists. Analyzing dataset on-the-fly and storing result.")
+        dm = DatasetAnalyzer(dataset_id, is_train=train, dmgr=self)
+        dm.save_to_json(metadata_file)
+        return dm.metadata

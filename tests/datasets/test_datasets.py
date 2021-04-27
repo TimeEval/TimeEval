@@ -367,3 +367,28 @@ def test_df_with_custom(tmp_path):
     assert df.loc[(nab_record.collection_name, nab_record.dataset_name), "train_type"] == nab_record.train_type
     assert np.isnan(df.loc[("custom", "dataset.1"), "train_type"])
     assert df.loc[("custom", "dataset.1.train"), "train_path"] == "tests/example_data/dataset.train.csv"
+
+
+def test_metadata(tmp_path):
+    _fill_file(tmp_path, lines=[content_test])
+    # write example data
+    with open(tmp_path / "path_test.csv", "w") as f:
+        f.write(dataset_content)
+
+    metadata_file = tmp_path / "metadata.json"
+    dm = Datasets(tmp_path)
+    # test generate file
+    metadata = dm.get_metadata((test_record.collection_name, test_record.dataset_name), train=False)
+    assert metadata_file.exists()
+
+    # test generate for train file and add to existing file
+    before_size = metadata_file.stat().st_size
+    metadata_train = dm.get_metadata((test_record.collection_name, test_record.dataset_name), train=True)
+    assert before_size < metadata_file.stat().st_size
+    assert metadata != metadata_train
+
+    # test reading existing file (without chaning it)
+    before_changed_time = metadata_file.stat().st_mtime_ns
+    metadata2 = dm.get_metadata((test_record.collection_name, test_record.dataset_name), train=False)
+    assert before_changed_time == metadata_file.stat().st_mtime_ns
+    assert metadata == metadata2
