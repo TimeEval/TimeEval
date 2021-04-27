@@ -27,6 +27,16 @@ class DatasetRecord(NamedTuple):
     train_is_normal: bool
     input_type: str
     length: int
+    dimensions: int
+    contamination: float
+    num_anomalies: int
+    min_anomaly_length: int
+    median_anomaly_length: int
+    max_anomaly_length: int
+    mean: float
+    stddev: float
+    trend: str
+    stationarity: str
 
 
 class Datasets(ContextManager['Datasets']):
@@ -82,7 +92,9 @@ class Datasets(ContextManager['Datasets']):
     def _create_index_file(self) -> pd.DataFrame:
         df_temp = pd.DataFrame(
             columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index",
-                     "split_at", "train_type", "train_is_normal", "input_type", "length"])
+                     "split_at", "train_type", "train_is_normal", "input_type", "length", "dimensions", "contamination",
+                     "num_anomalies", "min_anomaly_length", "median_anomaly_length", "max_anomaly_length", "mean",
+                     "stddev", "trend", "stationarity"])
         df_temp.set_index(["collection_name", "dataset_name"], inplace=True)
         dataset_dir = self._filepath.parent
         if not dataset_dir.is_dir():
@@ -116,34 +128,33 @@ class Datasets(ContextManager['Datasets']):
         else:
             return pd.DataFrame()
 
-    def add_dataset(self,
-                    dataset_id: DatasetId,
-                    train_path: Optional[str],
-                    test_path: str,
-                    dataset_type: str,
-                    datetime_index: bool,
-                    split_at: int,
-                    train_type: str,
-                    train_is_normal: bool,
-                    input_type: str,
-                    dataset_length: int
-                    ) -> None:
+    def add_dataset(self, dataset: DatasetRecord) -> None:
         """
         Add a new dataset to the benchmark dataset collection (in-memory).
         If the same dataset ID (collection_name, dataset_name) is specified than an existing dataset,
         its entries are overwritten!
         """
         df_new = pd.DataFrame({
-            "train_path": train_path,
-            "test_path": test_path,
-            "dataset_type": dataset_type,
-            "datetime_index": datetime_index,
-            "split_at": split_at,
-            "train_type": train_type,
-            "train_is_normal": train_is_normal,
-            "input_type": input_type,
-            "length": dataset_length
-        }, index=[dataset_id])
+            "train_path": dataset.train_path,
+            "test_path": dataset.test_path,
+            "dataset_type": dataset.dataset_type,
+            "datetime_index": dataset.datetime_index,
+            "split_at": dataset.split_at,
+            "train_type": dataset.train_type,
+            "train_is_normal": dataset.train_is_normal,
+            "input_type": dataset.input_type,
+            "length": dataset.length,
+            "dimensions": dataset.dimensions,
+            "contamination": dataset.contamination,
+            "num_anomalies": dataset.num_anomalies,
+            "min_anomaly_length": dataset.min_anomaly_length,
+            "median_anomaly_length": dataset.median_anomaly_length,
+            "max_anomaly_length": dataset.max_anomaly_length,
+            "mean": dataset.mean,
+            "stddev": dataset.stddev,
+            "trend": dataset.trend,
+            "stationarity": dataset.stationarity,
+        }, index=[(dataset.collection_name, dataset.dataset_name)])
         df = pd.concat([self._df, df_new], axis=0)
         df = df[~df.index.duplicated(keep="last")]
         self._df = df.sort_index()
@@ -306,7 +317,7 @@ class Datasets(ContextManager['Datasets']):
                 training_type = TrainingType.SUPERVISED
             return training_type
 
-    def get_metadata(self, dataset_id: DatasetId, train: bool = False) -> DatasetMetadata:
+    def get_detailed_metadata(self, dataset_id: DatasetId, train: bool = False) -> DatasetMetadata:
         path = self.get_dataset_path(dataset_id, train)
         metadata_file = path.parent / self.DATASET_METADATA_FILENAME
         if metadata_file.exists():
@@ -317,6 +328,9 @@ class Datasets(ContextManager['Datasets']):
         else:
             self.log.debug(
                 f"No metadata file for {dataset_id} exists. Analyzing dataset on-the-fly and storing result.")
-        dm = DatasetAnalyzer(dataset_id, is_train=train, dmgr=self)
-        dm.save_to_json(metadata_file)
+        dm = DatasetAnalyzer(dataset_id, is_train=train, dataset_path=path)
+        if dataset_id[0] in self._custom_datasets.get_collection_names():
+            self.log.warning("Cannot store metadata information for custom datasets!")
+        else:
+            dm.save_to_json(metadata_file)
         return dm.metadata
