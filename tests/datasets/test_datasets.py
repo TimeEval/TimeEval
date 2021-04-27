@@ -409,7 +409,7 @@ def test_metadata(tmp_path):
         f.write(dataset_content)
 
 
-    metadata_file = tmp_path / "metadata.json"
+    metadata_file = tmp_path / f"{test_record.dataset_name}.metadata.json"
     dm = Datasets(tmp_path)
     # test generate file
     metadata = dm.get_detailed_metadata((test_record.collection_name, test_record.dataset_name), train=False)

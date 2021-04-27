@@ -1,6 +1,7 @@
 import json
 import logging
 import shutil
+import warnings
 from pathlib import Path
 from typing import Optional, Union, List, Generator
 
@@ -123,8 +124,10 @@ class DatasetAnalyzer:
             return kpss_output["p-value"] < sigma
 
         def analyze_series(series: pd.Series) -> Stationarity:
-            stationary = adf_stationarity_test(series)
-            trend_stationary = kpss_trend_stationarity_test(series)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore")
+                stationary = adf_stationarity_test(series)
+                trend_stationary = kpss_trend_stationarity_test(series)
 
             if not stationary and not trend_stationary:
                 stationarity = Stationarity.NOT_STATIONARY

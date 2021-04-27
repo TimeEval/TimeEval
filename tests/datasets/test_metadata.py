@@ -162,8 +162,8 @@ class TestDatasetAnalyzer(unittest.TestCase):
         analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
-            analyzer.save_to_json(tmp_path / "metadata.json")
-            with open(tmp_path / "metadata.json", "r") as f:
+            analyzer.save_to_json(tmp_path / "dataset1.metadata.json")
+            with open(tmp_path / "dataset1.metadata.json", "r") as f:
                 meta_json = json.load(f)
         self.assertIsInstance(meta_json, List)
         self.assertDictEqual(meta_json[0], dataset_metadata_dict)
@@ -172,7 +172,7 @@ class TestDatasetAnalyzer(unittest.TestCase):
         existing_entry = {"existing content untouched": True}
         analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
         with tempfile.TemporaryDirectory() as tmp_path:
-            tmp_path = Path(tmp_path) / "metadata.json"
+            tmp_path = Path(tmp_path) / "dataset1.metadata.json"
             with open(tmp_path, "w") as f:
                 json.dump([existing_entry], f)
             analyzer.save_to_json(tmp_path)
@@ -186,13 +186,13 @@ class TestDatasetAnalyzer(unittest.TestCase):
         existing_entry = {"wrongly formatted": "existing json"}
         analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
         with tempfile.TemporaryDirectory() as tmp_path:
-            tmp_path = Path(tmp_path) / "metadata.json"
+            tmp_path = Path(tmp_path) / "dataset1.metadata.json"
             with open(tmp_path, "w") as f:
                 json.dump(existing_entry, f)
             analyzer.save_to_json(tmp_path)
             with open(tmp_path, "r") as f:
                 meta_json = json.load(f)
-            with open(tmp_path.parent / "metadata.json.bak", "r") as f:
+            with open(tmp_path.parent / "dataset1.metadata.json.bak", "r") as f:
                 meta_json_bak = json.load(f)
         self.assertIsInstance(meta_json, List)
         self.assertDictEqual(meta_json[0], dataset_metadata_dict)

@@ -50,7 +50,7 @@ class Datasets(ContextManager['Datasets']):
     """
 
     INDEX_FILENAME: Final[str] = "datasets.csv"
-    DATASET_METADATA_FILENAME: Final[str] = "metadata.json"
+    METADATA_FILENAME_PREFIX: Final[str] = "metadata.json"
 
     _filepath: Path
     _dirty: bool
@@ -319,7 +319,7 @@ class Datasets(ContextManager['Datasets']):
 
     def get_detailed_metadata(self, dataset_id: DatasetId, train: bool = False) -> DatasetMetadata:
         path = self.get_dataset_path(dataset_id, train)
-        metadata_file = path.parent / self.DATASET_METADATA_FILENAME
+        metadata_file = path.parent / f"{dataset_id[1]}.{self.METADATA_FILENAME_PREFIX}"
         if metadata_file.exists():
             try:
                 return DatasetAnalyzer.load_from_json(metadata_file, train)
