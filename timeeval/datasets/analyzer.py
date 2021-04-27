@@ -17,7 +17,7 @@ from timeeval.utils import datasets as datasets_utils
 class DatasetAnalyzer:
     def __init__(self, dataset_id: DatasetId, is_train: bool, df: Optional[pd.DataFrame] = None,
                  dataset_path: Optional[Path] = None,
-                 dmgr: Optional['Datasets'] = None):
+                 dmgr: Optional['Datasets'] = None) -> None:  # type: ignore
         if not df and not dataset_path and not dmgr:
             raise ValueError("Either df, dataset_path, or dmgr must be supplied!")
         if not df and dmgr:
