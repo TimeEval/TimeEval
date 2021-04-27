@@ -145,7 +145,9 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 distributed=True, results_path=Path(tmp_path),
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]))
             timeeval.run()
-            np.testing.assert_array_equal(timeeval.results.values[:, :4], self.results.values[:, :4])
+
+            compare_columns = ["algorithm","collection","dataset","ROC_AUC"]
+            pd.testing.assert_frame_equal(timeeval.results.loc[:, compare_columns], self.results.loc[:, compare_columns])
             self.assertFalse(any(
                 ("distributed.cli.dask_worker" in c) or ("distributed.cli.dask_scheduler" in c)
                 for p in psutil.process_iter() for c in p.cmdline()
@@ -158,10 +160,12 @@ class TestDistributedTimeEval(unittest.TestCase):
             os.mkdir(args[0] / str(a))
 
         with tempfile.TemporaryDirectory() as tmp_path:
-            remote = Remote(**{
-                "hosts": ["localhost", "localhost", "localhost"],
-                "remote_python": os.popen("which python").read().rstrip("\n")
-            })
+            remote = Remote(
+                remote_config=RemoteConfiguration(
+                    scheduler_host="localhost",
+                    worker_hosts=["localhost", "localhost"],
+                    remote_python=os.popen("which python").read().rstrip("\n")
+                ))
             remote.run_on_all_hosts([(_test_func, [Path(tmp_path)], {})])
             remote.close()
             self.assertEqual(len(os.listdir(tmp_path)), 2)
