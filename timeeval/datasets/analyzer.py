@@ -26,9 +26,10 @@ class DatasetAnalyzer:
         elif not df and dataset_path:
             df = datasets_utils.load_dataset(dataset_path)
         self.log: logging.Logger = logging.getLogger(self.__class__.__name__)
-        self.df: pd.DataFrame = df
+        self._df: pd.DataFrame = df
         self.dataset_id: DatasetId = dataset_id
         self.is_train: bool = is_train
+        self._log_prefix = f"[{self.dataset_id} ({'train' if self.is_train else 'test'})]"
         self._find_base_metadata()
         self._find_stationarity()
         self._find_trends()
@@ -54,19 +55,19 @@ class DatasetAnalyzer:
         metadata = []
         if fp.exists():
             if overwrite:
-                self.log.warning(f"{fp} already exists, but 'overwrite' was specified! Ignoring existing contents.")
+                self.log.warning(f"{self._log_prefix} {fp} already exists, but 'overwrite' was specified! "
+                                 f"Ignoring existing contents.")
             else:
-                self.log.info(f"{fp} already exists. Reading contents and appending new metadata.")
+                self.log.info(f"{self._log_prefix} {fp} already exists. Reading contents and appending new metadata.")
                 with open(fp, "r") as f:
                     existing_metadata = json.load(f)
                 if not isinstance(existing_metadata, List) or len(existing_metadata) == 0:
-                    self.log.error(f"Existing metadata in file {fp} has the wrong format!"
+                    self.log.error(f"{self._log_prefix} Existing metadata in file {fp} has the wrong format!"
                                    f"Creating backup before writing new metadata.")
                     shutil.move(fp.as_posix(), fp.parent / f"{fp.name}.bak")
                 else:
                     metadata = existing_metadata
-        self.log.debug(f"Writing detailed metadata about {'training' if self.is_train else 'testing'} dataset "
-                       f"{self.dataset_id} to file {filename}")
+        self.log.debug(f"{self._log_prefix} Writing detailed metadata to file {filename}")
         metadata.append(self.metadata)
         with open(filename, "w") as f:
             json.dump(metadata, f, indent=2, sort_keys=True, cls=DatasetMetadataEncoder)
@@ -82,16 +83,16 @@ class DatasetAnalyzer:
             raise ValueError(f"No metadata for {'training' if train else 'testing'} dataset in file {filename} found!")
 
     def _find_base_metadata(self) -> None:
-        self.length = len(self.df)
-        self.dimensions = len(self.df.columns) - 2
-        self.contamination = len(self.df[self.df["is_anomaly"] == 1]) / self.length
+        self.length = len(self._df)
+        self.dimensions = len(self._df.columns) - 2
+        self.contamination = len(self._df[self._df["is_anomaly"] == 1]) / self.length
 
-        means = self.df.iloc[:, 1:-1].mean(axis=0)
-        stddevs = self.df.iloc[:, 1:-1].std(axis=0)
+        means = self._df.iloc[:, 1:-1].mean(axis=0)
+        stddevs = self._df.iloc[:, 1:-1].std(axis=0)
         self.means = dict(means.items())
         self.stddevs = dict(stddevs.items())
 
-        labels = self.df["is_anomaly"]
+        labels = self._df["is_anomaly"]
         label_groups = labels.groupby((labels.shift() != labels).cumsum())
         anomalies = [len(v) for k, v in label_groups if np.all(v)]
         min_anomaly_length = np.min(anomalies) if anomalies else 0
@@ -104,46 +105,54 @@ class DatasetAnalyzer:
             max=max_anomaly_length
         )
 
+    def _adf_stationarity_test(self, series: pd.Series, sigma: float = 0.05) -> bool:
+        try:
+            adftest = adfuller(series, autolag="AIC")
+            adf_output = pd.Series(adftest[0:3], index=['Test Statistic', 'p-value', 'Lags Used'])
+            self.log.debug(f"{self._log_prefix} Results of Augmented Dickey Fuller (ADF) test:\n{adf_output}")
+            return adf_output["p-value"] < sigma
+        except ValueError as e:
+            self.log.error(f"{self._log_prefix} ADF stationarity test encountered an error: {e}")
+            return False
+
+    def _kpss_trend_stationarity_test(self, series: pd.Series, sigma: float = 0.05) -> bool:
+        try:
+            kpsstest = kpss(series, regression="c", nlags="auto")
+            kpss_output = pd.Series(kpsstest[0:3], index=['Test Statistic', 'p-value', 'Lags Used'])
+            self.log.debug(f"{self._log_prefix} Results of Kwiatkowski-Phillips-Schmidt-Shin (KPSS) test:\n"
+                           f"{kpss_output}")
+            return kpss_output["p-value"] < sigma
+        except ValueError as e:
+            self.log.error(f"{self._log_prefix} KPSS trend stationarity test encountered an error: {e}")
+            return False
+
+    def _analyze_series(self, series: pd.Series) -> Stationarity:
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            stationary = self._adf_stationarity_test(series)
+            trend_stationary = self._kpss_trend_stationarity_test(series)
+
+        if not stationary and not trend_stationary:
+            stationarity = Stationarity.NOT_STATIONARY
+        elif stationary and trend_stationary:
+            stationarity = Stationarity.STATIONARY
+        elif not stationary and trend_stationary:
+            stationarity = Stationarity.TREND_STATIONARY  # detrending to make stationary
+        else:  # if stationary and not trend_stationary:
+            stationarity = Stationarity.DIFFERENCE_STATIONARY  # differencing to make stationary
+
+        self.log.debug(f"{self._log_prefix} Stationarity of series '{series.name}': {stationarity}")
+        return stationarity
+
     def _find_stationarity(self) -> None:
         """
         Idea and code adapted from:
         https://www.statsmodels.org/stable/examples/notebooks/generated/stationarity_detrending_adf_kpss.html
         """
-        df = self.df.set_index("timestamp").iloc[:, :-1]
-
-        def adf_stationarity_test(series: pd.Series, sigma: float = 0.05) -> bool:
-            adftest = adfuller(series, autolag="AIC")
-            adf_output = pd.Series(adftest[0:3], index=['Test Statistic', 'p-value', 'Lags Used'])
-            self.log.debug(f"Results of Augmented Dickey Fuller (ADF) test:\n{adf_output}")
-            return adf_output["p-value"] < sigma
-
-        def kpss_trend_stationarity_test(series: pd.Series, sigma: float = 0.05) -> bool:
-            kpsstest = kpss(series, regression="c", nlags="auto")
-            kpss_output = pd.Series(kpsstest[0:3], index=['Test Statistic', 'p-value', 'Lags Used'])
-            self.log.debug(f"Results of Kwiatkowski-Phillips-Schmidt-Shin (KPSS) test:\n{kpss_output}")
-            return kpss_output["p-value"] < sigma
-
-        def analyze_series(series: pd.Series) -> Stationarity:
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore")
-                stationary = adf_stationarity_test(series)
-                trend_stationary = kpss_trend_stationarity_test(series)
-
-            if not stationary and not trend_stationary:
-                stationarity = Stationarity.NOT_STATIONARY
-            elif stationary and trend_stationary:
-                stationarity = Stationarity.STATIONARY
-            elif not stationary and trend_stationary:
-                stationarity = Stationarity.TREND_STATIONARY  # detrending to make stationary
-            else:  # if stationary and not trend_stationary:
-                stationarity = Stationarity.DIFFERENCE_STATIONARY  # differencing to make stationary
-
-            self.log.debug(f"Stationarity of series '{series.name}': {stationarity}")
-            return stationarity
-
+        df = self._df.set_index("timestamp").iloc[:, :-1]
         self.stationarity = {}
         for _, series in df.items():
-            self.stationarity[series.name] = analyze_series(series)
+            self.stationarity[series.name] = self._analyze_series(series)
 
     def _find_trends(self) -> None:
         idx = np.array(range(self.length))
@@ -161,5 +170,5 @@ class DatasetAnalyzer:
                 )
 
         self.trends = {}
-        for _, series in self.df.iloc[:, 1:-1].items():
+        for _, series in self._df.iloc[:, 1:-1].items():
             self.trends[series.name] = [t for order in (1, 2, 3) for t in get_trend(series, order=order)]
