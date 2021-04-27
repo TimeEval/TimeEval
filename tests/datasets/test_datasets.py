@@ -374,6 +374,9 @@ def test_metadata(tmp_path):
     # write example data
     with open(tmp_path / "path_test.csv", "w") as f:
         f.write(dataset_content)
+    with open(tmp_path / "path_train.csv", "w") as f:
+        f.write(dataset_content)
+
 
     metadata_file = tmp_path / "metadata.json"
     dm = Datasets(tmp_path)
@@ -387,7 +390,7 @@ def test_metadata(tmp_path):
     assert before_size < metadata_file.stat().st_size
     assert metadata != metadata_train
 
-    # test reading existing file (without chaning it)
+    # test reading existing file (without changing it)
     before_changed_time = metadata_file.stat().st_mtime_ns
     metadata2 = dm.get_metadata((test_record.collection_name, test_record.dataset_name), train=False)
     assert before_changed_time == metadata_file.stat().st_mtime_ns
