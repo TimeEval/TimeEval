@@ -112,7 +112,7 @@ class DatasetAnalyzer:
             self.log.debug(f"{self._log_prefix} Results of Augmented Dickey Fuller (ADF) test:\n{adf_output}")
             return adf_output["p-value"] < sigma
         except Exception as e:
-            self.log.error(f"{self._log_prefix} ADF stationarity test encountered an error: {e}")
+            self.log.error(f"{self._log_prefix} ADF stationarity test for {series.name} encountered an error: {e}")
             return False
 
     def _kpss_trend_stationarity_test(self, series: pd.Series, sigma: float = 0.05) -> bool:
@@ -123,7 +123,7 @@ class DatasetAnalyzer:
                            f"{kpss_output}")
             return kpss_output["p-value"] < sigma
         except Exception as e:
-            self.log.error(f"{self._log_prefix} KPSS trend stationarity test encountered an error: {e}")
+            self.log.error(f"{self._log_prefix} KPSS trend stationarity test for {series.name} encountered an error: {e}")
             return False
 
     def _analyze_series(self, series: pd.Series) -> Stationarity:
@@ -161,16 +161,20 @@ class DatasetAnalyzer:
         idx = np.array(range(self.length))
 
         def get_trend(y: pd.Series, order: int = 1, sigma: float = 0.5) -> Generator[Trend, None, None]:
-            X = np.array(np.power(idx, order)).reshape(-1, 1)
-            model = LinearRegression()
-            model.fit(X, y)
-            r2 = model.score(X, y)
-            if r2 > sigma:
-                yield Trend(
-                    tpe=TrendType.from_order(order),
-                    coef=model.coef_,
-                    confidence_r2=r2
-                )
+            try:
+                X = np.array(np.power(idx, order)).reshape(-1, 1)
+                model = LinearRegression()
+                model.fit(X, y)
+                r2 = model.score(X, y)
+                if r2 > sigma:
+                    yield Trend(
+                        tpe=TrendType.from_order(order),
+                        coef=model.coef_,
+                        confidence_r2=r2
+                    )
+            except Exception as e:
+                self.log.error(
+                    f"{self._log_prefix} trend analysis for {y.name} encountered an error: {e}")
 
         self.trends = {}
         for _, series in self._df.iloc[:, 1:-1].items():
