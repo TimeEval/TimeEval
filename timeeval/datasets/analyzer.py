@@ -149,7 +149,10 @@ class DatasetAnalyzer:
         Idea and code adapted from:
         https://www.statsmodels.org/stable/examples/notebooks/generated/stationarity_detrending_adf_kpss.html
         """
-        df = self._df.set_index("timestamp").iloc[:, :-1]
+        df = self._df
+        # Circumvent missing "timestamp" header:
+        df.columns = ["timestamp" if "Unnamed" in c else c for c in df.columns]
+        df = df.set_index("timestamp").iloc[:, :-1]
         self.stationarity = {}
         for _, series in df.items():
             self.stationarity[series.name] = self._analyze_series(series)
