@@ -63,10 +63,17 @@ def extract_parameter_matrix(args: argparse.Namespace):
 
     if "details_path" in args:
         global_parameters.to_csv(args.details_path, index=False)
-    parameter_matrix = global_parameters.pivot(values="defaultValue", index="title", columns=["name", "executionType", "type"])
+
+    def combine_execution_types(x):
+        if len(x["executionType"]) > 1:
+            return x[x["executionType"] == "training"]["defaultValue"].values.reshape(-1)[0]
+        return x["defaultValue"].values.reshape(-1)[0]
+
+    parameter_matrix = global_parameters.groupby(["title", "name", "type"]).apply(combine_execution_types).unstack(level=[1,2])
 
     # remove columns that are completely empty
     parameter_matrix = parameter_matrix.loc[:, parameter_matrix.columns[~parameter_matrix.isna().all()]]
+
 
     # sort columns by frequent usages across algorithms
     column_sorting = parameter_matrix.count().values.argsort()[::-1]
