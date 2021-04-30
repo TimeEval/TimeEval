@@ -19,11 +19,11 @@ class DatasetAnalyzer:
     def __init__(self, dataset_id: DatasetId, is_train: bool, df: Optional[pd.DataFrame] = None,
                  dataset_path: Optional[Path] = None,
                  dmgr: Optional['Datasets'] = None) -> None:  # type: ignore
-        if not df and not dataset_path and not dmgr:
+        if df is None and not dataset_path and dmgr is None:
             raise ValueError("Either df, dataset_path, or dmgr must be supplied!")
-        if not df and dmgr:
+        if df is None and dmgr:
             df = dmgr.get_dataset_df(dataset_id, train=is_train)
-        elif not df and dataset_path:
+        elif df is None and dataset_path:
             df = datasets_utils.load_dataset(dataset_path)
         self.log: logging.Logger = logging.getLogger(self.__class__.__name__)
         self._df: pd.DataFrame = df
