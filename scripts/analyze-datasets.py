@@ -12,8 +12,8 @@ Overall metadata is then stored in the datasets index file.
 """
 
 new_index_file_path = Path(".").absolute()
-ignore_datasets = []
-ignore_collections = ["Kitsune", "LTDB", "MITDB", "GHL"]
+ignore_datasets = ["01_Lev_fault_Temp_corr_seed_11_vars_23"]
+ignore_collections = ["Kitsune", "LTDB"]  # "MITDB", "GHL"]
 
 
 def main():
@@ -63,13 +63,13 @@ def supervised(dmgr, dmgr_new):
     if dataset not in existing_datasets
   ]
   train = False
-  try:
-    for dataset in tqdm.tqdm(supervised_datasets, desc="Analyzing (semi-)supervised datasets"):
+  for dataset in tqdm.tqdm(supervised_datasets, desc="Analyzing (semi-)supervised datasets"):
+    try:
       test_meta_data = analyze(dmgr, dataset, train=False)
       _ = analyze(dmgr, dataset, train=True)
       add_to_new(dmgr, dmgr_new, dataset, test_meta_data)
-  finally:
-    dmgr_new.save()
+    finally:
+      dmgr_new.save()
 
 
 def analyze(dmgr, dataset, train: bool = False):
