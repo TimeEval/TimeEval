@@ -191,10 +191,10 @@ class Datasets(ContextManager['Datasets']):
         self._dirty = False
 
     def get_collection_names(self) -> List[str]:
-        return self._custom_datasets.get_collection_names() + list(self._df.index.get_level_values(0))
+        return self._custom_datasets.get_collection_names() + list(self._df.index.get_level_values(0).unique())
 
     def get_dataset_names(self) -> List[str]:
-        return self._custom_datasets.get_dataset_names() + list(self._df.index.get_level_values(1))
+        return self._custom_datasets.get_dataset_names() + list(self._df.index.get_level_values(1).unique())
 
     def select(self,
                collection_name: Optional[str] = None,
