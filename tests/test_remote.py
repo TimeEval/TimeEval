@@ -17,5 +17,5 @@ class TestRemote(unittest.TestCase):
 
     @pytest.mark.dask
     def test_other_than_already_running_exception(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(Exception):
             Remote(remote_config=RemoteConfiguration(scheduler_host=None))

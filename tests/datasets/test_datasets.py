@@ -7,9 +7,9 @@ import pytest
 
 from timeeval import Datasets, DatasetRecord
 
-header = "collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length"
-content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032"
-content_test = "test-collection,test_dataset,path_train.csv,path_test.csv,real,True,,supervised,True,univariate,12"
+header = "collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length,dimensions,contamination,num_anomalies,min_anomaly_length,median_anomaly_length,max_anomaly_length,mean,stddev,trend,stationarity"
+content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary"
+content_test = "test-collection,test_dataset,path_train.csv,path_test.csv,real,True,,supervised,True,univariate,12,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary"
 nab_record = DatasetRecord(
     collection_name="NAB",
     dataset_name="art_daily_no_noise",
@@ -21,7 +21,17 @@ nab_record = DatasetRecord(
     train_type="unsupervised",
     train_is_normal=False,
     input_type="univariate",
-    length=4032
+    length=4032,
+    dimensions=1,
+    contamination=0.01,
+    num_anomalies=2,
+    min_anomaly_length=5,
+    median_anomaly_length=5,
+    max_anomaly_length=6,
+    mean=564.52,
+    stddev=2.468,
+    trend="no trend",
+    stationarity="not_stationary",
 )
 test_record = DatasetRecord(
     collection_name="test-collection",
@@ -34,7 +44,17 @@ test_record = DatasetRecord(
     train_type="supervised",
     train_is_normal=True,
     input_type="univariate",
-    length=12
+    length=12,
+    dimensions=1,
+    contamination=0.01,
+    num_anomalies=2,
+    min_anomaly_length=5,
+    median_anomaly_length=5,
+    max_anomaly_length=6,
+    mean=564.52,
+    stddev=2.468,
+    trend="no trend",
+    stationarity="not_stationary",
 )
 # excerpt from NYC taxi dataset
 dataset_content = """
@@ -64,7 +84,7 @@ custom_dataset_names = ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4"
 
 
 def _fill_file(path, lines=(content_nab,)):
-    with open(path / Datasets.FILENAME, "w") as f:
+    with open(path / Datasets.INDEX_FILENAME, "w") as f:
         f.write(header)
         f.write("\n")
         for l in lines:
@@ -73,14 +93,15 @@ def _fill_file(path, lines=(content_nab,)):
 
 
 def _read_file(path):
-    assert os.path.isfile(path / Datasets.FILENAME)
-    with open(path / Datasets.FILENAME, "r") as f:
+    assert os.path.isfile(path / Datasets.INDEX_FILENAME)
+    with open(path / Datasets.INDEX_FILENAME, "r") as f:
         return [l.strip() for l in f.readlines()]
 
 
 def _add_dataset(dm):
-    dm.add_dataset(
-        dataset_id=(test_record.collection_name, test_record.dataset_name),
+    dm.add_dataset(DatasetRecord(
+        collection_name=test_record.collection_name,
+        dataset_name=test_record.dataset_name,
         train_path=test_record.train_path,
         test_path=test_record.test_path,
         dataset_type=test_record.dataset_type,
@@ -89,19 +110,29 @@ def _add_dataset(dm):
         train_type=test_record.train_type,
         train_is_normal=test_record.train_is_normal,
         input_type=test_record.input_type,
-        dataset_length=test_record.length
-    )
+        length=test_record.length,
+        dimensions=test_record.dimensions,
+        contamination=test_record.contamination,
+        num_anomalies=test_record.num_anomalies,
+        min_anomaly_length=test_record.min_anomaly_length,
+        median_anomaly_length=test_record.median_anomaly_length,
+        max_anomaly_length=test_record.max_anomaly_length,
+        mean=test_record.mean,
+        stddev=test_record.stddev,
+        trend=test_record.trend,
+        stationarity=test_record.stationarity,
+    ))
 
 
 def test_initialize_empty_folder(tmp_path):
     Datasets(data_folder=tmp_path)
-    assert os.path.isfile(tmp_path / Datasets.FILENAME)
+    assert os.path.isfile(tmp_path / Datasets.INDEX_FILENAME)
 
 
 def test_initialize_missing_folder(tmp_path):
     target = tmp_path / "subfolder"
     Datasets(data_folder=target)
-    assert os.path.isfile(target / Datasets.FILENAME)
+    assert os.path.isfile(target / Datasets.INDEX_FILENAME)
 
 
 def test_initialize_existing(tmp_path):
@@ -167,7 +198,7 @@ def test_refresh(tmp_path):
     assert list(dm.get_collection_names()) == []
     assert list(dm.get_dataset_names()) == []
 
-    with open(tmp_path / Datasets.FILENAME, "a") as f:
+    with open(tmp_path / Datasets.INDEX_FILENAME, "a") as f:
         f.write(content_nab)
         f.write("\n")
 
@@ -367,3 +398,31 @@ def test_df_with_custom(tmp_path):
     assert df.loc[(nab_record.collection_name, nab_record.dataset_name), "train_type"] == nab_record.train_type
     assert np.isnan(df.loc[("custom", "dataset.1"), "train_type"])
     assert df.loc[("custom", "dataset.1.train"), "train_path"] == "tests/example_data/dataset.train.csv"
+
+
+def test_metadata(tmp_path):
+    _fill_file(tmp_path, lines=[content_test])
+    # write example data
+    with open(tmp_path / "path_test.csv", "w") as f:
+        f.write(dataset_content)
+    with open(tmp_path / "path_train.csv", "w") as f:
+        f.write(dataset_content)
+
+
+    metadata_file = tmp_path / f"{test_record.dataset_name}.metadata.json"
+    dm = Datasets(tmp_path)
+    # test generate file
+    metadata = dm.get_detailed_metadata((test_record.collection_name, test_record.dataset_name), train=False)
+    assert metadata_file.exists()
+
+    # test generate for train file and add to existing file
+    before_size = metadata_file.stat().st_size
+    metadata_train = dm.get_detailed_metadata((test_record.collection_name, test_record.dataset_name), train=True)
+    assert before_size < metadata_file.stat().st_size
+    assert metadata != metadata_train
+
+    # test reading existing file (without changing it)
+    before_changed_time = metadata_file.stat().st_mtime_ns
+    metadata2 = dm.get_detailed_metadata((test_record.collection_name, test_record.dataset_name), train=False)
+    assert before_changed_time == metadata_file.stat().st_mtime_ns
+    assert metadata == metadata2
