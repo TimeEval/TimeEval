@@ -16,11 +16,14 @@ from distributed.client import Future
 
 from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
+from .data_types import TrainingType
 from .constants import RESULTS_CSV
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
+from .times import Times
+from .utils.metrics import Metric
 
 
 class Status(Enum):
@@ -30,16 +33,17 @@ class Status(Enum):
 
 
 class TimeEval:
-    RESULT_KEYS = ("algorithm",
+    RESULT_KEYS = ["algorithm",
                    "collection",
                    "dataset",
-                   "score",
-                   "preprocess_time",
-                   "main_time",
-                   "postprocess_time",
+                   "train_preprocess_time",
+                   "train_main_time",
+                   "execute_preprocess_time",
+                   "execute_main_time",
+                   "execute_postprocess_time",
                    "status",
                    "error_message",
-                   "repetition")
+                   "repetition"]
 
     DEFAULT_RESULT_PATH = Path("./results")
 
@@ -52,7 +56,8 @@ class TimeEval:
                  distributed: bool = False,
                  remote_config: Optional[RemoteConfiguration] = None,
                  resource_constraints: Optional[ResourceConstraints] = None,
-                 disable_progress_bar: bool = False):
+                 disable_progress_bar: bool = False,
+                 metrics: Optional[List[Metric]] = None):
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         resource_constraints = resource_constraints or ResourceConstraints()
@@ -69,8 +74,10 @@ class TimeEval:
 
         self.results_path = results_path.absolute() / start_date
         self.log.info(f"Results are recorded in the directory {self.results_path}")
+        self.metrics = metrics or Metric.default()
+        self.metric_names = [m.name for m in self.metrics]
         self.exps = Experiments(datasets, algorithms, self.results_path, resource_constraints, repetitions=repetitions)
-        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS)
+        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
         self.distributed = distributed
         self.remote_config = remote_config or RemoteConfiguration()
@@ -82,9 +89,6 @@ class TimeEval:
             self.results["future_result"] = np.nan
             self.log.info("... remoting setup done.")
 
-    def _get_dataset_path(self, name: Tuple[str, str]) -> Path:
-        return self.dmgr.get_dataset_path(name, train=False)
-
     def _run(self):
         desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
         for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.disable_progress_bar):
@@ -92,23 +96,32 @@ class TimeEval:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
 
-                dataset_path = self._get_dataset_path(exp.dataset)
+                test_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=False)
+                train_dataset_path: Optional[Path] = None
+                if (exp.algorithm.training_type == TrainingType.SUPERVISED or
+                    exp.algorithm.training_type == TrainingType.SEMI_SUPERVISED):
+                    # Intentionally raise KeyError here if no training dataset is specified.
+                    # The Error will be caught by the except clause below.
+                    train_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=True)
+
+                    # This check is not necessary for unsupervised algorithms, because they can be executed on all
+                    # datasets.
+                    if exp.algorithm.training_type != (dataset_tpe := self.dmgr.get_training_type(exp.dataset)):
+                        raise ValueError(f"Dataset training type ({dataset_tpe}) incompatible to algorithm "
+                                         f"training type ({exp.algorithm.training_type})!")
 
                 if self.distributed:
-                    future_result = self.remote.add_task(exp.evaluate, dataset_path)
+                    future_result = self.remote.add_task(exp.evaluate, train_dataset_path, test_dataset_path)
                 else:
-                    result = exp.evaluate(dataset_path)
+                    result = exp.evaluate(train_dataset_path, test_dataset_path)
                 self._record_results(exp, result=result, future_result=future_result)
 
             except Exception as e:
                 self.log.exception(
-                    f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}:")
+                    f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
                 f: asyncio.Future = asyncio.Future()
                 f.set_result({
-                    "score": np.nan,
-                    "main_time": np.nan,
-                    "preprocess_time": np.nan,
-                    "postprocess_time": np.nan
+                    **{m.name: np.nan for m in self.metrics}
                 })
                 self._record_results(exp, future_result=f, status=Status.ERROR, error_message=str(e))
 
@@ -138,14 +151,14 @@ class TimeEval:
     def _resolve_future_results(self):
         self.remote.fetch_results()
 
-        result_keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
+        result_keys = self.metric_names + Times.result_keys()
         status_keys = ["status", "error_message"]
         keys = result_keys + status_keys
 
         def get_future_result(f: Future) -> Tuple:
             try:
                 r = f.result()
-                return tuple(r[k] for k in result_keys) + (Status.OK, None)
+                return tuple(r.get(k, None) for k in result_keys) + (Status.OK, None)
             except DockerTimeoutError as e:
                 self.log.exception(f"Exception {str(e)} occurred remotely.")
                 status = Status.TIMEOUT
@@ -171,7 +184,8 @@ class TimeEval:
                              "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
-        keys = ["score", "preprocess_time", "main_time", "postprocess_time"]
+        time_names = [key for key in Times.result_keys() if key in df.columns]
+        keys = self.metric_names + time_names
         grouped_results = df.groupby(["algorithm", "collection", "dataset", "hyper_params_id"])
         repetitions = [len(v) for k, v in grouped_results.groups.items()]
         mean_results: pd.DataFrame = grouped_results.mean()[keys]

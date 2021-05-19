@@ -29,6 +29,9 @@
 | genesis-demonstrator                   |   ✓   | [🗎][gen]   | A single dataset |
 | GHL                                    |   ✓   | [🗎][ghl]  | |
 | SSA                                    |   ✓   | [🗎][ssa]  | Annotation source unclear, brittle datasets. |
+| Keogh                                  |   ✓   | [🗎][keogh]| Collection of datasets from Eammon Keogh |
+| MGAB                                   |   ✓   | [🗎][mgab] |  |
+| KDD-TSAD-contest                       |   ✓   | [🗎][kdd-tsad]|  |
 
 ## TODO
 
@@ -63,3 +66,6 @@ Check against datasets in [John's benchmark framework](https://github.com/johnpa
 [Occu]: ./UCI-Occupancy.ipynb
 [ghl]: ./GHL.ipynb
 [ssa]: ./SSA.ipynb
+[keogh]: ./Keogh.ipynb
+[mgab]: ./MGAB.ipynb
+[kdd-tsad]: ./KDD-TSAD.ipynb

@@ -53,7 +53,7 @@ class TestOutputData(unittest.TestCase):
             timeeval.run()
             parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / self.hash / "test" / "dataset-int" / "1"
 
-            self.assertEqual(str(parent_path)+"\n", (parent_path / EXECUTION_LOG).open("r").read())
+            self.assertIn(str(parent_path), (parent_path / EXECUTION_LOG).open("r").read())
 
     def test_hyper_params_json_exists_and_is_correct(self):
         with tempfile.TemporaryDirectory() as tmp_path:
@@ -74,6 +74,6 @@ class TestOutputData(unittest.TestCase):
             true_results = pd.read_csv("./tests/example_data/results.csv")
             results = pd.read_csv(tmp_path / "2021_01_01_00_00_00" / RESULTS_CSV)
 
-            self.assertEqual(true_results.iloc[0, 3], results.iloc[0, 3])
+            self.assertEqual(true_results.loc[0, "ROC_AUC"], results.loc[0, "ROC_AUC"])
             self.assertEqual(results.hyper_params.values[0], '{"a": 0}')
             self.assertEqual(str(results.hyper_params_id.values[0]), hash_dict({"a": 0}))

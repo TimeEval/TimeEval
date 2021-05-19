@@ -6,7 +6,6 @@ from timeeval.datasets.custom_base import CustomDatasetsBase
 
 
 class CustomDatasets(CustomDatasetsBase):
-    _dataset_store: dict
 
     def __init__(self, dataset_config: Union[str, Path]):
         super().__init__()

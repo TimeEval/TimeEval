@@ -10,9 +10,11 @@ dependencies:
   - numpy=1.20.*
   - pandas
   - psutil
+  - statsmodels=0.12.*
   - pip:
       - tqdm==4.54.*
       - dask[distributed]==2021.1.*
       - asyncssh==2.5.*
       - docker==4.4.*
       - durations==0.3.*
+      - prts==1.0.0.3

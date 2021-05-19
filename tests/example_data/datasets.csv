@@ -1,3 +1,3 @@
-collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length
-test,dataset-datetime,,dataset.test.csv,synthetic,True,,unsupervised,False,univariate,0
-test,dataset-int,,dataset.train.csv,synthetic,False,,unsupervised,False,univariate,0
+collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length,dimensions,contamination,num_anomalies,min_anomaly_length,median_anomaly_length,max_anomaly_length,mean,stddev,trend,stationarity
+test,dataset-datetime,dataset.train.csv,dataset.test.csv,synthetic,True,,supervised,False,univariate,0,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary
+test,dataset-int,,dataset.train.csv,synthetic,False,,unsupervised,False,univariate,0,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary

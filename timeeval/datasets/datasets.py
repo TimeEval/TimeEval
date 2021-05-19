@@ -1,14 +1,18 @@
+import logging
 from functools import reduce
 from pathlib import Path
 from types import TracebackType
-from typing import Final, ContextManager, Optional, Tuple, List, Type, NamedTuple, Union
+from typing import Final, ContextManager, Optional, List, Type, Union, NamedTuple
 
 import numpy as np
 import pandas as pd
 
+from timeeval.data_types import TrainingType
+from timeeval.datasets.analyzer import DatasetAnalyzer
 from timeeval.datasets.custom import CustomDatasets
 from timeeval.datasets.custom_base import CustomDatasetsBase
 from timeeval.datasets.custom_noop import NoOpCustomDatasets
+from timeeval.datasets.metadata import DatasetId, DatasetMetadata
 
 
 class DatasetRecord(NamedTuple):
@@ -23,9 +27,16 @@ class DatasetRecord(NamedTuple):
     train_is_normal: bool
     input_type: str
     length: int
-
-
-DatasetId = Tuple[str, str]
+    dimensions: int
+    contamination: float
+    num_anomalies: int
+    min_anomaly_length: int
+    median_anomaly_length: int
+    max_anomaly_length: int
+    mean: float
+    stddev: float
+    trend: str
+    stationarity: str
 
 
 class Datasets(ContextManager['Datasets']):
@@ -38,7 +49,8 @@ class Datasets(ContextManager['Datasets']):
     Read-only access is fine with multiple processes.
     """
 
-    FILENAME: Final[str] = "datasets.csv"
+    INDEX_FILENAME: Final[str] = "datasets.csv"
+    METADATA_FILENAME_PREFIX: Final[str] = "metadata.json"
 
     _filepath: Path
     _dirty: bool
@@ -50,10 +62,11 @@ class Datasets(ContextManager['Datasets']):
         :param data_folder: Path to the folder, where the benchmark data is stored.
           This folder consists of the file `datasets.csv` and the datasets in an hierarchical storage layout.
         """
-        self._filepath = Path(data_folder) / self.FILENAME
+        self.log = logging.getLogger(self.__class__.__name__)
+        self._filepath = Path(data_folder) / self.INDEX_FILENAME
         self._dirty = False
         if not self._filepath.exists():
-            self._df = self._create_metadata_file()
+            self._df = self._create_index_file()
         else:
             self.refresh(force=True)
 
@@ -76,10 +89,12 @@ class Datasets(ContextManager['Datasets']):
     def __str__(self) -> str:
         return f"{str(self._df)}\nCustom datasets:\n{str(self._custom_datasets)}"
 
-    def _create_metadata_file(self) -> pd.DataFrame:
+    def _create_index_file(self) -> pd.DataFrame:
         df_temp = pd.DataFrame(
-            columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index", "split_at",
-                     "train_type", "train_is_normal", "input_type", "length"])
+            columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index",
+                     "split_at", "train_type", "train_is_normal", "input_type", "length", "dimensions", "contamination",
+                     "num_anomalies", "min_anomaly_length", "median_anomaly_length", "max_anomaly_length", "mean",
+                     "stddev", "trend", "stationarity"])
         df_temp.set_index(["collection_name", "dataset_name"], inplace=True)
         dataset_dir = self._filepath.parent
         if not dataset_dir.is_dir():
@@ -113,34 +128,33 @@ class Datasets(ContextManager['Datasets']):
         else:
             return pd.DataFrame()
 
-    def add_dataset(self,
-                    dataset_id: DatasetId,
-                    train_path: Optional[str],
-                    test_path: str,
-                    dataset_type: str,
-                    datetime_index: bool,
-                    split_at: int,
-                    train_type: str,
-                    train_is_normal: bool,
-                    input_type: str,
-                    dataset_length: int
-                    ) -> None:
+    def add_dataset(self, dataset: DatasetRecord) -> None:
         """
         Add a new dataset to the benchmark dataset collection (in-memory).
         If the same dataset ID (collection_name, dataset_name) is specified than an existing dataset,
         its entries are overwritten!
         """
         df_new = pd.DataFrame({
-            "train_path": train_path,
-            "test_path": test_path,
-            "dataset_type": dataset_type,
-            "datetime_index": datetime_index,
-            "split_at": split_at,
-            "train_type": train_type,
-            "train_is_normal": train_is_normal,
-            "input_type": input_type,
-            "length": dataset_length
-        }, index=[dataset_id])
+            "train_path": dataset.train_path,
+            "test_path": dataset.test_path,
+            "dataset_type": dataset.dataset_type,
+            "datetime_index": dataset.datetime_index,
+            "split_at": dataset.split_at,
+            "train_type": dataset.train_type,
+            "train_is_normal": dataset.train_is_normal,
+            "input_type": dataset.input_type,
+            "length": dataset.length,
+            "dimensions": dataset.dimensions,
+            "contamination": dataset.contamination,
+            "num_anomalies": dataset.num_anomalies,
+            "min_anomaly_length": dataset.min_anomaly_length,
+            "median_anomaly_length": dataset.median_anomaly_length,
+            "max_anomaly_length": dataset.max_anomaly_length,
+            "mean": dataset.mean,
+            "stddev": dataset.stddev,
+            "trend": dataset.trend,
+            "stationarity": dataset.stationarity,
+        }, index=[(dataset.collection_name, dataset.dataset_name)])
         df = pd.concat([self._df, df_new], axis=0)
         df = df[~df.index.duplicated(keep="last")]
         self._df = df.sort_index()
@@ -177,10 +191,10 @@ class Datasets(ContextManager['Datasets']):
         self._dirty = False
 
     def get_collection_names(self) -> List[str]:
-        return self._custom_datasets.get_collection_names() + list(self._df.index.get_level_values(0))
+        return self._custom_datasets.get_collection_names() + list(self._df.index.get_level_values(0).unique())
 
     def get_dataset_names(self) -> List[str]:
-        return self._custom_datasets.get_dataset_names() + list(self._df.index.get_level_values(1))
+        return self._custom_datasets.get_dataset_names() + list(self._df.index.get_level_values(1).unique())
 
     def select(self,
                collection_name: Optional[str] = None,
@@ -252,7 +266,7 @@ class Datasets(ContextManager['Datasets']):
 
     def df(self) -> pd.DataFrame:
         """Returns a copy of the internal dataset metadata collection."""
-        df = pd.concat([self._df, self._build_custom_df()], axis=0)
+        df = pd.concat([self._df, self._build_custom_df()], axis=0, copy=True)
         df = df[~df.index.duplicated(keep="last")]
         df = df.sort_index()
         return df
@@ -269,7 +283,7 @@ class Datasets(ContextManager['Datasets']):
             return data_path.absolute()
         else:
             path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
-            if not path or (isinstance(path, (np.float64, np.int64)) and np.isnan(path)):
+            if not path or (isinstance(path, (np.float64, np.int64, float)) and np.isnan(path)):
                 raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
             return self._filepath.parent.absolute() / path
 
@@ -285,3 +299,38 @@ class Datasets(ContextManager['Datasets']):
         path = self.get_dataset_path(dataset_id, train)
         # TODO: supply numpy with type information, especially for datasets with datetime_index == True
         return np.genfromtxt(path, delimiter=",", skip_header=1)
+
+    def get_training_type(self, dataset_id: DatasetId) -> TrainingType:
+        collection_name, dataset_name = dataset_id
+        if collection_name in self._custom_datasets.get_collection_names():
+            self.log.warning(f"Custom datasets lack all meta information! "
+                             f"Assuming {TrainingType.UNSUPERVISED} for {dataset_id}")
+            return TrainingType.UNSUPERVISED
+        else:
+            train_is_normal = self._get_value_internal(dataset_id, "train_is_normal")
+            train_type_name = self._get_value_internal(dataset_id, "train_type")
+            training_type = TrainingType.from_text(train_type_name)
+            if training_type == TrainingType.SEMI_SUPERVISED and not train_is_normal:
+                self.log.warning(f"Dataset {dataset_id} is specified as {training_type} ('train_type'). However, "
+                                 f"'train_is_normal' is False! Reverting back to {TrainingType.SUPERVISED}!\n"
+                                 f"Please check your dataset configuration!")
+                training_type = TrainingType.SUPERVISED
+            return training_type
+
+    def get_detailed_metadata(self, dataset_id: DatasetId, train: bool = False) -> DatasetMetadata:
+        path = self.get_dataset_path(dataset_id, train)
+        metadata_file = path.parent / f"{dataset_id[1]}.{self.METADATA_FILENAME_PREFIX}"
+        if metadata_file.exists():
+            try:
+                return DatasetAnalyzer.load_from_json(metadata_file, train)
+            except ValueError:
+                self.log.debug(f"Metadata file existed, but the requested file info was not found, recreating it.")
+        else:
+            self.log.debug(
+                f"No metadata file for {dataset_id} exists. Analyzing dataset on-the-fly and storing result.")
+        dm = DatasetAnalyzer(dataset_id, is_train=train, dataset_path=path)
+        if dataset_id[0] in self._custom_datasets.get_collection_names():
+            self.log.warning("Cannot store metadata information for custom datasets!")
+        else:
+            dm.save_to_json(metadata_file)
+        return dm.metadata

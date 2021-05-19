@@ -2,6 +2,7 @@
 
 [![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
 [![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
+[![release info](https://img.shields.io/badge/Release-0.5.0-blue)](https://gitlab.hpi.de/akita/bp2020fn1/timeeval/-/releases/v0.5.0)
 
 Evaluation Tool for Anomaly Detection Algorithms on time series.
 

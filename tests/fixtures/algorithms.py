@@ -3,7 +3,7 @@ from typing import Callable, Optional
 import numpy as np
 
 from timeeval.adapters.base import Adapter
-from timeeval.data_types import AlgorithmParameter
+from timeeval.data_types import AlgorithmParameter, ExecutionType
 
 
 def deviating_from_1d(data: np.ndarray, fn: Callable) -> np.ndarray:
@@ -30,6 +30,25 @@ class DeviatingFromMedian(Adapter):
 
     def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         return deviating_from(dataset, np.median)  # type: ignore
+
+
+class SupervisedDeviatingFromMean(Adapter):
+
+    def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:
+        model_path = args["results_path"] / "model.txt"
+        if args["executionType"] == ExecutionType.TRAIN:
+            mean: np.float64 = np.mean(dataset[:, 1])  # type: ignore
+            with open(model_path, "w") as f:
+                f.write(str(mean))
+            return dataset
+        else:
+            with open(model_path, "r") as f:
+                mean = np.float64(f.read())
+
+            def fn(_, **kwargs):
+                return mean
+
+            return deviating_from(dataset, fn)  # type: ignore
 
 
 class ErroneousAlgorithm(Adapter):
