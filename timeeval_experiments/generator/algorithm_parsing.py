@@ -19,14 +19,14 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
 
     if not manifest_path.exists():
         warnings.warn(MissingManifestWarning.msg(name), category=MissingManifestWarning)
-        return
+        return None
 
     with manifest_path.open("r") as fh:
         manifest = json.load(fh)
     if "learningType" not in manifest:
         warnings.warn(InvalidManifestWarning.msg(name, "'learningType' is missing."),
                       category=InvalidManifestWarning)
-        return
+        return None
 
     return {"display_name": manifest["title"], "training_type": manifest["learningType"]}
 
@@ -37,7 +37,7 @@ def _parse_readme(algo_dir: Path) -> Optional[Dict]:
 
     if not readme_path.exists():
         warnings.warn(MissingReadmeWarning.msg(name), category=MissingReadmeWarning)
-        return
+        return None
 
     result = {}
     with readme_path.open("r") as fh:
