@@ -1,0 +1,46 @@
+from durations import Duration
+from sklearn.model_selection import ParameterGrid
+from typing import Any
+
+from timeeval import Algorithm
+from timeeval.adapters import DockerAdapter
+from timeeval.data_types import TrainingType
+from .common import SKIP_PULL, DEFAULT_TIMEOUT
+{% if post_process_block is defined %}
+
+import numpy as np
+
+
+{% endif %}
+{{ post_process_block }}
+
+def {{ image_name }}(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+    return Algorithm(
+        name="{{ name }}-docker",
+        main=DockerAdapter(
+            image_name="mut:5000/akita/{{ image_name }}",
+{% if image_tag is defined %}
+            tag="{{ image_tag }}",
+{% endif %}
+            skip_pull=skip_pull,
+            timeout=timeout,
+            group_privileges="{{ group_privileges|default("akita") }}",
+{% if memory_limit_overwrite is defined %}
+            memory_limit_overwrite="{{ memory_limit_overwrite }}",
+{% endif %}
+{% if cpu_limit_overwrite is defined %}
+            cpu_limit_overwrite="{{ cpu_limit_overwrite }}",
+{% endif %}
+        ),
+        preprocess={{ preprocess|default(None) }},
+        postprocess={{ postprocess|default(None) }},
+        param_grid=ParameterGrid(params or {}),
+        data_as_file=True,
+        training_type={% if training_type|lower == "unsupervised" -%}
+                          TrainingType.UNSUPERVISED
+                      {% elif training_type|lower == "semi-supervised" -%}
+                          TrainingType.SEMI_SUPERVISED
+                      {% else -%}
+                          TrainingType.SUPERVISED
+                      {% endif %}
+    )
