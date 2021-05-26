@@ -1,0 +1,30 @@
+{
+  "title": "DEMO algorithm with post-processing",
+  "description": "Uses the demo docker image algorithm for testing purposes",
+  "inputDimensionality": "multivariate",
+  "version": "0.1",
+  "authors": "Phillip Wenig",
+  "language": "Python",
+  "type": "Detector",
+  "mainFile": "algorithm.py",
+  "learningType": "unsupervised",
+  "executionStep": {
+    "parameters": [
+      {
+        "name": "raise",
+        "type": "Boolean",
+        "defaultValue": "false",
+        "optional": "true",
+        "description": ""
+      },
+      {
+        "name": "sleep",
+        "type": "Int",
+        "defaultValue": 10,
+        "optional": "true",
+        "description": ""
+      }
+    ],
+    "modelInput": "none"
+  }
+}

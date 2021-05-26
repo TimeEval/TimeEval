@@ -23,6 +23,10 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
 
     with manifest_path.open("r") as fh:
         manifest = json.load(fh)
+    if "title" not in manifest:
+        warnings.warn(InvalidManifestWarning.msg(name, "'title' is missing."),
+                      category=InvalidManifestWarning)
+        return None
     if "learningType" not in manifest:
         warnings.warn(InvalidManifestWarning.msg(name, "'learningType' is missing."),
                       category=InvalidManifestWarning)
