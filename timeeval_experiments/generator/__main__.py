@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from timeeval_experiments.generator.codegen import AlgorithmGenerator
+from .codegen import AlgorithmGenerator
 
 
 def _create_arg_parser() -> argparse.Namespace:
@@ -31,6 +31,7 @@ generator = AlgorithmGenerator(
 target_dir = Path(__file__).parent.parent / "algorithms"
 if not target_dir.is_dir():
     target_dir.mkdir(exist_ok=True)
+
 print(f"\n#### Generating algorithm stubs in {target_dir}")
 generator.generate_all(target=target_dir, force=args.force)
 print("#### DONE")

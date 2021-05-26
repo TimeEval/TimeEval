@@ -3,7 +3,7 @@ from typing import Union
 
 from jinja2 import Environment, PackageLoader
 
-from timeeval_experiments.generator.algorithm_parsing import AlgorithmLoader
+from .algorithm_parsing import AlgorithmLoader
 
 
 class AlgorithmGenerator:

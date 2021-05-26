@@ -4,7 +4,7 @@ import warnings
 from pathlib import Path
 from typing import Union, Optional, Dict, List
 
-from timeeval_experiments.generator.exceptions import (
+from .exceptions import (
     MissingReadmeWarning, MissingManifestWarning, InvalidManifestWarning, AlgorithmManifestLoadingWarning
 )
 
