@@ -3,3 +3,4 @@ pytest-cov
 mypy
 twine
 freezegun
+jinja2
