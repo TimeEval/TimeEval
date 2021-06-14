@@ -4,16 +4,17 @@ from typing import Optional, Callable
 from sklearn.model_selection import ParameterGrid
 
 from .adapters.base import Adapter
-from .data_types import TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter, TrainingType
+from .data_types import TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter, TrainingType, InputDimensionality
 
 
 @dataclass
 class Algorithm:
     name: str
     main: Adapter
+    training_type: TrainingType
+    input_dimensionality: InputDimensionality
     preprocess: Optional[TSFunction] = None
     postprocess: Optional[TSFunctionPost] = None
-    training_type: TrainingType = TrainingType.UNSUPERVISED
     data_as_file: bool = False
     param_grid: ParameterGrid = ParameterGrid({})
 
