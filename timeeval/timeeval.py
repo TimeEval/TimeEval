@@ -76,7 +76,11 @@ class TimeEval:
         self.log.info(f"Results are recorded in the directory {self.results_path}")
         self.metrics = metrics or Metric.default()
         self.metric_names = [m.name for m in self.metrics]
-        self.exps = Experiments(datasets, algorithms, self.results_path, resource_constraints, repetitions=repetitions)
+        dataset_details = [self.dmgr.get(d) for d in datasets]
+        self.exps = Experiments(dataset_details, algorithms, self.results_path,
+                                resource_constraints=resource_constraints,
+                                repetitions=repetitions,
+                                skip_invalid_combinations=True)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
         self.distributed = distributed
@@ -96,19 +100,22 @@ class TimeEval:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
 
-                test_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=False)
+                test_dataset_path = self.dmgr.get_dataset_path(exp.dataset.datasetId, train=False)
                 train_dataset_path: Optional[Path] = None
-                if (exp.algorithm.training_type == TrainingType.SUPERVISED or
-                    exp.algorithm.training_type == TrainingType.SEMI_SUPERVISED):
+                if exp.algorithm.training_type in [TrainingType.SUPERVISED, TrainingType.SEMI_SUPERVISED]:
                     # Intentionally raise KeyError here if no training dataset is specified.
                     # The Error will be caught by the except clause below.
-                    train_dataset_path = self.dmgr.get_dataset_path(exp.dataset, train=True)
+                    train_dataset_path = self.dmgr.get_dataset_path(exp.dataset.datasetId, train=True)
 
                     # This check is not necessary for unsupervised algorithms, because they can be executed on all
                     # datasets.
-                    if exp.algorithm.training_type != (dataset_tpe := self.dmgr.get_training_type(exp.dataset)):
-                        raise ValueError(f"Dataset training type ({dataset_tpe}) incompatible to algorithm "
-                                         f"training type ({exp.algorithm.training_type})!")
+                    if not self.exps.skip_invalid_combinations and exp.algorithm.training_type != exp.dataset.training_type:
+                        raise ValueError(f"Dataset training type ({exp.dataset.training_type}) incompatible to "
+                                         f"algorithm training type ({exp.algorithm.training_type})!")
+
+                if not self.exps.skip_invalid_combinations and exp.algorithm.input_dimensionality != exp.dataset.input_dimensionality:
+                    raise ValueError(f"Dataset input dimensionality ({exp.dataset.input_dimensionality}) incompatible "
+                                     f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!")
 
                 if self.distributed:
                     future_result = self.remote.add_task(exp.evaluate, train_dataset_path, test_dataset_path)

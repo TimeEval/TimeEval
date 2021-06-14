@@ -11,6 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 from .algorithm import Algorithm
 from .constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
 from .data_types import AlgorithmParameter, TrainingType
+from .datasets.datasets import Dataset
 from .resource_constraints import ResourceConstraints
 from .times import Times
 from .utils.datasets import extract_features, extract_labels, load_dataset
@@ -20,7 +21,7 @@ from .utils.metrics import Metric
 
 @dataclass
 class Experiment:
-    dataset: Tuple[str, str]
+    dataset: Dataset
     algorithm: Algorithm
     params: dict
     repetition: int
@@ -30,11 +31,11 @@ class Experiment:
 
     @property
     def dataset_collection(self) -> str:
-        return self.dataset[0]
+        return self.dataset.collection_name
 
     @property
     def dataset_name(self) -> str:
-        return self.dataset[1]
+        return self.dataset.name
 
     @property
     def params_id(self) -> str:
@@ -121,30 +122,61 @@ class Experiment:
 
 
 class Experiments:
-
-    def __init__(self, datasets: List[Tuple[str, str]], algorithms: List[Algorithm], base_result_path: Path,
-                 resource_constraints: ResourceConstraints, repetitions: int = 1, metrics: Optional[List[Metric]] = None):
-        self.dataset_names = datasets
+    def __init__(self,
+                 datasets: List[Dataset],
+                 algorithms: List[Algorithm],
+                 base_result_path: Path,
+                 resource_constraints: ResourceConstraints,
+                 repetitions: int = 1,
+                 metrics: Optional[List[Metric]] = None,
+                 skip_invalid_combinations: bool = False):
+        self.datasets = datasets
         self.algorithms = algorithms
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
         self.metrics = metrics or Metric.default()
+        self.skip_invalid_combinations = skip_invalid_combinations
+        if self.skip_invalid_combinations:
+            self._N: Optional[int] = None
+        else:
+            self._N: Optional[int] = sum(
+                [len(algo.param_grid) for algo in self.algorithms]
+            ) * len(self.datasets) * self.repetitions
 
     def __iter__(self) -> Generator[Experiment, None, None]:
         for algorithm in self.algorithms:
             for algorithm_config in algorithm.param_grid:
-                for dataset_name in self.dataset_names:
+                for dataset in self.datasets:
                     for repetition in range(1, self.repetitions + 1):
-                        yield Experiment(
-                            algorithm=algorithm,
-                            dataset=dataset_name,
-                            params=algorithm_config,
-                            repetition=repetition,
-                            base_results_dir=self.base_result_path,
-                            resource_constraints=self.resource_constraints,
-                            metrics=self.metrics
-                        )
+                        if self._check_compatible(dataset, algorithm):
+                            yield Experiment(
+                                algorithm=algorithm,
+                                dataset=dataset,
+                                params=algorithm_config,
+                                repetition=repetition,
+                                base_results_dir=self.base_result_path,
+                                resource_constraints=self.resource_constraints,
+                                metrics=self.metrics
+                            )
 
     def __len__(self) -> int:
-        return sum([len(algo.param_grid) for algo in self.algorithms]) * len(self.dataset_names) * self.repetitions
+        if not self._N:
+            self._N = sum([
+                1 for algorithm in self.algorithms
+                for _algorithm_config in algorithm.param_grid
+                for dataset in self.datasets
+                for _repetition in range(1, self.repetitions + 1)
+                if self._check_compatible(dataset, algorithm)
+            ])
+        return self._N
+
+    def _check_compatible(self, dataset: Dataset, algorithm: Algorithm) -> bool:
+        if not self.skip_invalid_combinations:
+            return True
+
+        if algorithm.training_type in [TrainingType.SUPERVISED, TrainingType.SEMI_SUPERVISED]:
+            train_compatible = algorithm.training_type == dataset.training_type
+        else:
+            train_compatible = True
+        return algorithm.input_dimensionality == dataset.input_dimensionality and train_compatible
