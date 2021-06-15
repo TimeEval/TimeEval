@@ -1,0 +1,3 @@
+{% for algo in algorithms %}
+from .{{ algo }} import {{ algo }}
+{% endfor %}
