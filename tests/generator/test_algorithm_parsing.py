@@ -1,6 +1,5 @@
 import json
 import tempfile
-import textwrap
 import unittest
 from pathlib import Path
 
@@ -62,6 +61,30 @@ class TestAlgorithmParsing(unittest.TestCase):
             with self.assertWarns(AlgorithmManifestLoadingWarning):
                 res = _parse_readme(algorithm_folder)
                 self.assertDictEqual(res, {})
+
+    def test_fixes_post_func_indents(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            algorithm_folder = Path(tmp_path) / "algorithm"
+            algorithm_folder.mkdir()
+            with (algorithm_folder / "README.md").open("w") as fh:
+                fh.write(
+                    """# Demo indented postprocess function
+                    - here:
+                      <!--BEGIN:timeeval-post-->
+                      ```python
+                      import numpy as np
+                      def post_func(X, args):
+                          return np.zeros(X.shape[0])
+                      ```
+                      <!--END:timeeval-post-->
+                    - another point
+                    """
+                )
+            res = _parse_readme(algorithm_folder)
+            self.assertDictEqual(res, {
+                "post_function_name": "post_func",
+                "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n"
+            })
 
     def test_skips_missing_manifest(self):
         with tempfile.TemporaryDirectory() as tmp_path:

@@ -9,8 +9,15 @@ from .exceptions import (
 )
 
 IGNORED_FOLDERS = ["results", "data"]
-CODEBLOCK_PATTERN = r"[`]{3}\w*?\n(.+?)[`]{3}"
-POST_FUNC_PATTERN = r"def (.+?)\("
+CODEBLOCK = r"[`]{3}\w*?\n(.+?)[`]{3}"
+CODEBLOCK_PATTERN = re.compile(CODEBLOCK, re.S)  # G is set through find**all**
+TE_POST_CODEBLOCK_PATTERN = re.compile(
+    r"<!--BEGIN:timeeval-post-->.*" +
+    CODEBLOCK +
+    r".*<!--END:timeeval-post-->",
+    re.S  # G is set through find**all**
+)
+POST_FUNC_PATTERN = re.compile(r"def (.+?)\(", re.M)
 
 
 def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
@@ -46,19 +53,31 @@ def _parse_readme(algo_dir: Path) -> Optional[Dict]:
     result = {}
     with readme_path.open("r") as fh:
         lines = "".join(fh.readlines())
-    groups = re.findall(CODEBLOCK_PATTERN, lines, re.S)  # G is set through find**all**
-    if groups:
-        if len(groups) > 1:
-            warnings.warn(f"Algorithm {name}'s README contains multiple code blocks, ignoring all of them! "
-                          f"If {name} requires post-processing, it will not be generated!",
-                          category=AlgorithmManifestLoadingWarning)
-        else:
-            post_process_block = groups[0]
-            matchgroups = re.findall(POST_FUNC_PATTERN, post_process_block, re.M)
-            # use first matching group (helper functions are usually placed below the main function)
-            result["post_function_name"] = matchgroups[0]
-            result["post_process_block"] = post_process_block
+    groups = CODEBLOCK_PATTERN.findall(lines)
+    post_func_groups = TE_POST_CODEBLOCK_PATTERN.findall(lines)
+    if groups and not post_func_groups:
+        warnings.warn(f"Algorithm {name}'s README contains code blocks, but no TimeEval "
+                      "post function annotation (fenced code block with "
+                      "`<!--BEGIN:timeeval-post-->` and `<!--END:timeeval-post-->`)! "
+                      f"If {name} requires post-processing, it will not be generated!",
+                      category=AlgorithmManifestLoadingWarning)
+    elif post_func_groups:
+        post_process_block = post_func_groups[0]
+        post_process_block = _fix_indent(post_process_block)
+        matchgroups = POST_FUNC_PATTERN.findall(post_process_block)
+        # use first matching group (helper functions are usually placed below the main function)
+        result["post_function_name"] = matchgroups[0]
+        result["post_process_block"] = post_process_block
     return result
+
+
+def _fix_indent(codeblock: str) -> str:
+    lines = codeblock.expandtabs(tabsize=4).split("\n")
+    indent_size = len(lines[0]) - len(lines[0].lstrip())
+    if indent_size > 0:
+        return "\n".join([l[indent_size:] for l in lines])
+    else:
+        return codeblock
 
 
 class AlgorithmLoader:
