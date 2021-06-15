@@ -11,25 +11,27 @@ import numpy as np
 
 
 from timeeval.utils.window import ReverseWindowing
-# post-processing for stomp
-def post_stomp(scores: np.ndarray, args: dict) -> np.ndarray:
+# post-processing for TAnoGan
+def post_tanogan(scores: np.ndarray, args: dict) -> np.ndarray:
     window_size = args.get("hyper_params", {}).get("window_size", 30)
+    stride = args.get("hyper_params", {}).get("test_stride", 30)
+    scores = np.repeat(scores, repeats=stride)
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-def stomp(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+def tanogan(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
     return Algorithm(
-        name="STOMP-docker",
+        name="TAnoGan-docker",
         main=DockerAdapter(
-            image_name="mut:5000/akita/stomp",
+            image_name="mut:5000/akita/tanogan",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=post_stomp,
+        postprocess=post_tanogan,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
-        training_type=TrainingType.UNSUPERVISED,
-        input_dimensionality=InputDimensionality("univariate")
+        training_type=TrainingType.SEMI_SUPERVISED,
+        input_dimensionality=InputDimensionality("multivariate")
     )

@@ -10,26 +10,27 @@ from .common import SKIP_PULL, DEFAULT_TIMEOUT
 import numpy as np
 
 
-from timeeval.utils.window import ReverseWindowing
-# post-processing for valmod
-def post_valmod(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_length = args.get("hyper_params", {}).get("window_min", 30)
-    return ReverseWindowing(window_size=window_length).fit_transform(scores)
+import numpy as np
+
+def post_img_embedding_cae(scores: np.ndarray, args: dict) -> np.ndarray:
+    dataset_len = np.genfromtxt(args["inputData"], skip_header=1, delimiter=",", usecols=[1]).shape[0]
+    window_size = args.get("customParameters", {}).get("window_size", 128)
+    return np.repeat(scores, window_size)[:dataset_len]
 
 
-def valmod(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+def img_embedding_cae(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
     return Algorithm(
-        name="VALMOD-docker",
+        name="ImageEmbeddingCAE-docker",
         main=DockerAdapter(
-            image_name="mut:5000/akita/valmod",
+            image_name="mut:5000/akita/img_embedding_cae",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=post_valmod,
+        postprocess=post_img_embedding_cae,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
-        training_type=TrainingType.UNSUPERVISED,
+        training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("univariate")
     )

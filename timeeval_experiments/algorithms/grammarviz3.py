@@ -1,15 +1,24 @@
-import numpy as np
-import pandas as pd
 from durations import Duration
-from scipy.sparse import csc_matrix, hstack
 from sklearn.model_selection import ParameterGrid
+from typing import Any
 
-from timeeval import Algorithm, AlgorithmParameter
+from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
+from timeeval.data_types import TrainingType, InputDimensionality
 from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
+import numpy as np
 
-def _post_grammarviz(algorithm_parameter: AlgorithmParameter, args: dict) -> np.ndarray:
+
+import pandas as pd
+import numpy as np
+
+from scipy.sparse import csc_matrix, hstack
+from timeeval.utils.window import ReverseWindowing
+from timeeval import AlgorithmParameter
+
+# post-processing for GrammarViz
+def post_grammarviz(algorithm_parameter: AlgorithmParameter, args: dict) -> np.ndarray:
     if isinstance(algorithm_parameter, np.ndarray):
         results = pd.DataFrame(algorithm_parameter, columns=["index", "score", "length"])
         results = results.set_index("index")
@@ -36,11 +45,19 @@ def _post_grammarviz(algorithm_parameter: AlgorithmParameter, args: dict) -> np.
     return scores.A1
 
 
-def grammarviz(params=None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+def grammarviz3(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
     return Algorithm(
-        name="GrammarViz-docker",
-        main=DockerAdapter(image_name="mut:5000/akita/grammarviz3", skip_pull=skip_pull, timeout=timeout),
-        postprocess=_post_grammarviz,
+        name="GrammarViz3-docker",
+        main=DockerAdapter(
+            image_name="mut:5000/akita/grammarviz3",
+            skip_pull=skip_pull,
+            timeout=timeout,
+            group_privileges="akita",
+        ),
+        preprocess=None,
+        postprocess=post_grammarviz,
         param_grid=ParameterGrid(params or {}),
-        data_as_file=True
+        data_as_file=True,
+        training_type=TrainingType.UNSUPERVISED,
+        input_dimensionality=InputDimensionality("univariate")
     )

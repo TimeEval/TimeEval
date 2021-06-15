@@ -8,11 +8,11 @@ from timeeval.data_types import TrainingType, InputDimensionality
 from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def knn(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+def sarima(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
     return Algorithm(
-        name="KNN-docker",
+        name="SARIMA-docker",
         main=DockerAdapter(
-            image_name="mut:5000/akita/knn",
+            image_name="mut:5000/akita/sarima",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
@@ -22,5 +22,5 @@ def knn(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEF
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
-        input_dimensionality=InputDimensionality("multivariate")
+        input_dimensionality=InputDimensionality("univariate")
     )

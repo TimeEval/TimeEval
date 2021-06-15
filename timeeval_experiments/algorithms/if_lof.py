@@ -8,11 +8,11 @@ from timeeval.data_types import TrainingType, InputDimensionality
 from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def knn(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+def if_lof(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
     return Algorithm(
-        name="KNN-docker",
+        name="Isolation Forest - Local Outier Factor-docker",
         main=DockerAdapter(
-            image_name="mut:5000/akita/knn",
+            image_name="mut:5000/akita/if_lof",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
