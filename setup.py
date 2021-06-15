@@ -99,7 +99,7 @@ setup(
         "Programming Language :: Python :: 3",
     ],
     packages=find_packages(exclude=("tests",)),
-    package_data={"timeeval": ["py.typed"]},
+    package_data={"timeeval": ["py.typed"], "timeeval_experiments": ["py.typed"]},
     install_requires=load_dependencies(),
     python_requires=">=3.7",
     cmdclass={
