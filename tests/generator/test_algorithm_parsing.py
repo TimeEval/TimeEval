@@ -1,6 +1,5 @@
 import json
 import tempfile
-import textwrap
 import unittest
 from pathlib import Path
 
@@ -18,7 +17,10 @@ class TestAlgorithmParsing(unittest.TestCase):
 
     def test_parses_fstree_correctly(self):
         loader = AlgorithmLoader(self.repo_path)
-        self.assertListEqual(loader.algorithm_names, ["timeeval_test_algorithm_post", "timeeval_test_algorithm"])
+        algo_names = loader.algorithm_names
+        self.assertEqual(len(algo_names), 2)
+        self.assertIn("timeeval_test_algorithm", algo_names)
+        self.assertIn("timeeval_test_algorithm_post", algo_names)
         algos = loader.all_algorithms
         self.assertEqual(len(algos), 2)
         self.assertDictEqual(algos[0], {
