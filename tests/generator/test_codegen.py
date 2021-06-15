@@ -23,10 +23,11 @@ class TestCodeGen(unittest.TestCase):
                 sys.executable,
                 "-c",
                 "from algorithms import timeeval_test_algorithm; algo = timeeval_test_algorithm(skip_pull=True); "
-                "print(algo.name); print(algo.training_type.value); print(f\"{algo.main.image_name}:{algo.main.tag}\")"
+                "print(algo.name); print(algo.training_type.value); print(algo.input_dimensionality.value); "
+                "print(f\"{algo.main.image_name}:{algo.main.tag}\")"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm-docker\nunsupervised\nmut:5000/akita/timeeval_test_algorithm:latest\n",
+                "DEMO algorithm-docker\nunsupervised\nmultivariate\nmut:5000/akita/timeeval_test_algorithm:latest\n",
                 process.stdout.decode("utf-8"),
             )
 
@@ -35,11 +36,11 @@ class TestCodeGen(unittest.TestCase):
                 "-c",
                 "from algorithms import timeeval_test_algorithm_post; import numpy as np; "
                 "algo = timeeval_test_algorithm_post(skip_pull=True); "
-                "print(algo.name); print(algo.training_type.value); "
+                "print(algo.name); "
                 "print(list(algo.postprocess(np.arange(3), {})));"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm with post-processing-docker\nunsupervised\n[0.0, 0.0, 0.0]\n",
+                "DEMO algorithm with post-processing-docker\n[0.0, 0.0, 0.0]\n",
                 process.stdout.decode("utf-8"),
             )
 

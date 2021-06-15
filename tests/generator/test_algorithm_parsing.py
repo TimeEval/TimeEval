@@ -12,8 +12,9 @@ from timeeval_experiments.generator.exceptions import MissingReadmeWarning, Miss
 class TestAlgorithmParsing(unittest.TestCase):
     def setUp(self) -> None:
         self.repo_path = "tests/example_data/timeeval-algorithms"
-        self.invalid_manifest_1 = {"title": "DEMO algorithm"}
-        self.invalid_manifest_2 = {"learningType": "unsupervised"}
+        self.invalid_manifest_1 = {"title": "DEMO algorithm", "inputDimensionality": "univariate"}
+        self.invalid_manifest_2 = {"learningType": "unsupervised", "inputDimensionality": "univariate"}
+        self.invalid_manifest_3 = {"title": "DEMO algorithm", "learningType": "unsupervised"}
 
     def test_parses_fstree_correctly(self):
         loader = AlgorithmLoader(self.repo_path)
@@ -33,13 +34,15 @@ class TestAlgorithmParsing(unittest.TestCase):
             "display_name": "DEMO algorithm with post-processing",
             "name": "timeeval_test_algorithm_post",
             "training_type": "unsupervised",
+            "input_dimensionality": "multivariate",
             "post_function_name": "post_func",
-            "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n"
+            "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n",
         })
         self.assertDictEqual(algo2, {
             "display_name": "DEMO algorithm",
             "name": "timeeval_test_algorithm",
-            "training_type": "unsupervised"
+            "training_type": "unsupervised",
+            "input_dimensionality": "multivariate",
         })
         self.assertEqual(algo2, loader.algo_detail("timeeval_test_algorithm"))
 
@@ -115,6 +118,12 @@ class TestAlgorithmParsing(unittest.TestCase):
 
             with (algorithm_folder / "manifest.json").open("w") as fh:
                 json.dump(self.invalid_manifest_2, fh)
+            with self.assertWarns(InvalidManifestWarning):
+                res = _parse_manifest(algorithm_folder)
+                self.assertIsNone(res)
+
+            with (algorithm_folder / "manifest.json").open("w") as fh:
+                json.dump(self.invalid_manifest_3, fh)
             with self.assertWarns(InvalidManifestWarning):
                 res = _parse_manifest(algorithm_folder)
                 self.assertIsNone(res)
