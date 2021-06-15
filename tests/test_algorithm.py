@@ -1,17 +1,10 @@
-import tempfile
 import unittest
-from pathlib import Path
 
 import numpy as np
 
-from tests.fixtures.algorithms import SupervisedDeviatingFromMean
-from timeeval import TimeEval, Algorithm, Datasets
+from timeeval import Algorithm
 from timeeval.adapters import FunctionAdapter
 from timeeval.data_types import TrainingType
-from timeeval.experiments import Experiment
-from timeeval.resource_constraints import ResourceConstraints
-from timeeval.timeeval import Status
-from timeeval.utils.metrics import Metric
 
 
 class TestAlgorithm(unittest.TestCase):
@@ -20,7 +13,8 @@ class TestAlgorithm(unittest.TestCase):
         self.data = np.random.rand(10)
         self.unsupervised_algorithm = Algorithm(
             name="TestAlgorithm",
-            main=FunctionAdapter.identity()
+            main=FunctionAdapter.identity(),
+            training_type=TrainingType.UNSUPERVISED
         )
         self.supervised_algorithm = Algorithm(
             name="TestAlgorithm",
@@ -46,7 +40,7 @@ class TestAlgorithm(unittest.TestCase):
     def test_unsupervised_training(self):
         with self.assertRaises(ValueError) as e:
             self.unsupervised_algorithm.train(self.data)
-            self.assertRegex(str(e), r".*[Cc]alling.*train.*unsupervised algorithm.*not supported.*")
+        self.assertRegex(str(e.exception), r".*[Cc]alling.*train.*unsupervised algorithm.*not supported.*")
 
     def test_semi_and_supervised_training(self):
         result = self.semi_supervised_algorithm.train(self.data)

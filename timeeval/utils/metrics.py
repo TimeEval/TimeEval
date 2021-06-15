@@ -16,7 +16,11 @@ class Metric(Enum):
     RANGE_PR_AUC = 4
 
     @staticmethod
-    def default() -> List['Metric']:
+    def default() -> 'Metric':
+        return Metric.ROC_AUC
+
+    @staticmethod
+    def default_list() -> List['Metric']:
         return [Metric.ROC_AUC]
 
     def _validate_scores(self, scores: np.ndarray):
