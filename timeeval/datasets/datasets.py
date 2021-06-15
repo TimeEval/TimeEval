@@ -313,7 +313,17 @@ class Datasets(ContextManager['Datasets']):
             raise ValueError(f"Cannot use {collection_name} and {dataset_name} as index!")
 
         if index[0] in self._custom_datasets.get_collection_names():
-            raise NotImplementedError("Custom datasets lack all meta information!")
+            self.log.warning(f"Custom datasets lack all meta information! "
+                             f"Assuming {TrainingType.UNSUPERVISED} and {InputDimensionality.UNIVARIATE} for {index}")
+            return Dataset(
+                datasetId=index,
+                dataset_type="custom",
+                training_type=TrainingType.UNSUPERVISED,
+                dimensions=1,
+                length=-1,
+                num_anomalies=-1
+            )
+            # raise NotImplementedError("Custom datasets lack all meta information!")
         else:
             entry = self._df.loc[index]
             training_type = self.get_training_type(index)

@@ -126,7 +126,7 @@ class Experiments:
                  datasets: List[Dataset],
                  algorithms: List[Algorithm],
                  base_result_path: Path,
-                 resource_constraints: ResourceConstraints,
+                 resource_constraints: ResourceConstraints = ResourceConstraints.no_constraints(),
                  repetitions: int = 1,
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = False):
@@ -135,12 +135,12 @@ class Experiments:
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
-        self.metrics = metrics or Metric.default()
+        self.metrics = metrics or Metric.default_list()
         self.skip_invalid_combinations = skip_invalid_combinations
         if self.skip_invalid_combinations:
             self._N: Optional[int] = None
         else:
-            self._N: Optional[int] = sum(
+            self._N = sum(
                 [len(algo.param_grid) for algo in self.algorithms]
             ) * len(self.datasets) * self.repetitions
 
@@ -161,7 +161,7 @@ class Experiments:
                             )
 
     def __len__(self) -> int:
-        if not self._N:
+        if self._N is None:
             self._N = sum([
                 1 for algorithm in self.algorithms
                 for _algorithm_config in algorithm.param_grid
@@ -169,7 +169,7 @@ class Experiments:
                 for _repetition in range(1, self.repetitions + 1)
                 if self._check_compatible(dataset, algorithm)
             ])
-        return self._N
+        return self._N  # type: ignore
 
     def _check_compatible(self, dataset: Dataset, algorithm: Algorithm) -> bool:
         if not self.skip_invalid_combinations:

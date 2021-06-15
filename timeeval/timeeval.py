@@ -57,7 +57,8 @@ class TimeEval:
                  remote_config: Optional[RemoteConfiguration] = None,
                  resource_constraints: Optional[ResourceConstraints] = None,
                  disable_progress_bar: bool = False,
-                 metrics: Optional[List[Metric]] = None):
+                 metrics: Optional[List[Metric]] = None,
+                 skip_invalid_combinations: bool = True):
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         resource_constraints = resource_constraints or ResourceConstraints()
@@ -74,13 +75,13 @@ class TimeEval:
 
         self.results_path = results_path.absolute() / start_date
         self.log.info(f"Results are recorded in the directory {self.results_path}")
-        self.metrics = metrics or Metric.default()
+        self.metrics = metrics or Metric.default_list()
         self.metric_names = [m.name for m in self.metrics]
         dataset_details = [self.dmgr.get(d) for d in datasets]
         self.exps = Experiments(dataset_details, algorithms, self.results_path,
                                 resource_constraints=resource_constraints,
                                 repetitions=repetitions,
-                                skip_invalid_combinations=True)
+                                skip_invalid_combinations=skip_invalid_combinations)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
         self.distributed = distributed

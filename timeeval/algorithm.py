@@ -11,12 +11,12 @@ from .data_types import TSFunction, TSFunctionPost, ExecutionType, AlgorithmPara
 class Algorithm:
     name: str
     main: Adapter
-    training_type: TrainingType
-    input_dimensionality: InputDimensionality
     preprocess: Optional[TSFunction] = None
     postprocess: Optional[TSFunctionPost] = None
     data_as_file: bool = False
     param_grid: ParameterGrid = ParameterGrid({})
+    training_type: TrainingType = TrainingType.UNSUPERVISED
+    input_dimensionality: InputDimensionality = InputDimensionality.UNIVARIATE
 
     def train(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         if self.training_type == TrainingType.UNSUPERVISED:
