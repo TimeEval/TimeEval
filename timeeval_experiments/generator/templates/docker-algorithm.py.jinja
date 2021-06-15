@@ -4,7 +4,7 @@ from typing import Any
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
-from timeeval.data_types import TrainingType
+from timeeval.data_types import TrainingType, InputDimensionality
 from .common import SKIP_PULL, DEFAULT_TIMEOUT
 {% if post_process_block is defined %}
 
@@ -38,9 +38,10 @@ def {{ image_name }}(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: D
         data_as_file=True,
         training_type={% if training_type|lower == "unsupervised" -%}
                           TrainingType.UNSUPERVISED
-                      {% elif training_type|lower == "semi-supervised" -%}
+                      {%- elif training_type|lower == "semi-supervised" -%}
                           TrainingType.SEMI_SUPERVISED
-                      {% else -%}
+                      {%- else -%}
                           TrainingType.SUPERVISED
-                      {% endif %}
+                      {%- endif %},
+        input_dimensionality=InputDimensionality("{{ input_dimensionality|lower }}")
     )

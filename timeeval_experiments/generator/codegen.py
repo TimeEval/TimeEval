@@ -52,6 +52,7 @@ class AlgorithmGenerator:
                 name=algo_data["display_name"],
                 image_name=algo_data["name"],
                 training_type=algo_data["training_type"],
+                input_dimensionality=algo_data["input_dimensionality"],
                 post_process_block=algo_data["post_process_block"],
                 postprocess=algo_data["post_function_name"],
             )
@@ -60,6 +61,7 @@ class AlgorithmGenerator:
                 name=algo_data["display_name"],
                 image_name=algo_data["name"],
                 training_type=algo_data["training_type"],
+                input_dimensionality=algo_data["input_dimensionality"],
             )
         with target_path.open("w") as fh:
             fh.write(s)
