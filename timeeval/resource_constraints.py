@@ -11,7 +11,7 @@ class ResourceConstraints:
     """
     **Resource constraints are not supported by all algorithm Adapters!**
 
-    For docker: Swap is always disabled. Resource constraints are enforces using explicit resource limits on the Docker
+    For docker: Swap is always disabled. Resource constraints are enforced using explicit resource limits on the Docker
     container.
     """
 
@@ -63,3 +63,7 @@ class ResourceConstraints:
             cpu_limit = cpus / self.tasks_per_host
 
         return memory_limit, cpu_limit
+
+    @staticmethod
+    def no_constraints() -> 'ResourceConstraints':
+        return ResourceConstraints()

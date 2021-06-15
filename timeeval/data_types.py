@@ -20,6 +20,20 @@ class TrainingType(Enum):
             return TrainingType.UNSUPERVISED
 
 
+class InputDimensionality(Enum):
+    UNIVARIATE = "univariate"
+    MULTIVARIATE = "multivariate"
+
+    @staticmethod
+    def from_dimensions(n: int) -> 'InputDimensionality':
+        if n < 1:
+            raise ValueError(f"Zero dimensional dataset is not supported!")
+        elif n == 1:
+            return InputDimensionality.UNIVARIATE
+        else:
+            return InputDimensionality.MULTIVARIATE
+
+
 class ExecutionType(Enum):
     TRAIN = "train"
     EXECUTE = "execute"

@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from types import TracebackType
@@ -7,7 +8,7 @@ from typing import Final, ContextManager, Optional, List, Type, Union, NamedTupl
 import numpy as np
 import pandas as pd
 
-from timeeval.data_types import TrainingType
+from timeeval.data_types import TrainingType, InputDimensionality
 from timeeval.datasets.analyzer import DatasetAnalyzer
 from timeeval.datasets.custom import CustomDatasets
 from timeeval.datasets.custom_base import CustomDatasetsBase
@@ -37,6 +38,35 @@ class DatasetRecord(NamedTuple):
     stddev: float
     trend: str
     stationarity: str
+
+
+@dataclass
+class Dataset:
+    datasetId: DatasetId
+    dataset_type: str
+    training_type: TrainingType
+    length: int
+    dimensions: int
+    num_anomalies: Optional[int] = None
+
+    @property
+    def name(self) -> str:
+        return self.datasetId[1]
+
+    @property
+    def collection_name(self):
+        return self.datasetId[0]
+
+    @property
+    def input_dimensionality(self) -> InputDimensionality:
+        return InputDimensionality.from_dimensions(self.dimensions)
+
+    @property
+    def has_anomalies(self) -> Optional[bool]:
+        if self.num_anomalies is None:
+            return None
+        else:
+            return self.num_anomalies > 0
 
 
 class Datasets(ContextManager['Datasets']):
@@ -273,6 +303,38 @@ class Datasets(ContextManager['Datasets']):
 
     def load_custom_datasets(self, file_path: Union[str, Path]) -> None:
         self._custom_datasets = CustomDatasets(file_path)
+
+    def get(self, collection_name: Union[str, DatasetId], dataset_name: Optional[str] = None) -> Dataset:
+        if isinstance(collection_name, tuple):
+            index = collection_name
+        elif isinstance(collection_name, str) and dataset_name is not None:
+            index = (collection_name, dataset_name)
+        else:
+            raise ValueError(f"Cannot use {collection_name} and {dataset_name} as index!")
+
+        if index[0] in self._custom_datasets.get_collection_names():
+            self.log.warning(f"Custom datasets lack all meta information! "
+                             f"Assuming {TrainingType.UNSUPERVISED} and {InputDimensionality.UNIVARIATE} for {index}")
+            return Dataset(
+                datasetId=index,
+                dataset_type="custom",
+                training_type=TrainingType.UNSUPERVISED,
+                dimensions=1,
+                length=-1,
+                num_anomalies=-1
+            )
+            # raise NotImplementedError("Custom datasets lack all meta information!")
+        else:
+            entry = self._df.loc[index]
+            training_type = self.get_training_type(index)
+            return Dataset(
+                datasetId=index,
+                dataset_type=entry["dataset_type"],
+                training_type=training_type,
+                length=entry["length"],
+                dimensions=entry["dimensions"],
+                num_anomalies=entry["num_anomalies"]
+            )
 
     def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Path:
         collection_name, dataset_name = dataset_id

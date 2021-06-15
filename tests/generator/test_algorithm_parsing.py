@@ -17,22 +17,31 @@ class TestAlgorithmParsing(unittest.TestCase):
 
     def test_parses_fstree_correctly(self):
         loader = AlgorithmLoader(self.repo_path)
-        self.assertListEqual(loader.algorithm_names, ["timeeval_test_algorithm_post", "timeeval_test_algorithm"])
+        algo_names = loader.algorithm_names
+        self.assertEqual(len(algo_names), 2)
+        self.assertIn("timeeval_test_algorithm", algo_names)
+        self.assertIn("timeeval_test_algorithm_post", algo_names)
         algos = loader.all_algorithms
         self.assertEqual(len(algos), 2)
-        self.assertDictEqual(algos[0], {
+        algo1 = algos[0]
+        algo2 = algos[1]
+        if algo1["name"] != "timeeval_test_algorithm_post":
+            tmp = algo1
+            algo1 = algo2
+            algo2 = tmp
+        self.assertDictEqual(algo1, {
             "display_name": "DEMO algorithm with post-processing",
             "name": "timeeval_test_algorithm_post",
             "training_type": "unsupervised",
             "post_function_name": "post_func",
             "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n"
         })
-        self.assertDictEqual(algos[1], {
+        self.assertDictEqual(algo2, {
             "display_name": "DEMO algorithm",
             "name": "timeeval_test_algorithm",
             "training_type": "unsupervised"
         })
-        self.assertEqual(algos[1], loader.algo_detail("timeeval_test_algorithm"))
+        self.assertEqual(algo2, loader.algo_detail("timeeval_test_algorithm"))
 
     def test_skips_missing_readme(self):
         with tempfile.TemporaryDirectory() as tmp_path:

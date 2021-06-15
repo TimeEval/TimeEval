@@ -39,7 +39,7 @@ class TestRepetitions(unittest.TestCase):
                                 repetitions=3, results_path=Path(tmp_path))
             timeeval.run()
         results = timeeval.get_results(aggregated=False)
-        self.assertEqual(len(timeeval.exps.dataset_names) * len(self.algorithms) * 3, len(results))
+        self.assertEqual(len(timeeval.exps.datasets) * len(self.algorithms) * 3, len(results))
 
     def test_error_in_repetition(self):
         datasets_config = Path("./tests/example_data/datasets.json")
