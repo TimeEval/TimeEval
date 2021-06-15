@@ -38,8 +38,16 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
         warnings.warn(InvalidManifestWarning.msg(name, "'learningType' is missing."),
                       category=InvalidManifestWarning)
         return None
+    if "inputDimensionality" not in manifest:
+        warnings.warn(InvalidManifestWarning.msg(name, "'inputDimensionality' is missing."),
+                      category=InvalidManifestWarning)
+        return None
 
-    return {"display_name": manifest["title"], "training_type": manifest["learningType"]}
+    return {
+        "display_name": manifest["title"],
+        "training_type": manifest["learningType"],
+        "input_dimensionality": manifest["inputDimensionality"]
+    }
 
 
 def _parse_readme(algo_dir: Path) -> Optional[Dict]:
