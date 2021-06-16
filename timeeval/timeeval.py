@@ -4,8 +4,11 @@ import json
 import logging
 import socket
 import subprocess
+import sys
 from enum import Enum
 from pathlib import Path
+import signal
+from types import FrameType
 from typing import Callable
 from typing import List, Tuple, Dict, Optional
 
@@ -92,6 +95,15 @@ class TimeEval:
             self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config,
                                  resource_constraints=resource_constraints)
             self.results["future_result"] = np.nan
+
+            self.log.info("... registering signal handlers ...")
+            orig_handler = signal.getsignal(signal.SIGINT)
+
+            def sigint_handler(sig: signal.Signals, frame: FrameType):
+                self.log.warning(f"{sig} received, shutting down cluster...")
+                self.remote.close()
+                return orig_handler(sig, frame)
+            signal.signal(signal.SIGINT, sigint_handler)
             self.log.info("... remoting setup done.")
 
     def _run(self):
