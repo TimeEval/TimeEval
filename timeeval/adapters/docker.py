@@ -1,5 +1,4 @@
 import json
-import logging
 import subprocess
 from dataclasses import dataclass, asdict, field
 from pathlib import Path, WindowsPath, PosixPath
@@ -118,7 +117,6 @@ class DockerAdapter(Adapter):
             memswap_limit=memory_limit,
             nano_cpus=cpu_shares,
             detach=True,
-            auto_remove=logging.root.getEffectiveLevel() > logging.DEBUG,
         )
 
     def _run_until_timeout(self, container: Container, args: dict):
@@ -170,13 +168,11 @@ class DockerAdapter(Adapter):
             return None
 
     def get_finalize_fn(self) -> Optional[Callable[[], None]]:
-        if logging.root.getEffectiveLevel() > logging.DEBUG:  # autoremove enabled
-            return None
-        else:
-            def finalize():
-                client = docker.from_env()
-                try:
-                    client.containers.prune()
-                except DockerException:
-                    pass
-            return finalize
+        def finalize():
+            client = docker.from_env()
+            try:
+                client.containers.prune()
+            except DockerException:
+                pass
+
+        return finalize
