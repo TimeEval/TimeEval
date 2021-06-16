@@ -30,6 +30,10 @@ class Experiment:
     metrics: List[Metric]
 
     @property
+    def name(self) -> str:
+        return f"{self.algorithm.name}-{self.dataset.collection_name}-{self.dataset.name}"
+
+    @property
     def dataset_collection(self) -> str:
         return self.dataset.collection_name
 
