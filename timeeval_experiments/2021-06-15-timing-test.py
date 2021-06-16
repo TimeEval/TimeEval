@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import logging
+import random
 
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
@@ -12,7 +13,7 @@ from timeeval_experiments.algorithms import *
 logging.basicConfig(
     filename="timeeval.log",
     filemode="a",
-    level=logging.INFO,
+    level=logging.DEBUG,
     force=True,
     format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
 )
@@ -23,6 +24,7 @@ def main():
 
     # Select datasets and algorithms
     datasets = dm.select()
+    datasets = random.sample(datasets, 10)
     print(f"Selected datasets: {datasets}")
 
     algorithms = [

@@ -1,4 +1,5 @@
 import json
+import logging
 import subprocess
 from dataclasses import dataclass, asdict, field
 from pathlib import Path, WindowsPath, PosixPath
@@ -116,7 +117,8 @@ class DockerAdapter(Adapter):
             mem_limit=memory_limit,
             memswap_limit=memory_limit,
             nano_cpus=cpu_shares,
-            detach=True
+            detach=True,
+            auto_remove=logging.root.getEffectiveLevel() <= logging.DEBUG,
         )
 
     def _run_until_timeout(self, container: Container, args: dict):
