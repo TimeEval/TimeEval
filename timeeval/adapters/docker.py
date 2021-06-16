@@ -118,7 +118,7 @@ class DockerAdapter(Adapter):
             memswap_limit=memory_limit,
             nano_cpus=cpu_shares,
             detach=True,
-            auto_remove=logging.root.getEffectiveLevel() <= logging.DEBUG,
+            auto_remove=logging.root.getEffectiveLevel() > logging.DEBUG,
         )
 
     def _run_until_timeout(self, container: Container, args: dict):

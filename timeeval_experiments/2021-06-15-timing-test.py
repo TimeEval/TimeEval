@@ -24,7 +24,7 @@ def main():
 
     # Select datasets and algorithms
     datasets = dm.select()
-    datasets = random.sample(datasets, 10)
+    datasets = random.sample(datasets, 100)
     print(f"Selected datasets: {datasets}")
 
     algorithms = [
