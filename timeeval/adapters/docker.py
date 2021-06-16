@@ -170,10 +170,13 @@ class DockerAdapter(Adapter):
             return None
 
     def get_finalize_fn(self) -> Optional[Callable[[], None]]:
-        def finalize():
-            client = docker.from_env()
-            try:
-                client.containers.prune()
-            except DockerException:
-                pass
-        return finalize
+        if logging.root.getEffectiveLevel() > logging.DEBUG:  # autoremove enabled
+            return None
+        else:
+            def finalize():
+                client = docker.from_env()
+                try:
+                    client.containers.prune()
+                except DockerException:
+                    pass
+            return finalize

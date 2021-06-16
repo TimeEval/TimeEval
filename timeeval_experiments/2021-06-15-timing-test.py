@@ -19,6 +19,9 @@ logging.basicConfig(
 )
 
 
+random.seed(42)
+
+
 def main():
     dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
 
