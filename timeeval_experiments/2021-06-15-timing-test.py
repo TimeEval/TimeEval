@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import random
+import sys
 
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
@@ -27,8 +28,8 @@ def main():
 
     # Select datasets and algorithms
     datasets = dm.select()
-    datasets = random.sample(datasets, 100)
-    print(f"Selected datasets: {datasets}")
+    datasets = random.sample(datasets, 200)
+    print(f"Selected datasets: {len(datasets)}")
 
     algorithms = [
         generic_rf(),
@@ -95,7 +96,8 @@ def main():
         sr(),
         autoencoder(),
     ]
-    print(f"Selected algorithms: {list(map(lambda algo: algo.name, algorithms))}")
+    print(f"Selected algorithms: {len(algorithms)}")
+    sys.stdout.flush()
 
     cluster_config = RemoteConfiguration(
         scheduler_host=HPI_CLUSTER.odin01,

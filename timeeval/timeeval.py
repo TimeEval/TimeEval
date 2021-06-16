@@ -100,7 +100,8 @@ class TimeEval:
             orig_handler = signal.getsignal(signal.SIGINT)
 
             def sigint_handler(sig: signal.Signals, frame: FrameType):
-                self.log.warning(f"{sig} received, shutting down cluster...")
+                self.log.warning(f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
+                                 "containers on all worker nodes (we do not remove them when terminating ungracefully).")
                 self.remote.close()
                 return orig_handler(sig, frame)
             signal.signal(signal.SIGINT, sigint_handler)
