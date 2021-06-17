@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 from distributed.client import Future
+from joblib import Parallel, delayed
 
 from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
@@ -24,6 +25,7 @@ from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
 from .times import Times
 from .utils.metrics import Metric
+from .utils.tqdm_joblib import tqdm_joblib
 
 
 class Status(Enum):
@@ -208,19 +210,25 @@ class TimeEval:
         self.results.to_csv(path.absolute(), index=False)
 
     @staticmethod
-    def rsync_results(results_path: Path, hosts: List[str]):
+    def rsync_results(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1):
         excluded_aliases = [
             hostname := socket.gethostname(),
             socket.gethostbyname(hostname),
             "localhost",
             socket.gethostbyname("localhost")
         ]
-        for host in hosts:
-            if host not in excluded_aliases:
-                subprocess.call(["rsync", "-a", f"{host}:{results_path}/", f"{results_path}"])
+        jobs = [
+            delayed(subprocess.call)(["rsync", "-a", f"{host}:{results_path}/", f"{results_path}"])
+            for host in hosts
+            if host not in excluded_aliases
+        ]
+        with tqdm_joblib(tqdm.tqdm(hosts, desc="Collecting results", disable=disable_progress_bar, total=len(jobs))):
+            Parallel(n_jobs)(jobs)
+        # for host in tqdm.tqdm(hosts, desc="Collecting results", disable=disable_progress_bar):
+        #     subprocess.call(["rsync", "-a", f"{host}:{results_path}/", f"{results_path}"])
 
-    def _rsync_results(self):
-        TimeEval.rsync_results(self.results_path, self.remote_config.worker_hosts)
+    def _rsync_results(self, n_jobs: int = -1):
+        TimeEval.rsync_results(self.results_path, self.remote_config.worker_hosts, self.disable_progress_bar, n_jobs)
 
     def _prepare(self):
         n = len(self.exps)
