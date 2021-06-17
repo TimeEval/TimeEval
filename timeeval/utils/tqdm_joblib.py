@@ -1,5 +1,5 @@
 import contextlib
-from typing import ContextManager
+from typing import Generator
 
 import joblib
 from joblib.parallel import BatchCompletionCallBack
@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 @contextlib.contextmanager
-def tqdm_joblib(tqdm_object: tqdm) -> ContextManager:
+def tqdm_joblib(tqdm_object: tqdm) -> Generator[tqdm, None, None]:
     """Context manager to patch joblib to report into tqdm progress bar given as argument.
 
     Directly taken from https://stackoverflow.com/a/58936697.
