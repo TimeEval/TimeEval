@@ -1,9 +1,10 @@
 import unittest
 
 import psutil
+from durations import Duration
 
 from timeeval import TimeEval, Datasets
-from timeeval.resource_constraints import ResourceConstraints, GB
+from timeeval.resource_constraints import ResourceConstraints, GB, DEFAULT_TIMEOUT
 
 
 class TestResourceConstraints(unittest.TestCase):
@@ -60,3 +61,11 @@ class TestResourceConstraints(unittest.TestCase):
 
         timeeval = TimeEval(Datasets("./tests/example_data"), [], [], distributed=False, resource_constraints=limits)
         self.assertEqual(1, timeeval.exps.resource_constraints.tasks_per_host)
+
+    def test_timeout(self):
+        self.assertEqual(ResourceConstraints.no_constraints().get_train_timeout(), DEFAULT_TIMEOUT)
+        self.assertEqual(ResourceConstraints.no_constraints().get_execute_timeout(), DEFAULT_TIMEOUT)
+
+    def test_timeout_overwrite(self):
+        timeout_overwrite = Duration("1 minute")
+        self.assertEqual(ResourceConstraints.no_constraints().get_train_timeout(timeout_overwrite), timeout_overwrite)
