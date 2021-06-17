@@ -2,8 +2,11 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import psutil
+from durations import Duration
 
 GB = 1024 ** 3
+DEFAULT_TASKS_PER_HOST = 1
+DEFAULT_TIMEOUT = Duration("8 hours")
 
 
 @dataclass
@@ -15,13 +18,16 @@ class ResourceConstraints:
     container.
     """
 
-    tasks_per_host: int = 1
+    tasks_per_host: int = DEFAULT_TASKS_PER_HOST
     task_memory_limit: Optional[int] = None
     task_cpu_limit: Optional[float] = None
+    train_timeout: Duration = DEFAULT_TIMEOUT
+    execute_timeout: Duration = DEFAULT_TIMEOUT
+    train_fails_on_timeout: bool = False
 
-    def get_resource_limits(self,
-                            memory_overwrite: Optional[int] = None,
-                            cpu_overwrite: Optional[float] = None) -> Tuple[int, float]:
+    def get_compute_resource_limits(self,
+                                    memory_overwrite: Optional[int] = None,
+                                    cpu_overwrite: Optional[float] = None) -> Tuple[int, float]:
         """
         Calculates the resource constraints for a single task. **Must be called on the node that will execute the
         task!**
@@ -63,6 +69,26 @@ class ResourceConstraints:
             cpu_limit = cpus / self.tasks_per_host
 
         return memory_limit, cpu_limit
+
+    def get_train_timeout(self, timeout_overwrite: Optional[Duration] = None) -> Duration:
+        """Returns the maximum runtime of a training task in seconds.
+
+        :param timeout_overwrite: if this is set, it will overwrite the global timeout
+        """
+        return self._get_timeout_with_overwrite(self.train_timeout, timeout_overwrite)
+
+    def get_execute_timeout(self, timeout_overwrite: Optional[Duration] = None) -> Duration:
+        """Returns the maximum runtime of an execution task in seconds.
+
+        :param timeout_overwrite: if this is set, it will overwrite the global timeout
+        """
+        return self._get_timeout_with_overwrite(self.execute_timeout, timeout_overwrite)
+
+    @staticmethod
+    def _get_timeout_with_overwrite(timeout: Duration, overwrite: Optional[Duration]) -> Duration:
+        if overwrite is not None:
+            timeout = overwrite
+        return timeout
 
     @staticmethod
     def no_constraints() -> 'ResourceConstraints':
