@@ -14,7 +14,7 @@ from .data_types import AlgorithmParameter, TrainingType
 from .datasets.datasets import Dataset
 from .resource_constraints import ResourceConstraints
 from .times import Times
-from .utils.datasets import extract_features, extract_labels, load_dataset
+from .utils.datasets import extract_features, load_dataset, load_labels_only
 from .utils.hash_dict import hash_dict
 from .utils.metrics import Metric
 
@@ -28,6 +28,10 @@ class Experiment:
     base_results_dir: Path
     resource_constraints: ResourceConstraints
     metrics: List[Metric]
+
+    @property
+    def name(self) -> str:
+        return f"{self.algorithm.name}-{self.dataset.collection_name}-{self.dataset.name}"
 
     @property
     def dataset_collection(self) -> str:
@@ -61,9 +65,7 @@ class Experiment:
         result = self._perform_training(resolved_train_dataset_path)
 
         # perform execution
-        dataset = load_dataset(resolved_test_dataset_path)
-        y_true = extract_labels(dataset)
-        y_scores, execution_times = self._perform_execution(dataset, resolved_test_dataset_path)
+        y_scores, execution_times = self._perform_execution(resolved_test_dataset_path)
         result.update(execution_times)
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
@@ -76,8 +78,9 @@ class Experiment:
         y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
 
         # calculate quality metrics
+        y_true = load_labels_only(resolved_test_dataset_path)
         for metric in self.metrics:
-            score = metric(y_scores, y_true.astype(np.float64))
+            score = metric(y_scores, y_true)
             result[metric.name] = score
 
         y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
@@ -105,10 +108,11 @@ class Experiment:
             times = Times.from_train_algorithm(self.algorithm, X, self.build_args())
         return times.to_dict()
 
-    def _perform_execution(self, dataset: pd.DataFrame, dataset_path: Path) -> Tuple[np.ndarray, dict]:
+    def _perform_execution(self, dataset_path: Path) -> Tuple[np.ndarray, dict]:
         if self.algorithm.data_as_file:
             X: AlgorithmParameter = dataset_path
         else:
+            dataset = load_dataset(dataset_path)
             if dataset.shape[1] >= 3:
                 X = extract_features(dataset)
             else:

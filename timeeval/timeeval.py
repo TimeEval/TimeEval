@@ -16,8 +16,8 @@ from distributed.client import Future
 
 from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
-from .data_types import TrainingType
 from .constants import RESULTS_CSV
+from .data_types import TrainingType
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
@@ -120,7 +120,12 @@ class TimeEval:
                                      f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!")
 
                 if self.distributed:
-                    future_result = self.remote.add_task(exp.evaluate, train_dataset_path, test_dataset_path)
+                    future_result = self.remote.add_task(
+                        exp.evaluate,
+                        train_dataset_path,
+                        test_dataset_path,
+                        key=exp.name
+                    )
                 else:
                     result = exp.evaluate(train_dataset_path, test_dataset_path)
                 self._record_results(exp, result=result, future_result=future_result)
@@ -190,7 +195,7 @@ class TimeEval:
 
         if Status.ERROR.name in df.status.unique():
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
-                            "To see all results, call .get_results(aggregated=False)")
+                             "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
         time_names = [key for key in Times.result_keys() if key in df.columns]
