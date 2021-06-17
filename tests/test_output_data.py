@@ -12,6 +12,7 @@ from timeeval.adapters import FunctionAdapter
 from timeeval.constants import ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
 from timeeval.data_types import AlgorithmParameter
 from timeeval.utils.hash_dict import hash_dict
+from timeeval.utils.metrics import Metric
 
 
 def deviating_from_mean(X: AlgorithmParameter, args: dict):
@@ -77,3 +78,17 @@ class TestOutputData(unittest.TestCase):
             self.assertEqual(true_results.loc[0, "ROC_AUC"], results.loc[0, "ROC_AUC"])
             self.assertEqual(results.hyper_params.values[0], '{"a": 0}')
             self.assertEqual(str(results.hyper_params_id.values[0]), hash_dict({"a": 0}))
+
+    def test_metrics_csv_exists_and_is_correct(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], self.algorithms,
+                                results_path=tmp_path,
+                                metrics=[Metric.ROC_AUC, Metric.RANGE_PR_AUC])
+            timeeval.run()
+
+            parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / self.hash / "custom" / "dataset.1" / "1"
+            results = pd.read_csv(parent_path / METRICS_CSV)
+
+            self.assertAlmostEqual(0.8102250625173659, results.loc[0, "ROC_AUC"], places=4)
+            self.assertAlmostEqual(0.0002446183953033, results.loc[0, "RANGE_PR_AUC"], places=4)

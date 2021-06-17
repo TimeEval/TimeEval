@@ -81,7 +81,8 @@ class TimeEval:
         self.exps = Experiments(dataset_details, algorithms, self.results_path,
                                 resource_constraints=resource_constraints,
                                 repetitions=repetitions,
-                                skip_invalid_combinations=skip_invalid_combinations)
+                                skip_invalid_combinations=skip_invalid_combinations,
+                                metrics=self.metrics)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
         self.distributed = distributed
