@@ -138,7 +138,12 @@ class TimeEval:
                                      f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!")
 
                 if self.distributed:
-                    future_result = self.remote.add_task(exp.evaluate, train_dataset_path, test_dataset_path)
+                    future_result = self.remote.add_task(
+                        exp.evaluate,
+                        train_dataset_path,
+                        test_dataset_path,
+                        key=exp.name
+                    )
                 else:
                     result = exp.evaluate(train_dataset_path, test_dataset_path)
                 self._record_results(exp, result=result, future_result=future_result)
