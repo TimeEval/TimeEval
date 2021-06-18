@@ -2,11 +2,13 @@ import asyncio
 import datetime as dt
 import json
 import logging
+import signal
 import socket
 import subprocess
 from enum import Enum
 from pathlib import Path
-from typing import Callable
+from types import FrameType
+from typing import Callable, Any
 from typing import List, Tuple, Dict, Optional
 
 import numpy as np
@@ -17,8 +19,8 @@ from joblib import Parallel, delayed
 
 from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
-from .data_types import TrainingType
 from .constants import RESULTS_CSV
+from .data_types import TrainingType
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
@@ -97,6 +99,18 @@ class TimeEval:
             self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config,
                                  resource_constraints=resource_constraints)
             self.results["future_result"] = np.nan
+
+            self.log.info("... registering signal handlers ...")
+            orig_handler: Callable[[signal.Signals, FrameType], Any] = signal.getsignal(signal.SIGINT)  # type: ignore
+
+            def sigint_handler(sig: signal.Signals, frame: FrameType):
+                self.log.warning(f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
+                                 "containers on all worker nodes (we do not remove them when terminating "
+                                 "ungracefully).")
+                self.remote.close()
+                return orig_handler(sig, frame)
+            signal.signal(signal.SIGINT, sigint_handler)
+
             self.log.info("... remoting setup done.")
 
     def _run(self):
@@ -194,7 +208,7 @@ class TimeEval:
 
         if Status.ERROR.name in df.status.unique():
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
-                            "To see all results, call .get_results(aggregated=False)")
+                             "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
         time_names = [key for key in Times.result_keys() if key in df.columns]
