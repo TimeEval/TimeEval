@@ -15,8 +15,6 @@ def _create_arg_parser() -> argparse.Namespace:
                         help="Force creation of folders and files. Will overwrite existing files.")
     parser.add_argument("-s", "--skip-pull", action="store_true", default=False,
                         help="Sets default Docker image pull policy for all algorithms. Can be overridden during usage")
-    parser.add_argument("-t", "--timeout", type=str, default="1 hour",
-                        help="Sets default timeout for Docker run of all algorithms. Can be overridden during usage")
     return parser.parse_args()
 
 
@@ -25,7 +23,6 @@ print(f"#### Reading algorithm metadata from {args.repository_path}")
 generator = AlgorithmGenerator(
     timeeval_algorithms=args.repository_path,
     skip_pull=args.skip_pull,
-    default_timeout=args.timeout,
 )
 
 target_dir = Path(__file__).parent.parent / "algorithms"

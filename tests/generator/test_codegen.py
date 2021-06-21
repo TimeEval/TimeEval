@@ -13,7 +13,7 @@ class TestCodeGen(unittest.TestCase):
         self.repo_path = "tests/example_data/timeeval-algorithms"
 
     def test_generates_code_correctly(self):
-        loader = AlgorithmGenerator(self.repo_path, skip_pull=True, default_timeout="1 minute")
+        loader = AlgorithmGenerator(self.repo_path, skip_pull=True)
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             loader.generate_all(tmp_path / "algorithms", force=True)
