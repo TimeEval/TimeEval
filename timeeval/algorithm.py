@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Optional, Callable
+from dataclasses import dataclass, field
+from typing import Optional, Callable, Dict, Any
 
 from sklearn.model_selection import ParameterGrid
 
@@ -14,6 +14,7 @@ class Algorithm:
     preprocess: Optional[TSFunction] = None
     postprocess: Optional[TSFunctionPost] = None
     data_as_file: bool = False
+    params: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {})
     param_grid: ParameterGrid = ParameterGrid({})
     training_type: TrainingType = TrainingType.UNSUPERVISED
     input_dimensionality: InputDimensionality = InputDimensionality.UNIVARIATE

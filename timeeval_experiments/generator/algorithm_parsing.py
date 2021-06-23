@@ -2,7 +2,7 @@ import json
 import re
 import warnings
 from pathlib import Path
-from typing import Union, Optional, Dict, List
+from typing import Union, Optional, Dict, List, Any
 
 from .exceptions import (
     MissingReadmeWarning, MissingManifestWarning, InvalidManifestWarning, AlgorithmManifestLoadingWarning
@@ -43,11 +43,32 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
                       category=InvalidManifestWarning)
         return None
 
+    params = _collect_parameters(name, manifest)
+
     return {
         "display_name": manifest["title"],
         "training_type": manifest["learningType"],
-        "input_dimensionality": manifest["inputDimensionality"]
+        "input_dimensionality": manifest["inputDimensionality"],
+        "params": params
     }
+
+
+def _collect_parameters(name: str, manifest: Dict[str, Any]) -> Dict:
+    parameters = {}
+    steps = ["trainingStep", "executionStep"]
+
+    for step in steps:
+        if step in manifest:
+            exec_params = manifest[step]["parameters"]
+            for param_obj in exec_params:
+                if param_obj["name"] not in parameters:
+                    del param_obj["optional"]
+                    parameters[param_obj["name"]] = param_obj
+
+    if len(parameters) == 0:
+        warnings.warn(InvalidManifestWarning.msg(name, "no parameters found."), category=InvalidManifestWarning)
+
+    return parameters
 
 
 def _parse_readme(algo_dir: Path) -> Optional[Dict]:

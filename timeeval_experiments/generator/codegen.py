@@ -1,6 +1,7 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, Any, Dict
 
+import json
 from jinja2 import Environment, PackageLoader
 
 from .algorithm_parsing import AlgorithmLoader
@@ -43,6 +44,7 @@ class AlgorithmGenerator:
                 training_type=algo_data["training_type"],
                 skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
+                parameters=self._encode_params(algo_data["params"]),
                 post_process_block=algo_data["post_process_block"],
                 postprocess=algo_data["post_function_name"],
             )
@@ -53,9 +55,15 @@ class AlgorithmGenerator:
                 training_type=algo_data["training_type"],
                 skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
+                parameters=self._encode_params(algo_data["params"]),
             )
         with target_path.open("w") as fh:
             fh.write(s)
+
+    @staticmethod
+    def _encode_params(params: Dict[str, Dict[str, Any]]) -> str:
+        s_json = json.dumps(params, sort_keys=True, indent=True)
+        return s_json.replace("null", "None")
 
     @staticmethod
     def _check_target(target: Union[str, Path],

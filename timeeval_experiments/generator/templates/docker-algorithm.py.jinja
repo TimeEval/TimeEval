@@ -13,9 +13,16 @@ import numpy as np
 {% endif %}
 {{ post_process_block }}
 
+_{{ image_name }}_parameters = {% if parameters is defined -%}
+    {{ parameters }}
+{% else -%}
+    {}
+{% endif %}
+
+
 def {{ image_name }}(params: Any = None, skip_pull: bool = {{ skip_pull }}, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="{{ name }}-docker",
+        name="{{ name }}",
         main=DockerAdapter(
             image_name="mut:5000/akita/{{ image_name }}",
 {% if image_tag is defined %}
@@ -33,6 +40,7 @@ def {{ image_name }}(params: Any = None, skip_pull: bool = {{ skip_pull }}, time
         ),
         preprocess={{ preprocess|default(None) }},
         postprocess={{ postprocess|default(None) }},
+        params=_{{ image_name }}_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type={% if training_type|lower == "unsupervised" -%}

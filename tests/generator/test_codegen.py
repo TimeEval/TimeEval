@@ -27,7 +27,7 @@ class TestCodeGen(unittest.TestCase):
                 "print(f\"{algo.main.image_name}:{algo.main.tag}\")"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm-docker\nunsupervised\nmultivariate\nmut:5000/akita/timeeval_test_algorithm:latest\n",
+                "DEMO algorithm\nunsupervised\nmultivariate\nmut:5000/akita/timeeval_test_algorithm:latest\n",
                 process.stdout.decode("utf-8"),
             )
 
@@ -40,7 +40,7 @@ class TestCodeGen(unittest.TestCase):
                 "print(list(algo.postprocess(np.arange(3), {})));"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm with post-processing-docker\n[0.0, 0.0, 0.0]\n",
+                "DEMO algorithm with post-processing\n[0.0, 0.0, 0.0]\n",
                 process.stdout.decode("utf-8"),
             )
 
