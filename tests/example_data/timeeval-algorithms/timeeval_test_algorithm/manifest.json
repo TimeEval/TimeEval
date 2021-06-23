@@ -26,5 +26,16 @@
       }
     ],
     "modelInput": "none"
+  },
+  "trainingStep": {
+    "parameters": [
+      {
+        "name": "dummy",
+        "type": "String",
+        "defaultValue": "ignore",
+        "optional": "true",
+        "description": ""
+      }
+    ]
   }
 }
