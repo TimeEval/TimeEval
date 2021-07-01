@@ -45,3 +45,4 @@ class HPI_CLUSTER:
     ]
 
     akita_benchmark_path: Final[Path] = Path("/home/projects/akita/data/benchmark-data/data-processed")
+    akita_test_case_path: Final[Path] = Path("/home/projects/akita/data/test-cases")
