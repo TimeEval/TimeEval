@@ -1,16 +1,37 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def hif(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_hif_parameters = {
+ "max_samples": {
+  "defaultValue": None,
+  "description": "The number of samples to draw from X to train each base estimator: `max_samples * X.shape[0]`. If unspecified (`None`), then `max_samples=min(256, X.shape[0])`.",
+  "name": "max_samples",
+  "type": "float"
+ },
+ "n_trees": {
+  "defaultValue": 1024,
+  "description": "The number of decision trees (base estimators) in the forest (ensemble).",
+  "name": "n_trees",
+  "type": "int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "int"
+ }
+}
+
+
+def hif(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="HIF-docker",
+        name="HIF",
         main=DockerAdapter(
             image_name="mut:5000/akita/hif",
             skip_pull=skip_pull,
@@ -19,6 +40,7 @@ def hif(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEF
         ),
         preprocess=None,
         postprocess=None,
+        params=_hif_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SUPERVISED,

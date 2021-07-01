@@ -1,16 +1,31 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def cof(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_cof_parameters = {
+ "n_neighbors": {
+  "defaultValue": 20,
+  "description": "Number of neighbors to use by default for k neighbors queries. Note that n_neighbors should be less than the number of samples. If n_neighbors is larger than the number of samples provided, all samples will be used.",
+  "name": "n_neighbors",
+  "type": "int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "int"
+ }
+}
+
+
+def cof(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="COF-docker",
+        name="COF",
         main=DockerAdapter(
             image_name="mut:5000/akita/cof",
             skip_pull=skip_pull,
@@ -19,6 +34,7 @@ def cof(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEF
         ),
         preprocess=None,
         postprocess=None,
+        params=_cof_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

@@ -7,46 +7,52 @@ from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
 
 
-_sr_parameters = {
- "mag_window_size": {
-  "defaultValue": 3,
-  "description": "Window size for sliding window average calculation",
-  "name": "mag_window_size",
-  "type": "int"
- },
+_triple_es_parameters = {
  "random_state": {
   "defaultValue": 42,
   "description": "Seed for random number generation.",
   "name": "random_state",
   "type": "int"
  },
- "score_window_size": {
-  "defaultValue": 40,
-  "description": "Window size for anomaly scoring",
-  "name": "score_window_size",
+ "seasonal": {
+  "defaultValue": "add",
+  "description": "type of seasonal component",
+  "name": "seasonal",
+  "type": "enum[add, mul]"
+ },
+ "seasonal_periods": {
+  "defaultValue": 100,
+  "description": "number of time units at which events happen regularly/periodically",
+  "name": "seasonal_periods",
   "type": "int"
  },
- "window_size": {
-  "defaultValue": 50,
-  "description": "Sliding window size",
-  "name": "window_size",
+ "train_window_size": {
+  "defaultValue": 200,
+  "description": "size of each TripleES model to predict the next timestep",
+  "name": "train_window_size",
   "type": "int"
+ },
+ "trend": {
+  "defaultValue": "add",
+  "description": "type of trend component",
+  "name": "trend",
+  "type": "enum[add, mul]"
  }
 }
 
 
-def sr(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def triple_es(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="SR",
+        name="TripleES",
         main=DockerAdapter(
-            image_name="mut:5000/akita/sr",
+            image_name="mut:5000/akita/triple_es",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
         ),
         preprocess=None,
         postprocess=None,
-        params=_sr_parameters,
+        params=_triple_es_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

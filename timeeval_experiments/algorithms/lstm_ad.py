@@ -1,11 +1,10 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 import numpy as np
 
@@ -17,9 +16,85 @@ def post_lstm_ad(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size * 2).fit_transform(scores)
 
 
-def lstm_ad(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_lstm_ad_parameters = {
+ "batch_size": {
+  "defaultValue": 32,
+  "description": "Number of instances trained at the same time",
+  "name": "batch_size",
+  "type": "int"
+ },
+ "early_stopping_delta": {
+  "defaultValue": 0.05,
+  "description": "If 1 - (loss / last_loss) is less than `delta` for `patience` epochs, stop",
+  "name": "early_stopping_delta",
+  "type": "float"
+ },
+ "early_stopping_patience": {
+  "defaultValue": 10,
+  "description": "If 1 - (loss / last_loss) is less than `delta` for `patience` epochs, stop",
+  "name": "early_stopping_patience",
+  "type": "int"
+ },
+ "epochs": {
+  "defaultValue": 50,
+  "description": "Number of training iterations over entire dataset",
+  "name": "epochs",
+  "type": "int"
+ },
+ "learning_rate": {
+  "defaultValue": 0.001,
+  "description": "Learning rate for Adam optimizer",
+  "name": "learning_rate",
+  "type": "float"
+ },
+ "lstm_layers": {
+  "defaultValue": 2,
+  "description": "Number of stacked LSTM layers",
+  "name": "lstm_layers",
+  "type": "int"
+ },
+ "prediction_window_size": {
+  "defaultValue": 1,
+  "description": "Number of points predicted",
+  "name": "prediction_window_size",
+  "type": "int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for the random number generator",
+  "name": "random_state",
+  "type": "int"
+ },
+ "split": {
+  "defaultValue": 0.9,
+  "description": "Train-validation split for early stopping",
+  "name": "split",
+  "type": "float"
+ },
+ "test_batch_size": {
+  "defaultValue": 128,
+  "description": "Number of instances used for testing at the same time",
+  "name": "test_batch_size",
+  "type": "int"
+ },
+ "validation_batch_size": {
+  "defaultValue": 128,
+  "description": "Number of instances used for validation at the same time",
+  "name": "validation_batch_size",
+  "type": "int"
+ },
+ "window_size": {
+  "defaultValue": 30,
+  "description": "",
+  "name": "window_size",
+  "type": "int"
+ }
+}
+
+
+def lstm_ad(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="LSTM-AD-docker",
+        name="LSTM-AD",
         main=DockerAdapter(
             image_name="mut:5000/akita/lstm_ad",
             skip_pull=skip_pull,
@@ -28,6 +103,7 @@ def lstm_ad(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration =
         ),
         preprocess=None,
         postprocess=post_lstm_ad,
+        params=_lstm_ad_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,

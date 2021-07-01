@@ -1,16 +1,31 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def median_method(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_median_method_parameters = {
+ "neighbourhood_size": {
+  "defaultValue": 100,
+  "description": "Specifies the number of time steps to look forward and backward for each data point.",
+  "name": "neighbourhood_size",
+  "type": "int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "int"
+ }
+}
+
+
+def median_method(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="MedianMethod-docker",
+        name="MedianMethod",
         main=DockerAdapter(
             image_name="mut:5000/akita/median_method",
             skip_pull=skip_pull,
@@ -19,6 +34,7 @@ def median_method(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Dura
         ),
         preprocess=None,
         postprocess=None,
+        params=_median_method_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

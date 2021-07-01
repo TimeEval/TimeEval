@@ -6,8 +6,17 @@ from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
 
+import numpy as np
 
-_knn_parameters = {
+
+from timeeval.utils.window import ReverseWindowing
+# post-processing for sLOF
+def post_sLOF(scores: np.ndarray, args: dict) -> np.ndarray:
+    window_size = args.get("hyper_params", {}).get("window_size", 100)
+    return ReverseWindowing(window_size=window_size).fit_transform(scores)
+
+
+_subsequence_lof_parameters = {
  "distance_metric_order": {
   "defaultValue": 2,
   "description": "Parameter for the Minkowski metric from sklearn.metrics.pairwise.pairwise_distances. When p = 1, this is equivalent to using manhattan_distance (l1), and euclidean_distance (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used. See http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.",
@@ -16,15 +25,9 @@ _knn_parameters = {
  },
  "leaf_size": {
   "defaultValue": 30,
-  "description": "Leaf size passed to `BallTree`. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem.",
+  "description": "Leaf size passed to `BallTree` or `KDTree`. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem.",
   "name": "leaf_size",
   "type": "int"
- },
- "method": {
-  "defaultValue": "largest",
-  "description": "'largest': use the distance to the kth neighbor as the outlier score, 'mean': use the average of all k neighbors as the outlier score, 'median': use the median of the distance to k neighbors as the outlier score.",
-  "name": "method",
-  "type": "enum[largest,mean,median]"
  },
  "n_jobs": {
   "defaultValue": 1,
@@ -33,40 +36,40 @@ _knn_parameters = {
   "type": "int"
  },
  "n_neighbors": {
-  "defaultValue": 5,
-  "description": " Number of neighbors to use by default for `kneighbors` queries.",
+  "defaultValue": 20,
+  "description": "Number of neighbors to use by default for `kneighbors` queries. If n_neighbors is larger than the number of samples provided, all samples will be used.",
   "name": "n_neighbors",
   "type": "int"
- },
- "radius": {
-  "defaultValue": 1.0,
-  "description": " Range of parameter space to use by default for `radius_neighbors` queries.",
-  "name": "radius",
-  "type": "float"
  },
  "random_state": {
   "defaultValue": 42,
   "description": "Seed for random number generation.",
   "name": "random_state",
   "type": "int"
+ },
+ "window_size": {
+  "defaultValue": 100,
+  "description": "Size of the sliding windows to extract subsequences as input to LOF.",
+  "name": "window_size",
+  "type": "int"
  }
 }
 
 
-def knn(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def subsequence_lof(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="KNN",
+        name="Subsequence LOF",
         main=DockerAdapter(
-            image_name="mut:5000/akita/knn",
+            image_name="mut:5000/akita/subsequence_lof",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=None,
-        params=_knn_parameters,
+        postprocess=post_sLOF,
+        params=_subsequence_lof_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
-        input_dimensionality=InputDimensionality("multivariate")
+        input_dimensionality=InputDimensionality("univariate")
     )

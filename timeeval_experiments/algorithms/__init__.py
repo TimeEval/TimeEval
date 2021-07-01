@@ -14,6 +14,7 @@ from .grammarviz3 import grammarviz3
 from .hybrid_knn import hybrid_knn
 from .normalizing_flows import normalizing_flows
 from .ts_bitmap import ts_bitmap
+from .subsequence_if import subsequence_if
 from .lof import lof
 from .deepnap import deepnap
 from .multi_hmm import multi_hmm
@@ -43,6 +44,7 @@ from .fast_mcd import fast_mcd
 from .phasespace_svm import phasespace_svm
 from .eif import eif
 from .tanogan import tanogan
+from .triple_es import triple_es
 from .stomp import stomp
 from .hotsax import hotsax
 from .pci import pci
@@ -60,4 +62,5 @@ from .omnianomaly import omnianomaly
 from .pst import pst
 from .donut import donut
 from .sr import sr
+from .subsequence_lof import subsequence_lof
 from .autoencoder import autoencoder

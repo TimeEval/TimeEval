@@ -1,16 +1,73 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def dbstream(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_dbstream_parameters = {
+ "alpha": {
+  "defaultValue": 0.1,
+  "description": "For shared density: The minimum proportion of shared points between to clus-ters to warrant combining them (a suitable value for 2D data is .3). For reacha-bility clustering it is a distance factor",
+  "name": "alpha",
+  "type": "float"
+ },
+ "distance_metric": {
+  "defaultValue": "Euclidean",
+  "description": "The metric used to calculate distances. If shared_density is TRUE this has to be Euclidian.",
+  "name": "distance_metric",
+  "type": "enum[Euclidean,Manhattan,Maximum]"
+ },
+ "lambda": {
+  "defaultValue": 0.001,
+  "description": "The lambda used in the fading function.",
+  "name": "lambda",
+  "type": "float"
+ },
+ "min_weight": {
+  "defaultValue": 0.0,
+  "description": "The proportion of the total weight a macro-cluster needs to have not to be noise(between 0 and 1).",
+  "name": "min_weight",
+  "type": "float"
+ },
+ "n_clusters": {
+  "defaultValue": 0,
+  "description": "The number of macro clusters to be returned if macro is true.",
+  "name": "n_clusters",
+  "type": "int"
+ },
+ "radius": {
+  "defaultValue": 0.001,
+  "description": "The radius of micro-clusters.",
+  "name": "radius",
+  "type": "float"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "int"
+ },
+ "shared_density": {
+  "defaultValue": "True",
+  "description": "Record shared density information. If set to TRUE then shared density is used for reclustering, otherwise reachability is used (overlapping clusters with less than r\u2217(1\u2212alpha) distance are clustered together)",
+  "name": "shared_density",
+  "type": "boolean"
+ },
+ "window_size": {
+  "defaultValue": 20,
+  "description": "The length of the subsequences the dataset should be splitted in.",
+  "name": "window_size",
+  "type": "int"
+ }
+}
+
+
+def dbstream(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="DBStream-docker",
+        name="DBStream",
         main=DockerAdapter(
             image_name="mut:5000/akita/dbstream",
             skip_pull=skip_pull,
@@ -19,6 +76,7 @@ def dbstream(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration 
         ),
         preprocess=None,
         postprocess=None,
+        params=_dbstream_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

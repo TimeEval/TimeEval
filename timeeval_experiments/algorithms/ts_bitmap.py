@@ -1,16 +1,61 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def ts_bitmap(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_ts_bitmap_parameters = {
+ "alphabet_size": {
+  "defaultValue": 5,
+  "description": "Number of bins for SAX discretization.",
+  "name": "alphabet_size",
+  "type": "int"
+ },
+ "compression_ratio": {
+  "defaultValue": 5,
+  "description": "How much to compress the timeseries in the PAA step. If `compression_ration == 1`, no compression.",
+  "name": "compression_ratio",
+  "type": "int"
+ },
+ "feature_window_size": {
+  "defaultValue": 100,
+  "description": "Size of the tumbling windows used for SAX discretization.",
+  "name": "feature_window_size",
+  "type": "int"
+ },
+ "lag_window_size": {
+  "defaultValue": 300,
+  "description": "How far to look back to create the lag bitmap.",
+  "name": "lag_window_size",
+  "type": "int"
+ },
+ "lead_window_size": {
+  "defaultValue": 200,
+  "description": "How far to look ahead to create lead bitmap.",
+  "name": "lead_window_size",
+  "type": "int"
+ },
+ "level_size": {
+  "defaultValue": 3,
+  "description": "Desired level of recursion of the bitmap.",
+  "name": "level_size",
+  "type": "int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "int"
+ }
+}
+
+
+def ts_bitmap(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="TSBitmap-docker",
+        name="TSBitmap",
         main=DockerAdapter(
             image_name="mut:5000/akita/ts_bitmap",
             skip_pull=skip_pull,
@@ -19,6 +64,7 @@ def ts_bitmap(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration
         ),
         preprocess=None,
         postprocess=None,
+        params=_ts_bitmap_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

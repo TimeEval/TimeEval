@@ -1,11 +1,10 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 import numpy as np
 
@@ -23,9 +22,83 @@ def post_mscred(scores: np.ndarray, args: dict) -> np.ndarray:
     return np.concatenate([np.repeat(image_scores[:-offset], gap_time), image_scores[-offset:]])
 
 
-def mscred(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_mscred_parameters = {
+ "batch_size": {
+  "defaultValue": 32,
+  "description": "Number of instances trained at the same time",
+  "name": "batch_size",
+  "type": "int"
+ },
+ "early_stopping_delta": {
+  "defaultValue": 0.05,
+  "description": "If 1 - (loss / last_loss) is less than `delta` for `patience` epochs, stop",
+  "name": "early_stopping_delta",
+  "type": "float"
+ },
+ "early_stopping_patience": {
+  "defaultValue": 10,
+  "description": "If 1 - (loss / last_loss) is less than `delta` for `patience` epochs, stop",
+  "name": "early_stopping_patience",
+  "type": "int"
+ },
+ "epochs": {
+  "defaultValue": 1,
+  "description": "Number of training iterations over entire dataset",
+  "name": "epochs",
+  "type": "int"
+ },
+ "gap_time": {
+  "defaultValue": 10,
+  "description": "Number of points to skip over between the generation of signature matrices",
+  "name": "gap_time",
+  "type": "int"
+ },
+ "learning_rate": {
+  "defaultValue": 0.001,
+  "description": "Learning rate for Adam optimizer",
+  "name": "learning_rate",
+  "type": "float"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for the random number generator",
+  "name": "random_state",
+  "type": "int"
+ },
+ "split": {
+  "defaultValue": 0.8,
+  "description": "Train-validation split for early stopping",
+  "name": "split",
+  "type": "float"
+ },
+ "test_batch_size": {
+  "defaultValue": 256,
+  "description": "Number of instances used for validation and testing at the same time",
+  "name": "test_batch_size",
+  "type": "int"
+ },
+ "window_size": {
+  "defaultValue": 5,
+  "description": "Size of the sliding windows",
+  "name": "window_size",
+  "type": "int"
+ },
+ "windows": {
+  "defaultValue": [
+   10,
+   30,
+   60
+  ],
+  "description": "Number and size of different signature matrices (correlation matrices) to compute as a preprocessing step",
+  "name": "windows",
+  "type": "List[int]"
+ }
+}
+
+
+def mscred(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="MSCRED-docker",
+        name="MSCRED",
         main=DockerAdapter(
             image_name="mut:5000/akita/mscred",
             skip_pull=skip_pull,
@@ -34,6 +107,7 @@ def mscred(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = 
         ),
         preprocess=None,
         postprocess=post_mscred,
+        params=_mscred_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,

@@ -1,11 +1,10 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 import numpy as np
 
@@ -17,9 +16,43 @@ def post_stomp(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-def stomp(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_stomp_parameters = {
+ "anomaly_window_size": {
+  "defaultValue": 30,
+  "description": "Size of the sliding window.",
+  "name": "anomaly_window_size",
+  "type": "Int"
+ },
+ "exclusion_zone": {
+  "defaultValue": 0.5,
+  "description": "Size of the exclusion zone as a factor of the window_size. This prevents self-matches.",
+  "name": "exclusion_zone",
+  "type": "Float"
+ },
+ "n_jobs": {
+  "defaultValue": 1,
+  "description": "The number of jobs to run in parallel. `-1` is not supported, defaults back to serial implementation.",
+  "name": "n_jobs",
+  "type": "Int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "Int"
+ },
+ "verbose": {
+  "defaultValue": 1,
+  "description": "Controls logging verbosity.",
+  "name": "verbose",
+  "type": "Int"
+ }
+}
+
+
+def stomp(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="STOMP-docker",
+        name="STOMP",
         main=DockerAdapter(
             image_name="mut:5000/akita/stomp",
             skip_pull=skip_pull,
@@ -28,6 +61,7 @@ def stomp(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = D
         ),
         preprocess=None,
         postprocess=post_stomp,
+        params=_stomp_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

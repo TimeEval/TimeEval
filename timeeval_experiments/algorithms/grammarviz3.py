@@ -1,11 +1,10 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 import numpy as np
 
@@ -45,9 +44,43 @@ def post_grammarviz(algorithm_parameter: AlgorithmParameter, args: dict) -> np.n
     return scores.A1
 
 
-def grammarviz3(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_grammarviz3_parameters = {
+ "alphabet_size": {
+  "defaultValue": 4,
+  "description": "Number of symbols used for discretization by SAX (paper uses `\\alpha`) (performance parameter)",
+  "name": "alphabet_size",
+  "type": "int"
+ },
+ "anomaly_window_size": {
+  "defaultValue": 170,
+  "description": "Size of the sliding window. Equal to the discord length!",
+  "name": "anomaly_window_size",
+  "type": "int"
+ },
+ "normalization_threshold": {
+  "defaultValue": 0.01,
+  "description": "Threshold for Z-normalization of subsequences (windows). If variance of a window is higher than this threshold, it is normalized.",
+  "name": "normalization_threshold",
+  "type": "float"
+ },
+ "paa_transform_size": {
+  "defaultValue": 4,
+  "description": "Size of the embedding space used by PAA (paper calls it number of frames or SAX word size `w`) (performance parameter)",
+  "name": "paa_transform_size",
+  "type": "int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for the random number generator",
+  "name": "random_state",
+  "type": "int"
+ }
+}
+
+
+def grammarviz3(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="GrammarViz3-docker",
+        name="GrammarViz3",
         main=DockerAdapter(
             image_name="mut:5000/akita/grammarviz3",
             skip_pull=skip_pull,
@@ -56,6 +89,7 @@ def grammarviz3(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Durati
         ),
         preprocess=None,
         postprocess=post_grammarviz,
+        params=_grammarviz3_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

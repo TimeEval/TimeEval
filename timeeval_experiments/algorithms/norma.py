@@ -1,11 +1,10 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 import numpy as np
 
@@ -18,9 +17,31 @@ def _post_norma(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 
-def norma(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_norma_parameters = {
+ "anomaly_window_size": {
+  "defaultValue": 20,
+  "description": "Sliding window size used to create subsequences (equal to desired anomaly length)",
+  "name": "anomaly_window_size",
+  "type": "int"
+ },
+ "normal_model_percentage": {
+  "defaultValue": 0.5,
+  "description": "Percentage of (random) subsequences used to build the normal model.",
+  "name": "normal_model_percentage",
+  "type": "float"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "int"
+ }
+}
+
+
+def norma(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="NormA-docker",
+        name="NormA",
         main=DockerAdapter(
             image_name="mut:5000/akita/norma",
             skip_pull=skip_pull,
@@ -29,6 +50,7 @@ def norma(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = D
         ),
         preprocess=None,
         postprocess=_post_norma,
+        params=_norma_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

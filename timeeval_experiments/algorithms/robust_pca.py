@@ -1,16 +1,31 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 
 
-def robust_pca(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_robust_pca_parameters = {
+ "max_iter": {
+  "defaultValue": 1000,
+  "description": "Defines the number of maximum robust PCA iterations for solving matrix decomposition.",
+  "name": "max_iter",
+  "type": "int"
+ },
+ "random_state": {
+  "defaultValue": 42,
+  "description": "Seed for random number generation.",
+  "name": "random_state",
+  "type": "int"
+ }
+}
+
+
+def robust_pca(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Robust PCA-docker",
+        name="Robust PCA",
         main=DockerAdapter(
             image_name="mut:5000/akita/robust_pca",
             skip_pull=skip_pull,
@@ -19,6 +34,7 @@ def robust_pca(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duratio
         ),
         preprocess=None,
         postprocess=None,
+        params=_robust_pca_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
