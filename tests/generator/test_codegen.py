@@ -13,7 +13,7 @@ class TestCodeGen(unittest.TestCase):
         self.repo_path = "tests/example_data/timeeval-algorithms"
 
     def test_generates_code_correctly(self):
-        loader = AlgorithmGenerator(self.repo_path, skip_pull=True, default_timeout="1 minute")
+        loader = AlgorithmGenerator(self.repo_path, skip_pull=True)
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             loader.generate_all(tmp_path / "algorithms", force=True)
@@ -27,7 +27,7 @@ class TestCodeGen(unittest.TestCase):
                 "print(f\"{algo.main.image_name}:{algo.main.tag}\")"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm-docker\nunsupervised\nmultivariate\nmut:5000/akita/timeeval_test_algorithm:latest\n",
+                "DEMO algorithm\nunsupervised\nmultivariate\nmut:5000/akita/timeeval_test_algorithm:latest\n",
                 process.stdout.decode("utf-8"),
             )
 
@@ -40,7 +40,7 @@ class TestCodeGen(unittest.TestCase):
                 "print(list(algo.postprocess(np.arange(3), {})));"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm with post-processing-docker\n[0.0, 0.0, 0.0]\n",
+                "DEMO algorithm with post-processing\n[0.0, 0.0, 0.0]\n",
                 process.stdout.decode("utf-8"),
             )
 

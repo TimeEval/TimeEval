@@ -80,7 +80,7 @@ class MyPyCheckCommand(Command):
     def run(self) -> None:
         from mypy.main import main as mypy
 
-        args = ["--pretty", "timeeval", "tests"]
+        args = ["--pretty", "timeeval", "timeeval_experiments", "tests"]
         mypy(None, stdout=sys.stdout, stderr=sys.stderr, args=args)
 
 

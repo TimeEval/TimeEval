@@ -35,6 +35,10 @@ class TestAlgorithmParsing(unittest.TestCase):
             "name": "timeeval_test_algorithm_post",
             "training_type": "unsupervised",
             "input_dimensionality": "multivariate",
+            "params": {
+                "raise": {"name": "raise", "type": "Boolean", "defaultValue": "false", "description": ""},
+                "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
+            },
             "post_function_name": "post_func",
             "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n",
         })
@@ -43,6 +47,11 @@ class TestAlgorithmParsing(unittest.TestCase):
             "name": "timeeval_test_algorithm",
             "training_type": "unsupervised",
             "input_dimensionality": "multivariate",
+            "params": {
+                "raise": {"name": "raise", "type": "Boolean", "defaultValue": "false", "description": ""},
+                "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
+                "dummy": {"name": "dummy", "type": "String", "defaultValue": "ignore", "description": ""},
+            },
         })
         self.assertEqual(algo2, loader.algo_detail("timeeval_test_algorithm"))
 

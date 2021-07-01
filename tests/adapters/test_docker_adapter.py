@@ -13,6 +13,7 @@ from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DATASET_TARGET_PATH, RESULTS_TARGET_PATH, SCORES_FILE_NAME, MODEL_FILE_NAME
 from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
 from timeeval.data_types import ExecutionType
+from timeeval.resource_constraints import ResourceConstraints
 
 DUMMY_CONTAINER = "algorithm-template-dummy"
 TEST_IMAGE = "mut:5000/akita/timeeval-test-algorithm"
@@ -57,7 +58,7 @@ class TestDockerAdapter(unittest.TestCase):
                        '"customParameters": {"a": 0}' \
                        '}\''
 
-        adapter = DockerAdapter("test-image:latest")
+        adapter = DockerAdapter("test-image")
         adapter._run_container(Path("/tmp/test.csv"), {
             "results_path": results_path,
             "hyper_params": {"a": 0},
@@ -72,7 +73,7 @@ class TestDockerAdapter(unittest.TestCase):
         mock_client.return_value = mock_docker_client
 
         with tempfile.TemporaryDirectory() as tmp_path:
-            adapter = DockerAdapter("test-image:latest")
+            adapter = DockerAdapter("test-image")
             result = adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
         np.testing.assert_array_equal(result, np.arange(10, dtype=np.float64))
 
@@ -82,7 +83,7 @@ class TestDockerAdapter(unittest.TestCase):
         mock_client.return_value = mock_docker_client
 
         with self.assertRaises(AssertionError):
-            adapter = DockerAdapter("test-image:latest")
+            adapter = DockerAdapter("test-image")
             adapter(np.random.rand(10), {})
 
     @patch("timeeval.adapters.docker.docker.from_env")
@@ -91,7 +92,7 @@ class TestDockerAdapter(unittest.TestCase):
         mock_client.return_value = docker_mock
 
         with tempfile.TemporaryDirectory() as tmp_path:
-            adapter = DockerAdapter("test-image:latest")
+            adapter = DockerAdapter("test-image")
             adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
 
         run_kwargs = docker_mock.containers.run_kwargs
@@ -115,7 +116,7 @@ class TestDockerAdapter(unittest.TestCase):
         cpu_overwrite = 0.25
 
         with tempfile.TemporaryDirectory() as tmp_path:
-            adapter = DockerAdapter("test-image:latest",
+            adapter = DockerAdapter("test-image",
                                     memory_limit_overwrite=mem_overwrite,
                                     cpu_limit_overwrite=cpu_overwrite
                                     )
@@ -129,6 +130,7 @@ class TestDockerAdapter(unittest.TestCase):
     @pytest.mark.docker
     def test_timeout_docker(self):
         with self.assertRaises(DockerTimeoutError):
+            # unit typo in Durations lib (https://github.com/oleiade/durations/blob/master/durations/constants.py#L34)
             adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("100 miliseconds"))
             adapter(Path("dummy"))
         containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
@@ -137,6 +139,39 @@ class TestDockerAdapter(unittest.TestCase):
             c.remove()
         self.assertEqual(len(containers), 1)
         self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_train_timeout_docker(self):
+        args = {
+            "executionType": ExecutionType.TRAIN.value,
+            "resource_constraints": ResourceConstraints(train_fails_on_timeout=True)
+        }
+        with self.assertRaises(DockerTimeoutError):
+            adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("100 miliseconds"))
+            adapter(Path("dummy"), args)
+        containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_ignore_train_timeout_docker(self):
+        args = {
+            "executionType": ExecutionType.TRAIN.value,
+            # "resource_constraints": ResourceConstraints.no_constraints()
+        }
+        dummy_path = Path("dummy")
+        adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("100 miliseconds"))
+        res = adapter(dummy_path, args)
+        containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+        self.assertEqual(res, dummy_path)
 
     @pytest.mark.docker
     def test_algorithm_error_docker(self):

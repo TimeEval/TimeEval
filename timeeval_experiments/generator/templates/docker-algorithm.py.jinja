@@ -1,11 +1,10 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any
+from typing import Any, Optional
 
 from timeeval import Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.data_types import TrainingType, InputDimensionality
-from .common import SKIP_PULL, DEFAULT_TIMEOUT
 {% if post_process_block is defined %}
 
 import numpy as np
@@ -14,9 +13,16 @@ import numpy as np
 {% endif %}
 {{ post_process_block }}
 
-def {{ image_name }}(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: Duration = DEFAULT_TIMEOUT) -> Algorithm:
+_{{ image_name }}_parameters = {% if parameters is defined -%}
+    {{ parameters }}
+{% else -%}
+    {}
+{% endif %}
+
+
+def {{ image_name }}(params: Any = None, skip_pull: bool = {{ skip_pull }}, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="{{ name }}-docker",
+        name="{{ name }}",
         main=DockerAdapter(
             image_name="mut:5000/akita/{{ image_name }}",
 {% if image_tag is defined %}
@@ -34,6 +40,7 @@ def {{ image_name }}(params: Any = None, skip_pull: bool = SKIP_PULL, timeout: D
         ),
         preprocess={{ preprocess|default(None) }},
         postprocess={{ postprocess|default(None) }},
+        params=_{{ image_name }}_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type={% if training_type|lower == "unsupervised" -%}

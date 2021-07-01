@@ -14,7 +14,7 @@ from .data_types import AlgorithmParameter, TrainingType
 from .datasets.datasets import Dataset
 from .resource_constraints import ResourceConstraints
 from .times import Times
-from .utils.datasets import extract_features, extract_labels, load_dataset, load_labels_only
+from .utils.datasets import extract_features, load_dataset, load_labels_only
 from .utils.hash_dict import hash_dict
 from .utils.metrics import Metric
 

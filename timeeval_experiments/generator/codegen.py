@@ -1,16 +1,16 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, Any, Dict
 
+import json
 from jinja2 import Environment, PackageLoader
 
 from .algorithm_parsing import AlgorithmLoader
 
 
 class AlgorithmGenerator:
-    def __init__(self, timeeval_algorithms: Union[str, Path], skip_pull: bool, default_timeout: str):
+    def __init__(self, timeeval_algorithms: Union[str, Path], skip_pull: bool):
         self.algorithm_details = AlgorithmLoader(timeeval_algorithms)
         self._skip_pull = skip_pull
-        self._default_timeout = default_timeout
         self._jenv = Environment(
             loader=PackageLoader("timeeval_experiments", "generator/templates"),
             keep_trailing_newline=True,
@@ -21,7 +21,6 @@ class AlgorithmGenerator:
     def generate_all(self, target: Union[str, Path], force: bool = False) -> None:
         target_path = Path(target)
         self.generate_init(target_path / "__init__.py", force)
-        self.generate_common(target_path / "common.py", force)
         for algo in self.algorithm_details.algorithm_names:
             self.generate_algorithm(algo, target_path / f"{algo}.py", force)
 
@@ -34,15 +33,6 @@ class AlgorithmGenerator:
                 algorithms=algorithms
             ))
 
-    def generate_common(self, target: Union[str, Path], force: bool = False) -> None:
-        target_path = self._check_target(target, allow_overwrite=force, allow_dir=True, name="common")
-        file_template = self._jenv.get_template("common.py.jinja")
-        with target_path.open("w") as fh:
-            fh.write(file_template.render(
-                skip_pull=self._skip_pull,
-                default_timeout=self._default_timeout,
-            ))
-
     def generate_algorithm(self, algorithm: str, target: Union[str, Path], force: bool = False) -> None:
         target_path = self._check_target(target, allow_overwrite=force, allow_dir=True, name=algorithm)
         file_template = self._jenv.get_template("docker-algorithm.py.jinja")
@@ -52,7 +42,9 @@ class AlgorithmGenerator:
                 name=algo_data["display_name"],
                 image_name=algo_data["name"],
                 training_type=algo_data["training_type"],
+                skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
+                parameters=self._encode_params(algo_data["params"]),
                 post_process_block=algo_data["post_process_block"],
                 postprocess=algo_data["post_function_name"],
             )
@@ -61,10 +53,17 @@ class AlgorithmGenerator:
                 name=algo_data["display_name"],
                 image_name=algo_data["name"],
                 training_type=algo_data["training_type"],
+                skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
+                parameters=self._encode_params(algo_data["params"]),
             )
         with target_path.open("w") as fh:
             fh.write(s)
+
+    @staticmethod
+    def _encode_params(params: Dict[str, Dict[str, Any]]) -> str:
+        s_json = json.dumps(params, sort_keys=True, indent=True)
+        return s_json.replace("null", "None")
 
     @staticmethod
     def _check_target(target: Union[str, Path],
@@ -93,7 +92,7 @@ class AlgorithmGenerator:
 
 if __name__ == "__main__":
     test_path = Path("test")
-    gen = AlgorithmGenerator("../../../timeeval-algorithms", skip_pull=True, default_timeout="10 minutes")
+    gen = AlgorithmGenerator("../../../timeeval-algorithms", skip_pull=True)
     # gen.generate_init(test_path / "__init__.py", force=True)
     # gen.generate_algorithm("hybrid_knn", test_path)
     gen.generate_all(test_path, force=True)

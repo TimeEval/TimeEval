@@ -198,7 +198,8 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 [Algorithm(name="docker", main=adapter, data_as_file=True)],
                                 distributed=True,
                                 remote_config=RemoteConfiguration(scheduler_host="test-host", worker_hosts=["test-host2"]),
-                                results_path=Path(tmp_path))
+                                results_path=Path(tmp_path),
+                                n_jobs=1)
             timeeval.run()
 
             self.assertTrue(
@@ -253,7 +254,8 @@ class TestDistributedTimeEval(unittest.TestCase):
             ]
             timeeval = TimeEval(datasets, [], [], distributed=True,
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
-                                results_path=Path(tmp_path))
+                                results_path=Path(tmp_path),
+                                n_jobs=1)
             timeeval._rsync_results()
             self.assertEqual(len(rsync.params), 1)
             self.assertTrue(rsync.params[0], ["rsync", "-a", f"test-host:{tmp_path}/", tmp_path])

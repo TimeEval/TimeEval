@@ -20,8 +20,6 @@ RESULTS_TARGET_PATH = "/results"
 SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
-DEFAULT_TIMEOUT = Duration("8 hours")
-
 
 class DockerJSONEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
@@ -56,7 +54,7 @@ class AlgorithmInterface:
 
 class DockerAdapter(Adapter):
     def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False,
-                 timeout=DEFAULT_TIMEOUT, memory_limit_overwrite: Optional[int] = None,
+                 timeout: Optional[Duration] = None, memory_limit_overwrite: Optional[int] = None,
                  cpu_limit_overwrite: Optional[float] = None):
         self.image_name = image_name
         self.tag = tag
@@ -75,11 +73,25 @@ class DockerAdapter(Adapter):
     def _get_uid() -> str:
         return subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
 
-    def _get_resource_constraints(self, args: dict) -> Tuple[int, float]:
-        return args.get("resource_constraints", ResourceConstraints()).get_resource_limits(
+    def _get_compute_limits(self, args: dict) -> Tuple[int, float]:
+        return args.get("resource_constraints", ResourceConstraints()).get_compute_resource_limits(
             memory_overwrite=self.memory_limit,
             cpu_overwrite=self.cpu_limit
         )
+
+    def _get_timeout(self, args: dict) -> Duration:
+        exec_type = args.get("executionType", "")
+        constraints = args.get("resource_constraints", ResourceConstraints())
+        if exec_type == ExecutionType.TRAIN.value:
+            return constraints.get_train_timeout(self.timeout)
+        else:
+            return constraints.get_execute_timeout(self.timeout)
+
+    @staticmethod
+    def _should_fail_on_timeout(args: dict) -> bool:
+        exec_type = args.get("executionType", "")
+        constraints = args.get("resource_constraints", ResourceConstraints())
+        return exec_type != ExecutionType.TRAIN.value or constraints.train_fails_on_timeout
 
     def _run_container(self, dataset_path: Path, args: dict) -> Container:
         client = docker.from_env()
@@ -97,7 +109,7 @@ class DockerAdapter(Adapter):
         uid = DockerAdapter._get_uid()
         print(f"Running container with uid={uid} and gid={gid} privileges in {algorithm_interface.executionType} mode.")
 
-        memory_limit, cpu_limit = self._get_resource_constraints(args)
+        memory_limit, cpu_limit = self._get_compute_limits(args)
         cpu_shares = int(cpu_limit * 1e9)
         print(f"Restricting container to {cpu_limit} CPUs and {memory_limit / GB:.3f} GB RAM")
 
@@ -120,12 +132,18 @@ class DockerAdapter(Adapter):
         )
 
     def _run_until_timeout(self, container: Container, args: dict):
+        timeout = self._get_timeout(args)
         try:
-            result = container.wait(timeout=self.timeout.to_seconds())
+            result = container.wait(timeout=timeout.to_seconds())
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             if "timed out" in str(e):
                 container.stop()
-                raise DockerTimeoutError(f"{self.image_name} timed out after {self.timeout}") from e
+                if self._should_fail_on_timeout(args):
+                    raise DockerTimeoutError(f"{self.image_name} timed out after {timeout}") from e
+                else:
+                    print(f"Container timeout after {timeout}, but TimeEval disregards this because "
+                          "'ResourceConstraints.train_fails_on_timeout' is set to False.")
+                    result = {"StatusCode": 0}
             else:
                 raise e
         finally:
@@ -160,7 +178,7 @@ class DockerAdapter(Adapter):
             tag: Final[str] = self.tag
 
             def prepare():
-                client = docker.from_env()
+                client = docker.from_env(timeout=Duration("5 minutes").to_seconds())
                 client.images.pull(image, tag=tag)
 
             return prepare
@@ -169,7 +187,7 @@ class DockerAdapter(Adapter):
 
     def get_finalize_fn(self) -> Optional[Callable[[], None]]:
         def finalize():
-            client = docker.from_env()
+            client = docker.from_env(timeout=Duration("10 minutes").to_seconds())
             try:
                 client.containers.prune()
             except DockerException:
