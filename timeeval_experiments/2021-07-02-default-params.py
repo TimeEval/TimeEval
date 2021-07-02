@@ -115,7 +115,7 @@ def main():
                       HPI_CLUSTER.thor02, HPI_CLUSTER.thor03, HPI_CLUSTER.thor04]
     )
     limits = ResourceConstraints(
-        tasks_per_host=15,
+        tasks_per_host=10,
         task_cpu_limit=1.,
         train_fails_on_timeout=False,
         train_timeout=Duration("2 hours"),
