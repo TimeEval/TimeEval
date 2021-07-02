@@ -8,7 +8,7 @@ from .exceptions import (
     MissingReadmeWarning, MissingManifestWarning, InvalidManifestWarning, AlgorithmManifestLoadingWarning
 )
 
-IGNORED_FOLDERS = ["results", "data"]
+IGNORED_FOLDERS = ["results", "data", "scripts"]
 CODEBLOCK = r"[`]{3}\w*?\n(.+?)[`]{3}"
 CODEBLOCK_PATTERN = re.compile(CODEBLOCK, re.S)  # G is set through find**all**
 TE_POST_CODEBLOCK_PATTERN = re.compile(

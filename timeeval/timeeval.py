@@ -8,8 +8,7 @@ import subprocess
 from enum import Enum
 from pathlib import Path
 from types import FrameType
-from typing import Callable, Any
-from typing import List, Tuple, Dict, Optional
+from typing import Callable, Any, List, Tuple, Dict, Optional
 
 import numpy as np
 import pandas as pd
