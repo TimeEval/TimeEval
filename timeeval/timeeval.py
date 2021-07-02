@@ -63,6 +63,7 @@ class TimeEval:
                  disable_progress_bar: bool = False,
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = True,
+                 force_training_type_match: bool = False,
                  n_jobs: int = -1):
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -87,6 +88,7 @@ class TimeEval:
                                 resource_constraints=resource_constraints,
                                 repetitions=repetitions,
                                 skip_invalid_combinations=skip_invalid_combinations,
+                                force_training_type_match=force_training_type_match,
                                 metrics=self.metrics)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
