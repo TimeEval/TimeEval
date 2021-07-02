@@ -28,7 +28,7 @@ random.seed(42)
 
 def main():
     dm = Datasets(HPI_CLUSTER.akita_test_case_path)
-    configurator = AlgorithmConfigurator(config_path="timeeval_experiments/param-config.json")
+    configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
     datasets = dm.select()
