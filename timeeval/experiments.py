@@ -133,14 +133,16 @@ class Experiments:
                  resource_constraints: ResourceConstraints = ResourceConstraints.no_constraints(),
                  repetitions: int = 1,
                  metrics: Optional[List[Metric]] = None,
-                 skip_invalid_combinations: bool = False):
+                 skip_invalid_combinations: bool = False,
+                 force_training_type_match: bool = False):
         self.datasets = datasets
         self.algorithms = algorithms
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
         self.metrics = metrics or Metric.default_list()
-        self.skip_invalid_combinations = skip_invalid_combinations
+        self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match
+        self.force_training_type_match = force_training_type_match
         if self.skip_invalid_combinations:
             self._N: Optional[int] = None
         else:
@@ -179,7 +181,8 @@ class Experiments:
         if not self.skip_invalid_combinations:
             return True
 
-        if algorithm.training_type in [TrainingType.SUPERVISED, TrainingType.SEMI_SUPERVISED]:
+        if (self.force_training_type_match or
+                algorithm.training_type in [TrainingType.SUPERVISED, TrainingType.SEMI_SUPERVISED]):
             train_compatible = algorithm.training_type == dataset.training_type
         else:
             train_compatible = True
