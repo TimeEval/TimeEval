@@ -39,6 +39,10 @@ class TimeEval:
     RESULT_KEYS = ["algorithm",
                    "collection",
                    "dataset",
+                   "algo_training_type",
+                   "algo_input_dimensionality",
+                   "dataset_training_type",
+                   "dataset_input_dimensionality",
                    "train_preprocess_time",
                    "train_main_time",
                    "execute_preprocess_time",
@@ -46,7 +50,9 @@ class TimeEval:
                    "execute_postprocess_time",
                    "status",
                    "error_message",
-                   "repetition"]
+                   "repetition",
+                   "hyper_params",
+                   "hyper_params_id"]
 
     DEFAULT_RESULT_PATH = Path("./results")
 
@@ -168,6 +174,10 @@ class TimeEval:
             "algorithm": exp.algorithm.name,
             "collection": exp.dataset_collection,
             "dataset": exp.dataset_name,
+            "algo_training_type": exp.algorithm.training_type.name,
+            "algo_input_dimensionality": exp.algorithm.input_dimensionality.name,
+            "dataset_training_type": exp.dataset.training_type.name,
+            "dataset_input_dimensionality": exp.dataset.input_dimensionality.name,
             "status": status.name,
             "error_message": error_message,
             "repetition": exp.repetition,
@@ -206,7 +216,7 @@ class TimeEval:
         self.results[keys] = self.results["future_result"].apply(get_future_result).tolist()
         self.results = self.results.drop(['future_result'], axis=1)
 
-    def get_results(self, aggregated: bool = True) -> pd.DataFrame:
+    def get_results(self, aggregated: bool = True, short: bool = True) -> pd.DataFrame:
         if not aggregated:
             return self.results
 
@@ -217,13 +227,19 @@ class TimeEval:
                              "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
 
-        time_names = [key for key in Times.result_keys() if key in df.columns]
+        if short:
+            time_names = ["train_main_time", "execute_main_time"]
+            group_names = ["algorithm", "collection", "dataset"]
+        else:
+            time_names = [key for key in Times.result_keys() if key in df.columns]
+            group_names = ["algorithm", "collection", "dataset", "hyper_params_id"]
         keys = self.metric_names + time_names
-        grouped_results = df.groupby(["algorithm", "collection", "dataset", "hyper_params_id"])
+        grouped_results = df.groupby(group_names)
         repetitions = [len(v) for k, v in grouped_results.groups.items()]
-        mean_results: pd.DataFrame = grouped_results.mean()[keys]
-        std_results = grouped_results.std()[keys]
-        results = mean_results.join(std_results, lsuffix="_mean", rsuffix="_std")
+        results: pd.DataFrame = grouped_results.mean()[keys]
+        if not short:
+            std_results = grouped_results.std()[keys]
+            results = results.join(std_results, lsuffix="_mean", rsuffix="_std")
         results["repetitions"] = repetitions
         return results
 
