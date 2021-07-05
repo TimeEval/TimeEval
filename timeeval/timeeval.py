@@ -237,7 +237,10 @@ class TimeEval:
         grouped_results = df.groupby(group_names)
         repetitions = [len(v) for k, v in grouped_results.groups.items()]
         results: pd.DataFrame = grouped_results.mean()[keys]
-        if not short:
+
+        if short:
+            results = results.rename(columns=dict([(k, f"{k}_mean") for k in keys]))
+        else:
             std_results = grouped_results.std()[keys]
             results = results.join(std_results, lsuffix="_mean", rsuffix="_std")
         results["repetitions"] = repetitions
