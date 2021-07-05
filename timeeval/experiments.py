@@ -68,26 +68,37 @@ class Experiment:
         y_scores, execution_times = self._perform_execution(resolved_test_dataset_path)
         result.update(execution_times)
 
-        with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
-            print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
-                  file=logs_file)
-
         # scale scores to [0, 1]
         if len(y_scores.shape) == 1:
             y_scores = y_scores.reshape(-1, 1)
         y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
-
-        # calculate quality metrics
-        y_true = load_labels_only(resolved_test_dataset_path)
-        for metric in self.metrics:
-            score = metric(y_scores, y_true)
-            result[metric.name] = score
-
+        # write scores early to protect against metric calculation errors
         y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
-        pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
 
+        with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
+            print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
+                  file=logs_file)
+
+            # calculate quality metrics
+            y_true = load_labels_only(resolved_test_dataset_path)
+            errors = 0
+            for metric in self.metrics:
+                print(f"Calculating {metric}", file=logs_file)
+                try:
+                    score = metric(y_scores, y_true)
+                    result[metric.name] = score
+                except Exception as e:
+                    print(f"Exception while computing metric {metric}: {e}", file=logs_file)
+                    errors += 1
+                    continue
+
+        # write result files
+        pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
         with (self.results_path / HYPER_PARAMETERS).open("w") as f:
             json.dump(self.params, f)
+
+        if errors == len(self.metrics):
+            raise e
 
         return result
 
