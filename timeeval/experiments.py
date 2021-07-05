@@ -82,6 +82,7 @@ class Experiment:
             # calculate quality metrics
             y_true = load_labels_only(resolved_test_dataset_path)
             errors = 0
+            last_exception = None
             for metric in self.metrics:
                 print(f"Calculating {metric}", file=logs_file)
                 try:
@@ -90,6 +91,7 @@ class Experiment:
                 except Exception as e:
                     print(f"Exception while computing metric {metric}: {e}", file=logs_file)
                     errors += 1
+                    last_exception = e
                     continue
 
         # write result files
@@ -97,8 +99,8 @@ class Experiment:
         with (self.results_path / HYPER_PARAMETERS).open("w") as f:
             json.dump(self.params, f)
 
-        if errors == len(self.metrics):
-            raise e
+        if errors == len(self.metrics) and last_exception is not None:
+            raise last_exception
 
         return result
 
