@@ -18,3 +18,4 @@ dependencies:
       - docker==4.4.*
       - durations==0.3.*
       - prts==1.0.0.3
+      - pylustrator==1.1.0
