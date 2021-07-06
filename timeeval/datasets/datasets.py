@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from types import TracebackType
-from typing import Final, ContextManager, Optional, List, Type, Union, NamedTuple
+from typing import Final, ContextManager, Optional, List, Type, Union, NamedTuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -38,7 +38,7 @@ class DatasetRecord(NamedTuple):
     stddev: float
     trend: str
     stationarity: str
-    period_size: int
+    period_size: Optional[int]
 
 
 @dataclass

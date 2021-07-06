@@ -32,7 +32,7 @@ nab_record = DatasetRecord(
     stddev=2.468,
     trend="no trend",
     stationarity="not_stationary",
-    period_size=np.NAN
+    period_size=None
 )
 test_record = DatasetRecord(
     collection_name="test-collection",
@@ -56,7 +56,7 @@ test_record = DatasetRecord(
     stddev=2.468,
     trend="no trend",
     stationarity="not_stationary",
-    period_size=np.NAN
+    period_size=None
 )
 # excerpt from NYC taxi dataset
 dataset_content = """
