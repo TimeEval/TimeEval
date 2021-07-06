@@ -46,6 +46,7 @@ class Metric(Enum):
 
 
 def ts_precision_recall_auc(y_true: np.ndarray, y_score: np.ndarray) -> float:
+    y_score = _substitute_nans(y_score, y_true)
     thresholds = np.unique(y_score)
     thresholds.sort()
     recalls = np.zeros_like(thresholds)
