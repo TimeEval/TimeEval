@@ -123,7 +123,7 @@ def _add_dataset(dm):
         stddev=test_record.stddev,
         trend=test_record.trend,
         stationarity=test_record.stationarity,
-        period_size=np.NAN
+        period_size=None
     ))
 
 

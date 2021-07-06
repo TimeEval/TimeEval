@@ -48,7 +48,7 @@ class Dataset:
     training_type: TrainingType
     length: int
     dimensions: int
-    period_size: int
+    period_size: Optional[int]
     num_anomalies: Optional[int] = None
 
     @property

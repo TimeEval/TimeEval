@@ -97,7 +97,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 num_anomalies=1,
                 dimensions=1,
                 length=3000,
-                period_size=-1
+                period_size=None
             ),
             algorithm=self.algorithms[0],
             params={},
