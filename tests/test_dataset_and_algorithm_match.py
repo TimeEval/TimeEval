@@ -96,7 +96,8 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 training_type=TrainingType.SUPERVISED,
                 num_anomalies=1,
                 dimensions=1,
-                length=3000
+                length=3000,
+                period_size=None
             ),
             algorithm=self.algorithms[0],
             params={},
