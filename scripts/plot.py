@@ -9,6 +9,7 @@ import pandas as pd
 
 from timeeval.constants import ANOMALY_SCORES_TS, RESULTS_CSV
 from timeeval.datasets.datasets import Datasets
+from timeeval.utils.results_path import generate_experiment_path
 
 
 class Logger:
@@ -45,7 +46,12 @@ def get_experiment_row(args: argparse.Namespace) -> pd.DataFrame:
 
 def get_experiment_path(args: argparse.Namespace) -> Path:
     experiment_row = get_experiment_row(args)
-    return args.path / experiment_row.algorithm / experiment_row.hyper_params_id / experiment_row.collection / experiment_row.dataset / str(experiment_row.repetition)
+    return generate_experiment_path(args.path,
+                                    experiment_row.algorithm,
+                                    experiment_row.hyper_params_id,
+                                    experiment_row.collection,
+                                    experiment_row.dataset,
+                                    experiment_row.repetition)
 
 
 def get_anomaly_scores(args: argparse.Namespace) -> np.ndarray:
