@@ -4,7 +4,6 @@ import sys
 from typing import Tuple, List, Any
 
 import matplotlib.pyplot as plt
-import pylustrator
 import numpy as np
 import pandas as pd
 
@@ -98,6 +97,7 @@ def main():
     args = parse_args()
 
     if args.pylustrator:
+        import pylustrator
         pylustrator.start()
 
     axs = plot_dataset(args)
