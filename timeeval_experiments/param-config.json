@@ -5,11 +5,11 @@
     }
   },
   "__heuristic_function_mapping": {
-    "dataset period size": "PeriodSizeHeuristic(factor=1)",
-    "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5)",
-    "[0.5, 1.0, 1.5] * dataset period size": "EmbedDimRangeHeuristic(base_factor=1.5, dim_factors=[0.5, 1.0, 1.5])",
+    "dataset period size": "PeriodSizeHeuristic(factor=1, fb_value=100)",
+    "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5, fb_value=150)",
+    "[0.5, 1.0, 1.5] * dataset period size": "EmbedDimRangeHeuristic(base_factor=1.5, base_fb_value=150, dim_factors=[0.5, 1.0, 1.5])",
     "1.5*window_size": "ParameterDependenceHeuristic(source_parameter='window_size', factor=1.5)",
-    "10 % of dataset length or until first anomaly": "CleanStartSequenceSizeHeuristic(max_factor=0.1)",
+    "10% of dataset length or until first anomaly": "CleanStartSequenceSizeHeuristic(max_factor=0.1)",
     "10% of dataset length": "RelativeDatasetSizeHeuristic(factor=0.1)",
     "max anomaly length": "AnomalyLengthHeuristic(agg_type='max')",
     "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')"
@@ -20,7 +20,7 @@
     "max_anomaly_window_size": "max anomaly length",
     "max_lag": "10% of dataset length",
     "min_anomaly_window_size": "min anomaly length",
-    "n_init_train": "10 % of dataset length or until first anomaly",
+    "n_init_train": "10% of dataset length or until first anomaly",
     "period": "dataset period size",
     "window_size": "1.5 dataset period size",
     "query_window_size": "1.5*window_size"
