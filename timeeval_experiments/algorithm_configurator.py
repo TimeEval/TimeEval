@@ -1,27 +1,46 @@
 import json
 import warnings
 from pathlib import Path
-from typing import Union, TypeVar, List
+from typing import Union, TypeVar, List, Dict
 
 from sklearn.model_selection import ParameterGrid
 
 from timeeval import Algorithm
-from timeeval_experiments.generator.param_config_gen import ParamConfigGenerator
+from timeeval.heuristics import TimeEvalHeuristic
+from timeeval_experiments.generator import ParamConfigGenerator
 
 
 T = TypeVar("T")
 
 
 class AlgorithmConfigurator:
-    def __init__(self, config_path: Union[str, Path]):
+    def __init__(self, config_path: Union[str, Path], check: bool = True):
         config_path = Path(config_path)
         with open(config_path, "r") as fh:
             config = json.load(fh)
-            self._fixed_params = config[ParamConfigGenerator.FIXED_KEY]
-            self._dependent_params = config[ParamConfigGenerator.DEPENDENT_KEY]
-            self._shared_params = config[ParamConfigGenerator.SHARED_KEY]
-            self._optimized_params = config[ParamConfigGenerator.OPTIMIZED_KEY]
-            self._algorithm_overwrites = config[ParamConfigGenerator.OVERWRITES_KEY]
+        self._fixed_params = config[ParamConfigGenerator.FIXED_KEY]
+        self._dependent_params = config[ParamConfigGenerator.DEPENDENT_KEY]
+        self._shared_params = config[ParamConfigGenerator.SHARED_KEY]
+        self._optimized_params = config[ParamConfigGenerator.OPTIMIZED_KEY]
+        self._algorithm_overwrites = config[ParamConfigGenerator.OVERWRITES_KEY]
+        self._heuristic_mapping: Dict[str, str] = config[ParamConfigGenerator.HEURISTIC_MAPPING_KEY]
+        if check and self._heuristic_mapping:
+            self._check_heuristics()
+
+    def _check_heuristics(self):
+        broken_heuristics = []
+        for key in self._heuristic_mapping:
+            signature = self._heuristic_mapping[key]
+            try:
+                TimeEvalHeuristic(signature)
+            except Exception as e:
+                broken_heuristics.append((key, e))
+        if len(broken_heuristics) > 0:
+            for k, ex in broken_heuristics:
+                print(f"Heuristic '{k}' is invalid: {ex}")
+            raise SyntaxError("Heuristics mapping contains invalid entries, please consider log output!")
+        else:
+            print("Heuristics are valid.")
 
     @staticmethod
     def wrap(elems: Union[List[T], T]) -> List[T]:
@@ -35,9 +54,15 @@ class AlgorithmConfigurator:
                   ignore_overwrites: bool = False,
                   ignore_fixed: bool = False,
                   ignore_dependent: bool = False,
+                  ignore_shared: bool = False,
+                  ignore_optimized: bool = False,
                   perform_search: bool = True) -> None:
         if use_defaults:
             return
+
+        if not perform_search:
+            ignore_shared = True
+            ignore_optimized = True
 
         algos = self.wrap(algos)
         for algo in algos:
@@ -58,10 +83,10 @@ class AlgorithmConfigurator:
                     if value != "default":
                         configured_params[p] = [value]
                     #  else: don't specify a value, because the default is used anyway
-                elif perform_search and p in self._shared_params:
+                elif not ignore_shared and p in self._shared_params:
                     # this should already be a list of parameter options
                     configured_params[p] = self._shared_params[p]["search_space"]
-                elif perform_search and p in self._optimized_params:
+                elif not ignore_optimized and p in self._optimized_params:
                     value = self._optimized_params[p]
                     # if there are multiple algos with the same parameter, there can be different search spaces
                     if isinstance(value, dict):
@@ -69,8 +94,11 @@ class AlgorithmConfigurator:
                     # this should already be a list of parameter options
                     configured_params[p] = value
                 elif not ignore_dependent and p in self._dependent_params:
-                    warnings.warn(f"There are no heuristics for dependent parameters yet (param={p})! Using default.")
+                    heuristic_key = self._dependent_params[p]
+                    heuristic_signature = self._heuristic_mapping[heuristic_key]
+                    configured_params[p] = [f"heuristic:{heuristic_signature}"]
                 else:
-                    warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! Using default.")
+                    warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
+                                  "Using default.")
 
             algo.param_grid = ParameterGrid(configured_params)

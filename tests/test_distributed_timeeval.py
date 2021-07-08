@@ -18,11 +18,10 @@ from durations import Duration
 from sklearn.model_selection import ParameterGrid
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
-from timeeval import TimeEval, Algorithm, Datasets
+from timeeval import TimeEval, Algorithm, Datasets, RemoteConfiguration, Status
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError
-from timeeval.remote import Remote, RemoteConfiguration
-from timeeval.timeeval import Status
+from timeeval.remote import Remote
 from timeeval.utils.hash_dict import hash_dict
 
 TEST_DOCKER_IMAGE = "mut:5000/akita/timeeval-test-algorithm"

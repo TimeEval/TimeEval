@@ -5,11 +5,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from timeeval import Datasets, DatasetRecord
+from timeeval import Datasets
+from timeeval.datasets import DatasetRecord
 
-header = "collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length,dimensions,contamination,num_anomalies,min_anomaly_length,median_anomaly_length,max_anomaly_length,mean,stddev,trend,stationarity"
-content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary"
-content_test = "test-collection,test_dataset,path_train.csv,path_test.csv,real,True,,supervised,True,univariate,12,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary"
+
+header = "collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length,dimensions,contamination,num_anomalies,min_anomaly_length,median_anomaly_length,max_anomaly_length,mean,stddev,trend,stationarity,period_size"
+content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary,"
+content_test = "test-collection,test_dataset,path_train.csv,path_test.csv,real,True,,supervised,True,univariate,12,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary,"
 nab_record = DatasetRecord(
     collection_name="NAB",
     dataset_name="art_daily_no_noise",
@@ -32,6 +34,7 @@ nab_record = DatasetRecord(
     stddev=2.468,
     trend="no trend",
     stationarity="not_stationary",
+    period_size=None
 )
 test_record = DatasetRecord(
     collection_name="test-collection",
@@ -55,6 +58,7 @@ test_record = DatasetRecord(
     stddev=2.468,
     trend="no trend",
     stationarity="not_stationary",
+    period_size=None
 )
 # excerpt from NYC taxi dataset
 dataset_content = """
@@ -121,6 +125,7 @@ def _add_dataset(dm):
         stddev=test_record.stddev,
         trend=test_record.trend,
         stationarity=test_record.stationarity,
+        period_size=None
     ))
 
 

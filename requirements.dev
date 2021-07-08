@@ -5,3 +5,4 @@ jupyterlab
 wfdb
 tables
 pyyaml
+pylustrator==1.1.0

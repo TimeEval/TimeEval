@@ -3,8 +3,8 @@ import unittest
 import psutil
 from durations import Duration
 
-from timeeval import TimeEval, Datasets
-from timeeval.resource_constraints import ResourceConstraints, GB, DEFAULT_TIMEOUT
+from timeeval import TimeEval, Datasets, ResourceConstraints
+from timeeval.resource_constraints import GB, DEFAULT_TIMEOUT
 
 
 class TestResourceConstraints(unittest.TestCase):

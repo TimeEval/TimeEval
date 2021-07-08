@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from types import TracebackType
-from typing import Final, ContextManager, Optional, List, Type, Union, NamedTuple
+from typing import Final, ContextManager, Optional, List, Type, Union, NamedTuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -38,6 +38,7 @@ class DatasetRecord(NamedTuple):
     stddev: float
     trend: str
     stationarity: str
+    period_size: Optional[int]
 
 
 @dataclass
@@ -47,6 +48,10 @@ class Dataset:
     training_type: TrainingType
     length: int
     dimensions: int
+    min_anomaly_length: int
+    median_anomaly_length: int
+    max_anomaly_length: int
+    period_size: Optional[int] = None
     num_anomalies: Optional[int] = None
 
     @property
@@ -124,7 +129,7 @@ class Datasets(ContextManager['Datasets']):
             columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index",
                      "split_at", "train_type", "train_is_normal", "input_type", "length", "dimensions", "contamination",
                      "num_anomalies", "min_anomaly_length", "median_anomaly_length", "max_anomaly_length", "mean",
-                     "stddev", "trend", "stationarity"])
+                     "stddev", "trend", "stationarity", "period_size"])
         df_temp.set_index(["collection_name", "dataset_name"], inplace=True)
         dataset_dir = self._filepath.parent
         if not dataset_dir.is_dir():
@@ -184,6 +189,7 @@ class Datasets(ContextManager['Datasets']):
             "stddev": dataset.stddev,
             "trend": dataset.trend,
             "stationarity": dataset.stationarity,
+            "period_size": dataset.period_size
         }, index=[(dataset.collection_name, dataset.dataset_name)])
         df = pd.concat([self._df, df_new], axis=0)
         df = df[~df.index.duplicated(keep="last")]
@@ -321,19 +327,32 @@ class Datasets(ContextManager['Datasets']):
                 training_type=TrainingType.UNSUPERVISED,
                 dimensions=1,
                 length=-1,
-                num_anomalies=-1
+                min_anomaly_length=-1,
+                median_anomaly_length=-1,
+                max_anomaly_length=-1,
+                num_anomalies=-1,
+                period_size=-1
             )
             # raise NotImplementedError("Custom datasets lack all meta information!")
         else:
             entry = self._df.loc[index]
             training_type = self.get_training_type(index)
+            period = None
+            try:
+                period = entry["period_size"]
+            except KeyError:
+                pass
             return Dataset(
                 datasetId=index,
                 dataset_type=entry["dataset_type"],
                 training_type=training_type,
                 length=entry["length"],
                 dimensions=entry["dimensions"],
-                num_anomalies=entry["num_anomalies"]
+                num_anomalies=entry["num_anomalies"],
+                min_anomaly_length=entry["min_anomaly_length"],
+                median_anomaly_length=entry["median_anomaly_length"],
+                max_anomaly_length=entry["max_anomaly_length"],
+                period_size=period
             )
 
     def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Path:

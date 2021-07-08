@@ -1,7 +1,7 @@
 # TimeEval
 
-[![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
-[![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/master/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/master)
+[![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/main/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/main)
+[![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/main/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/main)
 [![release info](https://img.shields.io/badge/Release-0.5.0-blue)](https://gitlab.hpi.de/akita/bp2020fn1/timeeval/-/releases/v0.5.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![python version 3.8|3.9](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)](#)

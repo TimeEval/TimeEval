@@ -7,12 +7,10 @@ import pandas as pd
 from freezegun import freeze_time
 from sklearn.model_selection import ParameterGrid
 
-from timeeval import TimeEval, Algorithm, Datasets
+from timeeval import TimeEval, Algorithm, Datasets, AlgorithmParameter, Metric
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
-from timeeval.data_types import AlgorithmParameter
 from timeeval.utils.hash_dict import hash_dict
-from timeeval.utils.metrics import Metric
 
 
 def deviating_from_mean(X: AlgorithmParameter, args: dict):
