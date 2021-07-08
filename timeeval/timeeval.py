@@ -143,10 +143,7 @@ class TimeEval:
                                      f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!")
 
                 if self.distributed:
-                    future_result = self.remote.add_task(
-                        exp.evaluate,
-                        key=exp.name
-                    )
+                    future_result = self.remote.add_task(exp.evaluate, key=exp.name)
                 else:
                     result = exp.evaluate()
                 self._record_results(exp, result=result, future_result=future_result)
