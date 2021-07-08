@@ -48,7 +48,10 @@ class Dataset:
     training_type: TrainingType
     length: int
     dimensions: int
-    period_size: Optional[int]
+    min_anomaly_length: int
+    median_anomaly_length: int
+    max_anomaly_length: int
+    period_size: Optional[int] = None
     num_anomalies: Optional[int] = None
 
     @property
@@ -324,6 +327,9 @@ class Datasets(ContextManager['Datasets']):
                 training_type=TrainingType.UNSUPERVISED,
                 dimensions=1,
                 length=-1,
+                min_anomaly_length=-1,
+                median_anomaly_length=-1,
+                max_anomaly_length=-1,
                 num_anomalies=-1,
                 period_size=-1
             )
@@ -331,6 +337,11 @@ class Datasets(ContextManager['Datasets']):
         else:
             entry = self._df.loc[index]
             training_type = self.get_training_type(index)
+            period = None
+            try:
+                period = entry["period_size"]
+            except KeyError:
+                pass
             return Dataset(
                 datasetId=index,
                 dataset_type=entry["dataset_type"],
@@ -338,7 +349,10 @@ class Datasets(ContextManager['Datasets']):
                 length=entry["length"],
                 dimensions=entry["dimensions"],
                 num_anomalies=entry["num_anomalies"],
-                period_size=entry["period_size"]
+                min_anomaly_length=entry["min_anomaly_length"],
+                median_anomaly_length=entry["median_anomaly_length"],
+                max_anomaly_length=entry["max_anomaly_length"],
+                period_size=period
             )
 
     def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Path:

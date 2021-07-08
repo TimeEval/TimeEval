@@ -7,9 +7,8 @@ import numpy as np
 import pandas as pd
 
 from tests.fixtures.algorithms import ErroneousAlgorithm
-from timeeval import TimeEval, Algorithm, Datasets
+from timeeval import TimeEval, Algorithm, Datasets, Status
 from timeeval.adapters import FunctionAdapter
-from timeeval.timeeval import Status
 
 
 class TestTimeEvalExceptions(unittest.TestCase):

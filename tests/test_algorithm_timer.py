@@ -3,9 +3,9 @@ import unittest
 
 import numpy as np
 
-from timeeval import Algorithm, AlgorithmParameter
+from timeeval import Algorithm, AlgorithmParameter, TrainingType
 from timeeval.adapters import FunctionAdapter
-from timeeval.data_types import ExecutionType, TrainingType
+from timeeval.data_types import ExecutionType
 from timeeval.times import Times
 
 

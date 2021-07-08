@@ -9,11 +9,18 @@ import psutil
 import pytest
 from durations import Duration
 
+from timeeval import ResourceConstraints
 from timeeval.adapters import DockerAdapter
-from timeeval.adapters.docker import DATASET_TARGET_PATH, RESULTS_TARGET_PATH, SCORES_FILE_NAME, MODEL_FILE_NAME
-from timeeval.adapters.docker import DockerTimeoutError, DockerAlgorithmFailedError
+from timeeval.adapters.docker import (
+    DATASET_TARGET_PATH,
+    RESULTS_TARGET_PATH,
+    SCORES_FILE_NAME,
+    MODEL_FILE_NAME,
+    DockerTimeoutError,
+    DockerAlgorithmFailedError
+)
 from timeeval.data_types import ExecutionType
-from timeeval.resource_constraints import ResourceConstraints
+
 
 DUMMY_CONTAINER = "algorithm-template-dummy"
 TEST_IMAGE = "mut:5000/akita/timeeval-test-algorithm"

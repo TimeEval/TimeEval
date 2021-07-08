@@ -4,14 +4,13 @@ import random
 import sys
 from pathlib import Path
 
-from timeeval import TimeEval, Datasets
-from timeeval.constants import HPI_CLUSTER
-from timeeval.remote import RemoteConfiguration
-from timeeval.resource_constraints import ResourceConstraints
-from timeeval.utils.metrics import Metric
-from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
+from durations import Duration
 
+from timeeval import TimeEval, Datasets, RemoteConfiguration, ResourceConstraints, Metric
+from timeeval.constants import HPI_CLUSTER
+from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
+
 
 # Setup logging
 logging.basicConfig(
@@ -29,21 +28,21 @@ random.seed(42)
 def main():
     # dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
     dm = Datasets(Path("tests/example_data"))
-    configurator = AlgorithmConfigurator(config_path="timeeval_experiments/param-config.json")
+    configurator = AlgorithmConfigurator(config_path="timeeval_experiments/param-config.example.json")
 
     # Select datasets and algorithms
     datasets = dm.select()
-    # datasets = random.sample(datasets, 10)
+    datasets = random.sample(datasets, 1)
     print(f"Selected datasets: {len(datasets)}")
 
     algorithms = [
-        generic_rf(),
+        # generic_rf(),
         norma(),
         # sr_cnn(),
         # knn(),
         # cblof(),
-        hif(),
-        fft(),
+        # hif(),
+        # fft(),
         # dbstream(),
         # img_embedding_cae(),
         # telemanom(),
@@ -82,7 +81,7 @@ def main():
         # phasespace_svm(),
         # eif(),
         # tanogan(),
-        # stomp(),
+        stomp(),
         # hotsax(),
         # pci(),
         # robust_pca(),
@@ -104,7 +103,7 @@ def main():
     print(f"Selected algorithms: {len(algorithms)}")
     sys.stdout.flush()
 
-    configurator.configure(algorithms, ignore_dependent=True, perform_search=False)
+    configurator.configure(algorithms, ignore_dependent=False, perform_search=False)
     for algo in algorithms:
         print(f"Algorithm {algo.name} param_grid:")
         for config in algo.param_grid:
@@ -117,18 +116,20 @@ def main():
     limits = ResourceConstraints(
         tasks_per_host=15,
         task_cpu_limit=1.,
+        train_timeout=Duration("1 minute"),
+        execute_timeout=Duration("1 minute")
     )
     timeeval = TimeEval(dm, datasets, algorithms,
                         repetitions=1,
                         # distributed=True,
                         # remote_config=cluster_config,
-                        # resource_constraints=limits,
+                        resource_constraints=limits,
                         skip_invalid_combinations=True,
                         metrics=[Metric.ROC_AUC, Metric.RANGE_PR_AUC]
                         )
 
     timeeval.run()
-    print(timeeval.get_results(aggregated=True))
+    print(timeeval.get_results(aggregated=False))
 
 
 if __name__ == "__main__":

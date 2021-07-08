@@ -2,9 +2,8 @@ import unittest
 
 import numpy as np
 
-from timeeval import Algorithm
+from timeeval import Algorithm, TrainingType
 from timeeval.adapters import FunctionAdapter
-from timeeval.data_types import TrainingType
 
 
 class TestAlgorithm(unittest.TestCase):

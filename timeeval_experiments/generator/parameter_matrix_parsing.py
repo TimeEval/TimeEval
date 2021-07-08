@@ -4,8 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Union, Any, Dict, List
 
-import numpy as np
 import pandas as pd
+
 
 LIST_TYPETAG_PATTERN = re.compile(r"list\[.*\]", re.I)
 

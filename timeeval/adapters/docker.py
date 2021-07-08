@@ -105,8 +105,10 @@ class DockerAdapter(Adapter):
             customParameters=args.get("hyper_params", {}),
         )
 
-        gid = DockerAdapter._get_gid(self.group)
         uid = DockerAdapter._get_uid()
+        gid = DockerAdapter._get_gid(self.group)
+        if not gid:
+            gid = uid
         print(f"Running container with uid={uid} and gid={gid} privileges in {algorithm_interface.executionType} mode.")
 
         memory_limit, cpu_limit = self._get_compute_limits(args)

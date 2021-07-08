@@ -5,13 +5,18 @@ from pathlib import Path
 import numpy as np
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
-from timeeval import TimeEval, Algorithm, Datasets
-from timeeval.data_types import TrainingType, InputDimensionality
-from timeeval.datasets.datasets import Dataset
+from timeeval import (
+    TimeEval,
+    Algorithm,
+    Datasets,
+    TrainingType,
+    InputDimensionality,
+    Status,
+    Metric,
+    ResourceConstraints
+)
+from timeeval.datasets import Dataset
 from timeeval.experiments import Experiment, Experiments
-from timeeval.resource_constraints import ResourceConstraints
-from timeeval.timeeval import Status
-from timeeval.utils.metrics import Metric
 
 
 class TestDatasetAndAlgorithmMatch(unittest.TestCase):
@@ -97,6 +102,9 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 num_anomalies=1,
                 dimensions=1,
                 length=3000,
+                min_anomaly_length=1,
+                median_anomaly_length=1,
+                max_anomaly_length=1,
                 period_size=None
             ),
             algorithm=self.algorithms[0],
@@ -105,14 +113,17 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             base_results_dir=Path("tmp_path"),
             resource_constraints=ResourceConstraints(),
             metrics=Metric.default_list(),
+            resolved_test_dataset_path=self.dmgr.get_dataset_path(("test", "dataset-datetime")),
+            resolved_train_dataset_path=None
         )
         with self.assertRaises(ValueError) as e:
-            exp._perform_training(None)
+            exp._perform_training()
         self.assertIn("No training dataset", str(e.exception))
 
     def test_dont_skip_invalid_combinations(self):
         datasets = [self.dmgr.get(d) for d in self.dmgr.select()]
         exps = Experiments(
+            dmgr=self.dmgr,
             datasets=datasets,
             algorithms=self.algorithms,
             metrics=Metric.default_list(),
@@ -124,6 +135,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
     def test_skip_invalid_combinations(self):
         datasets = [self.dmgr.get(d) for d in self.dmgr.select()]
         exps = Experiments(
+            dmgr=self.dmgr,
             datasets=datasets,
             algorithms=self.algorithms,
             metrics=Metric.default_list(),

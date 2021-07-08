@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 import psutil
 from durations import Duration
 
+MB = 1024 ** 2
 GB = 1024 ** 3
 DEFAULT_TASKS_PER_HOST = 1
 DEFAULT_TIMEOUT = Duration("8 hours")

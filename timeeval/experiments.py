@@ -8,16 +8,18 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-from .algorithm import Algorithm
-from .constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
-from .data_types import AlgorithmParameter, TrainingType
-from .datasets.datasets import Dataset
-from .resource_constraints import ResourceConstraints
-from .times import Times
-from .utils.datasets import extract_features, load_dataset, load_labels_only
-from .utils.hash_dict import hash_dict
-from .utils.metrics import Metric
-from .utils.results_path import generate_experiment_path
+from timeeval.algorithm import Algorithm
+from timeeval.constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
+from timeeval.data_types import AlgorithmParameter, TrainingType
+from timeeval.datasets import Datasets
+from timeeval.datasets.datasets import Dataset
+from timeeval.heuristics import inject_heuristic_values
+from timeeval.resource_constraints import ResourceConstraints
+from timeeval.times import Times
+from timeeval.utils.datasets import extract_features, load_dataset, load_labels_only
+from timeeval.utils.hash_dict import hash_dict
+from timeeval.utils.metrics import Metric
+from timeeval.utils.results_path import generate_experiment_path
 
 
 @dataclass
@@ -29,6 +31,8 @@ class Experiment:
     base_results_dir: Path
     resource_constraints: ResourceConstraints
     metrics: List[Metric]
+    resolved_train_dataset_path: Optional[Path]
+    resolved_test_dataset_path: Path
 
     @property
     def name(self) -> str:
@@ -48,39 +52,39 @@ class Experiment:
 
     @property
     def results_path(self) -> Path:
-        return generate_experiment_path(self.base_results_dir, self.algorithm.name, self.params_id, self.dataset_collection, self.dataset_name, self.repetition)
+        return generate_experiment_path(self.base_results_dir, self.algorithm.name, self.params_id,
+                                        self.dataset_collection, self.dataset_name, self.repetition)
 
     def build_args(self) -> dict:
         return {
             "results_path": self.results_path,
             "resource_constraints": self.resource_constraints,
-            "hyper_params": self.params
+            "hyper_params": self.params,
+            "dataset_details": self.dataset
         }
 
-    def evaluate(self, resolved_train_dataset_path: Optional[Path], resolved_test_dataset_path: Path) -> dict:
+    def evaluate(self) -> dict:
         """
         Using TimeEval distributed, this method is executed on the remote node.
         """
         # perform training if necessary
-        result = self._perform_training(resolved_train_dataset_path)
+        result = self._perform_training()
 
         # perform execution
-        y_scores, execution_times = self._perform_execution(resolved_test_dataset_path)
+        y_scores, execution_times = self._perform_execution()
         result.update(execution_times)
 
         # scale scores to [0, 1]
         if len(y_scores.shape) == 1:
             y_scores = y_scores.reshape(-1, 1)
         y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
-        # write scores early to protect against metric calculation errors
-        y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
             print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
                   file=logs_file)
 
             # calculate quality metrics
-            y_true = load_labels_only(resolved_test_dataset_path)
+            y_true = load_labels_only(self.resolved_test_dataset_path)
             errors = 0
             last_exception = None
             for metric in self.metrics:
@@ -91,46 +95,49 @@ class Experiment:
                 except Exception as e:
                     print(f"Exception while computing metric {metric}: {e}", file=logs_file)
                     errors += 1
-                    last_exception = e
+                    if str(e):
+                        last_exception = e
                     continue
 
         # write result files
+        y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
         pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
         with (self.results_path / HYPER_PARAMETERS).open("w") as f:
             json.dump(self.params, f)
 
+        # rethrow exception if no metric could be calculated
         if errors == len(self.metrics) and last_exception is not None:
             raise last_exception
 
         return result
 
-    def _perform_training(self, train_dataset_path: Optional[Path]) -> dict:
+    def _perform_training(self) -> dict:
         if self.algorithm.training_type == TrainingType.UNSUPERVISED:
             return {}
 
-        if not train_dataset_path:
+        if not self.resolved_train_dataset_path:
             raise ValueError(f"No training dataset was provided. Algorithm cannot be trained!")
 
         if self.algorithm.data_as_file:
-            X: AlgorithmParameter = train_dataset_path
+            X: AlgorithmParameter = self.resolved_train_dataset_path
         else:
-            X = load_dataset(train_dataset_path).values
+            X = load_dataset(self.resolved_train_dataset_path).values
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file, redirect_stdout(logs_file):
             print(f"Performing training for {self.algorithm.training_type.name} algorithm {self.algorithm.name}")
             times = Times.from_train_algorithm(self.algorithm, X, self.build_args())
         return times.to_dict()
 
-    def _perform_execution(self, dataset_path: Path) -> Tuple[np.ndarray, dict]:
+    def _perform_execution(self) -> Tuple[np.ndarray, dict]:
         if self.algorithm.data_as_file:
-            X: AlgorithmParameter = dataset_path
+            X: AlgorithmParameter = self.resolved_test_dataset_path
         else:
-            dataset = load_dataset(dataset_path)
+            dataset = load_dataset(self.resolved_test_dataset_path)
             if dataset.shape[1] >= 3:
                 X = extract_features(dataset)
             else:
                 raise ValueError(
-                    f"Dataset '{dataset_path.name}' has a shape that was not expected: {dataset.shape}")
+                    f"Dataset '{self.resolved_test_dataset_path.name}' has a shape that was not expected: {dataset.shape}")
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file, redirect_stdout(logs_file):
             print(f"Performing execution for {self.algorithm.training_type.name} algorithm {self.algorithm.name}")
@@ -140,6 +147,7 @@ class Experiment:
 
 class Experiments:
     def __init__(self,
+                 dmgr: Datasets,
                  datasets: List[Dataset],
                  algorithms: List[Algorithm],
                  base_result_path: Path,
@@ -148,6 +156,7 @@ class Experiments:
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = False,
                  force_training_type_match: bool = False):
+        self.dmgr = dmgr
         self.datasets = datasets
         self.algorithms = algorithms
         self.repetitions = repetitions
@@ -167,16 +176,20 @@ class Experiments:
         for algorithm in self.algorithms:
             for algorithm_config in algorithm.param_grid:
                 for dataset in self.datasets:
-                    for repetition in range(1, self.repetitions + 1):
-                        if self._check_compatible(dataset, algorithm):
+                    if self._check_compatible(dataset, algorithm):
+                        test_path, train_path = self._resolve_dataset_paths(dataset, algorithm)
+                        params = inject_heuristic_values(algorithm_config, algorithm, dataset, test_path)
+                        for repetition in range(1, self.repetitions + 1):
                             yield Experiment(
                                 algorithm=algorithm,
                                 dataset=dataset,
-                                params=algorithm_config,
+                                params=params,
                                 repetition=repetition,
                                 base_results_dir=self.base_result_path,
                                 resource_constraints=self.resource_constraints,
-                                metrics=self.metrics
+                                metrics=self.metrics,
+                                resolved_test_dataset_path=test_path,
+                                resolved_train_dataset_path=train_path
                             )
 
     def __len__(self) -> int:
@@ -185,10 +198,20 @@ class Experiments:
                 1 for algorithm in self.algorithms
                 for _algorithm_config in algorithm.param_grid
                 for dataset in self.datasets
-                for _repetition in range(1, self.repetitions + 1)
                 if self._check_compatible(dataset, algorithm)
+                for _repetition in range(1, self.repetitions + 1)
             ])
         return self._N  # type: ignore
+
+    def _resolve_dataset_paths(self, dataset: Dataset, algorithm: Algorithm) -> Tuple[Path, Optional[Path]]:
+        test_dataset_path = self.dmgr.get_dataset_path(dataset.datasetId, train=False)
+        train_dataset_path: Optional[Path] = None
+        if algorithm.training_type != TrainingType.UNSUPERVISED:
+            try:
+                train_dataset_path = self.dmgr.get_dataset_path(dataset.datasetId, train=True)
+            except KeyError:
+                pass
+        return test_dataset_path, train_dataset_path
 
     def _check_compatible(self, dataset: Dataset, algorithm: Algorithm) -> bool:
         if not self.skip_invalid_combinations:
