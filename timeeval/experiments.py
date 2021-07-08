@@ -17,6 +17,7 @@ from .times import Times
 from .utils.datasets import extract_features, load_dataset, load_labels_only
 from .utils.hash_dict import hash_dict
 from .utils.metrics import Metric
+from .utils.results_path import generate_experiment_path
 
 
 @dataclass
@@ -47,8 +48,7 @@ class Experiment:
 
     @property
     def results_path(self) -> Path:
-        return (self.base_results_dir / self.algorithm.name / self.params_id / self.dataset_collection /
-                self.dataset_name / str(self.repetition))
+        return generate_experiment_path(self.base_results_dir, self.algorithm.name, self.params_id, self.dataset_collection, self.dataset_name, self.repetition)
 
     def build_args(self) -> dict:
         return {
