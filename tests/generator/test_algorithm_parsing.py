@@ -3,8 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from timeeval_experiments.generator import AlgorithmLoader
-from timeeval_experiments.generator.algorithm_parsing import _parse_readme, _parse_manifest
+from timeeval_experiments.generator.algorithm_parsing import AlgorithmLoader, _parse_readme, _parse_manifest
 from timeeval_experiments.generator.exceptions import MissingReadmeWarning, MissingManifestWarning, \
     InvalidManifestWarning, AlgorithmManifestLoadingWarning
 

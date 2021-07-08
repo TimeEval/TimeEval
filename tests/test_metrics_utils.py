@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from timeeval.utils.metrics import Metric
+from timeeval import Metric
 
 
 class TestMetrics(unittest.TestCase):

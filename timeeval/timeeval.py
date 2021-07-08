@@ -81,15 +81,14 @@ class TimeEval:
                 "Explicitly set constraints to limit the resources for local executions of TimeEval."
             )
             resource_constraints.tasks_per_host = 1
-        self.dmgr = dataset_mgr
         self.disable_progress_bar = disable_progress_bar
 
         self.results_path = results_path.absolute() / start_date
         self.log.info(f"Results are recorded in the directory {self.results_path}")
         self.metrics = metrics or Metric.default_list()
         self.metric_names = [m.name for m in self.metrics]
-        dataset_details = [self.dmgr.get(d) for d in datasets]
-        self.exps = Experiments(dataset_details, algorithms, self.results_path,
+        dataset_details = [dataset_mgr.get(d) for d in datasets]
+        self.exps = Experiments(dataset_mgr, dataset_details, algorithms, self.results_path,
                                 resource_constraints=resource_constraints,
                                 repetitions=repetitions,
                                 skip_invalid_combinations=skip_invalid_combinations,
@@ -127,42 +126,41 @@ class TimeEval:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
 
-                test_dataset_path = self.dmgr.get_dataset_path(exp.dataset.datasetId, train=False)
-                train_dataset_path: Optional[Path] = None
                 if exp.algorithm.training_type in [TrainingType.SUPERVISED, TrainingType.SEMI_SUPERVISED]:
-                    # Intentionally raise KeyError here if no training dataset is specified.
-                    # The Error will be caught by the except clause below.
-                    train_dataset_path = self.dmgr.get_dataset_path(exp.dataset.datasetId, train=True)
+                    if exp.resolved_train_dataset_path is None:
+                        # Intentionally raise KeyError here if no training dataset is specified.
+                        # The Error will be caught by the except clause below.
+                        raise KeyError("Path to training dataset not found!")
 
                     # This check is not necessary for unsupervised algorithms, because they can be executed on all
                     # datasets.
-                    if not self.exps.skip_invalid_combinations and exp.algorithm.training_type != exp.dataset.training_type:
+                    if exp.algorithm.training_type != exp.dataset.training_type:
                         raise ValueError(f"Dataset training type ({exp.dataset.training_type}) incompatible to "
                                          f"algorithm training type ({exp.algorithm.training_type})!")
 
-                if not self.exps.skip_invalid_combinations and exp.algorithm.input_dimensionality != exp.dataset.input_dimensionality:
+                if exp.algorithm.input_dimensionality != exp.dataset.input_dimensionality:
                     raise ValueError(f"Dataset input dimensionality ({exp.dataset.input_dimensionality}) incompatible "
                                      f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!")
 
                 if self.distributed:
                     future_result = self.remote.add_task(
                         exp.evaluate,
-                        train_dataset_path,
-                        test_dataset_path,
                         key=exp.name
                     )
                 else:
-                    result = exp.evaluate(train_dataset_path, test_dataset_path)
+                    result = exp.evaluate()
                 self._record_results(exp, result=result, future_result=future_result)
 
+            except DockerTimeoutError as e:
+                self.log.exception(
+                    f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} timed out.")
+                result = {m: np.nan for m in self.metric_names}
+                self._record_results(exp, result=result, status=Status.TIMEOUT, error_message=str(e))
             except Exception as e:
                 self.log.exception(
                     f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
-                f: asyncio.Future = asyncio.Future()
-                f.set_result({
-                    **{m.name: np.nan for m in self.metrics}
-                })
-                self._record_results(exp, future_result=f, status=Status.ERROR, error_message=str(e))
+                result = {m: np.nan for m in self.metric_names}
+                self._record_results(exp, result=result, status=Status.ERROR, error_message=str(e))
 
     def _record_results(self,
                         exp: Experiment,

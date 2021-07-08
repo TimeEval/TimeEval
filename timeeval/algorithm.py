@@ -3,8 +3,8 @@ from typing import Optional, Callable, Dict, Any
 
 from sklearn.model_selection import ParameterGrid
 
-from .adapters.base import Adapter
-from .data_types import TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter, TrainingType, InputDimensionality
+from timeeval.adapters.base import Adapter
+from timeeval.data_types import TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter, TrainingType, InputDimensionality
 
 
 @dataclass

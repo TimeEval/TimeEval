@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Union, Dict, Any
 
-from timeeval_experiments.generator.parameter_matrix_parsing import ParameterMatrixProxy
+from .parameter_matrix_parsing import ParameterMatrixProxy
 
 
 def _wip(params: Dict) -> Dict:

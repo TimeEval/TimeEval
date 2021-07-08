@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from timeeval import Datasets, DatasetRecord
+from timeeval import Datasets
+from timeeval.datasets import DatasetRecord
+
 
 header = "collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length,dimensions,contamination,num_anomalies,min_anomaly_length,median_anomaly_length,max_anomaly_length,mean,stddev,trend,stationarity,period_size"
 content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary,"
