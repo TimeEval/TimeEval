@@ -1,16 +1,29 @@
 {
-  "__algorithm_overwrites": {},
-  "__heuristic_function_mapping": {},
+  "__algorithm_overwrites": {
+    "Torsk": {
+      "transient_window_size": "heuristic:ParameterDependenceHeuristic(source_parameter='train_window_size', factor=0.2)"
+    }
+  },
+  "__heuristic_function_mapping": {
+    "dataset period size": "PeriodSizeHeuristic(factor=1)",
+    "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5)",
+    "[0.5, 1.0, 1.5] * dataset period size": "EmbedDimRangeHeuristic(base_factor=1.5, dim_factors=[0.5, 1.0, 1.5])",
+    "1.5*window_size": "ParameterDependenceHeuristic(source_parameter='window_size', factor=1.5)",
+    "10 % of dataset length or until first anomaly": "CleanStartSequenceSizeHeuristic(max_factor=0.1)",
+    "10% of dataset length": "RelativeDatasetSizeHeuristic(factor=0.1)",
+    "max anomaly length": "AnomalyLengthHeuristic(agg_type='max')",
+    "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')"
+  },
   "dependent_params": {
-    "anomaly_window_size": "use max anomaly window size",
-    "embed_dim_range": "same LUT as window_size, but calculate 1 higher and 1 lower window to get 3 window sizes again",
-    "max_anomaly_window_size": "use max anomaly window size",
+    "anomaly_window_size": "max anomaly length",
+    "embed_dim_range": "[0.5, 1.0, 1.5] * dataset period size",
+    "max_anomaly_window_size": "max anomaly length",
     "max_lag": "10% of dataset length",
-    "min_anomaly_window_size": "use min anomaly size",
-    "n_init_train": "min(10% from dataset, normal points until first anomaly)",
-    "period": "same LUT as window_size",
-    "query_window_size": "1.5*window_size",
-    "window_size": "LUT (visually or from generator)"
+    "min_anomaly_window_size": "min anomaly length",
+    "n_init_train": "10 % of dataset length or until first anomaly",
+    "period": "dataset period size",
+    "window_size": "1.5 dataset period size",
+    "query_window_size": "1.5*window_size"
   },
   "fixed_params": {
     "activationThreshold": 12,
@@ -114,13 +127,13 @@
   },
   "optimized_params": {
     "C": [
-      "exp. [0.001; 100]"
+      "[0.001, 0.01, 0.1, 1.0, 10.0, 100.0]"
     ],
     "activation": [
-      "tanh,sigmoid"
+      "[\"tanh\", \"sigmoid\"]"
     ],
     "alert": [
-      "TRUE / FALSE"
+      "[True, False]"
     ],
     "alpha": {
       "CBLOF": [
@@ -157,23 +170,26 @@
       ]
     },
     "beta": [
-      "=+/- 30%"
+      "[3, 5, 7]"
     ],
     "bin_tol": [
-      "=+/- 30%"
+      "[0.35, 0.5, 0.65]"
     ],
     "booster": [
-      "gbtree,gblinear,dart"
+      "[\"gbtree\", \"gblinear\", \"dart\"]"
     ],
     "bootstrap": {
       "Isolation Forest": [
-        "TRUE / FALSE"
+        "[true, false]"
       ],
       "Random Black Forest Regressor": [
-        "TRUE / FALSE"
+        "[true, false]"
       ],
       "Random Forest Regressor": [
-        "TRUE / FALSE"
+        "[true, false]"
+      ],
+      "Subsequence Isolation Forest": [
+        "[true, false]"
       ]
     },
     "coef0": {
@@ -185,10 +201,10 @@
       ]
     },
     "compression_ratio": [
-      "[1; 10]"
+      "[1, 2, 3, 5, 8, 9, 10]"
     ],
     "connectivity": [
-      "[0.1; 0.5]"
+      "[0.1, 0.2, 0.25, 0.3, 0.4, 0.5]"
     ],
     "degree": {
       "NoveltySVR": [
@@ -199,55 +215,55 @@
       ]
     },
     "density": [
-      "0.1; 0.01"
+      "[0.1, 0.05, 0.01]"
     ],
     "differencing_degree": [
-      "0; 1; 2"
+      "[0, 1, 2]"
     ],
     "discretizer": [
-      "sugeno,choquet,fcm"
+      "[\"sugeno\", \"choquet\", \"fcm\"]"
     ],
     "distillation_iterations": [
-      "[10; 20; 50; 100]"
+      "[10, 20, 50, 100]"
     ],
     "ep": [
-      "=+/- 30%"
+      "[1, 3, 5]"
     ],
     "epsilon": [
-      "exp. [0.0001; 0.1]"
+      "[0.0001; 0.001, 0.01, 0.1]"
     ],
     "error_buffer": [
-      "[50; 1000]"
+      "[50, 100, 500, 1000]"
     ],
     "feature_window_size": [
-      "[50; 1000]"
+      "[50, 100, 300, 500, 1000]"
     ],
     "fft_parameters": [
-      "[1; 2; 3; 5; 7]"
+      "[1, 2, 3, 5, 7]"
     ],
     "gamma": [
-      "=+/- 30%"
+      "[0.5, 0.8, 1]"
     ],
     "gap_time": [
-      "=+/- 30%"
+      "[7, 10, 13]"
     ],
     "imed_loss": [
-      "TRUE / FALSE"
+      "[True, False]"
     ],
     "input_map_scale": [
-      "[0; 1]"
+      "[0.01, 0.1, 0.125, 0.25, 0.5, 1]"
     ],
     "input_map_size": [
-      "[50; 1000]"
+      "[50, 100, 200, 500, 1000]"
     ],
     "kernel": [
-      "linear,poly,rbf,sigmoid,rbf-gaussian,rbf-exp"
+      "[\"linear\", \"poly\", \"rbf\", \"sigmoid\", \"rbf-gaussian\", \"rbf-exp\"]"
     ],
     "lag_window_size": [
-      "[50; 1000]"
+      "[50, 100, 300, 500, 1000]"
     ],
     "lambda": [
-      "exp [1e-4; 1e-1]"
+      "[0.0001, 0.001, 0.01, 0.1]"
     ],
     "latent_size": {
       "AutoEncoder": [
@@ -276,10 +292,10 @@
       ]
     },
     "lead_window_size": [
-      "[50; 1000]"
+      "[10, 50, 100, 200, 500, 1000]"
     ],
     "level_size": [
-      "2; 3; 5"
+      "[2, 3, 5]"
     ],
     "linear_hidden_size": {
       "DeepNAP": [
@@ -296,7 +312,7 @@
       ]
     },
     "local_outlier_threshold": [
-      "[0;1]"
+      "[0.1, 0.2, 0.5, 0.6, 0.7, 0.9]"
     ],
     "lstm_layers": {
       "DeepNAP": [
@@ -310,28 +326,28 @@
       ]
     },
     "max_sign_change_distance": [
-      "[5; 10; 20; 30]"
+      "[5, 10, 20, 30]"
     ],
     "method": [
-      "largest,mean,median"
+      "[\"largest\", \"mean\", \"median\"]"
     ],
     "min_weight": [
-      "[0;1]"
+      "[0, 0.1, 0.2, 0.5, 0.9, 1]"
     ],
     "neighbourhood_size": [
-      "[100; 500]"
+      "[50, 100, 200, 500]"
     ],
     "nf_layers": [
       "[10; 20; 50]"
     ],
     "nu": [
-      "[0; 1]"
+      "[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]"
     ],
     "num": [
-      "=+/- 30%"
+      "[7, 10, 13]"
     ],
     "p": [
-      "[0; 1]"
+      "[0, 0.1, 0.13, 0.2, 0.3, 0.4, 0.5]"
     ],
     "paa_transform_size": {
       "GrammarViz3": [
@@ -342,16 +358,16 @@
       ]
     },
     "partial_sequence_length": [
-      "[1; 10]"
+      "[1, 2, 3, 4, 5, 10]"
     ],
     "project_phasespace": [
-      "TRUE / FALSE"
+      "[True, False]"
     ],
     "q": [
-      "exp [1e-4; 1e-1]"
+      "[0.0001, 0.001, 0.01, 0.1]"
     ],
     "quantile_epsilon": [
-      "exp [1e-3; 1e-1]"
+      "[0.001, 0.01, 0.1]"
     ],
     "radius": {
       "DBStream": [
@@ -362,7 +378,7 @@
       ]
     },
     "rate": [
-      "[30; 50; 100]"
+      "[30, 50, 100]"
     ],
     "rnn_hidden_size": {
       "DeepNAP": [
@@ -373,16 +389,19 @@
       ]
     },
     "scaling": [
-      "standard,robust"
+      "[\"standard\", \"robust\"]"
+    ],
+    "seasonal": [
+      "[\"add\", \"mul\"]"
     ],
     "shared_density": [
-      "TRUE / FALSE"
+      "[True, False]"
     ],
     "sim": [
-      "enum[simo,simn]"
+      "[\"simo\", \"simn\"]"
     ],
     "smoothing_window_size": [
-      "[50; 1000]"
+      "[10, 30, 50, 100, 200, 500, 1000]"
     ],
     "spectral_radius": {
       "HealthESN": [
@@ -393,13 +412,13 @@
       ]
     },
     "step": [
-      "=+/- 30%"
+      "[32, 64, 128]"
     ],
     "teacher_epochs": [
-      "[10; 20; 50; 100]"
+      "[10, 20, 50, 100]"
     ],
     "threshold": [
-      "=+/- 30%"
+      "[1, 2, 3, 4, 5]"
     ],
     "tol": {
       "NoveltySVR": [
@@ -413,28 +432,31 @@
       ]
     },
     "train_method": [
-      "pinv_lstsq,pinv_svd,tikhonov"
+      "[\"pinv_lstsq\", \"pinv_svd\", \"tikhonov\"]"
     ],
     "transient_window_size": [
       "20% of train_window_size [50; 1000]"
     ],
+    "trend": [
+      "[\"add\", \"mul\"]"
+    ],
     "use_weights": [
-      "TRUE / FALSE"
+      "[True, False]"
     ],
     "wavelet_a": [
-      "=+/- 30%"
+      "[-1.75, -2.5, -3,25]"
     ],
     "wavelet_cs_C": [
-      "=+/- 30%"
+      "[1.225, 1.75, 2.275]"
     ],
     "wavelet_k": [
-      "=+/- 30%"
+      "[-1.05, -1.5, -1.95]"
     ],
     "wavelet_wbf": [
-      "mexican_hat,central_symmetric,morlet"
+      "[\"mexican_hat\", \"central_symmetric\", \"morlet\"]"
     ],
     "whiten": [
-      "TRUE / FALSE"
+      "[True, False]"
     ]
   },
   "shared_params": {
@@ -455,7 +477,8 @@
     "leaf_size": {
       "algorithms": [
         "KNN",
-        "LOF"
+        "LOF",
+        "Subsequence LOF"
       ],
       "search_space": [
         20,
@@ -504,9 +527,9 @@
     "n_estimators": {
       "algorithms": [
         "EnsembleGI",
+        "XGBoost Regressor",
         "Hybrid-KNN",
-        "Random Black Forest Regressor",
-        "XGBoost Regressor"
+        "Random Black Forest Regressor"
       ],
       "search_space": [
         10,
@@ -520,7 +543,8 @@
         "Hybrid-KNN",
         "Isolation Forest - Local Outier Factor",
         "KNN",
-        "LOF"
+        "LOF",
+        "Subsequence LOF"
       ],
       "search_space": [
         5,
@@ -534,12 +558,13 @@
     "n_trees": {
       "algorithms": [
         "Extended Isolation Forest",
-        "HIF",
-        "Isolation Forest",
-        "Isolation Forest - Local Outier Factor",
-        "Random Black Forest Regressor",
         "Random Forest Regressor",
-        "XGBoost Regressor"
+        "XGBoost Regressor",
+        "HIF",
+        "Isolation Forest - Local Outier Factor",
+        "Isolation Forest",
+        "Random Black Forest Regressor",
+        "Subsequence Isolation Forest"
       ],
       "search_space": [
         10,
@@ -575,13 +600,14 @@
     },
     "train_window_size": {
       "algorithms": [
+        "Random Forest Regressor",
+        "XGBoost Regressor",
         "NoveltySVR",
         "OceanWNN",
         "Random Black Forest Regressor",
-        "Random Forest Regressor",
         "SARIMA",
         "Torsk",
-        "XGBoost Regressor"
+        "TripleES"
       ],
       "search_space": [
         50,

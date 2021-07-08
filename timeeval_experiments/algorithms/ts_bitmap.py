@@ -2,9 +2,8 @@ from durations import Duration
 from sklearn.model_selection import ParameterGrid
 from typing import Any, Optional
 
-from timeeval import Algorithm
+from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.data_types import TrainingType, InputDimensionality
 
 
 _ts_bitmap_parameters = {

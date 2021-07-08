@@ -2,12 +2,17 @@ from durations import Duration
 from sklearn.model_selection import ParameterGrid
 from typing import Any, Optional
 
-from timeeval import Algorithm
+from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.data_types import TrainingType, InputDimensionality
 
 
 _triple_es_parameters = {
+ "period": {
+  "defaultValue": 100,
+  "description": "number of time units at which events happen regularly/periodically",
+  "name": "period",
+  "type": "int"
+ },
  "random_state": {
   "defaultValue": 42,
   "description": "Seed for random number generation.",
@@ -19,12 +24,6 @@ _triple_es_parameters = {
   "description": "type of seasonal component",
   "name": "seasonal",
   "type": "enum[add, mul]"
- },
- "seasonal_periods": {
-  "defaultValue": 100,
-  "description": "number of time units at which events happen regularly/periodically",
-  "name": "seasonal_periods",
-  "type": "int"
  },
  "train_window_size": {
   "defaultValue": 200,

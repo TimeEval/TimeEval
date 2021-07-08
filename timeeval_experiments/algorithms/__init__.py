@@ -63,4 +63,5 @@ from .pst import pst
 from .donut import donut
 from .sr import sr
 from .subsequence_lof import subsequence_lof
+from .left_stampi import left_stampi
 from .autoencoder import autoencoder

@@ -2,9 +2,8 @@ from durations import Duration
 from sklearn.model_selection import ParameterGrid
 from typing import Any, Optional
 
-from timeeval import Algorithm
+from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.data_types import TrainingType, InputDimensionality
 
 import numpy as np
 
@@ -12,7 +11,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for stamp
 def post_stamp(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_size = args.get("hyper_params", {}).get("window_size", 30)
+    window_size = args.get("hyper_params", {}).get("anomaly_window_size", 30)
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
