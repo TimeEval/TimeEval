@@ -2,7 +2,7 @@ import json
 import subprocess
 from dataclasses import dataclass, asdict, field
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Optional, Any, Callable, Final, Tuple
+from typing import Optional, Any, Callable, Final, Tuple, Dict
 
 import docker
 import numpy as np
@@ -45,7 +45,7 @@ class AlgorithmInterface:
     modelInput: Path
     modelOutput: Path
     executionType: ExecutionType
-    customParameters: dict = field(default_factory=dict)
+    customParameters: Dict = field(default_factory=dict)
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)

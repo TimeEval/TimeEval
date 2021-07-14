@@ -17,6 +17,7 @@ from timeeval.heuristics import inject_heuristic_values
 from timeeval.resource_constraints import ResourceConstraints
 from timeeval.times import Times
 from timeeval.utils.datasets import extract_features, load_dataset, load_labels_only
+from timeeval.utils.encode_params import dump_params
 from timeeval.utils.hash_dict import hash_dict
 from timeeval.utils.metrics import Metric
 from timeeval.utils.results_path import generate_experiment_path
@@ -102,8 +103,7 @@ class Experiment:
         # write result files
         y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
         pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
-        with (self.results_path / HYPER_PARAMETERS).open("w") as f:
-            json.dump(self.params, f)
+        dump_params(self.params, self.results_path / HYPER_PARAMETERS)
 
         # rethrow exception if no metric could be calculated
         if errors == len(self.metrics) and last_exception is not None:
