@@ -131,7 +131,8 @@ class TestDistributedTimeEval(unittest.TestCase):
         self.results = pd.read_csv("tests/example_data/results.csv")
         self.algorithms = [
             Algorithm(name="deviating_from_mean", main=DeviatingFromMean()),
-            Algorithm(name="deviating_from_median", main=DeviatingFromMedian())
+            Algorithm(name="deviating_from_median", main=DeviatingFromMedian(),
+                      param_grid=ParameterGrid({"test": [np.int64(2), np.int32(4)]}))
         ]
 
     @pytest.mark.dask
@@ -145,12 +146,25 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]))
             timeeval.run()
 
-            compare_columns = ["algorithm","collection","dataset","ROC_AUC"]
-            pd.testing.assert_frame_equal(timeeval.results.loc[:, compare_columns], self.results.loc[:, compare_columns])
-            self.assertFalse(any(
-                ("distributed.cli.dask_worker" in c) or ("distributed.cli.dask_scheduler" in c)
-                for p in psutil.process_iter() for c in p.cmdline()
-            ))
+            compare_columns = ["algorithm", "collection", "dataset", "ROC_AUC"]
+            results: pd.DataFrame = timeeval.results[compare_columns]
+            results = results.groupby(by=["algorithm", "collection", "dataset"])["ROC_AUC"].mean()
+            results = pd.DataFrame(results).reset_index()
+            pd.testing.assert_frame_equal(
+                results,
+                self.results.loc[:, compare_columns])
+
+            # wait a bit before testing if all processes have died to allow for slight delay
+            time.sleep(0.5)
+            processes = [p for p in psutil.process_iter()]
+            self.assertFalse(
+                any(
+                    ("distributed.cli.dask_worker" in c) or ("distributed.cli.dask_scheduler" in c)
+                    for p in processes for c in p.cmdline()
+                ),
+                msg="Not all dask processes were correctly shut down. Still running processes: "
+                    f"{[p.cmdline() for p in processes]}"
+            )
 
     @pytest.mark.dask
     def test_run_on_all_hosts(self):
