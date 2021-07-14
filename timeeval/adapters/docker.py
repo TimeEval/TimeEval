@@ -71,7 +71,11 @@ class DockerAdapter(Adapter):
 
     @staticmethod
     def _get_uid() -> str:
-        return subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
+        uid = subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
+        if uid == "0":  # if uid is root (0), we don't want to change it
+            return ""
+        else:
+            return uid
 
     def _get_compute_limits(self, args: dict) -> Tuple[int, float]:
         return args.get("resource_constraints", ResourceConstraints()).get_compute_resource_limits(

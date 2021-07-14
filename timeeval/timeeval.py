@@ -221,7 +221,7 @@ class TimeEval:
 
         df = self.results
 
-        if Status.ERROR.name in df.status.unique():
+        if Status.ERROR.name in df.status.unique() or Status.TIMEOUT.name in df.status.unique():
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
                              "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]

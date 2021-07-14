@@ -34,12 +34,14 @@ class Remote:
             return SSHCluster(**self.config.to_ssh_cluster_kwargs(self.limits.tasks_per_host))
         except Exception as e:
             if "Worker failed to start" in str(e):
+                self.log.debug(f"Received SSHCluster error message: {e}")
                 scheduler_host = self.config.scheduler_host
                 port = self.config.scheduler_port
                 scheduler_address = f"{scheduler_host}:{port}"
 
                 self.log.warning(f"Failed to start cluster, because address already in use! "
                                  f"Trying to restart cluster at {scheduler_address}!")
+
 
                 with Client(scheduler_address) as client:
                     client.shutdown()
