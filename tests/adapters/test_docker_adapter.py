@@ -210,7 +210,7 @@ class TestDockerAdapter(unittest.TestCase):
         docker_client = docker.from_env()
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter(TEST_IMAGE)
-            result = adapter(Path("./tests/example_data/dataset.train.csv").absolute(), {"result_path": tmp_path, "hyper_params": {"sleep": 2}})
+            _ = adapter(Path("./tests/example_data/dataset.train.csv").absolute(), {"result_path": tmp_path, "hyper_params": {"sleep": 2}})
         containers = docker_client.containers.list(all=True, filters={"ancestor": TEST_IMAGE})
         # remove containers before assertions to make sure that they are gone in the case of failing assertions
         for c in containers:

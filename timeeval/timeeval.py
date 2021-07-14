@@ -25,6 +25,7 @@ from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
 from .times import Times
+from .utils.encode_params import dumps_params
 from .utils.metrics import Metric
 from .utils.tqdm_joblib import tqdm_joblib
 
@@ -176,7 +177,7 @@ class TimeEval:
             "status": status.name,
             "error_message": error_message,
             "repetition": exp.repetition,
-            "hyper_params": json.dumps(exp.params),
+            "hyper_params": dumps_params(exp.params),
             "hyper_params_id": exp.params_id
         }
         if result is not None and future_result is None:
@@ -217,7 +218,7 @@ class TimeEval:
 
         df = self.results
 
-        if Status.ERROR.name in df.status.unique():
+        if Status.ERROR.name in df.status.unique() or Status.TIMEOUT.name in df.status.unique():
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
                              "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK.name]
