@@ -20,6 +20,8 @@ class TestInjection(unittest.TestCase):
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
         obj = TimeEvalHeuristic("EmbedDimRangeHeuristic()")
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
+        obj = TimeEvalHeuristic("ContaminationHeuristic()")
+        self.assertIsInstance(obj, TimeEvalParameterHeuristic)
 
     def test_unknown_heuristic_factory(self):
         with self.assertRaises(ValueError):
@@ -43,7 +45,8 @@ class TestInjection(unittest.TestCase):
             "y": "heuristic:ParameterDependenceHeuristic(source_parameter='x', fn=lambda x: str(x)+'%')",
             "period": "heuristic:PeriodSizeHeuristic()",
             "embed_dim_range": "heuristic:EmbedDimRangeHeuristic(base_factor=2)",
-            "to_be_removed": "heuristic:ParameterDependenceHeuristic(source_parameter='missing')"
+            "to_be_removed": "heuristic:ParameterDependenceHeuristic(source_parameter='missing')",
+            "contamination": "heuristic:ContaminationHeuristic()"
         }
         new_params = inject_heuristic_values(
             params=params,
@@ -64,6 +67,7 @@ class TestInjection(unittest.TestCase):
             "n_init": 2250,
             "size": 300,
             "y": "2%",
-            "period": 1 if fixtures.dataset.period_size is None else fixtures.dataset.period_size
+            "period": 1 if fixtures.dataset.period_size is None else fixtures.dataset.period_size,
+            "contamination": 1.0 / 3600
         })
         np.testing.assert_array_equal(actual_embed_dim_range, expected_embed_dim_range)
