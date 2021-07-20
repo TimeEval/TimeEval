@@ -17,7 +17,7 @@ from joblib import Parallel, delayed
 from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
-from .data_types import TrainingType
+from .data_types import TrainingType, InputDimensionality
 from .datasets import Datasets
 from .experiments import Experiments, Experiment
 from .remote import Remote, RemoteConfiguration
@@ -68,6 +68,7 @@ class TimeEval:
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = True,
                  force_training_type_match: bool = False,
+                 force_dimensionality_match: bool = False,
                  n_jobs: int = -1):
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -92,6 +93,7 @@ class TimeEval:
                                 repetitions=repetitions,
                                 skip_invalid_combinations=skip_invalid_combinations,
                                 force_training_type_match=force_training_type_match,
+                                force_dimensionality_match=force_dimensionality_match,
                                 metrics=self.metrics)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
@@ -137,27 +139,23 @@ class TimeEval:
                         raise ValueError(f"Dataset training type ({exp.dataset.training_type}) incompatible to "
                                          f"algorithm training type ({exp.algorithm.training_type})!")
 
-                if exp.algorithm.input_dimensionality != exp.dataset.input_dimensionality:
+                if (exp.algorithm.input_dimensionality == InputDimensionality.UNIVARIATE and
+                        exp.dataset.input_dimensionality == InputDimensionality.MULTIVARIATE):
                     raise ValueError(f"Dataset input dimensionality ({exp.dataset.input_dimensionality}) incompatible "
                                      f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!")
 
                 if self.distributed:
-                    future_result = self.remote.add_task(
-                        exp.evaluate,
-                        key=exp.name
-                    )
+                    future_result = self.remote.add_task(exp.evaluate, key=exp.name)
                 else:
                     result = exp.evaluate()
                 self._record_results(exp, result=result, future_result=future_result)
 
             except DockerTimeoutError as e:
-                self.log.exception(
-                    f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} timed out.")
+                self.log.exception(f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} timed out.")
                 result = {m: np.nan for m in self.metric_names}
                 self._record_results(exp, result=result, status=Status.TIMEOUT, error_message=repr(e))
             except Exception as e:
-                self.log.exception(
-                    f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
+                self.log.exception(f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
                 result = {m: np.nan for m in self.metric_names}
                 self._record_results(exp, result=result, status=Status.ERROR, error_message=repr(e))
 
