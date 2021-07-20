@@ -2,7 +2,7 @@ import json
 import subprocess
 from dataclasses import dataclass, asdict, field
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Optional, Any, Callable, Final, Tuple
+from typing import Optional, Any, Callable, Final, Tuple, Dict
 
 import docker
 import numpy as np
@@ -45,7 +45,7 @@ class AlgorithmInterface:
     modelInput: Path
     modelOutput: Path
     executionType: ExecutionType
-    customParameters: dict = field(default_factory=dict)
+    customParameters: Dict = field(default_factory=dict)
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)
@@ -71,7 +71,11 @@ class DockerAdapter(Adapter):
 
     @staticmethod
     def _get_uid() -> str:
-        return subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
+        uid = subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
+        if uid == "0":  # if uid is root (0), we don't want to change it
+            return ""
+        else:
+            return uid
 
     def _get_compute_limits(self, args: dict) -> Tuple[int, float]:
         return args.get("resource_constraints", ResourceConstraints()).get_compute_resource_limits(
