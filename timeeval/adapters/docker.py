@@ -10,6 +10,7 @@ import requests
 from docker.errors import DockerException
 from docker.models.containers import Container
 from durations import Duration
+from numpyencoder import NumpyEncoder
 
 from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
@@ -21,7 +22,7 @@ SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
 
-class DockerJSONEncoder(json.JSONEncoder):
+class DockerJSONEncoder(NumpyEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, ExecutionType):
             return o.name.lower()
@@ -45,7 +46,7 @@ class AlgorithmInterface:
     modelInput: Path
     modelOutput: Path
     executionType: ExecutionType
-    customParameters: Dict = field(default_factory=dict)
+    customParameters: Dict[str, Any] = field(default_factory=dict)
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)
