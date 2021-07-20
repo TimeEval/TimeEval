@@ -1,6 +1,4 @@
-import asyncio
 import datetime as dt
-import json
 import logging
 import signal
 import socket
@@ -156,12 +154,12 @@ class TimeEval:
                 self.log.exception(
                     f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} timed out.")
                 result = {m: np.nan for m in self.metric_names}
-                self._record_results(exp, result=result, status=Status.TIMEOUT, error_message=str(e))
+                self._record_results(exp, result=result, status=Status.TIMEOUT, error_message=repr(e))
             except Exception as e:
                 self.log.exception(
                     f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
                 result = {m: np.nan for m in self.metric_names}
-                self._record_results(exp, result=result, status=Status.ERROR, error_message=str(e))
+                self._record_results(exp, result=result, status=Status.ERROR, error_message=repr(e))
 
     def _record_results(self,
                         exp: Experiment,
@@ -202,13 +200,13 @@ class TimeEval:
                 r = f.result()
                 return tuple(r.get(k, None) for k in result_keys) + (Status.OK, None)
             except DockerTimeoutError as e:
-                self.log.exception(f"Exception {str(e)} occurred remotely.")
+                self.log.exception(f"Exception {repr(e)} occurred remotely.")
                 status = Status.TIMEOUT
-                error_message = str(e)
+                error_message = repr(e)
             except Exception as e:
-                self.log.exception(f"Exception {str(e)} occurred remotely.")
+                self.log.exception(f"Exception {repr(e)} occurred remotely.")
                 status = Status.ERROR
-                error_message = str(e)
+                error_message = repr(e)
 
             return tuple(np.nan for _ in result_keys) + (status, error_message)
 
