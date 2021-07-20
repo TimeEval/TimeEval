@@ -171,7 +171,7 @@ class TestDockerAdapter(unittest.TestCase):
     @pytest.mark.docker
     def test_train_timeout_docker(self):
         args = {
-            "executionType": ExecutionType.TRAIN.value,
+            "executionType": ExecutionType.TRAIN,
             "resource_constraints": ResourceConstraints(train_fails_on_timeout=True)
         }
         with self.assertRaises(DockerTimeoutError):
@@ -187,11 +187,31 @@ class TestDockerAdapter(unittest.TestCase):
     @pytest.mark.docker
     def test_ignore_train_timeout_docker(self):
         args = {
-            "executionType": ExecutionType.TRAIN.value,
+            "executionType": ExecutionType.TRAIN,
             # "resource_constraints": ResourceConstraints.no_constraints()
         }
         dummy_path = Path("dummy")
         adapter = DockerAdapter(TEST_IMAGE, timeout=Duration("100 miliseconds"))
+        res = adapter(dummy_path, args)
+        containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+        self.assertEqual(res, dummy_path)
+
+    @pytest.mark.docker
+    def test_ignore_train_timeout_docker_2(self):
+        args = {
+            "executionType": ExecutionType.TRAIN.value,
+            "resource_constraints": ResourceConstraints(
+                train_fails_on_timeout=False,
+                train_timeout=Duration("100 miliseconds")
+            )
+        }
+        dummy_path = Path("dummy")
+        adapter = DockerAdapter(TEST_IMAGE)
         res = adapter(dummy_path, args)
         containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_IMAGE})
         # remove containers before assertions to make sure that they are gone in the case of failing assertions
