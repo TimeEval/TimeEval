@@ -11,7 +11,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for telemanom
 def post_norm(scores: np.ndarray, args: dict) -> np.ndarray:
-    size = args.get("l_s", 250) + args.get("n_predictions", 10)
+    size = args.get("window_size", 250) + args.get("prediction_window_size", 10)
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 

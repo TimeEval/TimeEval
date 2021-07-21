@@ -12,7 +12,6 @@ from timeeval.utils.window import ReverseWindowing
 # post-processing for Donut
 def post_donut(scores: np.ndarray, args: dict) -> np.ndarray:
     window_size = args.get("hyper_params", {}).get("window_size", 120)
-    window_size += 1
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 

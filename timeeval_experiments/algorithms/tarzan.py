@@ -5,6 +5,15 @@ from typing import Any, Optional
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
+import numpy as np
+
+
+from timeeval.utils.window import ReverseWindowing
+# post-processing for TARZAN
+def post_tarzan(scores: np.ndarray, args: dict) -> np.ndarray:
+    window_size = args.get("hyper_params", {}).get("anomaly_window_size", 50)
+    return ReverseWindowing(window_size=window_size).fit_transform(scores)
+
 
 _tarzan_parameters = {
  "alphabet_size": {
@@ -38,7 +47,7 @@ def tarzan(params: Any = None, skip_pull: bool = False, timeout: Optional[Durati
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=None,
+        postprocess=post_tarzan,
         params=_tarzan_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,

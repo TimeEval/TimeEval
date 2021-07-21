@@ -1,5 +1,11 @@
 {
   "__algorithm_overwrites": {
+    "ImageEmbeddingCAE": {
+      "anomaly_window_size": "default",
+      "img_size": "default",
+      "kernel_size": "default",
+      "num_kernels": "default"
+    },
     "Torsk": {
       "transient_window_size": "heuristic:ParameterDependenceHeuristic(source_parameter='train_window_size', factor=0.2)"
     }
@@ -10,10 +16,10 @@
     "10% of dataset length": "RelativeDatasetSizeHeuristic(factor=0.1)",
     "10% of dataset length or until first anomaly": "CleanStartSequenceSizeHeuristic(max_factor=0.1)",
     "[0.5, 1.0, 1.5] * dataset period size": "EmbedDimRangeHeuristic(base_factor=1.5, base_fb_value=150, dim_factors=[0.5, 1.0, 1.5])",
+    "dataset contamination": "ContaminationHeuristic()",
     "dataset period size": "PeriodSizeHeuristic(factor=1, fb_value=100)",
     "max anomaly length": "AnomalyLengthHeuristic(agg_type='max')",
-    "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')",
-    "dataset contamination": "ContaminationHeuristic()"
+    "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')"
   },
   "dependent_params": {
     "anomaly_window_size": "max anomaly length",
@@ -34,7 +40,7 @@
     "bounded": true,
     "cellsPerColumn": 32,
     "columnCount": 2048,
-    "cuda": true,
+    "cuda": false,
     "distance_metric": "euclidean",
     "distance_metric_order": 2,
     "down": true,
@@ -45,7 +51,7 @@
     "encoding_output_width": 50,
     "epochs": 500,
     "exclusion_zone": 0.5,
-    "exhaustive_search": true,
+    "exhaustive_search": false,
     "globalDecay": 0.0,
     "heap_size": 50,
     "hidden_layer_shape": [
@@ -182,16 +188,16 @@
     ],
     "bootstrap": {
       "Isolation Forest": [
-        "[true, false]"
+        "[True, False]"
       ],
       "Random Black Forest Regressor": [
-        "[true, false]"
+        "[True, False]"
       ],
       "Random Forest Regressor": [
-        "[true, false]"
+        "[True, False]"
       ],
       "Subsequence Isolation Forest": [
-        "[true, false]"
+        "[True, False]"
       ]
     },
     "coef0": {
