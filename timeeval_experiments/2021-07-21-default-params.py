@@ -2,6 +2,7 @@
 import logging
 import random
 import sys
+from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
@@ -34,6 +35,8 @@ class Baselines:
     @staticmethod
     def random() -> Algorithm:
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
+            if isinstance(X, Path):
+                raise ValueError("Random baseline requires an np.ndarray as input!")
             return np.random.default_rng().uniform(0, 1, X.shape[0])
 
         return Algorithm(
@@ -47,6 +50,8 @@ class Baselines:
     @staticmethod
     def normal() -> Algorithm:
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
+            if isinstance(X, Path):
+                raise ValueError("Normal baseline requires an np.ndarray as input!")
             return np.zeros(X.shape[0])
 
         return Algorithm(
@@ -60,6 +65,8 @@ class Baselines:
     @staticmethod
     def increasing() -> Algorithm:
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
+            if isinstance(X, Path):
+                raise ValueError("Increasing baseline requires an np.ndarray as input!")
             indices = np.arange(X.shape[0])
             return MinMaxScaler().fit_transform(indices.reshape(-1, 1)).reshape(-1)
 
