@@ -159,8 +159,6 @@ def main():
         valmod(),
     ]
 
-    # overwrite algorithms for testing
-    algorithms = [Baselines.random(), Baselines.normal(), Baselines.increasing()]
     print(f"Selected algorithms: {len(algorithms)}\n\n")
     sys.stdout.flush()
 

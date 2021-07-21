@@ -216,9 +216,6 @@ class Experiments:
         return test_dataset_path, train_dataset_path
 
     def _check_compatible(self, dataset: Dataset, algorithm: Algorithm) -> bool:
-        print("algorithm dataset")
-        print(algorithm.input_dimensionality, dataset.input_dimensionality)
-        print(algorithm.training_type, dataset.training_type)
         if not self.skip_invalid_combinations:
             return True
 
