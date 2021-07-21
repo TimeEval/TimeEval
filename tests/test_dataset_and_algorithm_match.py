@@ -44,7 +44,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 test_path="test.csv",
                 dataset_type="synthetic",
                 datetime_index=False,
-                split_at=None,
+                split_at=-1,
                 train_type=t,
                 train_is_normal=True if t == "semi-supervised" else False,
                 input_type=d,
