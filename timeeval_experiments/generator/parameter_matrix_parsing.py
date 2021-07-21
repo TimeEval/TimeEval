@@ -1,5 +1,6 @@
 import json
 import re
+from distutils.util import strtobool
 from enum import Enum
 from pathlib import Path
 from typing import Union, Any, Dict, List
@@ -74,7 +75,7 @@ class ParameterMatrixProxy:
             elif type_tag.lower() == "float":
                 return float(value.replace(",", ""))
             elif type_tag.lower() == "boolean":
-                return bool(value)
+                return bool(strtobool(value))
             elif LIST_TYPETAG_PATTERN.match(type_tag):
                 return json.loads(value)
             else:
