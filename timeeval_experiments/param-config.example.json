@@ -15,7 +15,8 @@
     "1.5*window_size": "ParameterDependenceHeuristic(source_parameter='window_size', factor=1.5)",
     "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5)",
     "dataset period size": "PeriodSizeHeuristic(factor=1)",
-    "[0.5, 1.0, 1.5] * dataset period size": "EmbedDimRangeHeuristic(base_factor=1.5, dim_factors=[0.5, 1.0, 1.5])"
+    "[0.5, 1.0, 1.5] * dataset period size": "EmbedDimRangeHeuristic(base_factor=1.5, dim_factors=[0.5, 1.0, 1.5])",
+    "dataset contamination": "ContaminationHeuristic()"
   },
   "dependent_params": {
     "anomaly_window_size": "max anomaly length",
@@ -26,7 +27,8 @@
     "n_init_train": "10 % of dataset length or until first anomaly",
     "window_size": "1.5 dataset period size",
     "embed_dim_range": "[0.5, 1.0, 1.5] * dataset period size",
-    "period": "dataset period size"
+    "period": "dataset period size",
+    "max_anomalies": "dataset contamination"
   },
   "fixed_params": {
     "activationThreshold": 12,
