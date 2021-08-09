@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from timeeval.algorithm import Algorithm
 from timeeval.constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
-from timeeval.data_types import AlgorithmParameter, TrainingType
+from timeeval.data_types import AlgorithmParameter, TrainingType, InputDimensionality
 from timeeval.datasets import Datasets
 from timeeval.datasets.datasets import Dataset
 from timeeval.heuristics import inject_heuristic_values
@@ -155,7 +155,8 @@ class Experiments:
                  repetitions: int = 1,
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = False,
-                 force_training_type_match: bool = False):
+                 force_training_type_match: bool = False,
+                 force_dimensionality_match: bool = False):
         self.dmgr = dmgr
         self.datasets = datasets
         self.algorithms = algorithms
@@ -163,8 +164,9 @@ class Experiments:
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
         self.metrics = metrics or Metric.default_list()
-        self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match
+        self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match or force_dimensionality_match
         self.force_training_type_match = force_training_type_match
+        self.force_dimensionality_match = force_dimensionality_match
         if self.skip_invalid_combinations:
             self._N: Optional[int] = None
         else:
@@ -222,4 +224,17 @@ class Experiments:
             train_compatible = algorithm.training_type == dataset.training_type
         else:
             train_compatible = True
-        return algorithm.input_dimensionality == dataset.input_dimensionality and train_compatible
+
+        if self.force_dimensionality_match:
+            dim_compatible = algorithm.input_dimensionality == dataset.input_dimensionality
+        else:
+            """
+            m = multivariate, u = univariate
+            algo | data | res
+              u  |  u   | 1
+              u  |  m   | 0 <-- not compatible
+              m  |  u   | 1
+              m  |  m   | 1
+            """
+            dim_compatible = not (algorithm.input_dimensionality == InputDimensionality.UNIVARIATE and dataset.input_dimensionality == InputDimensionality.MULTIVARIATE)
+        return dim_compatible and train_compatible
