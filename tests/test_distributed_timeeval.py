@@ -302,7 +302,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
                                 results_path=Path(tmp_path))
             timeeval.run()
-            self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(), [Status.ERROR, "test-exception"])
+            self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(), [Status.ERROR, "ExceptionForTest('test-exception')"])
 
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
@@ -334,7 +334,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 results_path=Path(tmp_path))
             timeeval.run()
             self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(),
-                                 [Status.TIMEOUT, "test-exception-timeout"])
+                                 [Status.TIMEOUT, "DockerTimeoutError('test-exception-timeout')"])
 
     @pytest.mark.dask
     @pytest.mark.docker
