@@ -64,6 +64,21 @@ class Experiment:
             "dataset_details": self.dataset
         }
 
+    @staticmethod
+    def scale_scores(y_true: np.ndarray, y_scores: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        y_true = np.asarray(y_true, dtype=np.int_)
+        y_scores = np.asarray(y_scores, dtype=np.float_)
+
+        # mask NaNs and Infs
+        mask = np.isinf(y_scores) | np.isneginf(y_scores) | np.isnan(y_scores)
+
+        # scale all other scores to [0, 1]
+        scores = y_scores[~mask]
+        if len(scores.shape) == 1:
+            scores = scores.reshape(-1, 1)
+        y_scores[~mask] = MinMaxScaler().fit_transform(scores).ravel()
+        return y_true, y_scores
+
     def evaluate(self) -> dict:
         """
         Using TimeEval distributed, this method is executed on the remote node.
@@ -72,26 +87,22 @@ class Experiment:
         result = self._perform_training()
 
         # perform execution
+        y_true = load_labels_only(self.resolved_test_dataset_path)
         y_scores, execution_times = self._perform_execution()
         result.update(execution_times)
-
-        # scale scores to [0, 1]
-        if len(y_scores.shape) == 1:
-            y_scores = y_scores.reshape(-1, 1)
-        y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
+        y_true, y_scores = self.scale_scores(y_true, y_scores)
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
             print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
                   file=logs_file)
 
             # calculate quality metrics
-            y_true = load_labels_only(self.resolved_test_dataset_path)
             errors = 0
             last_exception = None
             for metric in self.metrics:
                 print(f"Calculating {metric}", file=logs_file)
                 try:
-                    score = metric(y_scores, y_true)
+                    score = metric(y_true, y_scores)
                     result[metric.name] = score
                 except Exception as e:
                     print(f"Exception while computing metric {metric}: {e}", file=logs_file)
