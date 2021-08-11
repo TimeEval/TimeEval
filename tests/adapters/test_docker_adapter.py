@@ -18,12 +18,33 @@ from timeeval.adapters.docker import (
     SCORES_FILE_NAME,
     MODEL_FILE_NAME,
     DockerTimeoutError,
-    DockerAlgorithmFailedError
+    DockerAlgorithmFailedError,
+    AlgorithmInterface
 )
 from timeeval.data_types import ExecutionType
 
 
 class TestDockerAdapter(unittest.TestCase):
+
+    def test_algorithm_interface_with_numpy(self):
+        ai = AlgorithmInterface(
+            dataInput=Path("in.csv"),
+            dataOutput=Path("out.csv"),
+            modelInput=Path("model-in.csv"),
+            modelOutput=Path("model-out.csv"),
+            executionType=ExecutionType.TRAIN,
+            customParameters={
+                "bool": True,
+                "float": 1e-3,
+                "numpy": [np.int64(4), np.float64(2.3)],
+                "numpy-list": np.arange(2)
+            }
+        )
+        ai_string = ('{"dataInput": "in.csv", "dataOutput": "out.csv", "modelInput": "model-in.csv", '
+                     '"modelOutput": "model-out.csv", "executionType": "train", "customParameters": '
+                     '{"bool": true, "float": 0.001, "numpy": [4, 2.3], "numpy-list": [0, 1]}}')
+        self.assertEqual(ai.to_json_string(), ai_string)
+
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_correct_json_string(self, mock_client):
         mock_docker_client = MockDockerClient()
@@ -88,7 +109,7 @@ class TestDockerAdapter(unittest.TestCase):
         # no swap means mem_limit and memswap_limit must be the same!
         self.assertEqual(run_kwargs["mem_limit"], run_kwargs["memswap_limit"])
         # must use all available CPUs
-        self.assertEqual(run_kwargs["nano_cpus"], psutil.cpu_count()*1e9)
+        self.assertEqual(run_kwargs["nano_cpus"], psutil.cpu_count() * 1e9)
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_overwrite_resource_constraints(self, mock_client):
@@ -107,7 +128,7 @@ class TestDockerAdapter(unittest.TestCase):
         run_kwargs = docker_mock.containers.run_kwargs
         self.assertEqual(run_kwargs["mem_limit"], mem_overwrite)
         self.assertEqual(run_kwargs["memswap_limit"], mem_overwrite)
-        self.assertEqual(run_kwargs["nano_cpus"], cpu_overwrite*1e9)
+        self.assertEqual(run_kwargs["nano_cpus"], cpu_overwrite * 1e9)
 
     @pytest.mark.docker
     def test_timeout_docker(self):
@@ -125,7 +146,7 @@ class TestDockerAdapter(unittest.TestCase):
     @pytest.mark.docker
     def test_train_timeout_docker(self):
         args = {
-            "executionType": ExecutionType.TRAIN.value,
+            "executionType": ExecutionType.TRAIN,
             "resource_constraints": ResourceConstraints(train_fails_on_timeout=True)
         }
         with self.assertRaises(DockerTimeoutError):
@@ -168,13 +189,33 @@ class TestDockerAdapter(unittest.TestCase):
             # create model file to trick adapter into thinking that training was successful
             (tmp_path / MODEL_FILE_NAME).touch()
             args = {
-                "executionType": ExecutionType.TRAIN.value,
+                "executionType": ExecutionType.TRAIN,
                 # "resource_constraints": ResourceConstraints.no_constraints(),
                 "results_path": tmp_path
             }
             dummy_path = Path("dummy")
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
             res = adapter(dummy_path, args)
+        containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_DOCKER_IMAGE})
+        # remove containers before assertions to make sure that they are gone in the case of failing assertions
+        for c in containers:
+            c.remove()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+        self.assertEqual(res, dummy_path)
+
+    @pytest.mark.docker
+    def test_ignore_train_timeout_docker_2(self):
+        args = {
+            "executionType": ExecutionType.TRAIN.value,
+            "resource_constraints": ResourceConstraints(
+                train_fails_on_timeout=False,
+                train_timeout=Duration("100 miliseconds")
+            )
+        }
+        dummy_path = Path("dummy")
+        adapter = DockerAdapter(TEST_DOCKER_IMAGE)
+        res = adapter(dummy_path, args)
         containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_DOCKER_IMAGE})
         # remove containers before assertions to make sure that they are gone in the case of failing assertions
         for c in containers:
@@ -200,7 +241,8 @@ class TestDockerAdapter(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("1 minute, 40 seconds"))
-            result = adapter(Path("./tests/example_data/dataset.train.csv").absolute(), {"results_path": tmp_path, "hyper_params": {}})
+            result = adapter(Path("./tests/example_data/dataset.train.csv").absolute(),
+                             {"results_path": tmp_path, "hyper_params": {}})
             np.testing.assert_array_equal(np.zeros(3600), result)
         containers = docker.from_env().containers.list(all=True, filters={"ancestor": TEST_DOCKER_IMAGE})
         # remove containers before assertions to make sure that they are gone in the case of failing assertions
@@ -215,7 +257,8 @@ class TestDockerAdapter(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             adapter = DockerAdapter(TEST_DOCKER_IMAGE)
-            _ = adapter(Path("./tests/example_data/dataset.train.csv").absolute(), {"results_path": tmp_path, "hyper_params": {"sleep": 2}})
+            _ = adapter(Path("./tests/example_data/dataset.train.csv").absolute(),
+                        {"results_path": tmp_path, "hyper_params": {"sleep": 2}})
         containers = docker_client.containers.list(all=True, filters={"ancestor": TEST_DOCKER_IMAGE})
         # remove containers before assertions to make sure that they are gone in the case of failing assertions
         for c in containers:

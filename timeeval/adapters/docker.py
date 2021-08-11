@@ -10,6 +10,7 @@ import requests
 from docker.errors import DockerException
 from docker.models.containers import Container
 from durations import Duration
+from numpyencoder import NumpyEncoder
 
 from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
@@ -21,7 +22,7 @@ SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
 
-class DockerJSONEncoder(json.JSONEncoder):
+class DockerJSONEncoder(NumpyEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, ExecutionType):
             return o.name.lower()
@@ -45,7 +46,7 @@ class AlgorithmInterface:
     modelInput: Path
     modelOutput: Path
     executionType: ExecutionType
-    customParameters: Dict = field(default_factory=dict)
+    customParameters: Dict[str, Any] = field(default_factory=dict)
 
     def to_json_string(self) -> str:
         dictionary = asdict(self)
@@ -86,7 +87,7 @@ class DockerAdapter(Adapter):
     def _get_timeout(self, args: dict) -> Duration:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
-        if exec_type == ExecutionType.TRAIN.value:
+        if exec_type == ExecutionType.TRAIN or exec_type == ExecutionType.TRAIN.value:
             return constraints.get_train_timeout(self.timeout)
         else:
             return constraints.get_execute_timeout(self.timeout)
@@ -95,7 +96,14 @@ class DockerAdapter(Adapter):
     def _should_fail_on_timeout(args: dict) -> bool:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
-        return exec_type != ExecutionType.TRAIN.value or constraints.train_fails_on_timeout
+        return (exec_type != ExecutionType.TRAIN and exec_type != ExecutionType.TRAIN.value) or constraints.train_fails_on_timeout
+
+    @staticmethod
+    def _results_path(args: Dict[str, Any], absolute: bool = False) -> Path:
+        path: Path = args.get("results_path", Path("./results"))
+        if absolute:
+            path = path.resolve()
+        return path
 
     def _run_container(self, dataset_path: Path, args: dict) -> Container:
         client = docker.from_env()
@@ -113,7 +121,7 @@ class DockerAdapter(Adapter):
         gid = DockerAdapter._get_gid(self.group)
         if not gid:
             gid = uid
-        print(f"Running container with uid={uid} and gid={gid} privileges in {algorithm_interface.executionType} mode.")
+        print(f"Running container '{self.image_name}:{self.tag}' with uid={uid} and gid={gid} privileges in {algorithm_interface.executionType} mode.")
 
         memory_limit, cpu_limit = self._get_compute_limits(args)
         cpu_shares = int(cpu_limit * 1e9)
@@ -124,7 +132,7 @@ class DockerAdapter(Adapter):
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
             volumes={
                 str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
-                str(args.get("results_path", Path("./results")).absolute()): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
+                str(self._results_path(args, absolute=True)): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
             },
             environment={
                 "LOCAL_GID": gid,
@@ -144,6 +152,7 @@ class DockerAdapter(Adapter):
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             if "timed out" in str(e):
                 if self._should_fail_on_timeout(args):
+                    print(f"Container timeout after {timeout}.")
                     raise DockerTimeoutError(f"{self.image_name} timed out after {timeout}") from e
                 else:
                     # check if model was stored
@@ -159,6 +168,7 @@ class DockerAdapter(Adapter):
                               "Raising TimeoutError anyway!")
                         raise DockerTimeoutError(f"{self.image_name} could not build a model within {timeout}") from e
             else:
+                print(f"Waiting for container failed with error: {e}")
                 raise e
         finally:
             print("\n#### Docker container logs ####")
@@ -167,11 +177,11 @@ class DockerAdapter(Adapter):
             container.stop()
 
         if result["StatusCode"] != 0:
-            result_path = args.get("results_path", Path("./results")).absolute()
-            raise DockerAlgorithmFailedError(f"Please consider log files in {result_path}!")
+            print(f"Docker algorithm failed with status code '{result['StatusCode']}', consider container logs below.")
+            raise DockerAlgorithmFailedError(f"Please consider log files in {self._results_path(args, absolute=True)}!")
 
     def _read_results(self, args: dict) -> np.ndarray:
-        return np.genfromtxt(args.get("results_path", Path("./results")) / SCORES_FILE_NAME, delimiter=",")
+        return np.genfromtxt(self._results_path(args) / SCORES_FILE_NAME, delimiter=",")
 
     # Adapter overwrites
 

@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from timeeval.algorithm import Algorithm
 from timeeval.constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
-from timeeval.data_types import AlgorithmParameter, TrainingType
+from timeeval.data_types import AlgorithmParameter, TrainingType, InputDimensionality
 from timeeval.datasets import Datasets
 from timeeval.datasets.datasets import Dataset
 from timeeval.heuristics import inject_heuristic_values
@@ -64,6 +64,21 @@ class Experiment:
             "dataset_details": self.dataset
         }
 
+    @staticmethod
+    def scale_scores(y_true: np.ndarray, y_scores: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        y_true = np.asarray(y_true, dtype=np.int_)
+        y_scores = np.asarray(y_scores, dtype=np.float_)
+
+        # mask NaNs and Infs
+        mask = np.isinf(y_scores) | np.isneginf(y_scores) | np.isnan(y_scores)
+
+        # scale all other scores to [0, 1]
+        scores = y_scores[~mask]
+        if len(scores.shape) == 1:
+            scores = scores.reshape(-1, 1)
+        y_scores[~mask] = MinMaxScaler().fit_transform(scores).ravel()
+        return y_true, y_scores
+
     def evaluate(self) -> dict:
         """
         Using TimeEval distributed, this method is executed on the remote node.
@@ -72,26 +87,22 @@ class Experiment:
         result = self._perform_training()
 
         # perform execution
+        y_true = load_labels_only(self.resolved_test_dataset_path)
         y_scores, execution_times = self._perform_execution()
         result.update(execution_times)
-
-        # scale scores to [0, 1]
-        if len(y_scores.shape) == 1:
-            y_scores = y_scores.reshape(-1, 1)
-        y_scores = MinMaxScaler().fit_transform(y_scores).reshape(-1)
+        y_true, y_scores = self.scale_scores(y_true, y_scores)
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
             print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
                   file=logs_file)
 
             # calculate quality metrics
-            y_true = load_labels_only(self.resolved_test_dataset_path)
             errors = 0
             last_exception = None
             for metric in self.metrics:
                 print(f"Calculating {metric}", file=logs_file)
                 try:
-                    score = metric(y_scores, y_true)
+                    score = metric(y_true, y_scores)
                     result[metric.name] = score
                 except Exception as e:
                     print(f"Exception while computing metric {metric}: {e}", file=logs_file)
@@ -155,7 +166,8 @@ class Experiments:
                  repetitions: int = 1,
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = False,
-                 force_training_type_match: bool = False):
+                 force_training_type_match: bool = False,
+                 force_dimensionality_match: bool = False):
         self.dmgr = dmgr
         self.datasets = datasets
         self.algorithms = algorithms
@@ -163,8 +175,9 @@ class Experiments:
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
         self.metrics = metrics or Metric.default_list()
-        self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match
+        self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match or force_dimensionality_match
         self.force_training_type_match = force_training_type_match
+        self.force_dimensionality_match = force_dimensionality_match
         if self.skip_invalid_combinations:
             self._N: Optional[int] = None
         else:
@@ -222,4 +235,17 @@ class Experiments:
             train_compatible = algorithm.training_type == dataset.training_type
         else:
             train_compatible = True
-        return algorithm.input_dimensionality == dataset.input_dimensionality and train_compatible
+
+        if self.force_dimensionality_match:
+            dim_compatible = algorithm.input_dimensionality == dataset.input_dimensionality
+        else:
+            """
+            m = multivariate, u = univariate
+            algo | data | res
+              u  |  u   | 1
+              u  |  m   | 0 <-- not compatible
+              m  |  u   | 1
+              m  |  m   | 1
+            """
+            dim_compatible = not (algorithm.input_dimensionality == InputDimensionality.UNIVARIATE and dataset.input_dimensionality == InputDimensionality.MULTIVARIATE)
+        return dim_compatible and train_compatible
