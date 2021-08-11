@@ -151,14 +151,22 @@ class DockerAdapter(Adapter):
             result = container.wait(timeout=timeout.to_seconds())
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             if "timed out" in str(e):
-                container.stop()
                 if self._should_fail_on_timeout(args):
                     print(f"Container timeout after {timeout}.")
                     raise DockerTimeoutError(f"{self.image_name} timed out after {timeout}") from e
                 else:
-                    print(f"Container timeout after {timeout}, but TimeEval disregards this because "
-                          "'ResourceConstraints.train_fails_on_timeout' is set to False.")
-                    result = {"StatusCode": 0}
+                    # check if model was stored
+                    target_path = args.get("results_path", Path("./results"))
+                    print((target_path / MODEL_FILE_NAME).absolute())
+                    if (target_path / MODEL_FILE_NAME).is_file():
+                        print(f"Container timeout after {timeout}, but TimeEval disregards this because "
+                              "'ResourceConstraints.train_fails_on_timeout' is set to False.")
+                        result = {"StatusCode": 0}
+                    else:
+                        print(f"Container timeout after {timeout} and 'ResourceConstraints.train_fails_on_timeout' is "
+                              "set to False. However, the algorithm did not store a model. "
+                              "Raising TimeoutError anyway!")
+                        raise DockerTimeoutError(f"{self.image_name} could not build a model within {timeout}") from e
             else:
                 print(f"Waiting for container failed with error: {e}")
                 raise e
@@ -166,6 +174,7 @@ class DockerAdapter(Adapter):
             print("\n#### Docker container logs ####")
             print(container.logs().decode("utf-8"))
             print("###############################\n")
+            container.stop()
 
         if result["StatusCode"] != 0:
             print(f"Docker algorithm failed with status code '{result['StatusCode']}', consider container logs below.")
@@ -205,7 +214,7 @@ class DockerAdapter(Adapter):
         def finalize():
             client = docker.from_env(timeout=Duration("10 minutes").to_seconds())
             try:
-                client.containers.prune()
+                client.containers.prune(filters={"ancestor": self.image_name})
             except DockerException:
                 pass
         return finalize

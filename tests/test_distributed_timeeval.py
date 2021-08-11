@@ -18,13 +18,12 @@ from durations import Duration
 from sklearn.model_selection import ParameterGrid
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
+from tests.fixtures.docker_mocks import MockDockerClient, TEST_DOCKER_IMAGE
 from timeeval import TimeEval, Algorithm, Datasets, RemoteConfiguration, Status
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError
 from timeeval.remote import Remote
 from timeeval.utils.hash_dict import hash_dict
-
-TEST_DOCKER_IMAGE = "mut:5000/akita/timeeval-test-algorithm"
 
 
 class MockWorker:
@@ -48,14 +47,7 @@ class MockCluster:
         return dd
 
 
-class MockContainer:
-    pass
-
-
 class MockClient:
-    def __init__(self):
-        self.containers = MockContainer()
-
     def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
         result = task(*args, **kwargs)
         f = Future()  # type: ignore
@@ -96,34 +88,6 @@ class MockDockerTimeoutExceptionClient(MockClient):
         f = Future()  # type: ignore
         f.set_exception(DockerTimeoutError("test-exception-timeout"))
         return f
-
-
-class MockDockerContainer:
-    def run(self, image: str, cmd: str, volumes: dict, **kwargs):
-        self.image = image
-        self.cmd = cmd
-        self.volumes = volumes
-
-        real_path = list(volumes.items())[1][0]
-        if real_path.startswith("/tmp"):
-            np.arange(3600, dtype=np.float64).tofile(real_path / Path("anomaly_scores.ts"), sep="\n")
-
-    def prune(self):
-        pass
-
-    def logs(self):
-        return "".encode("utf-8")
-
-
-class MockImages:
-    def pull(self, image, tag):
-        pass
-
-
-class MockDockerClient:
-    def __init__(self):
-        self.containers = MockDockerContainer()
-        self.images = MockImages()
 
 
 class TestDistributedTimeEval(unittest.TestCase):
