@@ -11,10 +11,12 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for TAnoGan
 def post_tanogan(scores: np.ndarray, args: dict) -> np.ndarray:
+    length = args.get("dataset_details").length
     window_size = args.get("hyper_params", {}).get("window_size", 30)
-    stride = args.get("hyper_params", {}).get("test_stride", 30)
-    scores = np.repeat(scores, repeats=stride)
-    return ReverseWindowing(window_size=window_size).fit_transform(scores)
+    scores = np.repeat(scores, repeats=window_size)
+    result = np.full(shape=length, fill_value=np.nan)
+    result[:scores.shape[0]] = scores
+    return result
 
 
 _tanogan_parameters = {

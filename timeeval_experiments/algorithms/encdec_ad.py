@@ -12,7 +12,7 @@ from timeeval.utils.window import ReverseWindowing
 # post-processing for EncDec-AD
 def post_encdec_ad(scores: np.ndarray, args: dict) -> np.ndarray:
     window_size = args.get("hyper_params", {}).get("anomaly_window_size", 30)
-    return ReverseWindowing(window_size=window_size).fit_transform(scores)
+    return ReverseWindowing(window_size=2 * window_size).fit_transform(scores)
 
 
 _encdec_ad_parameters = {

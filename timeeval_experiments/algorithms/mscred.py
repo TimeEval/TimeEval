@@ -12,7 +12,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for MSCRED
 def post_mscred(scores: np.ndarray, args: dict) -> np.ndarray:
-    ds_length = np.genfromtxt(args.get("dataInput", "")).shape[0]-1  # subtract header line
+    ds_length = args.get("dataset_details").length
     gap_time = args.get("hyper_params", {}).get("gap_time", 10)
     window_size = args.get("hyper_params", {}).get("window_size", 5)
     max_window_size = max(args.get("hyper_params", {}).get("windows", [10, 30, 60]))

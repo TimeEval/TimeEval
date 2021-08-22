@@ -48,7 +48,7 @@ _if_lof_parameters = {
 
 def if_lof(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Isolation Forest - Local Outier Factor",
+        name="Isolation Forest - Local Outlier Factor",
         main=DockerAdapter(
             image_name="mut:5000/akita/if_lof",
             skip_pull=skip_pull,

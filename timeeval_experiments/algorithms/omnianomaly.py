@@ -11,7 +11,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for OmniAnomaly
 def post_omni_anomaly(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_length = args.get("hyper_params", {}).get("window_length", 100)
+    window_length = args.get("hyper_params", {}).get("window_size", 100)
     return ReverseWindowing(window_size=window_length).fit_transform(scores)
 
 
@@ -69,6 +69,12 @@ _omnianomaly_parameters = {
   "description": "Size of RNN hidden layer",
   "name": "rnn_hidden_size",
   "type": "int"
+ },
+ "split": {
+  "defaultValue": 0.8,
+  "description": "Train-validation split",
+  "name": "split",
+  "type": "float"
  },
  "window_size": {
   "defaultValue": 100,

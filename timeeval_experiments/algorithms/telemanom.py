@@ -10,9 +10,9 @@ import numpy as np
 
 from timeeval.utils.window import ReverseWindowing
 # post-processing for telemanom
-def post_norm(scores: np.ndarray, args: dict) -> np.ndarray:
-    size = args.get("window_size", 250) + args.get("prediction_window_size", 10)
-    return ReverseWindowing(window_size=size).fit_transform(scores)
+def post_telemanom(scores: np.ndarray, args: dict) -> np.ndarray:
+    size = args.get("hyper_params", {}).get("window_size", 250) + args.get("hyper_params", {}).get("prediction_window_size", 10)
+    return ReverseWindowing(window_size=size + 1).fit_transform(scores)
 
 
 _telemanom_parameters = {
@@ -113,7 +113,7 @@ def telemanom(params: Any = None, skip_pull: bool = False, timeout: Optional[Dur
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=post_norm,
+        postprocess=post_telemanom,
         params=_telemanom_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,

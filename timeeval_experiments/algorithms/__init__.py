@@ -33,6 +33,7 @@ from .laser_dbn import laser_dbn
 from .left_stampi import left_stampi
 from .lof import lof
 from .lstm_ad import lstm_ad
+from .lstm_vae import lstm_vae
 from .median_method import median_method
 from .mscred import mscred
 from .mtad_gat import mtad_gat

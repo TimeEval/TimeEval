@@ -13,7 +13,7 @@ from timeeval.utils.window import ReverseWindowing
 def post_lstm_ad(scores: np.ndarray, args: dict) -> np.ndarray:
     window_size = args.get("hyper_params", {}).get("window_size", 30)
     prediction_window_size = args.get("hyper_params", {}).get("prediction_window_size", 1)
-    return ReverseWindowing(window_size=window_size + prediction_window_size + 1).fit_transform(scores)
+    return ReverseWindowing(window_size=window_size + prediction_window_size).fit_transform(scores)
 
 
 _lstm_ad_parameters = {

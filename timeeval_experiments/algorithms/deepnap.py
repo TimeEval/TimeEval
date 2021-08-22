@@ -11,7 +11,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for DeepNAP
 def post_deepnap(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_size = args.get("hyper_params", {}).get("window_size", 15)
+    window_size = args.get("hyper_params", {}).get("anomaly_window_size", 15)
     return ReverseWindowing(window_size=window_size * 2).fit_transform(scores)
 
 

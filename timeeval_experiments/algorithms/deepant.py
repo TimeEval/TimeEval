@@ -5,6 +5,17 @@ from typing import Any, Optional
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
+import numpy as np
+
+
+from timeeval.utils.window import ReverseWindowing
+# post-processing for DeepAnT
+def _post_deepant(scores: np.ndarray, args: dict) -> np.ndarray:
+    window_size = args.get("hyper_params", {}).get("window_size", 45)
+    prediction_window_size = args.get("hyper_params", {}).get("prediction_window_size", 1)
+    size = window_size + prediction_window_size + 1
+    return ReverseWindowing(window_size=size).fit_transform(scores)
+
 
 _deepant_parameters = {
  "batch_size": {
@@ -74,7 +85,7 @@ def deepant(params: Any = None, skip_pull: bool = False, timeout: Optional[Durat
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=None,
+        postprocess=_post_deepant,
         params=_deepant_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,

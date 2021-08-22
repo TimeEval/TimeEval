@@ -11,8 +11,8 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for MTAD-GAT
 def post_mtad_gat(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_size = args.get("hyper_params", {}).get("window_size", 100)
-    return ReverseWindowing(window_size=window_size).fit_transform(scores)
+    window_size = args.get("hyper_params", {}).get("window_size", 20)
+    return ReverseWindowing(window_size=window_size + 1).fit_transform(scores)
 
 
 _mtad_gat_parameters = {
