@@ -74,29 +74,43 @@ class AlgorithmConfigurator:
             for p in algo.params:
                 if not ignore_overwrites and p in prio_params:
                     value = prio_params[p]
-                    # allow specifying a search space or a fixed value
-                    if not isinstance(value, list):
-                        value = [value]
-                    configured_params[p] = value
+                    if value != "default":
+                        # allow specifying a search space or a fixed value
+                        if not isinstance(value, list):
+                            value = [value]
+                        configured_params[p] = value
+                    #  else: don't specify a value, because the default is used anyway
+
                 elif not ignore_fixed and p in self._fixed_params:
                     value = self._fixed_params[p]
                     if value != "default":
                         configured_params[p] = [value]
                     #  else: don't specify a value, because the default is used anyway
+
                 elif not ignore_shared and p in self._shared_params:
+                    value = self._shared_params[p]["search_space"]
                     # this should already be a list of parameter options
-                    configured_params[p] = self._shared_params[p]["search_space"]
+                    if not isinstance(value, list):
+                        raise ValueError(f"Wrong format: search_space for shared parameter '{p}' "
+                                         "should be a list of parameter options")
+                    configured_params[p] = value
+
                 elif not ignore_optimized and p in self._optimized_params:
                     value = self._optimized_params[p]
                     # if there are multiple algos with the same parameter, there can be different search spaces
                     if isinstance(value, dict):
                         value = value[algo.name]
                     # this should already be a list of parameter options
+                    if not isinstance(value, list):
+                        raise ValueError(f"Wrong format: value for optimized parameter '{p}' ({algo.name}) "
+                                         "should be a list of parameter options")
                     configured_params[p] = value
+
                 elif not ignore_dependent and p in self._dependent_params:
                     heuristic_key = self._dependent_params[p]
                     heuristic_signature = self._heuristic_mapping[heuristic_key]
                     configured_params[p] = [f"heuristic:{heuristic_signature}"]
+
                 else:
                     warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
                                   "Using default.")
