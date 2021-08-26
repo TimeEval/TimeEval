@@ -8,6 +8,12 @@
     },
     "Torsk": {
       "transient_window_size": "heuristic:ParameterDependenceHeuristic(source_parameter='train_window_size', factor=0.2)"
+    },
+    "XGBoosting (RR)": {
+      "learning_rate": 0.1
+    },
+    "XGBoost Regressor": {
+      "learning_rate": 0.1
     }
   },
   "__heuristic_function_mapping": {
