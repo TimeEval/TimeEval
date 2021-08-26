@@ -65,6 +65,11 @@ class ResultMerger:
         self._logger.debug(f"Changing filesystem is {'enabled' if change_filesystem else 'disabled'}!")
         df_ref = pd.read_csv(self.left_folder / "results.csv")
         df_right = pd.read_csv(self.right_folder / "results.csv")
+        # align schema of dataframes:
+        all_keys = df_ref.columns.union(df_right.columns)
+        df_ref = pd.DataFrame(df_ref, columns=all_keys)
+        df_right = pd.DataFrame(df_right, columns=all_keys)
+        # iterate over right records and merge them into reference dataframe
         changed_idxs = []
         for i, record in df_right.iterrows():
             mask = ResultMerger._build_selection_mask(df_ref, record)
