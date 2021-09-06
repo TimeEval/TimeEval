@@ -18,6 +18,7 @@
   },
   "__heuristic_function_mapping": {
     "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5, fb_value=150)",
+    "0.5 dataset period size": "PeriodSizeHeuristic(factor=0.5, fb_value=150)",
     "1.5*window_size": "ParameterDependenceHeuristic(source_parameter='window_size', factor=1.5)",
     "10% of dataset length": "RelativeDatasetSizeHeuristic(factor=0.1)",
     "10% of dataset length or until first anomaly": "CleanStartSequenceSizeHeuristic(max_factor=0.1)",
@@ -37,7 +38,8 @@
     "n_init_train": "10% of dataset length or until first anomaly",
     "period": "dataset period size",
     "query_window_size": "1.5*window_size",
-    "window_size": "1.5 dataset period size"
+    "window_size": "1.5 dataset period size",
+    "neighbourhood_size": "0.5 dataset period size"
   },
   "fixed_params": {
     "activationThreshold": 12,
