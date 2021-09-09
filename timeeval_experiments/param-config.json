@@ -1,7 +1,7 @@
 {
   "__algorithm_overwrites": {
     "SSA": {
-      "window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_values=200)"
+      "window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_value=200)"
     },
     "Torsk": {
       "transient_window_size": "heuristic:ParameterDependenceHeuristic(source_parameter='train_window_size', factor=0.2)"
