@@ -41,7 +41,7 @@ class HPI_CLUSTER:
     thor06_ip: Final[str] = "172.16.64.83"
 
     odin_nodes: Final[List[str]] = [
-        odin01, odin02, odin03, odin04, odin05, odin06, odin07, odin0
+        odin01, odin02, odin03, odin04, odin05, odin06, odin07, odin08
     ]
     thor_nodes: Final[List[str]] = [thor01, thor02, thor03, thor04]
     thor_ext_nodes: Final[List[str]] = [thor05, thor06]
