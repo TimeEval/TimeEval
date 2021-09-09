@@ -22,6 +22,8 @@ class HPI_CLUSTER:
     thor02: Final[str] = "thor02"
     thor03: Final[str] = "thor03"
     thor04: Final[str] = "thor04"
+    thor05: Final[str] = "thor05"
+    thor06: Final[str] = "thor06"
 
     odin01_ip: Final[str] = "172.16.64.61"
     odin02_ip: Final[str] = "172.16.64.62"
@@ -35,14 +37,22 @@ class HPI_CLUSTER:
     thor02_ip: Final[str] = "172.16.64.56"
     thor03_ip: Final[str] = "172.16.64.57"
     thor04_ip: Final[str] = "172.16.64.58"
+    thor05_ip: Final[str] = "172.16.64.82"
+    thor06_ip: Final[str] = "172.16.64.83"
 
-    nodes: Final[List[str]] = [
-        odin01, odin02, odin03, odin04, odin05, odin06, odin07, odin08, thor01, thor02, thor03, thor04
+    odin_nodes: Final[List[str]] = [
+        odin01, odin02, odin03, odin04, odin05, odin06, odin07, odin0
     ]
-    nodes_ip: Final[List[str]] = [
-        odin01_ip, odin02_ip, odin03_ip, odin04_ip, odin05_ip, odin06_ip, odin07_ip, odin08_ip,
-        thor01_ip, thor02_ip, thor03_ip, thor04_ip
+    thor_nodes: Final[List[str]] = [thor01, thor02, thor03, thor04]
+    thor_ext_nodes: Final[List[str]] = [thor05, thor06]
+    nodes: Final[List[str]] = odin_nodes + thor_nodes + thor_ext_nodes
+
+    odin_nodes_ip: Final[List[str]] = [
+        odin01_ip, odin02_ip, odin03_ip, odin04_ip, odin05_ip, odin06_ip, odin07_ip, odin08_ip
     ]
+    thor_nodes_ip: Final[List[str]] = [thor01_ip, thor02_ip, thor03_ip, thor04_ip]
+    thor_ext_nodes_ip: Final[List[str]] = [thor05_ip, thor06_ip]
+    nodes_ip: Final[List[str]] = odin_nodes_ip + thor_nodes_ip + thor_ext_nodes_ip
 
     akita_benchmark_path: Final[Path] = Path("/home/projects/akita/data/benchmark-data/data-processed")
     akita_test_case_path: Final[Path] = Path("/home/projects/akita/data/test-cases")
