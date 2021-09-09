@@ -171,7 +171,7 @@ def main():
 
     cluster_config = RemoteConfiguration(
         scheduler_host=HPI_CLUSTER.odin01,
-        worker_hosts=HPI_CLUSTER.odin_nodes + HPI_CLUSTER.thor_nodes
+        worker_hosts=HPI_CLUSTER.nodes
     )
     limits = ResourceConstraints(
         tasks_per_host=10,
