@@ -32,15 +32,9 @@ _img_embedding_cae_parameters = {
   "type": "int"
  },
  "epochs": {
-  "defaultValue": 20,
+  "defaultValue": 30,
   "description": "number of training iterations over entire dataset",
   "name": "epochs",
-  "type": "int"
- },
- "img_size": {
-  "defaultValue": 64,
-  "description": "width, height of one time series image",
-  "name": "img_size",
   "type": "int"
  },
  "kernel_size": {
@@ -68,7 +62,7 @@ _img_embedding_cae_parameters = {
   "type": "float"
  },
  "num_kernels": {
-  "defaultValue": 32,
+  "defaultValue": 64,
   "description": "number of convolution kernels used in each layer",
   "name": "num_kernels",
   "type": "int"

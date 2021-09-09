@@ -54,7 +54,7 @@ _autoencoder_parameters = {
 
 def autoencoder(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="AutoEncoder",
+        name="AutoEncoder (AE)",
         main=DockerAdapter(
             image_name="mut:5000/akita/autoencoder",
             skip_pull=skip_pull,

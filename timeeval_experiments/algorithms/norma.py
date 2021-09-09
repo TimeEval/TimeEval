@@ -12,7 +12,7 @@ from timeeval.utils.window import ReverseWindowing
 # post-processing for norma
 def _post_norma(scores: np.ndarray, args: dict) -> np.ndarray:
     window_size = args.get("hyper_params", {}).get("anomaly_window_size", 20)
-    size = 2 * (window_size - 1) + 1
+    size = 2 * window_size - 1
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 

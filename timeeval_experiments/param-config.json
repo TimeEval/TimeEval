@@ -1,24 +1,21 @@
 {
   "__algorithm_overwrites": {
-    "ImageEmbeddingCAE": {
-      "anomaly_window_size": "default",
-      "img_size": "default",
-      "kernel_size": "default",
-      "num_kernels": "default"
+    "SSA": {
+      "window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_values=200)"
     },
     "Torsk": {
       "transient_window_size": "heuristic:ParameterDependenceHeuristic(source_parameter='train_window_size', factor=0.2)"
     },
-    "XGBoosting (RR)": {
+    "XGBoost Regressor": {
       "learning_rate": 0.1
     },
-    "XGBoost Regressor": {
+    "XGBoosting (RR)": {
       "learning_rate": 0.1
     }
   },
   "__heuristic_function_mapping": {
-    "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5, fb_value=150)",
     "0.5 dataset period size": "PeriodSizeHeuristic(factor=0.5, fb_value=150)",
+    "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5, fb_value=150)",
     "1.5*window_size": "ParameterDependenceHeuristic(source_parameter='window_size', factor=1.5)",
     "10% of dataset length": "RelativeDatasetSizeHeuristic(factor=0.1)",
     "10% of dataset length or until first anomaly": "CleanStartSequenceSizeHeuristic(max_factor=0.1)",
@@ -36,10 +33,10 @@
     "max_lag": "10% of dataset length",
     "min_anomaly_window_size": "min anomaly length",
     "n_init_train": "10% of dataset length or until first anomaly",
+    "neighbourhood_size": "0.5 dataset period size",
     "period": "dataset period size",
     "query_window_size": "1.5*window_size",
-    "window_size": "1.5 dataset period size",
-    "neighbourhood_size": "0.5 dataset period size"
+    "window_size": "1.5 dataset period size"
   },
   "fixed_params": {
     "activationThreshold": 12,
@@ -131,6 +128,7 @@
     "test_batch_size": 64,
     "threshold_percentile": 0.99,
     "thresholding_p": 0.05,
+    "timestamp_unit": "m",
     "timesteps": 2,
     "tree_method": "auto",
     "up": true,
@@ -349,9 +347,6 @@
     ],
     "min_weight": [
       "[0, 0.1, 0.2, 0.5, 0.9, 1]"
-    ],
-    "neighbourhood_size": [
-      "[50, 100, 200, 500]"
     ],
     "nf_layers": [
       "[10; 20; 50]"

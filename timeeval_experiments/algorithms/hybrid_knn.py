@@ -96,7 +96,7 @@ _hybrid_knn_parameters = {
 
 def hybrid_knn(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Hybrid-KNN",
+        name="Hybrid KNN",
         main=DockerAdapter(
             image_name="mut:5000/akita/hybrid_knn",
             skip_pull=skip_pull,

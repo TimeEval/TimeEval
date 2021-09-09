@@ -5,8 +5,17 @@ from typing import Any, Optional
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
+import numpy as np
 
-_fast_mcd_parameters = {
+
+from timeeval.utils.window import ReverseWindowing
+# post-processing for Subsequence Fast-MCD
+def post_sfmcd(scores: np.ndarray, args: dict) -> np.ndarray:
+    window_size = args.get("hyper_params", {}).get("window_size", 100)
+    return ReverseWindowing(window_size=window_size).fit_transform(scores)
+
+
+_subsequence_fast_mcd_parameters = {
  "random_state": {
   "defaultValue": 42,
   "description": "Determines the pseudo random number generator for shuffling the data.",
@@ -28,20 +37,20 @@ _fast_mcd_parameters = {
 }
 
 
-def fast_mcd(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def subsequence_fast_mcd(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Fast-MCD",
+        name="Subsequence Fast-MCD",
         main=DockerAdapter(
-            image_name="mut:5000/akita/fast_mcd",
+            image_name="mut:5000/akita/subsequence_fast_mcd",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=None,
-        params=_fast_mcd_parameters,
+        postprocess=post_sfmcd,
+        params=_subsequence_fast_mcd_parameters,
         param_grid=ParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
-        input_dimensionality=InputDimensionality("multivariate")
+        input_dimensionality=InputDimensionality("univariate")
     )

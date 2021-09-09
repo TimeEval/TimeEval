@@ -13,12 +13,6 @@ _sarima_parameters = {
   "name": "exhaustive_search",
   "type": "boolean"
  },
- "forecast_window_size": {
-  "defaultValue": 10,
-  "description": "Number of points to forecast in one go; smaller = slower, but more accurate.",
-  "name": "forecast_window_size",
-  "type": "int"
- },
  "max_iter": {
   "defaultValue": 20,
   "description": "The maximum number of function evaluations. smaller = faster, but might not converge.",
@@ -41,6 +35,12 @@ _sarima_parameters = {
   "defaultValue": 1,
   "description": "Periodicity (number of periods in season), often it is 4 for quarterly data or 12 for monthly data. Default is no seasonal effect (==1). Must be >= 1.",
   "name": "period",
+  "type": "int"
+ },
+ "prediction_window_size": {
+  "defaultValue": 10,
+  "description": "Number of points to forecast in one go; smaller = slower, but more accurate.",
+  "name": "prediction_window_size",
   "type": "int"
  },
  "random_state": {

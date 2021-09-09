@@ -78,7 +78,7 @@ _generic_rf_parameters = {
 
 def generic_rf(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Random Forest Regressor",
+        name="Random Forest Regressor (RR)",
         main=DockerAdapter(
             image_name="mut:5000/akita/generic_rf",
             skip_pull=skip_pull,

@@ -79,7 +79,7 @@ _grammarviz3_parameters = {
 
 def grammarviz3(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="GrammarViz3",
+        name="GrammarViz",
         main=DockerAdapter(
             image_name="mut:5000/akita/grammarviz3",
             skip_pull=skip_pull,

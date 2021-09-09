@@ -57,6 +57,7 @@ from .sr_cnn import sr_cnn
 from .ssa import ssa
 from .stamp import stamp
 from .stomp import stomp
+from .subsequence_fast_mcd import subsequence_fast_mcd
 from .subsequence_if import subsequence_if
 from .subsequence_lof import subsequence_lof
 from .s_h_esd import s_h_esd

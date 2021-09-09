@@ -36,7 +36,7 @@ _sr_parameters = {
 
 def sr(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="SR",
+        name="Spectral Residual (SR)",
         main=DockerAdapter(
             image_name="mut:5000/akita/sr",
             skip_pull=skip_pull,

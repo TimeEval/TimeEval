@@ -38,7 +38,7 @@ _dbstream_parameters = {
   "type": "int"
  },
  "radius": {
-  "defaultValue": 0.001,
+  "defaultValue": 0.1,
   "description": "The radius of micro-clusters.",
   "name": "radius",
   "type": "float"

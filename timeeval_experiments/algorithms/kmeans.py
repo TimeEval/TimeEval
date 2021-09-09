@@ -16,6 +16,12 @@ def post_kmeans(scores: np.ndarray, args: dict) -> np.ndarray:
 
 
 _kmeans_parameters = {
+ "anomaly_window_size": {
+  "defaultValue": 20,
+  "description": "Size of sliding windows. The bigger `window_size` is, the bigger the anomaly context is. If it's to big, things seem anomalous that are not. If it's too small, the algorithm is not able to find anomalous windows and looses its time context.",
+  "name": "anomaly_window_size",
+  "type": "int"
+ },
  "n_clusters": {
   "defaultValue": 20,
   "description": "The number of clusters to form as well as the number of centroids to generate. The bigger `n_clusters` (`k`) is, the less noisy the anomaly scores are.",
@@ -39,19 +45,13 @@ _kmeans_parameters = {
   "description": "Stride of sliding windows. It is the step size between windows. The larger `stride` is, the noisier the scores get. If `stride == window_size`, they are tumbling windows.",
   "name": "stride",
   "type": "int"
- },
- "window_size": {
-  "defaultValue": 20,
-  "description": "Size of sliding windows. The bigger `window_size` is, the bigger the anomaly context is. If it's to big, things seem anomalous that are not. If it's too small, the algorithm is not able to find anomalous windows and looses its time context.",
-  "name": "window_size",
-  "type": "int"
  }
 }
 
 
 def kmeans(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="KMeans",
+        name="k-Means",
         main=DockerAdapter(
             image_name="mut:5000/akita/kmeans",
             skip_pull=skip_pull,

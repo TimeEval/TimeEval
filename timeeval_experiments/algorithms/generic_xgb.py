@@ -96,7 +96,7 @@ _generic_xgb_parameters = {
 
 def generic_xgb(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="XGBoost Regressor",
+        name="XGBoosting (RR)",
         main=DockerAdapter(
             image_name="mut:5000/akita/generic_xgb",
             skip_pull=skip_pull,

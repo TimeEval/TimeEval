@@ -69,7 +69,7 @@ _subsequence_if_parameters = {
 
 def subsequence_if(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Subsequence Isolation Forest",
+        name="Subsequence IF",
         main=DockerAdapter(
             image_name="mut:5000/akita/subsequence_if",
             skip_pull=skip_pull,

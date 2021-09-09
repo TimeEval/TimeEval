@@ -42,7 +42,7 @@ _triple_es_parameters = {
 
 def triple_es(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="TripleES",
+        name="Triple ES (Holt-Winter's)",
         main=DockerAdapter(
             image_name="mut:5000/akita/triple_es",
             skip_pull=skip_pull,

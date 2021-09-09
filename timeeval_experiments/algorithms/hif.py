@@ -30,7 +30,7 @@ _hif_parameters = {
 
 def hif(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="HIF",
+        name="Hybrid Isolation Forest (HIF)",
         main=DockerAdapter(
             image_name="mut:5000/akita/hif",
             skip_pull=skip_pull,

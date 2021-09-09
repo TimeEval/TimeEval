@@ -42,7 +42,7 @@ _eif_parameters = {
 
 def eif(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Extended Isolation Forest",
+        name="Extended Isolation Forest (EIF)",
         main=DockerAdapter(
             image_name="mut:5000/akita/eif",
             skip_pull=skip_pull,

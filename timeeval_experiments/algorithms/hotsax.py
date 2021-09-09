@@ -63,6 +63,12 @@ _hotsax_parameters = {
   "name": "normalization_threshold",
   "type": "float"
  },
+ "num_discords": {
+  "defaultValue": None,
+  "description": "The number of anomalies (discords) to search for in the time series. If not set, the scores for all discords are searched.",
+  "name": "num_discords",
+  "type": "int"
+ },
  "paa_transform_size": {
   "defaultValue": 3,
   "description": "Size of the embedding space used by PAA (paper calls it number of frames or SAX word size `w`) (performance parameter)",

@@ -14,7 +14,7 @@ _ts_bitmap_parameters = {
   "type": "int"
  },
  "compression_ratio": {
-  "defaultValue": 5,
+  "defaultValue": 2,
   "description": "How much to compress the timeseries in the PAA step. If `compression_ration == 1`, no compression.",
   "name": "compression_ratio",
   "type": "int"

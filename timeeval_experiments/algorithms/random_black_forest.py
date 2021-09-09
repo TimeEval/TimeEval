@@ -90,7 +90,7 @@ _random_black_forest_parameters = {
 
 def random_black_forest(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Random Black Forest Regressor",
+        name="Random Black Forest (RR)",
         main=DockerAdapter(
             image_name="mut:5000/akita/random_black_forest",
             skip_pull=skip_pull,

@@ -60,7 +60,7 @@ _dae_parameters = {
 
 def dae(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="DenoisingAutoEncoder",
+        name="DenoisingAutoEncoder (DAE)",
         main=DockerAdapter(
             image_name="mut:5000/akita/dae",
             skip_pull=skip_pull,

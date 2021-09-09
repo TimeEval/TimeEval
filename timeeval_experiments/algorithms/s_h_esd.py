@@ -18,13 +18,19 @@ _s_h_esd_parameters = {
   "description": "Seed for random number generation.",
   "name": "random_state",
   "type": "int"
+ },
+ "timestamp_unit": {
+  "defaultValue": "m",
+  "description": "If the index column ('timestamp') is of type integer, this gives the unit for date conversion. A unit less than seconds is not supported by S-H-ESD!",
+  "name": "timestamp_unit",
+  "type": "enum[m,h,d]"
  }
 }
 
 
 def s_h_esd(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="S-H-ESD",
+        name="S-H-ESD (Twitter)",
         main=DockerAdapter(
             image_name="mut:5000/akita/s_h_esd",
             skip_pull=skip_pull,

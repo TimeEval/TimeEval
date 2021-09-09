@@ -11,13 +11,13 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for TARZAN
 def post_tarzan(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_size = args.get("hyper_params", {}).get("anomaly_window_size", 50)
+    window_size = args.get("hyper_params", {}).get("anomaly_window_size", 20)
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
 _tarzan_parameters = {
  "alphabet_size": {
-  "defaultValue": 10,
+  "defaultValue": 4,
   "description": "Number of symbols used for discretization by SAX (performance parameter)",
   "name": "alphabet_size",
   "type": "int"

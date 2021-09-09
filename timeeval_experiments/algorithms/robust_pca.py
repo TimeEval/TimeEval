@@ -24,7 +24,7 @@ _robust_pca_parameters = {
 
 def robust_pca(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="Robust PCA",
+        name="RobustPCA",
         main=DockerAdapter(
             image_name="mut:5000/akita/robust_pca",
             skip_pull=skip_pull,

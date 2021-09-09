@@ -60,7 +60,7 @@ _ensemble_gi_parameters = {
 
 def ensemble_gi(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
-        name="EnsembleGI",
+        name="Ensemble GI",
         main=DockerAdapter(
             image_name="mut:5000/akita/ensemble_gi",
             skip_pull=skip_pull,
