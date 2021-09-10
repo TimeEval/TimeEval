@@ -157,7 +157,6 @@ class DockerAdapter(Adapter):
                 else:
                     # check if model was stored
                     target_path = args.get("results_path", Path("./results"))
-                    print((target_path / MODEL_FILE_NAME).absolute())
                     if (target_path / MODEL_FILE_NAME).is_file():
                         print(f"Container timeout after {timeout}, but TimeEval disregards this because "
                               "'ResourceConstraints.train_fails_on_timeout' is set to False.")

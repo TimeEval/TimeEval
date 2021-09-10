@@ -18,7 +18,7 @@ from timeeval import AlgorithmParameter
 
 # post-processing for HOT-SAX
 def post_hotsax(algorithm_parameter: AlgorithmParameter, args: dict) -> np.ndarray:
-    window_size = args.get("hyper_params", {}).get("window_size", 20)
+    window_size = args.get("hyper_params", {}).get("anomaly_window_size", 100)
     if isinstance(algorithm_parameter, np.ndarray):
         results = pd.DataFrame(algorithm_parameter)
     else:
@@ -52,7 +52,7 @@ _hotsax_parameters = {
   "type": "int"
  },
  "anomaly_window_size": {
-  "defaultValue": 20,
+  "defaultValue": 100,
   "description": "Size of the sliding window. Equal to the discord length!",
   "name": "anomaly_window_size",
   "type": "int"

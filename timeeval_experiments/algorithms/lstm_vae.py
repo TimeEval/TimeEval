@@ -25,6 +25,12 @@ _lstm_vae_parameters = {
   "name": "early_stopping_patience",
   "type": "int"
  },
+ "epochs": {
+  "defaultValue": 10,
+  "description": "number of iterations we train the model",
+  "name": "epochs",
+  "type": "int"
+ },
  "latent_size": {
   "defaultValue": 5,
   "description": "dimension of latent space",
@@ -41,12 +47,6 @@ _lstm_vae_parameters = {
   "defaultValue": 10,
   "description": "number of layers in lstm",
   "name": "lstm_layers",
-  "type": "int"
- },
- "n_epochs": {
-  "defaultValue": 10,
-  "description": "number of iterations we train the model",
-  "name": "n_epochs",
   "type": "int"
  },
  "rnn_hidden_size": {
