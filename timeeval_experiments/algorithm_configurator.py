@@ -107,11 +107,16 @@ class AlgorithmConfigurator:
                     configured_params[p] = value
 
                 elif not ignore_dependent and p in self._dependent_params:
-                    heuristic_key = self._dependent_params[p]
-                    heuristic_signature = self._heuristic_mapping[heuristic_key]
-                    configured_params[p] = [f"heuristic:{heuristic_signature}"]
+                    heuristic_keys = self._dependent_params[p]
+                    if isinstance(heuristic_keys, list):
+                        heuristic_signatures = [self._heuristic_mapping[heuristic_key] for heuristic_key in
+                                                heuristic_keys]
+                    else:
+                        heuristic_signatures = [self._heuristic_mapping[heuristic_keys]]
+                    configured_params[p] = [f"heuristic:{heuristic_signature}" for heuristic_signature in
+                                            heuristic_signatures]
 
-                else:
+            else:
                     warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
                                   "Using default.")
 

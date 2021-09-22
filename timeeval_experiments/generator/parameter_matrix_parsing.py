@@ -99,11 +99,14 @@ class ParameterMatrixProxy:
             }
         return sp
 
-    def dependent_params(self) -> Dict[str, str]:
+    def dependent_params(self) -> Dict[str, Union[str, List[str]]]:
         dependent_df: pd.DataFrame = self._params_df.loc[self._params_df["category"] == ParameterCategory.DEPENDENT.value, ["name", "value range"]]
         dp = {}
         for _, (name, value) in dependent_df.iterrows():
-            dp[name] = value
+            if value.startswith('[') and value.endswith(']'):
+                dp[name] = json.loads(value)
+            else:
+                dp[name] = value
         return dp
 
     def optimized_params(self) -> Dict[str, Any]:
