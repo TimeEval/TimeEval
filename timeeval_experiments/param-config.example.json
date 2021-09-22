@@ -13,7 +13,10 @@
     "max anomaly length": "AnomalyLengthHeuristic(agg_type='max')",
     "10 % of dataset length or until first anomaly": "CleanStartSequenceSizeHeuristic(max_factor=0.1)",
     "1.5*window_size": "ParameterDependenceHeuristic(source_parameter='window_size', factor=1.5)",
+    "0.5 dataset period size": "PeriodSizeHeuristic(factor=0.5)",
+    "1.0 dataset period size": "PeriodSizeHeuristic(factor=1.0)",
     "1.5 dataset period size": "PeriodSizeHeuristic(factor=1.5)",
+    "2.0 dataset period size": "PeriodSizeHeuristic(factor=2.0)",
     "dataset period size": "PeriodSizeHeuristic(factor=1)",
     "[0.5, 1.0, 1.5] * dataset period size": "EmbedDimRangeHeuristic(base_factor=1.5, dim_factors=[0.5, 1.0, 1.5])",
     "dataset contamination": "ContaminationHeuristic()"
@@ -25,7 +28,7 @@
     "max_lag": "10% of dataset length",
     "query_window_size": "1.5*window_size",
     "n_init_train": "10 % of dataset length or until first anomaly",
-    "window_size": "1.5 dataset period size",
+    "window_size": ["0.5 dataset period size", "1.0 dataset period size", "1.5 dataset period size", "2.0 dataset period size"],
     "embed_dim_range": "[0.5, 1.0, 1.5] * dataset period size",
     "period": "dataset period size",
     "max_anomalies": "dataset contamination"
