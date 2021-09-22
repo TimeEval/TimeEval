@@ -103,9 +103,9 @@ class ParameterMatrixProxy:
         dependent_df: pd.DataFrame = self._params_df.loc[self._params_df["category"] == ParameterCategory.DEPENDENT.value, ["name", "value range"]]
         dp = {}
         for _, (name, value) in dependent_df.iterrows():
-            if value.startswith('[') and value.endswith(']'):
+            if value.startswith('[') and value.endswith(']'):  # e.g. ["heuristic 1", "heuristic 2"]
                 dp[name] = json.loads(value)
-            else:
+            else:  # e.g. heuristic 1
                 dp[name] = value
         return dp
 
