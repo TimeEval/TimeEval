@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -17,7 +17,7 @@ def _post_torsk(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 
-_torsk_parameters = {
+_torsk_parameters: Dict[str, Dict[str, Any]] = {
  "context_window_size": {
   "defaultValue": 10,
   "description": "Size of a tumbling window used to encode the time series into a 2D (image-based) representation, called slices",
@@ -31,7 +31,7 @@ _torsk_parameters = {
   "type": "float"
  },
  "imed_loss": {
-  "defaultValue": "false",
+  "defaultValue": "False",
   "description": "Calculate loss on spatially aware (image-based) data representation instead of flat arrays",
   "name": "imed_loss",
   "type": "boolean"

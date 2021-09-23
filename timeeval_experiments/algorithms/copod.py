@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_copod_parameters = {
+_copod_parameters: Dict[str, Dict[str, Any]] = {
  "random_state": {
   "defaultValue": 42,
   "description": "Seed for random number generation.",

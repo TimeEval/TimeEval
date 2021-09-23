@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -16,7 +16,7 @@ def _post_norma(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 
-_norma_parameters = {
+_norma_parameters: Dict[str, Dict[str, Any]] = {
  "anomaly_window_size": {
   "defaultValue": 20,
   "description": "Sliding window size used to create subsequences (equal to desired anomaly length)",

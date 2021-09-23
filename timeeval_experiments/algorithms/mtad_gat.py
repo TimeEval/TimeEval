@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_mtad_gat(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size + 1).fit_transform(scores)
 
 
-_mtad_gat_parameters = {
+_mtad_gat_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 64,
   "description": "Number of data points propagated in parallel",

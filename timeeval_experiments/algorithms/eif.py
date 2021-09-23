@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_eif_parameters = {
+_eif_parameters: Dict[str, Dict[str, Any]] = {
  "extension_level": {
   "defaultValue": None,
   "description": "Extension level 0 resembles standard isolation forest. If unspecified (`None`), then `extension_level=X.shape[1] - 1`.",

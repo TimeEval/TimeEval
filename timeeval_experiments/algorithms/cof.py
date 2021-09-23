@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_cof_parameters = {
+_cof_parameters: Dict[str, Dict[str, Any]] = {
  "n_neighbors": {
   "defaultValue": 20,
   "description": "Number of neighbors to use by default for k neighbors queries. Note that n_neighbors should be less than the number of samples. If n_neighbors is larger than the number of samples provided, all samples will be used.",

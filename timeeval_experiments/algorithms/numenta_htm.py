@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_numenta_htm_parameters = {
+_numenta_htm_parameters: Dict[str, Dict[str, Any]] = {
  "activationThreshold": {
   "defaultValue": 12,
   "description": "Segment activation threshold. A segment is active if it has >= tpSegmentActivationThreshold connected synapses that are active due to infActiveState",

@@ -14,7 +14,7 @@ logging.basicConfig(
     filemode="a",
     level=logging.DEBUG,
     force=True,
-    encoding="UTF-8",
+    # encoding="UTF-8",
     format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
     # datefmt="%y-%m%d %H:M:%S",
 )
@@ -31,7 +31,7 @@ def main():
         arima(),
         copod(),
         norma({"dummy": range(5)}),  # force repetitions just for norma using a dummy parameter
-        grammarviz(),
+        grammarviz3(),
         fft({"fft_parameters": [2, 5, 10]}),
         eif({"ntrees": [100, 200]}),
         knn({"n_neighbors": [5, 10]}),

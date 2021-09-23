@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_fft_parameters = {
+_fft_parameters: Dict[str, Dict[str, Any]] = {
  "context_window_size": {
   "defaultValue": 21,
   "description": "Centered window of neighbors to consider for the calculation of local outliers' z_scores",

@@ -1,14 +1,14 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_bagel_parameters = {
+_bagel_parameters: Dict[str, Dict[str, Any]] = {
  "cuda": {
-  "defaultValue": "false",
+  "defaultValue": "False",
   "description": "Use GPU for training",
   "name": "cuda",
   "type": "boolean"

@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_novelty_svr_parameters = {
+_novelty_svr_parameters: Dict[str, Dict[str, Any]] = {
  "C": {
   "defaultValue": 1.0,
   "description": "Online SVR parameter: Penalty parameter C of the error term.",
@@ -80,7 +80,7 @@ _novelty_svr_parameters = {
   "type": "enum[None,standard,robust,power]"
  },
  "stabilized": {
-  "defaultValue": "true",
+  "defaultValue": "True",
   "description": "Online SVR parameter: If stabilization should be used.",
   "name": "stabilized",
   "type": "boolean"

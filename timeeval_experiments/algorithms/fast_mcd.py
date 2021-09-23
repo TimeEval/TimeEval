@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_fast_mcd_parameters = {
+_fast_mcd_parameters: Dict[str, Dict[str, Any]] = {
  "random_state": {
   "defaultValue": 42,
   "description": "Determines the pseudo random number generator for shuffling the data.",
@@ -14,7 +14,7 @@ _fast_mcd_parameters = {
   "type": "int"
  },
  "store_precision": {
-  "defaultValue": "true",
+  "defaultValue": True,
   "description": "Specify if the estimated precision is stored",
   "name": "store_precision",
   "type": "boolean"

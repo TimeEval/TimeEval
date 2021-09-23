@@ -1,14 +1,14 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_generic_rf_parameters = {
+_generic_rf_parameters: Dict[str, Dict[str, Any]] = {
  "bootstrap": {
-  "defaultValue": "true",
+  "defaultValue": True,
   "description": "Whether bootstrap samples are used when building trees. If False, the whole dataset is used to build each tree.",
   "name": "bootstrap",
   "type": "boolean"

@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -11,7 +11,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for TAnoGan
 def post_tanogan(scores: np.ndarray, args: dict) -> np.ndarray:
-    length = args.get("dataset_details").length
+    length = args.get("dataset_details").length  # type: ignore
     window_size = args.get("hyper_params", {}).get("window_size", 30)
     scores = np.repeat(scores, repeats=window_size)
     result = np.full(shape=length, fill_value=np.nan)
@@ -19,7 +19,7 @@ def post_tanogan(scores: np.ndarray, args: dict) -> np.ndarray:
     return result
 
 
-_tanogan_parameters = {
+_tanogan_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 32,
   "description": "Number of instances trained at the same time",
@@ -27,8 +27,8 @@ _tanogan_parameters = {
   "type": "int"
  },
  "cuda": {
-  "defaultValue": "false",
-  "description": "Set to `true`, if the GPU-backend (using CUDA) should be used. Otherwise, the algorithm is executed on the CPU.",
+  "defaultValue": "False",
+  "description": "Set to `True`, if the GPU-backend (using CUDA) should be used. Otherwise, the algorithm is executed on the CPU.",
   "name": "cuda",
   "type": "boolean"
  },

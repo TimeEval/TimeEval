@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_ensemble_gi_parameters = {
+_ensemble_gi_parameters: Dict[str, Dict[str, Any]] = {
  "anomaly_window_size": {
   "defaultValue": 50,
   "description": "The size of the sliding window, in which `w` regions are made discrete.",

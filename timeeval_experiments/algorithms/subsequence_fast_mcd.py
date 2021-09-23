@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_sfmcd(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-_subsequence_fast_mcd_parameters = {
+_subsequence_fast_mcd_parameters: Dict[str, Dict[str, Any]] = {
  "random_state": {
   "defaultValue": 42,
   "description": "Determines the pseudo random number generator for shuffling the data.",
@@ -23,7 +23,7 @@ _subsequence_fast_mcd_parameters = {
   "type": "int"
  },
  "store_precision": {
-  "defaultValue": "true",
+  "defaultValue": True,
   "description": "Specify if the estimated precision is stored",
   "name": "store_precision",
   "type": "boolean"

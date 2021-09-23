@@ -1,26 +1,26 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_dspot_parameters = {
+_dspot_parameters: Dict[str, Dict[str, Any]] = {
  "alert": {
-  "defaultValue": "true",
-  "description": "Enable alert triggering, if false, even out-of-bounds-data will be taken into account for tail fit",
+  "defaultValue": "True",
+  "description": "Enable alert triggering, if False, even out-of-bounds-data will be taken into account for tail fit",
   "name": "alert",
   "type": "boolean"
  },
  "bounded": {
-  "defaultValue": "true",
+  "defaultValue": "True",
   "description": "Performance: enable memory bounding (also improves performance)",
   "name": "bounded",
   "type": "boolean"
  },
  "down": {
-  "defaultValue": "true",
+  "defaultValue": "True",
   "description": "Compute lower thresholds",
   "name": "down",
   "type": "boolean"
@@ -56,7 +56,7 @@ _dspot_parameters = {
   "type": "int"
  },
  "up": {
-  "defaultValue": "true",
+  "defaultValue": "True",
   "description": "Compute upper thresholds",
   "name": "up",
   "type": "boolean"

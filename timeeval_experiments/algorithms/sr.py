@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_sr_parameters = {
+_sr_parameters: Dict[str, Dict[str, Any]] = {
  "mag_window_size": {
   "defaultValue": 3,
   "description": "Window size for sliding window average calculation",

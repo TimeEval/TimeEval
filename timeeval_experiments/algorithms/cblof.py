@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_cblof_parameters = {
+_cblof_parameters: Dict[str, Dict[str, Any]] = {
  "alpha": {
   "defaultValue": 0.9,
   "description": "Coefficient for deciding small and large clusters. The ratio of the number of samples in large clusters to the number of samples in small clusters. (0.5 < alpha < 1)",
@@ -38,7 +38,7 @@ _cblof_parameters = {
   "type": "int"
  },
  "use_weights": {
-  "defaultValue": "false",
+  "defaultValue": "False",
   "description": "If set to True, the size of clusters are used as weights in outlier score calculation.",
   "name": "use_weights",
   "type": "boolean"

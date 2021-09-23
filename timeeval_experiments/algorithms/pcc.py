@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_pcc_parameters = {
+_pcc_parameters: Dict[str, Dict[str, Any]] = {
  "max_iter": {
   "defaultValue": None,
   "description": "Number of iterations for the power method computed by `svd_solver == 'randomized'`.",
@@ -44,7 +44,7 @@ _pcc_parameters = {
   "type": "float"
  },
  "whiten": {
-  "defaultValue": "false",
+  "defaultValue": "False",
   "description": "When True the `components_` vectors are multiplied by the square root of `n_samples` and then divided by the singular values to ensure uncorrelated outputs with unit component-wise variances. Whitening will remove some information from the transformed signal (the relative variance scales of the components) but can sometime improve the predictive accuracy of the downstream estimators by making their data respect some hard-wired assumptions.",
   "name": "whiten",
   "type": "boolean"

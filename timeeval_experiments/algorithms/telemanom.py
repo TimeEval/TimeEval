@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_telemanom(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=size + 1).fit_transform(scores)
 
 
-_telemanom_parameters = {
+_telemanom_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 70,
   "description": "number of values to evaluate in each batch",

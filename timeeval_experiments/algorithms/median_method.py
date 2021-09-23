@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_median_method_parameters = {
+_median_method_parameters: Dict[str, Dict[str, Any]] = {
  "neighbourhood_size": {
   "defaultValue": 100,
   "description": "Specifies the number of time steps to look forward and backward for each data point.",

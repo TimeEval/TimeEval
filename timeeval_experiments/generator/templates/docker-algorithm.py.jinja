@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -12,7 +12,7 @@ import numpy as np
 {% endif %}
 {{ post_process_block }}
 
-_{{ image_name }}_parameters = {% if parameters is defined -%}
+_{{ image_name }}_parameters: Dict[str, Dict[str, Any]] = {% if parameters is defined -%}
     {{ parameters }}
 {% else -%}
     {}

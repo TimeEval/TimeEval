@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_sLOF(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-_subsequence_lof_parameters = {
+_subsequence_lof_parameters: Dict[str, Dict[str, Any]] = {
  "distance_metric_order": {
   "defaultValue": 2,
   "description": "Parameter for the Minkowski metric from sklearn.metrics.pairwise.pairwise_distances. When p = 1, this is equivalent to using manhattan_distance (l1), and euclidean_distance (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used. See http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.",

@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_omni_anomaly(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_length).fit_transform(scores)
 
 
-_omnianomaly_parameters = {
+_omnianomaly_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 50,
   "description": "Number of datapoints fitted parallel",

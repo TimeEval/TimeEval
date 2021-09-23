@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -43,7 +43,7 @@ def post_grammarviz(algorithm_parameter: AlgorithmParameter, args: dict) -> np.n
     return scores.A1
 
 
-_grammarviz3_parameters = {
+_grammarviz3_parameters: Dict[str, Dict[str, Any]] = {
  "alphabet_size": {
   "defaultValue": 4,
   "description": "Number of symbols used for discretization by SAX (paper uses `\\alpha`) (performance parameter)",

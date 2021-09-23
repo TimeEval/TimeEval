@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_phasespace_svm_parameters = {
+_phasespace_svm_parameters: Dict[str, Dict[str, Any]] = {
  "coef0": {
   "defaultValue": 0.0,
   "description": "Independent term in kernel function. It is only significant in \u2018poly\u2019 and \u2018sigmoid\u2019.",

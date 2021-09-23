@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -12,7 +12,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for MSCRED
 def post_mscred(scores: np.ndarray, args: dict) -> np.ndarray:
-    ds_length = args.get("dataset_details").length
+    ds_length = args.get("dataset_details").length  # type: ignore
     gap_time = args.get("hyper_params", {}).get("gap_time", 10)
     window_size = args.get("hyper_params", {}).get("window_size", 5)
     max_window_size = max(args.get("hyper_params", {}).get("windows", [10, 30, 60]))
@@ -21,7 +21,7 @@ def post_mscred(scores: np.ndarray, args: dict) -> np.ndarray:
     return np.concatenate([np.repeat(image_scores[:-offset], gap_time), image_scores[-offset:]])
 
 
-_mscred_parameters = {
+_mscred_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 32,
   "description": "Number of instances trained at the same time",
