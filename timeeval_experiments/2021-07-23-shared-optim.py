@@ -85,6 +85,7 @@ def main():
 
     # Select datasets and algorithms
     datasets = dm.select()
+    datasets = [(collection, name) for (collection, name) in datasets if not name.startswith("cbf-")]
     # datasets = random.sample(datasets, 200)
     print(f"Selected datasets: {len(datasets)}")
 
