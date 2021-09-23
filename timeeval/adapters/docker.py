@@ -142,7 +142,7 @@ class DockerAdapter(Adapter):
             mem_limit=memory_limit,
             memswap_limit=memory_limit,
             nano_cpus=cpu_shares,
-            detach=True
+            detach=True,
         )
 
     def _run_until_timeout(self, container: Container, args: dict):
@@ -157,7 +157,6 @@ class DockerAdapter(Adapter):
                 else:
                     # check if model was stored
                     target_path = args.get("results_path", Path("./results"))
-                    print((target_path / MODEL_FILE_NAME).absolute())
                     if (target_path / MODEL_FILE_NAME).is_file():
                         print(f"Container timeout after {timeout}, but TimeEval disregards this because "
                               "'ResourceConstraints.train_fails_on_timeout' is set to False.")
@@ -217,4 +216,5 @@ class DockerAdapter(Adapter):
                 client.containers.prune(filters={"ancestor": self.image_name})
             except DockerException:
                 pass
+
         return finalize

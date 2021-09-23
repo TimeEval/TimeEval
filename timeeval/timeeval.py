@@ -6,7 +6,7 @@ import subprocess
 from enum import Enum
 from pathlib import Path
 from types import FrameType
-from typing import Callable, Any, List, Tuple, Dict, Optional
+from typing import Callable, List, Tuple, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -122,7 +122,7 @@ class TimeEval:
 
     def _run(self):
         desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
-        for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.distributed or self.disable_progress_bar):
+        for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.disable_progress_bar):
             try:
                 future_result: Optional[Future] = None
                 result: Optional[Dict] = None
@@ -293,10 +293,10 @@ class TimeEval:
         def mkdirs(dirs: List[Path]) -> None:
             for d in dirs:
                 d.mkdir(parents=True, exist_ok=True)
+
         dir_list = [exp.results_path for exp in self.exps]
         tasks.append((mkdirs, [dir_list], {}))
         self.log.debug(f"Collected {len(dir_list)} directories to create on remote nodes")
-
         self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
     def _distributed_finalize(self):
