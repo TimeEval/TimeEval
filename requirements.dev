@@ -6,3 +6,4 @@ wfdb
 tables
 pyyaml
 pylustrator==1.1.0
+plotly==5.1
