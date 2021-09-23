@@ -50,6 +50,7 @@ from .phasespace_svm import phasespace_svm
 from .pst import pst
 from .random_black_forest import random_black_forest
 from .robust_pca import robust_pca
+from .sand import sand
 from .sarima import sarima
 from .series2graph import series2graph
 from .sr import sr
