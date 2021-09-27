@@ -22,7 +22,16 @@
     "dataset contamination": "ContaminationHeuristic()",
     "dataset period size": "PeriodSizeHeuristic(factor=1, fb_value=100)",
     "max anomaly length": "AnomalyLengthHeuristic(agg_type='max')",
-    "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')"
+    "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')",
+    "default value": "DefaultFactorHeuristic()",
+    "-30% default value": "DefaultFactorHeuristic(factor=0.7)",
+    "+30% default value": "DefaultFactorHeuristic(factor=1.3)",
+    "e-3 default value": "DefaultExponentialFactorHeuristic(exponent=-3)",
+    "e-2 default value": "DefaultExponentialFactorHeuristic(exponent=-2)",
+    "e-1 default value": "DefaultExponentialFactorHeuristic(exponent=-1)",
+    "e+1 default value": "DefaultExponentialFactorHeuristic(exponent=+1)",
+    "e+2 default value": "DefaultExponentialFactorHeuristic(exponent=+2)",
+    "e+3 default value": "DefaultExponentialFactorHeuristic(exponent=+3)"
   },
   "dependent_params": {
     "anomaly_window_size": "max anomaly length",

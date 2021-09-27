@@ -32,7 +32,7 @@ class ParamConfigGenerator:
             self.FIXED_KEY: self.pmp.fixed_params(),
             self.SHARED_KEY: self.pmp.shared_params(),
             self.DEPENDENT_KEY: self.pmp.dependent_params(),
-            self.OPTIMIZED_KEY: _wip(self.pmp.optimized_params()),
+            self.OPTIMIZED_KEY: self.pmp.optimized_params(),
             self.HEURISTIC_MAPPING_KEY: {},
             self.OVERWRITES_KEY: {}
         }
@@ -52,7 +52,7 @@ class ParamConfigGenerator:
         config[self.FIXED_KEY] = self.pmp.fixed_params()
         config[self.SHARED_KEY] = self.pmp.shared_params()
         config[self.DEPENDENT_KEY] = self.pmp.dependent_params()
-        config[self.OPTIMIZED_KEY] = _wip(self.pmp.optimized_params())
+        config[self.OPTIMIZED_KEY] = self.pmp.optimized_params()
 
         self._write(config, target)
 
