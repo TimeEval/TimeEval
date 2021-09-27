@@ -12,13 +12,15 @@ from .EmbedDimRangeHeuristic import EmbedDimRangeHeuristic
 from .ParameterDependenceHeuristic import ParameterDependenceHeuristic
 from .PeriodSizeHeuristic import PeriodSizeHeuristic
 from .RelativeDatasetSizeHeuristic import RelativeDatasetSizeHeuristic
+from .DefaultFactorHeuristic import DefaultFactorHeuristic
 from .base import TimeEvalParameterHeuristic
 
 
 def _check_signature(signature: str) -> bool:
     res = re.fullmatch(
         r"^(RelativeDatasetSizeHeuristic|AnomalyLengthHeuristic|CleanStartSequenceSizeHeuristic|"
-        r"ParameterDependenceHeuristic|PeriodSizeHeuristic|EmbedDimRangeHeuristic|ContaminationHeuristic)[(].*[)]$",
+        r"ParameterDependenceHeuristic|PeriodSizeHeuristic|EmbedDimRangeHeuristic|ContaminationHeuristic|"
+        r"DefaultFactorHeuristic)[(].*[)]$",
         signature,
         re.M
     )
@@ -50,7 +52,8 @@ def inject_heuristic_values(
             new_value = TimeEvalHeuristic(heuristic_signature)(algorithm,
                                                                dataset_details,
                                                                dataset_path,
-                                                               params=updated_params)
+                                                               params=updated_params,
+                                                               param_name=k)
             if new_value is None:
                 del updated_params[k]
             else:
