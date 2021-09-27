@@ -37,7 +37,7 @@ class Experiment:
 
     @property
     def name(self) -> str:
-        return f"{self.algorithm.name}-{self.dataset.collection_name}-{self.dataset.name}"
+        return f"{self.algorithm.name}-{self.dataset.collection_name}-{self.dataset.name}-{self.params_id}-{self.repetition}"
 
     @property
     def dataset_collection(self) -> str:
