@@ -2,6 +2,7 @@ import json
 import re
 from distutils.util import strtobool
 from enum import Enum
+from json import JSONDecodeError
 from pathlib import Path
 from typing import Union, Any, Dict, List
 
@@ -114,6 +115,10 @@ class ParameterMatrixProxy:
 
         op: Dict[str, Union[str, Dict[str, List[Any]]]] = {}
         for _, (name, value, count) in optimizted_df.iterrows():
+            try:
+                value = json.loads(value)
+            except JSONDecodeError:
+                pass
             if int(count) > 1:
                 dd = {}
                 for algo in self._algorithms[name]:
