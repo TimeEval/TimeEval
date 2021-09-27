@@ -2,7 +2,7 @@ import unittest
 from copy import deepcopy
 
 import tests.fixtures.heuristics_fixtures as fixtures
-from timeeval.heuristics import DefaultFactorHeuristic, DefaultExponentialFactorHeuristic
+from timeeval.heuristics import DefaultExponentialFactorHeuristic
 
 
 class TestDefaultExponentialFactorHeuristic(unittest.TestCase):
@@ -26,7 +26,19 @@ class TestDefaultExponentialFactorHeuristic(unittest.TestCase):
     def test_factor(self):
         heuristic = DefaultExponentialFactorHeuristic(exponent=2)
         value = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="beta")
-        self.assertEqual(value, self.beta_default*100)
+        self.assertEqual(value, self.beta_default * 100)
+
+    def test_zero_fb(self):
+        self.algo.params["beta"]["defaultValue"] = 0
+
+        heuristic = DefaultExponentialFactorHeuristic(exponent=2, zero_fb=10)
+        value = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="beta")
+        heuristic = DefaultExponentialFactorHeuristic(exponent=2)
+        value2 = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="beta")
+        self.algo.params["beta"]["defaultValue"] = self.beta_default
+
+        self.assertEqual(value, 1e3)
+        self.assertEqual(value2, 1e2)
 
     def test_default_value_not_available(self):
         heuristic = DefaultExponentialFactorHeuristic(exponent=2)

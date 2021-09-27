@@ -28,6 +28,18 @@ class TestDefaultFactorHeuristic(unittest.TestCase):
         value = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="alpha")
         self.assertEqual(value, 2*self.alpha_default)
 
+    def test_zero_fb(self):
+        self.algo.params["alpha"]["defaultValue"] = 0
+
+        heuristic = DefaultFactorHeuristic(factor=2.0, zero_fb=10)
+        value = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="alpha")
+        heuristic = DefaultFactorHeuristic(factor=2.0)
+        value2 = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="alpha")
+        self.algo.params["alpha"]["defaultValue"] = self.alpha_default
+
+        self.assertEqual(value, 20)
+        self.assertEqual(value2, 2)
+
     def test_default_value_not_available(self):
         heuristic = DefaultFactorHeuristic(factor=2.0)
         with self.assertRaises(ValueError) as e:
