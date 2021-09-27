@@ -1,4 +1,3 @@
-import json
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
