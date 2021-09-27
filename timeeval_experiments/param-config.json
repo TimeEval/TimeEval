@@ -173,13 +173,13 @@
       false
     ],
     "alpha": {
-      "CBLOF": "MANUAL",
-      "DBStream": "MANUAL",
-      "HBOS": "MANUAL",
-      "IF-LOF": "MANUAL",
-      "NumentaHTM": "MANUAL",
-      "SAND": "MANUAL",
-      "SSA": "MANUAL"
+      "CBLOF": [0.8, 0.9, 1.0],
+      "DBStream": [0.01, 0.1, 0.2, 0.5],
+      "HBOS": [0.01, 0.1, 0.2, 0.5],
+      "IF-LOF": [0.1, 0.5, 0.9],
+      "NumentaHTM": [0.1, 0.5, 0.9],
+      "SAND": [0.1, 0.5, 0.9],
+      "SSA": [0.1, 0.2, 0.5]
     },
     "alphabet_size": {
       "GrammarViz": [
