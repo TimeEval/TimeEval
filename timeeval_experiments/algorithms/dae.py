@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_dae_parameters = {
+_dae_parameters: Dict[str, Dict[str, Any]] = {
  "early_stopping_delta": {
   "defaultValue": 0.5,
   "description": "If loss is `delta` or less smaller for `patience` epochs, stop",
@@ -50,7 +50,7 @@ _dae_parameters = {
   "type": "int"
  },
  "split": {
-  "defaultValue": "0.8",
+  "defaultValue": 0.8,
   "description": "Fraction to split training data by for validation",
   "name": "split",
   "type": "float"

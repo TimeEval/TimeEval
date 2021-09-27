@@ -1,14 +1,14 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_sarima_parameters = {
+_sarima_parameters: Dict[str, Dict[str, Any]] = {
  "exhaustive_search": {
-  "defaultValue": "false",
+  "defaultValue": "False",
   "description": "Performs full grid search to find optimal SARIMA-model without considering statistical tests on the data --> SLOW! but finds the optimal model.",
   "name": "exhaustive_search",
   "type": "boolean"

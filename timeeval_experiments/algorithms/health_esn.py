@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_health_esn_parameters = {
+_health_esn_parameters: Dict[str, Dict[str, Any]] = {
  "activation": {
   "defaultValue": "tanh",
   "description": "Activation function used for the ESN.",

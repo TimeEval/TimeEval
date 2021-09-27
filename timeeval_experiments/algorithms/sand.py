@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_sand_parameters = {
+_sand_parameters: Dict[str, Dict[str, Any]] = {
  "alpha": {
   "defaultValue": 0.5,
   "description": "Weight decay / forgetting factor. Quite robust",

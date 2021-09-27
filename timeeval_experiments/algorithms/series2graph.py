@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -18,7 +18,7 @@ def post_s2g(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 
-_series2graph_parameters = {
+_series2graph_parameters: Dict[str, Dict[str, Any]] = {
  "query_window_size": {
   "defaultValue": 75,
   "description": "Size of the sliding windows used to find anomalies (query subsequences). query_window_size must be >= window_size! (paper: `l_q`)",

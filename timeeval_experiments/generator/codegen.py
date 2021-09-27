@@ -63,7 +63,7 @@ class AlgorithmGenerator:
     @staticmethod
     def _encode_params(params: Dict[str, Dict[str, Any]]) -> str:
         s_json = json.dumps(params, sort_keys=True, indent=True)
-        return s_json.replace("null", "None")
+        return s_json.replace("null", "None").replace("true", "True").replace("false", "False")
 
     @staticmethod
     def _check_target(target: Union[str, Path],

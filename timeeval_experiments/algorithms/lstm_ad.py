@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -16,7 +16,7 @@ def post_lstm_ad(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size + prediction_window_size).fit_transform(scores)
 
 
-_lstm_ad_parameters = {
+_lstm_ad_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 32,
   "description": "Number of instances trained at the same time",

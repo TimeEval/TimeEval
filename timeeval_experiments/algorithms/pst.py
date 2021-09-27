@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_pst_parameters = {
+_pst_parameters: Dict[str, Dict[str, Any]] = {
  "max_depth": {
   "defaultValue": 4,
   "description": "Maximal depth of the PST. Default to maximum length of the sequence(s) in object minus 1.",

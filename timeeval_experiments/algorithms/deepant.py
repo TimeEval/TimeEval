@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -17,7 +17,7 @@ def _post_deepant(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 
-_deepant_parameters = {
+_deepant_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 45,
   "description": "Batch size for input data",

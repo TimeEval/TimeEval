@@ -41,4 +41,8 @@ class ExecutionType(Enum):
 
 AlgorithmParameter = Union[np.ndarray, Path]
 TSFunction = Callable[[AlgorithmParameter, dict], AlgorithmParameter]
-TSFunctionPost = Callable[[AlgorithmParameter, dict], np.ndarray]
+TSFunctionPost = Union[
+    Callable[[AlgorithmParameter, dict], np.ndarray],
+    Callable[[np.ndarray, dict], np.ndarray],
+    Callable[[Path, dict], np.ndarray]
+]

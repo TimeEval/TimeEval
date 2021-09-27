@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,9 +15,9 @@ def post_sIF(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-_subsequence_if_parameters = {
+_subsequence_if_parameters: Dict[str, Dict[str, Any]] = {
  "bootstrap": {
-  "defaultValue": "false",
+  "defaultValue": "False",
   "description": "If True, individual trees are fit on random subsets of the training data sampled with replacement. If False, sampling without replacement is performed.",
   "name": "bootstrap",
   "type": "boolean"

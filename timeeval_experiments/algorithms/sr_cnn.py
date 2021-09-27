@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_sr_cnn_parameters = {
+_sr_cnn_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 256,
   "description": "Number of data points trained in parallel",

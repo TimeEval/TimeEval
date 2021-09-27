@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_hybrid_knn(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-_hybrid_knn_parameters = {
+_hybrid_knn_parameters: Dict[str, Dict[str, Any]] = {
  "anomaly_window_size": {
   "defaultValue": 20,
   "description": "windowing size for time series",

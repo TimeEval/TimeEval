@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_laser_dbn_parameters = {
+_laser_dbn_parameters: Dict[str, Dict[str, Any]] = {
  "n_bins": {
   "defaultValue": 10,
   "description": "Number of bins used for discretization.",

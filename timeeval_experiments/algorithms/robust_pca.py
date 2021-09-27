@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_robust_pca_parameters = {
+_robust_pca_parameters: Dict[str, Dict[str, Any]] = {
  "max_iter": {
   "defaultValue": 1000,
   "description": "Defines the number of maximum robust PCA iterations for solving matrix decomposition.",

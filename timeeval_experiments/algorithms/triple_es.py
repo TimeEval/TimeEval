@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_triple_es_parameters = {
+_triple_es_parameters: Dict[str, Dict[str, Any]] = {
  "period": {
   "defaultValue": 100,
   "description": "number of time units at which events happen regularly/periodically",

@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_nf(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-_normalizing_flows_parameters = {
+_normalizing_flows_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 64,
   "description": "How many data instances are trained at the same time.",

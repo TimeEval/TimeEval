@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_dbstream_parameters = {
+_dbstream_parameters: Dict[str, Dict[str, Any]] = {
  "alpha": {
   "defaultValue": 0.1,
   "description": "For shared density: The minimum proportion of shared points between to clus-ters to warrant combining them (a suitable value for 2D data is .3). For reacha-bility clustering it is a distance factor",
@@ -33,7 +33,7 @@ _dbstream_parameters = {
  },
  "n_clusters": {
   "defaultValue": 0,
-  "description": "The number of macro clusters to be returned if macro is true.",
+  "description": "The number of macro clusters to be returned if macro is True.",
   "name": "n_clusters",
   "type": "int"
  },

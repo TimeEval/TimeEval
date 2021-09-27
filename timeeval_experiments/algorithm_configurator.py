@@ -116,7 +116,7 @@ class AlgorithmConfigurator:
                     configured_params[p] = [f"heuristic:{heuristic_signature}" for heuristic_signature in
                                             heuristic_signatures]
 
-            else:
+                else:
                     warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
                                   "Using default.")
 

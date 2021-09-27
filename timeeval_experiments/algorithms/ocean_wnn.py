@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_ocean_wnn_parameters = {
+_ocean_wnn_parameters: Dict[str, Dict[str, Any]] = {
  "batch_size": {
   "defaultValue": 64,
   "description": "Number of instances trained at the same time",
@@ -98,8 +98,8 @@ _ocean_wnn_parameters = {
   "type": "enum[mexican_hat,central_symmetric,morlet]"
  },
  "with_threshold": {
-  "defaultValue": "true",
-  "description": "If true, values whose forecasting error exceeds the threshold are not included in next window, but are replaced by the prediction.",
+  "defaultValue": "True",
+  "description": "If True, values whose forecasting error exceeds the threshold are not included in next window, but are replaced by the prediction.",
   "name": "with_threshold",
   "type": "boolean"
  }

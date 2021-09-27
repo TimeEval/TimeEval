@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -44,7 +44,7 @@ def post_hotsax(algorithm_parameter: AlgorithmParameter, args: dict) -> np.ndarr
     return scores.A1
 
 
-_hotsax_parameters = {
+_hotsax_parameters: Dict[str, Dict[str, Any]] = {
  "alphabet_size": {
   "defaultValue": 3,
   "description": "Number of symbols used for discretization by SAX (paper uses `\\alpha`) (performance parameter)",

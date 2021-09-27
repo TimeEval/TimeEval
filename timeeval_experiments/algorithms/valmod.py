@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_valmod(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_length).fit_transform(scores)
 
 
-_valmod_parameters = {
+_valmod_parameters: Dict[str, Dict[str, Any]] = {
  "exclusion_zone": {
   "defaultValue": 0.5,
   "description": "Size of the exclusion zone as a factor of the window_size. This prevents self-matches.",

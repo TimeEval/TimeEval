@@ -24,7 +24,7 @@ def main():
         cof({"n_neighbors": [5]}),
         series2graph({"convolution_size": [8, 16]}),
         norma(),
-        grammarviz(),
+        grammarviz3(),
         hotsax({"window_size": [100, 120]}),
     ]
     print(f"Selected algorithms: {list(map(lambda algo: algo.name, algorithms))}")

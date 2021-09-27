@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_multi_hmm_parameters = {
+_multi_hmm_parameters: Dict[str, Dict[str, Any]] = {
  "discretizer": {
   "defaultValue": "fcm",
   "description": "Available discretizers are \"sugeno\", \"choquet\", and \"fcm\". If only 1 feature in time series, K-Bins discretizer is used.",

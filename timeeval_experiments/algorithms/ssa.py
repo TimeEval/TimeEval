@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_ssa_parameters = {
+_ssa_parameters: Dict[str, Dict[str, Any]] = {
  "alpha": {
   "defaultValue": 0.2,
   "description": "Describes weights that are used for reference time series creation. Can be a single weight(float) or an array of weights. So far only supporting a single value",

@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_tarzan(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
-_tarzan_parameters = {
+_tarzan_parameters: Dict[str, Dict[str, Any]] = {
  "alphabet_size": {
   "defaultValue": 4,
   "description": "Number of symbols used for discretization by SAX (performance parameter)",

@@ -1,6 +1,6 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
@@ -15,7 +15,7 @@ def post_deepnap(scores: np.ndarray, args: dict) -> np.ndarray:
     return ReverseWindowing(window_size=window_size * 2).fit_transform(scores)
 
 
-_deepnap_parameters = {
+_deepnap_parameters: Dict[str, Dict[str, Any]] = {
  "anomaly_window_size": {
   "defaultValue": 15,
   "description": "Size of the sliding windows",

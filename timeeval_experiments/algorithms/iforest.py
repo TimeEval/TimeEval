@@ -1,14 +1,14 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_iforest_parameters = {
+_iforest_parameters: Dict[str, Dict[str, Any]] = {
  "bootstrap": {
-  "defaultValue": "false",
+  "defaultValue": "False",
   "description": "If True, individual trees are fit on random subsets of the training data sampled with replacement. If False, sampling without replacement is performed.",
   "name": "bootstrap",
   "type": "boolean"

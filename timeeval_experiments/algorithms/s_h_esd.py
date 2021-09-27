@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_s_h_esd_parameters = {
+_s_h_esd_parameters: Dict[str, Dict[str, Any]] = {
  "max_anomalies": {
   "defaultValue": 0.05,
   "description": "expected maximum relative frequency of anomalies in the dataset",

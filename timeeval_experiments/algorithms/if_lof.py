@@ -1,12 +1,12 @@
 from durations import Duration
 from sklearn.model_selection import ParameterGrid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 
 
-_if_lof_parameters = {
+_if_lof_parameters: Dict[str, Dict[str, Any]] = {
  "alpha": {
   "defaultValue": 0.5,
   "description": "Scalar that depends on consideration of the dataset and controls the amount of data to be pruned",
