@@ -29,7 +29,7 @@ class TimeEvalParameterHeuristic(abc.ABC):
     @classmethod
     def get_param_names(cls):
         """
-        Get parameter names for the estimator
+        Get parameter names for the heuristic
 
         Adopted from https://github.com/scikit-learn/scikit-learn/blob/2beed5584/sklearn/base.py
         """
@@ -39,7 +39,7 @@ class TimeEvalParameterHeuristic(abc.ABC):
             # No explicit constructor to introspect
             return []
 
-        # introspect the constructor arguments to find the model parameters to represent
+        # introspect the constructor arguments to find the parameters to represent
         init_signature = inspect.signature(init)
         # Consider the constructor parameters excluding 'self'
         parameters = [p for p in init_signature.parameters.values()

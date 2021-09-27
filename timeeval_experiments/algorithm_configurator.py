@@ -104,6 +104,16 @@ class AlgorithmConfigurator:
                     if not isinstance(value, list):
                         raise ValueError(f"Wrong format: value for optimized parameter '{p}' ({algo.name}) "
                                          "should be a list of parameter options")
+
+                    # substitute heuristics
+                    def substitute_potential_heuristic(v):
+                        try:
+                            return f"heuristic:{self._heuristic_mapping[v]}"
+                        except KeyError:
+                            return v
+
+                    value = [substitute_potential_heuristic(pot_heuristic) for pot_heuristic in value]
+
                     configured_params[p] = value
 
                 elif not ignore_dependent and p in self._dependent_params:

@@ -12,13 +12,16 @@ from .EmbedDimRangeHeuristic import EmbedDimRangeHeuristic
 from .ParameterDependenceHeuristic import ParameterDependenceHeuristic
 from .PeriodSizeHeuristic import PeriodSizeHeuristic
 from .RelativeDatasetSizeHeuristic import RelativeDatasetSizeHeuristic
+from .DefaultFactorHeuristic import DefaultFactorHeuristic
+from .DefaultExponentialFactorHeuristic import DefaultExponentialFactorHeuristic
 from .base import TimeEvalParameterHeuristic
 
 
 def _check_signature(signature: str) -> bool:
     res = re.fullmatch(
         r"^(RelativeDatasetSizeHeuristic|AnomalyLengthHeuristic|CleanStartSequenceSizeHeuristic|"
-        r"ParameterDependenceHeuristic|PeriodSizeHeuristic|EmbedDimRangeHeuristic|ContaminationHeuristic)[(].*[)]$",
+        r"ParameterDependenceHeuristic|PeriodSizeHeuristic|EmbedDimRangeHeuristic|ContaminationHeuristic|"
+        r"DefaultFactorHeuristic|DefaultExponentialFactorHeuristic)[(].*[)]$",
         signature,
         re.M
     )
@@ -47,10 +50,15 @@ def inject_heuristic_values(
     for k, v in list(heuristic_params) + list(deferred_params):
         if isinstance(v, str) and v.startswith("heuristic:"):
             heuristic_signature: str = ":".join(v.split(":")[1:]).strip()
-            new_value = TimeEvalHeuristic(heuristic_signature)(algorithm,
-                                                               dataset_details,
-                                                               dataset_path,
-                                                               params=updated_params)
+            new_value = TimeEvalHeuristic(heuristic_signature)(
+                algorithm,
+                dataset_details,
+                dataset_path,
+                # required by ParameterDependenceHeuristic
+                params=updated_params,
+                # required by DefaultFactorHeuristic and DefaultExponentialFactorHeuristic
+                param_name=k
+            )
             if new_value is None:
                 del updated_params[k]
             else:
