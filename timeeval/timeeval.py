@@ -226,12 +226,12 @@ class TimeEval:
             time_names = ["train_main_time", "execute_main_time"]
             group_names = ["algorithm", "collection", "dataset"]
         else:
-            time_names = [key for key in Times.result_keys() if key in df.columns]
+            time_names = Times.result_keys()
             group_names = ["algorithm", "collection", "dataset", "hyper_params_id"]
-        keys = self.metric_names + time_names
+        keys = [key for key in self.metric_names + time_names if key in df.columns]
         grouped_results = df.groupby(group_names)
         repetitions = [len(v) for k, v in grouped_results.groups.items()]
-        results: pd.DataFrame = grouped_results.mean()[keys]
+        results: pd.DataFrame = grouped_results[keys].mean()
 
         if short:
             results = results.rename(columns=dict([(k, f"{k}_mean") for k in keys]))
