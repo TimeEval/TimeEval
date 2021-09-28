@@ -8,6 +8,10 @@
     },
     "XGBoosting (RR)": {
       "learning_rate": 0.1
+    },
+    "VALMOD":  {
+      "min_anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)",
+      "max_anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_value=200)"
     }
   },
   "__heuristic_function_mapping": {
