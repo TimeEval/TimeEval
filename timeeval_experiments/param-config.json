@@ -1,17 +1,25 @@
 {
   "__algorithm_overwrites": {
     "SSA": {
-      "window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_value=200)"
+      "window_size": "2.0 dataset period size"
     },
     "Torsk": {
-      "transient_window_size": "heuristic:ParameterDependenceHeuristic(source_parameter='train_window_size', factor=0.2)"
+      "transient_window_size": "20% of train_window_size"
     },
     "XGBoosting (RR)": {
       "learning_rate": 0.1
     },
     "VALMOD":  {
-      "min_anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)",
-      "max_anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_value=200)"
+      "min_anomaly_window_size": "1.0 dataset period size",
+      "max_anomaly_window_size": "2.0 dataset period size",
+      "heap_size": 50,
+      "exclusion_zone": 0.5
+    },
+    "Triple ES (Holt-Winter's)": {
+      "train_window_size": 400,
+      "period": "dataset period size",
+      "trend": "add",
+      "seasonal": "add"
     }
   },
   "__heuristic_function_mapping": {
