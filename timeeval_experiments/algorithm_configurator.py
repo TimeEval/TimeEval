@@ -1,7 +1,7 @@
 import json
 import warnings
 from pathlib import Path
-from typing import Union, TypeVar, List, Dict
+from typing import Union, TypeVar, List, Dict, Any
 
 from sklearn.model_selection import ParameterGrid
 
@@ -42,6 +42,15 @@ class AlgorithmConfigurator:
         else:
             print("Heuristics are valid.")
 
+    # substitute heuristics
+    def _substitute_heuristics(self, search_space: List[Any]) -> Any:
+        def substitute(v):
+            try:
+                return f"heuristic:{self._heuristic_mapping[v]}"
+            except KeyError:
+                return v
+        return [substitute(value) for value in search_space]
+
     @staticmethod
     def wrap(elems: Union[List[T], T]) -> List[T]:
         if not isinstance(elems, list):
@@ -78,6 +87,8 @@ class AlgorithmConfigurator:
                         # allow specifying a search space or a fixed value
                         if not isinstance(value, list):
                             value = [value]
+                        # map heuristics
+                        value = self._substitute_heuristics(value)
                         configured_params[p] = value
                     #  else: don't specify a value, because the default is used anyway
 
@@ -105,26 +116,17 @@ class AlgorithmConfigurator:
                         raise ValueError(f"Wrong format: value for optimized parameter '{p}' ({algo.name}) "
                                          "should be a list of parameter options")
 
-                    # substitute heuristics
-                    def substitute_potential_heuristic(v):
-                        try:
-                            return f"heuristic:{self._heuristic_mapping[v]}"
-                        except KeyError:
-                            return v
-
-                    value = [substitute_potential_heuristic(pot_heuristic) for pot_heuristic in value]
+                    value = self._substitute_heuristics(value)
 
                     configured_params[p] = value
 
                 elif not ignore_dependent and p in self._dependent_params:
                     heuristic_keys = self._dependent_params[p]
-                    if isinstance(heuristic_keys, list):
-                        heuristic_signatures = [self._heuristic_mapping[heuristic_key] for heuristic_key in
-                                                heuristic_keys]
-                    else:
-                        heuristic_signatures = [self._heuristic_mapping[heuristic_keys]]
-                    configured_params[p] = [f"heuristic:{heuristic_signature}" for heuristic_signature in
-                                            heuristic_signatures]
+                    if not isinstance(heuristic_keys, list):
+                        heuristic_keys = [heuristic_keys]
+                    heuristic_signatures = [f"heuristic:{self._heuristic_mapping[heuristic_key]}"
+                                            for heuristic_key in heuristic_keys]
+                    configured_params[p] = heuristic_signatures
 
                 else:
                     warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
