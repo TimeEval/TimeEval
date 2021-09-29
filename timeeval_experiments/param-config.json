@@ -1,5 +1,16 @@
 {
   "__algorithm_overwrites": {
+    "TAnoGan": {
+      "window_size": "1.5 dataset period size",
+      "iterations": 25
+    },
+    "HOT SAX": {
+      "alphabet_size": 3,
+      "anomaly_window_size": "max anomaly length",
+      "normalization_threshold": 0.01,
+      "num_discords": null,
+      "paa_transform_size": 3
+    },
     "SSA": {
       "window_size": "2.0 dataset period size"
     },
