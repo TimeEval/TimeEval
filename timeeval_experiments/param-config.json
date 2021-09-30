@@ -1,5 +1,10 @@
 {
   "__algorithm_overwrites": {
+    "SR-CNN": {
+      "window_size": "1.5 dataset period size",
+      "step": 64,
+      "num": 10
+    },
     "TAnoGan": {
       "window_size": "1.5 dataset period size",
       "iterations": 25
