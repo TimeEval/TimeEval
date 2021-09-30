@@ -31,6 +31,13 @@
       "period": "dataset period size",
       "trend": "add",
       "seasonal": "add"
+    },
+    "Health ESN": {
+      "prediction_window_size": 50,
+      "linear_hidden_size": 500,
+      "connectivity": 0.25,
+      "spectral_radius": 0.6,
+      "activation": "tanh"
     }
   },
   "__heuristic_function_mapping": {
