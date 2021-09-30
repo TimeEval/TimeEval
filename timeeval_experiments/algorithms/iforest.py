@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
+from timeeval.params import FullParameterGrid
 
 
 _iforest_parameters: Dict[str, Dict[str, Any]] = {
@@ -64,7 +65,7 @@ def iforest(params: Any = None, skip_pull: bool = False, timeout: Optional[Durat
         preprocess=None,
         postprocess=None,
         params=_iforest_parameters,
-        param_grid=ParameterGrid(params or {}),
+        param_grid=FullParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

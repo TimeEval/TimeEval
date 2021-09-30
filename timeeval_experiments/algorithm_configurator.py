@@ -3,10 +3,9 @@ import warnings
 from pathlib import Path
 from typing import Union, TypeVar, List, Dict, Any
 
-from sklearn.model_selection import ParameterGrid
-
 from timeeval import Algorithm
 from timeeval.heuristics import TimeEvalHeuristic
+from timeeval.params import FullParameterGrid, IndependentParameterGrid
 from timeeval_experiments.generator import ParamConfigGenerator
 
 
@@ -65,7 +64,8 @@ class AlgorithmConfigurator:
                   ignore_dependent: bool = False,
                   ignore_shared: bool = False,
                   ignore_optimized: bool = False,
-                  perform_search: bool = True) -> None:
+                  perform_search: bool = True,
+                  assume_parameter_independence: bool = False) -> None:
         if use_defaults:
             return
 
@@ -132,4 +132,7 @@ class AlgorithmConfigurator:
                     warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
                                   "Using default.")
 
-            algo.param_grid = ParameterGrid(configured_params)
+            if assume_parameter_independence:
+                algo.param_grid = IndependentParameterGrid(configured_params)
+            else:
+                algo.param_grid = FullParameterGrid(configured_params)

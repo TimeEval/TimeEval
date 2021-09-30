@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
+from timeeval.params import FullParameterGrid
 
 
 _ocean_wnn_parameters: Dict[str, Dict[str, Any]] = {
@@ -118,7 +119,7 @@ def ocean_wnn(params: Any = None, skip_pull: bool = False, timeout: Optional[Dur
         preprocess=None,
         postprocess=None,
         params=_ocean_wnn_parameters,
-        param_grid=ParameterGrid(params or {}),
+        param_grid=FullParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
+from timeeval.params import FullParameterGrid
 {% if post_process_block is defined %}
 
 import numpy as np
@@ -40,7 +41,7 @@ def {{ image_name }}(params: Any = None, skip_pull: bool = {{ skip_pull }}, time
         preprocess={{ preprocess|default(None) }},
         postprocess={{ postprocess|default(None) }},
         params=_{{ image_name }}_parameters,
-        param_grid=ParameterGrid(params or {}),
+        param_grid=FullParameterGrid(params or {}),
         data_as_file=True,
         training_type={% if training_type|lower == "unsupervised" -%}
                           TrainingType.UNSUPERVISED

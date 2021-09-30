@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Dict, Any
 
-from sklearn.model_selection import ParameterGrid
-
 from timeeval.adapters.base import Adapter
-from timeeval.data_types import TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter, TrainingType, InputDimensionality
+from timeeval.data_types import (
+    TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter, TrainingType, InputDimensionality
+)
+from timeeval.params import ParameterConfig
 
 
 @dataclass
@@ -15,7 +16,7 @@ class Algorithm:
     postprocess: Optional[TSFunctionPost] = None
     data_as_file: bool = False
     params: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {})
-    param_grid: ParameterGrid = ParameterGrid({})
+    param_grid: ParameterConfig = ParameterConfig.defaults()
     training_type: TrainingType = TrainingType.UNSUPERVISED
     input_dimensionality: InputDimensionality = InputDimensionality.UNIVARIATE
 

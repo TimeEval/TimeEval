@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
+from timeeval.params import FullParameterGrid
 
 
 _novelty_svr_parameters: Dict[str, Dict[str, Any]] = {
@@ -118,7 +119,7 @@ def novelty_svr(params: Any = None, skip_pull: bool = False, timeout: Optional[D
         preprocess=None,
         postprocess=None,
         params=_novelty_svr_parameters,
-        param_grid=ParameterGrid(params or {}),
+        param_grid=FullParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
+from timeeval.params import FullParameterGrid
 
 import numpy as np
 
@@ -112,7 +113,7 @@ def normalizing_flows(params: Any = None, skip_pull: bool = False, timeout: Opti
         preprocess=None,
         postprocess=post_nf,
         params=_normalizing_flows_parameters,
-        param_grid=ParameterGrid(params or {}),
+        param_grid=FullParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

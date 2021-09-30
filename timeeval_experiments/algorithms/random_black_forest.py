@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
+from timeeval.params import FullParameterGrid
 
 
 _random_black_forest_parameters: Dict[str, Dict[str, Any]] = {
@@ -100,7 +101,7 @@ def random_black_forest(params: Any = None, skip_pull: bool = False, timeout: Op
         preprocess=None,
         postprocess=None,
         params=_random_black_forest_parameters,
-        param_grid=ParameterGrid(params or {}),
+        param_grid=FullParameterGrid(params or {}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")
