@@ -5,11 +5,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from freezegun import freeze_time
-from sklearn.model_selection import ParameterGrid
 
 from timeeval import TimeEval, Algorithm, Datasets, AlgorithmParameter, Metric
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
+from timeeval.params import FullParameterGrid
 from timeeval.utils.hash_dict import hash_dict
 
 
@@ -26,7 +26,7 @@ class TestOutputData(unittest.TestCase):
     def setUp(self) -> None:
         self.DATASET = ("test", "dataset-int")
         self.datasets = Datasets("./tests/example_data", custom_datasets_file=Path("./tests/example_data/datasets.json"))
-        self.hyper_params = ParameterGrid({"a": [0]})
+        self.hyper_params = FullParameterGrid({"a": [0]})
         self.hash = hash_dict(self.hyper_params[0])
         self.algorithms = [
             Algorithm(name="deviating_from_mean", main=FunctionAdapter(deviating_from_mean), param_grid=self.hyper_params)

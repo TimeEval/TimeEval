@@ -15,13 +15,13 @@ import pandas as pd
 import psutil
 import pytest
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from tests.fixtures.docker_mocks import MockDockerClient, TEST_DOCKER_IMAGE
 from timeeval import TimeEval, Algorithm, Datasets, RemoteConfiguration, Status
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import DockerTimeoutError
+from timeeval.params import FullParameterGrid
 from timeeval.remote import Remote
 from timeeval.utils.hash_dict import hash_dict
 
@@ -96,7 +96,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         self.algorithms = [
             Algorithm(name="deviating_from_mean", main=DeviatingFromMean()),
             Algorithm(name="deviating_from_median", main=DeviatingFromMedian(),
-                      param_grid=ParameterGrid({"test": [np.int64(2), np.int32(4)]}))
+                      param_grid=FullParameterGrid({"test": [np.int64(2), np.int32(4)]}))
         ]
 
     @pytest.mark.dask
@@ -307,7 +307,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
-                         param_grid=ParameterGrid({"raise": [True], "sleep": [1]}))
+                         param_grid=FullParameterGrid({"raise": [True], "sleep": [1]}))
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
@@ -348,7 +348,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
-                         param_grid=ParameterGrid({"sleep": [1]}))
+                         param_grid=FullParameterGrid({"sleep": [1]}))
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
