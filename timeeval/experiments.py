@@ -27,6 +27,7 @@ class Experiment:
     dataset: Dataset
     algorithm: Algorithm
     params: dict
+    params_id: str
     repetition: int
     base_results_dir: Path
     resource_constraints: ResourceConstraints
@@ -45,10 +46,6 @@ class Experiment:
     @property
     def dataset_name(self) -> str:
         return self.dataset.name
-
-    @property
-    def params_id(self) -> str:
-        return hash_dict(self.params)
 
     @property
     def results_path(self) -> Path:
@@ -190,12 +187,16 @@ class Experiments:
                 for dataset in self.datasets:
                     if self._check_compatible(dataset, algorithm):
                         test_path, train_path = self._resolve_dataset_paths(dataset, algorithm)
+                        # create parameter hash before executing heuristics
+                        # (they replace the parameter values, but we want to be able to group by original configuration)
+                        params_id = hash_dict(algorithm_config)
                         params = inject_heuristic_values(algorithm_config, algorithm, dataset, test_path)
                         for repetition in range(1, self.repetitions + 1):
                             yield Experiment(
                                 algorithm=algorithm,
                                 dataset=dataset,
                                 params=params,
+                                params_id=params_id,
                                 repetition=repetition,
                                 base_results_dir=self.base_result_path,
                                 resource_constraints=self.resource_constraints,
