@@ -140,6 +140,13 @@ def test_initialize_missing_folder(tmp_path):
     assert os.path.isfile(target / Datasets.INDEX_FILENAME)
 
 
+def test_initialize_raise_error_empty_folder(tmp_path):
+    target = tmp_path / "missing"
+    with pytest.raises(FileNotFoundError) as ex:
+        Datasets(data_folder=target, create_if_missing=False)
+        assert "Could not find the index file" in str(ex.value)
+
+
 def test_initialize_existing(tmp_path):
     _fill_file(tmp_path)
     dm = Datasets(data_folder=tmp_path)
