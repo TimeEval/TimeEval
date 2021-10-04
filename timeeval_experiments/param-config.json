@@ -74,7 +74,7 @@
       "mag_window_size": 40,
       "score_window_size": 40,
       "context_window_size": 5,
-      "threshold": ,
+      "threshold": 6,
       "gamma": ,
       "latent_size": ,
       "kernel_size": 7,
