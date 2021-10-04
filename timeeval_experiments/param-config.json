@@ -67,6 +67,18 @@
       "latent_size": 6,
       "hidden_layer_shape": [100, 100],
       "dropout": 0.1
+    },
+    "MTAD-GAT": {
+      "window_size": "2.0 dataset period size",
+      "__comment": "set mag_window_size, score_window_size and context_window_size based on shared param optimization run results",
+      "mag_window_size": 40,
+      "score_window_size": 40,
+      "context_window_size": 5,
+      "threshold": ,
+      "gamma": ,
+      "latent_size": ,
+      "kernel_size": 7,
+      "linear_layer_shape": [300, 300, 300]
     }
   },
   "__heuristic_function_mapping": {
