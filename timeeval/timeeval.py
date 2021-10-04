@@ -5,6 +5,7 @@ import socket
 import subprocess
 from enum import Enum
 from pathlib import Path
+from time import time
 from types import FrameType
 from typing import Callable, List, Tuple, Dict, Optional
 
@@ -314,6 +315,7 @@ class TimeEval:
 
         print("Running PREPARE phase")
         self.log.info("Running PREPARE phase")
+        t0 = time()
         if self.distributed:
             self._distributed_prepare()
         else:
@@ -332,7 +334,11 @@ class TimeEval:
             self._distributed_finalize()
         else:
             self._finalize()
+        t1 = time()
 
-        msg = f"FINALIZE phase done. Stored results at {self.results_path / RESULTS_CSV}"
+        msg = f"""FINALIZE phase done.
+          Stored results at {self.results_path / RESULTS_CSV}.
+          Overall runtime of this TimeEval run: {t1 - t0} seconds
+        """
         print(msg)
         self.log.info(msg)
