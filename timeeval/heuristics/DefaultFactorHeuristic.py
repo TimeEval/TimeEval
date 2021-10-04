@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Union
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
@@ -12,7 +13,7 @@ class DefaultFactorHeuristic(TimeEvalParameterHeuristic):
         self.factor = factor
         self.zero_fb = zero_fb
 
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> int:
+    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Union[int, float]:
         param_name = kwargs["param_name"]
         try:
             default = algorithm.params[param_name]["defaultValue"]
@@ -21,4 +22,6 @@ class DefaultFactorHeuristic(TimeEvalParameterHeuristic):
 
         if default == 0:
             default = self.zero_fb
-        return self.factor * default
+
+        default_type = type(default)
+        return default_type(self.factor * default)
