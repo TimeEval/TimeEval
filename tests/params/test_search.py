@@ -25,11 +25,11 @@ class TestParameterSearch(unittest.TestCase):
     def test_full_parameter_grid_wrong_input(self):
         with self.assertRaises(TypeError) as ex:
             FullParameterGrid([{"a": [1, 2]}])  # type: ignore
-            self.assertRegex(str(ex.exception), "[P|p]lease use a.*IndependentParameterGrid.")
+        self.assertRegex(str(ex.exception), "[P|p]lease use a.*IndependentParameterGrid.")
 
         with self.assertRaises(TypeError) as ex:
             FullParameterGrid("a")  # type: ignore
-            self.assertRegex(str(ex.exception), "[P|p]arameter grid is not a dict")
+        self.assertRegex(str(ex.exception), "[P|p]arameter grid is not a dict")
 
     def test_independent_parameter_grid(self):
         grid = IndependentParameterGrid(self.params)
@@ -57,12 +57,21 @@ class TestParameterSearch(unittest.TestCase):
     def test_independent_parameter_grid_wrong_input(self):
         with self.assertRaises(TypeError) as ex1:
             IndependentParameterGrid([{"a": [1, 2]}])  # type: ignore
-            self.assertRegex(str(ex1.exception), "[P|p]arameter grid is not a dict")
+        self.assertRegex(str(ex1.exception), "[P|p]arameter grid is not a dict")
 
         with self.assertRaises(TypeError) as ex2:
             IndependentParameterGrid({"a": [1, 2]}, default_params=[1])  # type: ignore
-            self.assertRegex(str(ex2.exception), "[D|d]efault parameters grid is not a dict")
+        self.assertRegex(str(ex2.exception), "[D|d]efault parameters is not a dict")
 
     def test_independent_parameter_grid_non_value_list(self):
         grid = IndependentParameterGrid({"a": [1, 2], "b": True})
         self.assertListEqual(list(grid), [{"a": 1}, {"a": 2}, {"b": True}])
+
+    def test_independent_parameter_grid_empty(self):
+        grid = IndependentParameterGrid({}, {"a": 0, "c": "auto"})
+        self.assertListEqual(list(grid), [{"a": 0, "c": "auto"}])
+
+    def test_independent_parameter_grid_list_in_defaults(self):
+        with self.assertRaises(TypeError) as ex1:
+            IndependentParameterGrid(self.params, {"a": [0, 1], "c": "auto"})
+        self.assertRegex(str(ex1.exception), "Only fixed values are allowed for defaults")

@@ -41,13 +41,15 @@ class AlgorithmConfigurator:
         else:
             print("Heuristics are valid.")
 
-    # substitute heuristics
-    def _substitute_heuristics(self, search_space: List[Any]) -> Any:
+    def _substitute_heuristics(self, search_space: List[Any], checked: bool = False) -> Any:
         def substitute(v):
             try:
                 return f"heuristic:{self._heuristic_mapping[v]}"
-            except KeyError:
-                return v
+            except KeyError as e:
+                if checked:
+                    raise ValueError(f"Entry {v} is not a valid heuristic!") from e
+                else:
+                    return v
         return [substitute(value) for value in search_space]
 
     @staticmethod
@@ -85,8 +87,7 @@ class AlgorithmConfigurator:
                     value = prio_params[p]
                     if value != "default":
                         # allow specifying a search space or a fixed value
-                        if not isinstance(value, list):
-                            value = [value]
+                        value = self.wrap(value)
                         # map heuristics
                         value = self._substitute_heuristics(value)
                         configured_params[p] = value
@@ -116,23 +117,28 @@ class AlgorithmConfigurator:
                         raise ValueError(f"Wrong format: value for optimized parameter '{p}' ({algo.name}) "
                                          "should be a list of parameter options")
 
-                    value = self._substitute_heuristics(value)
-
-                    configured_params[p] = value
+                    configured_params[p] = self._substitute_heuristics(value)
 
                 elif not ignore_dependent and p in self._dependent_params:
-                    heuristic_keys = self._dependent_params[p]
-                    if not isinstance(heuristic_keys, list):
-                        heuristic_keys = [heuristic_keys]
-                    heuristic_signatures = [f"heuristic:{self._heuristic_mapping[heuristic_key]}"
-                                            for heuristic_key in heuristic_keys]
-                    configured_params[p] = heuristic_signatures
+                    value = self._dependent_params[p]
+                    value = self.wrap(value)
+                    configured_params[p] = self._substitute_heuristics(value, checked=True)
 
                 else:
                     warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
                                   "Using default.")
 
             if assume_parameter_independence:
-                algo.param_grid = IndependentParameterGrid(configured_params)
+                # assume that fixed parameters are defaults and should be set for all configurations
+                default_params = {}
+                search_params = {}
+                for p in configured_params:
+                    value = configured_params[p]
+                    if isinstance(value, list) and len(value) > 1:
+                        search_params[p] = value
+                    else:
+                        default_params[p] = value[0]
+                print(f"{algo.name}: {search_params} (defaults: {default_params})")
+                algo.param_grid = IndependentParameterGrid(search_params, default_params=default_params)
             else:
                 algo.param_grid = FullParameterGrid(configured_params)
