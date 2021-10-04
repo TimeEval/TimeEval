@@ -47,13 +47,15 @@ class TestDefaultFactorHeuristic(unittest.TestCase):
         self.assertIn("Could not find the default value", str(e.exception))
 
     def test_returns_expected_data_type_int(self):
-        self.algo.params["alpha"]["defaultValue"] = 1
+        algo = deepcopy(self.algo)
+        algo.params["alpha"]["defaultValue"] = 1
         heuristic = DefaultFactorHeuristic(factor=2.0)
-        value = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="alpha")
+        value = heuristic(algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="alpha")
         self.assertEqual(type(value), int)
 
     def test_returns_expected_data_type_float(self):
-        self.algo.params["alpha"]["defaultValue"] = 1.0
+        algo = deepcopy(self.algo)
+        algo.params["alpha"]["defaultValue"] = 1.0
         heuristic = DefaultFactorHeuristic(factor=2.0)
-        value = heuristic(self.algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="alpha")
+        value = heuristic(algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="alpha")
         self.assertEqual(type(value), float)
