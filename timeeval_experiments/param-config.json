@@ -19,9 +19,6 @@
     "SSA": {
       "window_size": "2.0 dataset period size"
     },
-    "Torsk": {
-      "transient_window_size": "20% of train_window_size"
-    },
     "XGBoosting (RR)": {
       "learning_rate": 0.1,
       "n_trees": 10
@@ -48,6 +45,22 @@
       "connectivity": 0.25,
       "spectral_radius": 0.6,
       "activation": "tanh"
+    },
+    "Torsk": {
+      "input_map_size": 100,
+      "train_window_size": 100,
+      "transient_window_size": "20% of train_window_size",
+      "prediction_window_size": 5,
+      "context_window_size": 10,
+      "scoring_small_window_size": 10,
+      "scoring_large_window_size": 100,
+      "reservoir_representation": "sparse",
+      "input_map_scale": 0.125,
+      "spectral_radius": 2.0,
+      "density": 0.01,
+      "imed_loss": false,
+      "train_method": "pinv_svd",
+      "tikhonov_beta": null
     }
   },
   "__heuristic_function_mapping": {
