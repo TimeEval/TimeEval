@@ -99,6 +99,14 @@ class AlgorithmConfigurator:
                     #  else: don't specify a value, because the default is used anyway
 
                 elif not ignore_shared and p in self._shared_params:
+                    value = self._shared_params[p]["value"]
+                    # this should be a single fixed value
+                    if isinstance(value, list):
+                        raise ValueError(f"Wrong format: value for shared parameter '{p}' "
+                                         "should be a single parameter value")
+                    configured_params[p] = [value]
+
+                elif perform_search and p in self._shared_params:
                     value = self._shared_params[p]["search_space"]
                     # this should already be a list of parameter options
                     if not isinstance(value, list):
@@ -106,7 +114,7 @@ class AlgorithmConfigurator:
                                          "should be a list of parameter options")
                     configured_params[p] = value
 
-                elif not ignore_optimized and p in self._optimized_params:
+                elif perform_search and not ignore_optimized and p in self._optimized_params:
                     value = self._optimized_params[p]
                     # if there are multiple algos with the same parameter, there can be different search spaces
                     if isinstance(value, dict):

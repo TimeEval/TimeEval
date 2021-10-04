@@ -23,7 +23,12 @@
       "transient_window_size": "20% of train_window_size"
     },
     "XGBoosting (RR)": {
-      "learning_rate": 0.1
+      "learning_rate": 0.1,
+      "n_trees": 10
+    },
+    "Hybrid KNN": {
+      "n_neighbors": 10,
+      "n_estimators": 1000
     },
     "VALMOD":  {
       "min_anomaly_window_size": "1.0 dataset period size",
@@ -81,12 +86,7 @@
     "period": "dataset period size",
     "query_window_size": "1.5*window_size",
     "transient_window_size": "20% of train_window_size",
-    "window_size": [
-      "0.5 dataset period size",
-      "1.0 dataset period size",
-      "1.5 dataset period size",
-      "2.0 dataset period size"
-    ]
+    "window_size": "2.0 dataset period size"
   },
   "fixed_params": {
     "activationThreshold": 12,
@@ -737,7 +737,8 @@
         30,
         40,
         50
-      ]
+      ],
+      "value": 5
     },
     "leaf_size": {
       "algorithms": [
@@ -749,7 +750,8 @@
         20,
         30,
         40
-      ]
+      ],
+      "value": 20
     },
     "mag_window_size": {
       "algorithms": [
@@ -760,7 +762,8 @@
         28,
         40,
         52
-      ]
+      ],
+      "value": 40
     },
     "n_bins": {
       "algorithms": [
@@ -772,8 +775,10 @@
       "search_space": [
         5,
         8,
-        10
-      ]
+        10,
+        20
+      ],
+      "value": 10
     },
     "n_clusters": {
       "algorithms": [
@@ -788,7 +793,8 @@
         30,
         40,
         50
-      ]
+      ],
+      "value": 50
     },
     "n_estimators": {
       "algorithms": [
@@ -801,7 +807,8 @@
         10,
         100,
         1000
-      ]
+      ],
+      "value": 500
     },
     "n_neighbors": {
       "algorithms": [
@@ -819,7 +826,8 @@
         30,
         40,
         50
-      ]
+      ],
+      "value": 50
     },
     "n_trees": {
       "algorithms": [
@@ -836,7 +844,8 @@
         10,
         100,
         1000
-      ]
+      ],
+      "value": 500
     },
     "prediction_window_size": {
       "algorithms": [
@@ -851,7 +860,8 @@
         5,
         10,
         50
-      ]
+      ],
+      "value": 50
     },
     "score_window_size": {
       "algorithms": [
@@ -862,7 +872,8 @@
         28,
         40,
         52
-      ]
+      ],
+      "value": 40
     },
     "train_window_size": {
       "algorithms": [
@@ -880,7 +891,8 @@
         100,
         500,
         1000
-      ]
+      ],
+      "value": 500
     }
   }
 }
