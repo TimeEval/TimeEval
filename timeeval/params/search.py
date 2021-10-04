@@ -64,7 +64,7 @@ class FullParameterGrid(ParameterConfig):
 
     def __init__(self, param_grid: Mapping[str, Any]):
         if not isinstance(param_grid, Mapping):
-            if isinstance(param_grid, Iterable):
+            if isinstance(param_grid, (list, Iterator)):
                 raise TypeError("A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
                                 f"ParameterConfig ({param_grid}). Please use a "
                                 "`timeeval.search.IndependentParameterGrid` for this!")
@@ -121,8 +121,12 @@ class IndependentParameterGrid(ParameterConfig):
         if not isinstance(default_params, Mapping):
             raise TypeError(f"Default parameters is not a dict ({default_params})")
 
-        self.default_params = dict((k, [default_params[k]]) for k in default_params)
-        print(self.default_params)
+        self.default_params = {}
+        for k, v in default_params.items():
+            if isinstance(v, list):
+                raise TypeError(f"Default parameters contain a list of values ({k}: {v}). Only fixed values are "
+                                "allowed for defaults!")
+            self.default_params[k] = [v]
 
         grids = []
         for param, values in param_grid.items():
@@ -132,7 +136,8 @@ class IndependentParameterGrid(ParameterConfig):
                 grid = dict(self.default_params)
                 grid[param] = [v]
                 grids.append(grid)
-        print(grids)
+        if len(grids) == 0:
+            grids.append(self.default_params)
         self._param_grid = ParameterGrid(grids)
 
     @property

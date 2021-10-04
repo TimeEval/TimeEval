@@ -92,7 +92,7 @@ class Datasets(ContextManager['Datasets']):
     _df: pd.DataFrame
     _custom_datasets: CustomDatasetsBase
 
-    def __init__(self, data_folder: Union[str, Path], custom_datasets_file: Optional[Union[str, Path]] = None):
+    def __init__(self, data_folder: Union[str, Path], custom_datasets_file: Optional[Union[str, Path]] = None, create_if_missing: bool = True):
         """
         :param data_folder: Path to the folder, where the benchmark data is stored.
           This folder consists of the file `datasets.csv` and the datasets in an hierarchical storage layout.
@@ -101,7 +101,11 @@ class Datasets(ContextManager['Datasets']):
         self._filepath = Path(data_folder) / self.INDEX_FILENAME
         self._dirty = False
         if not self._filepath.exists():
-            self._df = self._create_index_file()
+            if create_if_missing:
+                self._df = self._create_index_file()
+            else:
+                raise FileNotFoundError(f"Could not find the index file ({self._filepath.resolve()}). "
+                                        "Is your data_folder correct?")
         else:
             self.refresh(force=True)
 
