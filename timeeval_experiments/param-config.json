@@ -61,6 +61,12 @@
       "imed_loss": false,
       "train_method": "pinv_svd",
       "tikhonov_beta": null
+    },
+    "Bagel": {
+      "window_size": "2.0 dataset period size",
+      "latent_size": 6,
+      "hidden_layer_shape": [100, 100],
+      "dropout": 0.1
     }
   },
   "__heuristic_function_mapping": {
