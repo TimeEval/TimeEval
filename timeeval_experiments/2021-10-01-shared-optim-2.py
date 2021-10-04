@@ -29,7 +29,7 @@ np.random.rand(42)
 
 
 def main():
-    dm = Datasets(HPI_CLUSTER.akita_test_case_path)
+    dm = Datasets(HPI_CLUSTER.akita_test_case_path, create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
@@ -118,8 +118,9 @@ def main():
     sys.stdout.flush()
 
     configurator.configure(algorithms,
-                           perform_search=True,
-                           ignore_optimized=True,
+                           ignore_optimized=True,  # ignore the optimized parameter search spaces
+                           ignore_shared=True,     # ignore the fixed shared parameter values
+                           perform_search=True,    # but perform search over the shared parameter search spaces
                            assume_parameter_independence=True
                            )
 
