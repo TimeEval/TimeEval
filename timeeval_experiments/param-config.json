@@ -67,6 +67,15 @@
       "latent_size": 6,
       "hidden_layer_shape": [100, 100],
       "dropout": 0.1
+    },
+    "HBOS": {
+      "n_bins": 20
+    },
+    "PST": {
+      "n_bins": 5
+    },
+    "MultiHMM": {
+      "n_bins": 5
     }
   },
   "__heuristic_function_mapping": {
