@@ -13,6 +13,7 @@ from timeeval.resource_constraints import ResourceConstraints
 from timeeval.utils.metrics import Metric
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
+from timeeval_experiments.baselines import Baselines
 
 
 # Setup logging
