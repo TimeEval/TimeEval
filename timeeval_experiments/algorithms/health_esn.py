@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _health_esn_parameters: Dict[str, Dict[str, Any]] = {
@@ -47,7 +46,7 @@ _health_esn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def health_esn(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def health_esn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="HealthESN",
         main=DockerAdapter(
@@ -59,7 +58,7 @@ def health_esn(params: Any = None, skip_pull: bool = False, timeout: Optional[Du
         preprocess=None,
         postprocess=None,
         params=_health_esn_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

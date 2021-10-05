@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -56,7 +55,7 @@ _subsequence_lof_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def subsequence_lof(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def subsequence_lof(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Subsequence LOF",
         main=DockerAdapter(
@@ -68,7 +67,7 @@ def subsequence_lof(params: Any = None, skip_pull: bool = False, timeout: Option
         preprocess=None,
         postprocess=post_sLOF,
         params=_subsequence_lof_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

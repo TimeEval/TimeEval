@@ -27,7 +27,7 @@
       "n_neighbors": 10,
       "n_estimators": 1000
     },
-    "VALMOD":  {
+    "VALMOD": {
       "min_anomaly_window_size": "1.0 dataset period size",
       "max_anomaly_window_size": "2.0 dataset period size",
       "heap_size": 50,
@@ -54,7 +54,32 @@
       "context_window_size": 10,
       "scoring_small_window_size": 10,
       "scoring_large_window_size": 100,
-      "reservoir_representation": "sparse"
+      "reservoir_representation": "sparse",
+      "input_map_scale": 0.125,
+      "spectral_radius": 2.0,
+      "density": 0.01,
+      "imed_loss": false,
+      "train_method": "pinv_svd",
+      "tikhonov_beta": null
+    },
+    "Bagel": {
+      "window_size": "2.0 dataset period size",
+      "latent_size": 6,
+      "hidden_layer_shape": [100, 100],
+      "dropout": 0.1
+    },
+    "EncDec-AD": {
+      "latent_size": "-30% default value",
+      "lstm_layers": 3
+    },
+    "HBOS": {
+      "n_bins": 20
+    },
+    "PST": {
+      "n_bins": 5
+    },
+    "MultiHMM": {
+      "n_bins": 5
     }
   },
   "__heuristic_function_mapping": {

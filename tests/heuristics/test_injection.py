@@ -55,7 +55,7 @@ class TestInjection(unittest.TestCase):
             "beta": "heuristic:DefaultExponentialFactorHeuristic(exponent=-2)"
         }
         # required by DefaultFactorHeuristics and DefaultExponentialFactorHeuristic:
-        fixtures.algorithm.params = {"alpha": {"defaultValue": 0.1}, "beta": {"defaultValue": 5}}
+        fixtures.algorithm.params = {"alpha": {"defaultValue": 0.1}, "beta": {"defaultValue": 5.0}}
         new_params = inject_heuristic_values(
             params=params,
             algorithm=fixtures.algorithm,

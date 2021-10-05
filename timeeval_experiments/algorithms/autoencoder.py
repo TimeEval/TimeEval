@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _autoencoder_parameters: Dict[str, Dict[str, Any]] = {
@@ -53,7 +52,7 @@ _autoencoder_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def autoencoder(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def autoencoder(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="AutoEncoder (AE)",
         main=DockerAdapter(
@@ -65,7 +64,7 @@ def autoencoder(params: Any = None, skip_pull: bool = False, timeout: Optional[D
         preprocess=None,
         postprocess=None,
         params=_autoencoder_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

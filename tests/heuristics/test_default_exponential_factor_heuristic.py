@@ -45,3 +45,17 @@ class TestDefaultExponentialFactorHeuristic(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             heuristic(fixtures.algorithm, fixtures.dataset, fixtures.dummy_dataset_path, param_name="beta")
         self.assertIn("Could not find the default value", str(e.exception))
+
+    def test_returns_expected_data_type_int(self):
+        algo = deepcopy(self.algo)
+        algo.params["beta"]["defaultValue"] = 1
+        heuristic = DefaultExponentialFactorHeuristic(exponent=2)
+        value = heuristic(algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="beta")
+        self.assertEqual(type(value), int)
+
+    def test_returns_expected_data_type_float(self):
+        algo = deepcopy(self.algo)
+        algo.params["beta"]["defaultValue"] = 1.0
+        heuristic = DefaultExponentialFactorHeuristic(exponent=2)
+        value = heuristic(algo, fixtures.dataset, fixtures.dummy_dataset_path, param_name="beta")
+        self.assertEqual(type(value), float)

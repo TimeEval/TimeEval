@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _pci_parameters: Dict[str, Dict[str, Any]] = {
@@ -29,7 +28,7 @@ _pci_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def pci(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def pci(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="PCI",
         main=DockerAdapter(
@@ -41,7 +40,7 @@ def pci(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration]
         preprocess=None,
         postprocess=None,
         params=_pci_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")
