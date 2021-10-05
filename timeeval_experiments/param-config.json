@@ -27,7 +27,7 @@
       "n_neighbors": 10,
       "n_estimators": 1000
     },
-    "VALMOD":  {
+    "VALMOD": {
       "min_anomaly_window_size": "1.0 dataset period size",
       "max_anomaly_window_size": "2.0 dataset period size",
       "heap_size": 50,

@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -70,7 +69,7 @@ _hybrid_knn_parameters: Dict[str, Dict[str, Any]] = {
  },
  "n_neighbors": {
   "defaultValue": 12,
-  "description": "Defines which neighbour's distance to use",
+  "description": "Defines number of neighbors to use for distance calculation",
   "name": "n_neighbors",
   "type": "int"
  },
@@ -95,7 +94,7 @@ _hybrid_knn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def hybrid_knn(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def hybrid_knn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Hybrid KNN",
         main=DockerAdapter(
@@ -107,7 +106,7 @@ def hybrid_knn(params: Any = None, skip_pull: bool = False, timeout: Optional[Du
         preprocess=None,
         postprocess=post_hybrid_knn,
         params=_hybrid_knn_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")
