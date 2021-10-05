@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -12,7 +11,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for Torsk
 def _post_torsk(scores: np.ndarray, args: dict) -> np.ndarray:
-    pred_size = args.get("hyper_params", {}).get("prediction_window_size", 20)
+    pred_size = args.get("hyper_params", {}).get("pred_size", 20)
     context_window_size = args.get("hyper_params", {}).get("context_window_size", 10)
     size = pred_size * context_window_size + 1
     return ReverseWindowing(window_size=size).fit_transform(scores)
@@ -118,7 +117,7 @@ _torsk_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def torsk(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def torsk(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Torsk",
         main=DockerAdapter(
@@ -130,7 +129,7 @@ def torsk(params: Any = None, skip_pull: bool = False, timeout: Optional[Duratio
         preprocess=None,
         postprocess=_post_torsk,
         params=_torsk_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

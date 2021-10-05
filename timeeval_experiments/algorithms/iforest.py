@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _iforest_parameters: Dict[str, Dict[str, Any]] = {
@@ -53,7 +52,7 @@ _iforest_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def iforest(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def iforest(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Isolation Forest (iForest)",
         main=DockerAdapter(
@@ -65,7 +64,7 @@ def iforest(params: Any = None, skip_pull: bool = False, timeout: Optional[Durat
         preprocess=None,
         postprocess=None,
         params=_iforest_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

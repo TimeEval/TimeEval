@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _numenta_htm_parameters: Dict[str, Dict[str, Any]] = {
@@ -155,7 +154,7 @@ _numenta_htm_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def numenta_htm(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def numenta_htm(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="NumentaHTM",
         main=DockerAdapter(
@@ -167,7 +166,7 @@ def numenta_htm(params: Any = None, skip_pull: bool = False, timeout: Optional[D
         preprocess=None,
         postprocess=None,
         params=_numenta_htm_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

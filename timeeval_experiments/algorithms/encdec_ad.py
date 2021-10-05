@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -98,7 +97,7 @@ _encdec_ad_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def encdec_ad(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def encdec_ad(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="EncDec-AD",
         main=DockerAdapter(
@@ -110,7 +109,7 @@ def encdec_ad(params: Any = None, skip_pull: bool = False, timeout: Optional[Dur
         preprocess=None,
         postprocess=post_encdec_ad,
         params=_encdec_ad_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

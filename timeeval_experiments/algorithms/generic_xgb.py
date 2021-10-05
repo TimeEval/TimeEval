@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _generic_xgb_parameters: Dict[str, Dict[str, Any]] = {
@@ -95,7 +94,7 @@ _generic_xgb_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def generic_xgb(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def generic_xgb(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="XGBoosting (RR)",
         main=DockerAdapter(
@@ -107,7 +106,7 @@ def generic_xgb(params: Any = None, skip_pull: bool = False, timeout: Optional[D
         preprocess=None,
         postprocess=None,
         params=_generic_xgb_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

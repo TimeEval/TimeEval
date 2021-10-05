@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _multi_hmm_parameters: Dict[str, Dict[str, Any]] = {
@@ -29,7 +28,7 @@ _multi_hmm_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def multi_hmm(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def multi_hmm(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MultiHMM",
         main=DockerAdapter(
@@ -41,7 +40,7 @@ def multi_hmm(params: Any = None, skip_pull: bool = False, timeout: Optional[Dur
         preprocess=None,
         postprocess=None,
         params=_multi_hmm_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")
