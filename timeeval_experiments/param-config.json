@@ -70,7 +70,6 @@
     },
     "MTAD-GAT": {
       "window_size": "2.0 dataset period size",
-      "__comment": "set mag_window_size, score_window_size and context_window_size based on shared param optimization run results",
       "mag_window_size": 40,
       "score_window_size": 52,
       "context_window_size": 30,
