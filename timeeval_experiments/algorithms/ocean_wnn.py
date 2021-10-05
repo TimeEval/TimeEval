@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _ocean_wnn_parameters: Dict[str, Dict[str, Any]] = {
@@ -107,7 +106,7 @@ _ocean_wnn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def ocean_wnn(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def ocean_wnn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="OceanWNN",
         main=DockerAdapter(
@@ -119,7 +118,7 @@ def ocean_wnn(params: Any = None, skip_pull: bool = False, timeout: Optional[Dur
         preprocess=None,
         postprocess=None,
         params=_ocean_wnn_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

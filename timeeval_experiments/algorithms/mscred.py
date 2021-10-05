@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -96,7 +95,7 @@ _mscred_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def mscred(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def mscred(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MSCRED",
         main=DockerAdapter(
@@ -108,7 +107,7 @@ def mscred(params: Any = None, skip_pull: bool = False, timeout: Optional[Durati
         preprocess=None,
         postprocess=post_mscred,
         params=_mscred_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _random_black_forest_parameters: Dict[str, Dict[str, Any]] = {
@@ -89,7 +88,7 @@ _random_black_forest_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def random_black_forest(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def random_black_forest(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Random Black Forest (RR)",
         main=DockerAdapter(
@@ -101,7 +100,7 @@ def random_black_forest(params: Any = None, skip_pull: bool = False, timeout: Op
         preprocess=None,
         postprocess=None,
         params=_random_black_forest_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

@@ -27,7 +27,7 @@
       "n_neighbors": 10,
       "n_estimators": 1000
     },
-    "VALMOD":  {
+    "VALMOD": {
       "min_anomaly_window_size": "1.0 dataset period size",
       "max_anomaly_window_size": "2.0 dataset period size",
       "heap_size": 50,
@@ -67,6 +67,19 @@
       "latent_size": 6,
       "hidden_layer_shape": [100, 100],
       "dropout": 0.1
+    },
+    "EncDec-AD": {
+      "latent_size": "-30% default value",
+      "lstm_layers": 3
+    },
+    "HBOS": {
+      "n_bins": 20
+    },
+    "PST": {
+      "n_bins": 5
+    },
+    "MultiHMM": {
+      "n_bins": 5
     },
     "MTAD-GAT": {
       "window_size": "2.0 dataset period size",

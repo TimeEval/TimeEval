@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -56,7 +55,7 @@ _donut_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def donut(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def donut(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Donut",
         main=DockerAdapter(
@@ -68,7 +67,7 @@ def donut(params: Any = None, skip_pull: bool = False, timeout: Optional[Duratio
         preprocess=None,
         postprocess=post_donut,
         params=_donut_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

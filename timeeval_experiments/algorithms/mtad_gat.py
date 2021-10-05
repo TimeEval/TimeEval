@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -120,7 +119,7 @@ _mtad_gat_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def mtad_gat(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def mtad_gat(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MTAD-GAT",
         main=DockerAdapter(
@@ -132,7 +131,7 @@ def mtad_gat(params: Any = None, skip_pull: bool = False, timeout: Optional[Dura
         preprocess=None,
         postprocess=post_mtad_gat,
         params=_mtad_gat_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

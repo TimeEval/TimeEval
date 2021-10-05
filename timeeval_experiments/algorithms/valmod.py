@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 import numpy as np
 
@@ -56,7 +55,7 @@ _valmod_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def valmod(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def valmod(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="VALMOD",
         main=DockerAdapter(
@@ -68,7 +67,7 @@ def valmod(params: Any = None, skip_pull: bool = False, timeout: Optional[Durati
         preprocess=None,
         postprocess=post_valmod,
         params=_valmod_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

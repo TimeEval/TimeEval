@@ -1,10 +1,9 @@
 from durations import Duration
-from sklearn.model_selection import ParameterGrid
 from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import FullParameterGrid
+from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _laser_dbn_parameters: Dict[str, Dict[str, Any]] = {
@@ -29,7 +28,7 @@ _laser_dbn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def laser_dbn(params: Any = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def laser_dbn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="LaserDBN",
         main=DockerAdapter(
@@ -41,7 +40,7 @@ def laser_dbn(params: Any = None, skip_pull: bool = False, timeout: Optional[Dur
         preprocess=None,
         postprocess=None,
         params=_laser_dbn_parameters,
-        param_grid=FullParameterGrid(params or {}),
+        param_grid=params or FullParameterGrid({}),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")
