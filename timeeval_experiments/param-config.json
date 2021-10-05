@@ -72,13 +72,13 @@
       "window_size": "2.0 dataset period size",
       "__comment": "set mag_window_size, score_window_size and context_window_size based on shared param optimization run results",
       "mag_window_size": 40,
-      "score_window_size": 40,
-      "context_window_size": 5,
+      "score_window_size": 52,
+      "context_window_size": 30,
       "threshold": 6,
-      "gamma": ,
-      "latent_size": ,
+      "gamma": 0.8,
+      "latent_size": 5,
       "kernel_size": 7,
-      "linear_layer_shape": [300, 300, 300]
+      "linear_layer_shape": [5, 5, 5]
     }
   },
   "__heuristic_function_mapping": {
