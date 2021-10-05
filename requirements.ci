@@ -4,4 +4,3 @@ mypy==0.812
 twine
 freezegun
 jinja2
-coverage
