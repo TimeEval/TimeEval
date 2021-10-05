@@ -68,6 +68,10 @@
       "hidden_layer_shape": [100, 100],
       "dropout": 0.1
     },
+    "EncDec-AD": {
+      "latent_size": "-30% default value",
+      "lstm_layers": 3
+    },
     "HBOS": {
       "n_bins": 20
     },
