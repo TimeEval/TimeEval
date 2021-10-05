@@ -36,6 +36,9 @@ test:
   script:
     - python setup.py typecheck
     - python setup.py test
+  artifacts:
+    reports:
+      cobertura: coverage.xml
 
 build:
   stage: build

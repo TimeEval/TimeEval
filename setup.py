@@ -53,7 +53,8 @@ class PyTestCommand(Command):
         import pytest
         from pytest import ExitCode
 
-        exit_code = pytest.main(["--cov=timeeval", "--cov=timeeval_experiments.generator", "tests"])
+        exit_code = pytest.main(["--cov-report=term", "--cov-report=xml:coverage.xml",
+                                 "--cov=timeeval", "--cov=timeeval_experiments.generator", "tests"])
         if exit_code == ExitCode.TESTS_FAILED:
             raise DistutilsError("Tests failed!")
         elif exit_code == ExitCode.INTERRUPTED:
