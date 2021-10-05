@@ -2,15 +2,11 @@
 import logging
 import random
 import sys
-from pathlib import Path
-from typing import Any, Dict
 
 import numpy as np
 from durations import Duration
-from sklearn.preprocessing import MinMaxScaler
 
-from timeeval import TimeEval, Datasets, Algorithm, TrainingType, InputDimensionality, AlgorithmParameter
-from timeeval.adapters import FunctionAdapter
+from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
 from timeeval.remote import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints
@@ -18,6 +14,7 @@ from timeeval.utils.metrics import Metric
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
 from timeeval_experiments.baselines import Baselines
+
 
 # Setup logging
 logging.basicConfig(
@@ -30,54 +27,6 @@ logging.basicConfig(
 
 random.seed(42)
 np.random.rand(42)
-
-
-class Baselines:
-    @staticmethod
-    def random() -> Algorithm:
-        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
-            if isinstance(X, Path):
-                raise ValueError("Random baseline requires an np.ndarray as input!")
-            return np.random.default_rng().uniform(0, 1, X.shape[0])
-
-        return Algorithm(
-            name="Random",
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
-            data_as_file=False,
-            main=FunctionAdapter(fn)
-        )
-
-    @staticmethod
-    def normal() -> Algorithm:
-        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
-            if isinstance(X, Path):
-                raise ValueError("Normal baseline requires an np.ndarray as input!")
-            return np.zeros(X.shape[0])
-
-        return Algorithm(
-            name="normal",
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
-            data_as_file=False,
-            main=FunctionAdapter(fn)
-        )
-
-    @staticmethod
-    def increasing() -> Algorithm:
-        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
-            if isinstance(X, Path):
-                raise ValueError("Increasing baseline requires an np.ndarray as input!")
-            indices = np.arange(X.shape[0])
-            return MinMaxScaler().fit_transform(indices.reshape(-1, 1)).reshape(-1)
-
-        return Algorithm(
-            name="increasing",
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
-            data_as_file=False,
-            main=FunctionAdapter(fn)
-        )
 
 
 def main():
