@@ -71,6 +71,15 @@
     "EncDec-AD": {
       "latent_size": "-30% default value",
       "lstm_layers": 3
+    },
+    "HBOS": {
+      "n_bins": 20
+    },
+    "PST": {
+      "n_bins": 5
+    },
+    "MultiHMM": {
+      "n_bins": 5
     }
   },
   "__heuristic_function_mapping": {
