@@ -11,7 +11,7 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for Torsk
 def _post_torsk(scores: np.ndarray, args: dict) -> np.ndarray:
-    pred_size = args.get("hyper_params", {}).get("pred_size", 20)
+    pred_size = args.get("hyper_params", {}).get("prediction_window_size", 20)
     context_window_size = args.get("hyper_params", {}).get("context_window_size", 10)
     size = pred_size * context_window_size + 1
     return ReverseWindowing(window_size=size).fit_transform(scores)
@@ -31,7 +31,7 @@ _torsk_parameters: Dict[str, Dict[str, Any]] = {
   "type": "float"
  },
  "imed_loss": {
-  "defaultValue": "False",
+  "defaultValue": False,
   "description": "Calculate loss on spatially aware (image-based) data representation instead of flat arrays",
   "name": "imed_loss",
   "type": "boolean"

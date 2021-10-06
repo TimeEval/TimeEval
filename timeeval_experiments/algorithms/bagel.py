@@ -7,21 +7,33 @@ from timeeval.params import ParameterConfig, FullParameterGrid
 
 
 _bagel_parameters: Dict[str, Dict[str, Any]] = {
+ "batch_size": {
+  "defaultValue": 128,
+  "description": "Batch size for input data",
+  "name": "batch_size",
+  "type": "int"
+ },
  "cuda": {
-  "defaultValue": "False",
+  "defaultValue": False,
   "description": "Use GPU for training",
   "name": "cuda",
   "type": "boolean"
  },
+ "dropout": {
+  "defaultValue": 0.1,
+  "description": "Rate of conditional dropout used",
+  "name": "dropout",
+  "type": "float"
+ },
  "early_stopping_delta": {
-  "defaultValue": 0.05,
-  "description": "If 1 - (loss / last_loss) is less than `delta` for `patience` epochs, stop",
+  "defaultValue": 0.5,
+  "description": "If loss is `delta` or less smaller for `patience` epochs, stop",
   "name": "early_stopping_delta",
   "type": "float"
  },
  "early_stopping_patience": {
   "defaultValue": 10,
-  "description": "If 1 - (loss / last_loss) is less than `delta` for `patience` epochs, stop",
+  "description": "If loss is `delta` or less smaller for `patience` epochs, stop",
   "name": "early_stopping_patience",
   "type": "int"
  },
@@ -30,6 +42,15 @@ _bagel_parameters: Dict[str, Dict[str, Any]] = {
   "description": "Number of passes over the entire dataset",
   "name": "epochs",
   "type": "int"
+ },
+ "hidden_layer_shape": {
+  "defaultValue": [
+   100,
+   100
+  ],
+  "description": "NN hidden layers structure",
+  "name": "hidden_layer_shape",
+  "type": "List[int]"
  },
  "latent_size": {
   "defaultValue": 8,
@@ -45,9 +66,15 @@ _bagel_parameters: Dict[str, Dict[str, Any]] = {
  },
  "split": {
   "defaultValue": 0.8,
-  "description": "Percentage of training data to use for training",
+  "description": "Fraction to split training data by for validation",
   "name": "split",
   "type": "float"
+ },
+ "window_size": {
+  "defaultValue": 120,
+  "description": "Size of sliding windows",
+  "name": "window_size",
+  "type": "int"
  }
 }
 

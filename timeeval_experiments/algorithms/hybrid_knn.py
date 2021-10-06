@@ -69,7 +69,7 @@ _hybrid_knn_parameters: Dict[str, Dict[str, Any]] = {
  },
  "n_neighbors": {
   "defaultValue": 12,
-  "description": "Defines number of neighbors to use for distance calculation",
+  "description": "Defines which neighbour's distance to use",
   "name": "n_neighbors",
   "type": "int"
  },
