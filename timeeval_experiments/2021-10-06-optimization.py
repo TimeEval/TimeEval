@@ -72,7 +72,7 @@ def main():
         img_embedding_cae(),
         kmeans(),
         # knn(),
-        # laser_dbn(),
+        laser_dbn(),
         left_stampi(),
         # lof(),
         lstm_ad(),
