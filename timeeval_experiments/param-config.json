@@ -1,72 +1,13 @@
 {
   "__algorithm_overwrites": {
-    "SR-CNN": {
-      "window_size": "1.5 dataset period size",
-      "step": 64,
-      "num": 10
-    },
-    "TAnoGan": {
-      "window_size": "1.5 dataset period size",
-      "iterations": 25
-    },
-    "HOT SAX": {
-      "alphabet_size": 3,
-      "anomaly_window_size": "max anomaly length",
-      "normalization_threshold": 0.01,
-      "num_discords": null,
-      "paa_transform_size": 3
-    },
-    "SSA": {
-      "window_size": "2.0 dataset period size"
-    },
-    "XGBoosting (RR)": {
-      "learning_rate": 0.1,
-      "n_trees": 10
-    },
-    "Hybrid KNN": {
-      "n_neighbors": 10,
-      "n_estimators": 1000
-    },
-    "VALMOD": {
-      "min_anomaly_window_size": "1.0 dataset period size",
-      "max_anomaly_window_size": "2.0 dataset period size",
-      "heap_size": 50,
-      "exclusion_zone": 0.5
-    },
-    "Triple ES (Holt-Winter's)": {
-      "train_window_size": 400,
-      "period": "dataset period size",
-      "trend": "add",
-      "seasonal": "add"
-    },
-    "Health ESN": {
-      "prediction_window_size": 50,
-      "linear_hidden_size": 500,
-      "connectivity": 0.25,
-      "spectral_radius": 0.6,
-      "activation": "tanh"
-    },
-    "Torsk": {
-      "input_map_size": 100,
-      "train_window_size": 100,
-      "transient_window_size": "20% of train_window_size",
-      "prediction_window_size": 5,
-      "context_window_size": 10,
-      "scoring_small_window_size": 10,
-      "scoring_large_window_size": 100,
-      "reservoir_representation": "sparse",
-      "input_map_scale": 0.125,
-      "spectral_radius": 2.0,
-      "density": 0.01,
-      "imed_loss": false,
-      "train_method": "pinv_svd",
-      "tikhonov_beta": null
-    },
     "Bagel": {
-      "window_size": "2.0 dataset period size",
+      "dropout": 0.1,
+      "hidden_layer_shape": [
+        100,
+        100
+      ],
       "latent_size": 6,
-      "hidden_layer_shape": [100, 100],
-      "dropout": 0.1
+      "window_size": "2.0 dataset period size"
     },
     "EncDec-AD": {
       "latent_size": "-30% default value",
@@ -75,22 +16,88 @@
     "HBOS": {
       "n_bins": 20
     },
-    "PST": {
-      "n_bins": 5
+    "HOT SAX": {
+      "alphabet_size": 3,
+      "anomaly_window_size": "max anomaly length",
+      "normalization_threshold": 0.01,
+      "num_discords": null,
+      "paa_transform_size": 3
+    },
+    "Health ESN": {
+      "activation": "tanh",
+      "connectivity": 0.25,
+      "linear_hidden_size": 500,
+      "prediction_window_size": 50,
+      "spectral_radius": 0.6
+    },
+    "Hybrid KNN": {
+      "n_estimators": 1000,
+      "n_neighbors": 10
+    },
+    "MTAD-GAT": {
+      "context_window_size": 30,
+      "gamma": 0.8,
+      "kernel_size": 7,
+      "latent_size": 5,
+      "linear_layer_shape": [
+        5,
+        5,
+        5
+      ],
+      "mag_window_size": 40,
+      "score_window_size": 52,
+      "threshold": 6,
+      "window_size": "2.0 dataset period size"
     },
     "MultiHMM": {
       "n_bins": 5
     },
-    "MTAD-GAT": {
-      "window_size": "2.0 dataset period size",
-      "mag_window_size": 40,
-      "score_window_size": 52,
-      "context_window_size": 30,
-      "threshold": 6,
-      "gamma": 0.8,
-      "latent_size": 5,
-      "kernel_size": 7,
-      "linear_layer_shape": [5, 5, 5]
+    "PST": {
+      "n_bins": 5
+    },
+    "SR-CNN": {
+      "num": 10,
+      "step": 64,
+      "window_size": "1.5 dataset period size"
+    },
+    "SSA": {
+      "window_size": "2.0 dataset period size"
+    },
+    "TAnoGan": {
+      "iterations": 25,
+      "window_size": "1.5 dataset period size"
+    },
+    "Torsk": {
+      "context_window_size": 10,
+      "density": 0.01,
+      "imed_loss": false,
+      "input_map_scale": 0.125,
+      "input_map_size": 100,
+      "prediction_window_size": 5,
+      "reservoir_representation": "sparse",
+      "scoring_large_window_size": 100,
+      "scoring_small_window_size": 10,
+      "spectral_radius": 2.0,
+      "tikhonov_beta": null,
+      "train_method": "pinv_svd",
+      "train_window_size": 100,
+      "transient_window_size": "20% of train_window_size"
+    },
+    "Triple ES (Holt-Winter's)": {
+      "period": "dataset period size",
+      "seasonal": "add",
+      "train_window_size": 400,
+      "trend": "add"
+    },
+    "VALMOD": {
+      "exclusion_zone": 0.5,
+      "heap_size": 50,
+      "max_anomaly_window_size": "2.0 dataset period size",
+      "min_anomaly_window_size": "1.0 dataset period size"
+    },
+    "XGBoosting (RR)": {
+      "learning_rate": 0.1,
+      "n_trees": 10
     }
   },
   "__heuristic_function_mapping": {
@@ -129,7 +136,12 @@
     "period": "dataset period size",
     "query_window_size": "1.5*window_size",
     "transient_window_size": "20% of train_window_size",
-    "window_size": "2.0 dataset period size"
+    "window_size": [
+      "0.5 dataset period size",
+      "1.0 dataset period size",
+      "1.5 dataset period size",
+      "2.0 dataset period size"
+    ]
   },
   "fixed_params": {
     "activationThreshold": 12,
@@ -251,13 +263,43 @@
       false
     ],
     "alpha": {
-      "CBLOF": [0.8, 0.9, 1.0],
-      "DBStream": [0.01, 0.1, 0.2, 0.5],
-      "HBOS": [0.01, 0.1, 0.2, 0.5],
-      "IF-LOF": [0.1, 0.5, 0.9],
-      "NumentaHTM": [0.1, 0.5, 0.9],
-      "SAND": [0.1, 0.5, 0.9],
-      "SSA": [0.1, 0.2, 0.5]
+      "CBLOF": [
+        0.8,
+        0.9,
+        1.0
+      ],
+      "DBStream": [
+        0.01,
+        0.1,
+        0.2,
+        0.5
+      ],
+      "HBOS": [
+        0.01,
+        0.1,
+        0.2,
+        0.5
+      ],
+      "IF-LOF": [
+        0.1,
+        0.5,
+        0.9
+      ],
+      "NumentaHTM": [
+        0.1,
+        0.5,
+        0.9
+      ],
+      "SAND": [
+        0.1,
+        0.5,
+        0.9
+      ],
+      "SSA": [
+        0.1,
+        0.2,
+        0.5
+      ]
     },
     "alphabet_size": {
       "GrammarViz": [
