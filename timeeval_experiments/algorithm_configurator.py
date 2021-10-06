@@ -145,8 +145,11 @@ class AlgorithmConfigurator:
                     if isinstance(value, list) and len(value) > 1:
                         search_params[p] = value
                     else:
-                        default_params[p] = value[0]
-                print(f"{algo.name}: {search_params} (defaults: {default_params})")
+                        value = value[0]
+                        # convert list default params to tuples
+                        if isinstance(value, list):
+                            value = tuple(value)
+                        default_params[p] = value
                 algo.param_grid = IndependentParameterGrid(search_params, default_params=default_params)
             else:
                 algo.param_grid = FullParameterGrid(configured_params)
