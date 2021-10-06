@@ -1,9 +1,13 @@
-import sys
+import glob
 import os
-from pathlib import Path
+import shutil
+import sys
 from distutils.cmd import Command
 from distutils.errors import DistutilsError
+from pathlib import Path
+
 from setuptools import setup, find_packages
+
 
 README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 HERE = Path(os.path.dirname(__file__)).absolute()
@@ -22,11 +26,11 @@ def load_dependencies():
         env = yaml.safe_load(f)
 
     def split_deps(deps):
-        pip = list(filter(lambda x: isinstance(x, dict), deps))
-        if len(pip) == 1:
-            pip = pip[0].get("pip", []) or []
+        pip_deps = list(filter(lambda x: isinstance(x, dict), deps))
+        if len(pip_deps) == 1:
+            pip_deps = pip_deps[0].get("pip", []) or []
         conda = list(filter(lambda x: not isinstance(x, dict), deps))
-        return pip, conda
+        return pip_deps, conda
 
     def to_pip(dep):
         return dep.replace("=", "==")
@@ -85,6 +89,35 @@ class MyPyCheckCommand(Command):
         mypy(None, stdout=sys.stdout, stderr=sys.stderr, args=args)
 
 
+class CleanCommand(Command):
+    description = "Remove build artifacts from the source tree"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        files = [
+            ".coverage*",
+            "coverage.xml"
+        ]
+        dirs = ["build", "dist", "*.egg-info", "**/__pycache__", ".mypy_cache",
+                ".pytest_cache", "**/.ipynb_checkpoints"]
+        for d in dirs:
+            for filename in glob.glob(d):
+                shutil.rmtree(filename, ignore_errors=True)
+
+        for f in files:
+            for filename in glob.glob(f):
+                try:
+                    os.remove(filename)
+                except OSError:
+                    pass
+
+
 setup(
     name="TimeEval",
     version="0.5.0",
@@ -105,7 +138,8 @@ setup(
     python_requires=">=3.7",
     cmdclass={
         "test": PyTestCommand,
-        "typecheck": MyPyCheckCommand
+        "typecheck": MyPyCheckCommand,
+        "clean": CleanCommand
     },
     zip_safe=False
 )
