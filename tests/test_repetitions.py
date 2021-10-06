@@ -41,6 +41,19 @@ class TestRepetitions(unittest.TestCase):
         results = timeeval.get_results(aggregated=False)
         self.assertEqual(len(timeeval.exps.datasets) * len(self.algorithms) * 3, len(results))
 
+    def test_return_aggregated_but_not_short(self):
+        datasets_config = Path("./tests/example_data/datasets.json")
+        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
+                                repetitions=3, results_path=Path(tmp_path))
+            timeeval.run()
+        results = timeeval.get_results(aggregated=True, short=False)
+        self.assertIn("ROC_AUC_mean", results.columns)
+        self.assertIn("ROC_AUC_std", results.columns)
+        np.testing.assert_array_almost_equal(results["ROC_AUC_mean"].values, self.results["ROC_AUC"].values)
+        self.assertEqual(len(timeeval.exps.datasets) * len(self.algorithms), len(results))
+
     def test_error_in_repetition(self):
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
