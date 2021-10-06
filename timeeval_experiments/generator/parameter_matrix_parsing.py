@@ -68,7 +68,7 @@ class ParameterMatrixProxy:
 
     @staticmethod
     def _parse_type(value: str, type_tag: str) -> Any:
-        if value == "default":
+        if value == "default" or value == "MANUAL":
             return value
         else:
             if type_tag.lower() == "int":
