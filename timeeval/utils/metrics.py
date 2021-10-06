@@ -30,7 +30,8 @@ class Metric(Enum):
     def _validate_scores(self, y_true: np.ndarray, y_score: np.ndarray,
                          inf_is_1: bool = True,
                          neginf_is_0: bool = True,
-                         nan_is_0: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+                         nan_is_0: bool = True,
+                         **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         y_true = np.array(y_true).copy()
         y_score = np.array(y_score).copy()
         # check labels
@@ -39,11 +40,11 @@ class Metric(Enum):
                           "y_true should be an integer array and y_score a float array!")
             return self._validate_scores(y_score, y_true)
 
-        y_true = column_or_1d(y_true)  # type: ignore
+        y_true: np.ndarray = column_or_1d(y_true)  # type: ignore
         assert_all_finite(y_true)
 
         # check scores
-        y_score = column_or_1d(y_score)  # type: ignore
+        y_score: np.ndarray = column_or_1d(y_score)  # type: ignore
 
         check_consistent_length([y_true, y_score])
         if self not in [Metric.ROC_AUC, Metric.PR_AUC, Metric.RANGE_PR_AUC, Metric.AVERAGE_PRECISION]:
@@ -78,7 +79,7 @@ class Metric(Enum):
         return y_true, y_score
 
     def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:
-        y_true, y_score = self._validate_scores(y_true, y_score)
+        y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
 
         if self == Metric.ROC_AUC:
             return auc_roc(y_true, y_score, **kwargs)
