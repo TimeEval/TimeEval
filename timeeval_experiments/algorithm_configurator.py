@@ -146,7 +146,6 @@ class AlgorithmConfigurator:
                         search_params[p] = value
                     else:
                         default_params[p] = value[0]
-                print(f"{algo.name}: {search_params} (defaults: {default_params})")
                 algo.param_grid = IndependentParameterGrid(search_params, default_params=default_params)
             else:
                 algo.param_grid = FullParameterGrid(configured_params)
