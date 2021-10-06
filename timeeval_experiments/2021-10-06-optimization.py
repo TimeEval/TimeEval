@@ -30,109 +30,75 @@ np.random.rand(42)
 
 
 def main():
-    # dm = Datasets(HPI_CLUSTER.akita_test_case_path, create_if_missing=False)
-    dm = Datasets("../../data/test-cases")
+    algo_page_size = 5
+    algo_page = 0
+
+    dm = Datasets(HPI_CLUSTER.akita_test_case_path, create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
     datasets = dm.select()
-    datasets = [(collection, name) for (collection, name) in datasets if not name.startswith("cbf-")]
+    datasets = [(collection, name) for (collection, name) in datasets
+                if not name.startswith("cbf-") or not name.startswith("rw-")]
     # datasets = random.sample(datasets, 200)
     print(f"Selected datasets: {len(datasets)}")
 
     algorithms = [
-        # arima(),
-        # autoencoder(),
-        # bagel(),
-        # cblof(),
-        # cof(),
-        # copod(),
-        # dae(),
         dbstream(),
         deepant(),
-        # deepnap(),
         donut(),
-        # dspot(),
         dwt_mlead(),
-        # eif(),
-        # encdec_ad(),
-        # ensemble_gi(),
-        # fast_mcd(),
         fft(),
         generic_rf(),
         generic_xgb(),
         grammarviz3(),
-        # hbos(),
-        # health_esn(),
-        # hif(),
-        # hotsax(),
         hybrid_knn(),
-        # if_lof(),
-        # iforest(),
         img_embedding_cae(),
         kmeans(),
-        # knn(),
         laser_dbn(),
         left_stampi(),
-        # lof(),
         lstm_ad(),
-        # lstm_vae(),
         median_method(),
-        # mscred(),
-        # mtad_gat(),
         multi_hmm(),
         norma(),
         normalizing_flows(),
-        # novelty_svr(),
         numenta_htm(),
         ocean_wnn(),
-        # omnianomaly(),
-        # pcc(),
         pci(),
         phasespace_svm(),
         pst(),
         random_black_forest(),
         robust_pca(),
-        # s_h_esd(),
         sand(),
-        # sarima(),
         series2graph(),
         sr(),
-        # sr_cnn(),
-        # ssa(),
         stamp(),
         stomp(),
-        # subsequence_fast_mcd(),
         subsequence_if(),
         subsequence_lof(),
-        # tanogan(),
         tarzan(),
         telemanom(),
-        # torsk(),
-        # triple_es(),
         ts_bitmap(),
-        # valmod(),
-        # Baselines.random(),
-        # Baselines.increasing(),
-        # Baselines.normal()
     ]
+    print(f"Selecting algorithms, page {algo_page+1} of {len(algorithms)//algo_page_size+1}:")
+    algorithms = algorithms[algo_page*algo_page_size:(algo_page+1)*algo_page_size]
+    print(", ".join(a.name for a in algorithms))
 
-    print(f"Selected algorithms: {len(algorithms)}\n")
-    sys.stdout.flush()
-
+    print("Configuring algorithms...")
     configurator.configure(algorithms,
                            ignore_shared=False,    # use already optimized shared parameters
                            perform_search=True,    # but perform search over the optimized parameter search spaces
                            assume_parameter_independence=True
                            )
 
-    print("Parameter configurations:")
+    print("\nParameter configurations:")
     print("=====================================================================================")
     for algo in algorithms:
         print(algo.name)
         for param in algo.param_grid:
             print(f"  {param}")
     print("=====================================================================================\n\n")
+    sys.stdout.flush()
 
     cluster_config = RemoteConfiguration(
         scheduler_host=HPI_CLUSTER.odin01,
