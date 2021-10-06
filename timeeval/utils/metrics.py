@@ -30,8 +30,7 @@ class Metric(Enum):
     def _validate_scores(self, y_true: np.ndarray, y_score: np.ndarray,
                          inf_is_1: bool = True,
                          neginf_is_0: bool = True,
-                         nan_is_0: bool = True,
-                         **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+                         nan_is_0: bool = True) -> Tuple[np.ndarray, np.ndarray]:
         y_true = np.array(y_true).copy()
         y_score = np.array(y_score).copy()
         # check labels
@@ -79,7 +78,7 @@ class Metric(Enum):
         return y_true, y_score
 
     def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:
-        y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
+        y_true, y_score = self._validate_scores(y_true, y_score)
 
         if self == Metric.ROC_AUC:
             return auc_roc(y_true, y_score, **kwargs)

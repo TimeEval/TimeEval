@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from time import time
 from types import FrameType
-from typing import Callable, List, Tuple, Dict, Optional
+from typing import Callable, List, Tuple, Dict, Optional, Any
 
 import numpy as np
 import pandas as pd
