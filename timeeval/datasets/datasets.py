@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from types import TracebackType
-from typing import Final, ContextManager, Optional, List, Type, Union, NamedTuple, Optional
+from typing import Final, ContextManager, List, Type, Union, NamedTuple, Optional
 
 import numpy as np
 import pandas as pd

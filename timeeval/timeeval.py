@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from time import time
 from types import FrameType
-from typing import Callable, List, Tuple, Dict, Optional
+from typing import Callable, List, Tuple, Dict, Optional, Any
 
 import numpy as np
 import pandas as pd
@@ -231,7 +231,6 @@ class TimeEval:
             group_names = ["algorithm", "collection", "dataset", "hyper_params_id"]
         keys = [key for key in self.metric_names + time_names if key in df.columns]
         grouped_results = df.groupby(group_names)
-        repetitions = [len(v) for k, v in grouped_results.groups.items()]
         results: pd.DataFrame = grouped_results[keys].mean()
 
         if short:
@@ -239,7 +238,7 @@ class TimeEval:
         else:
             std_results = grouped_results.std()[keys]
             results = results.join(std_results, lsuffix="_mean", rsuffix="_std")
-        results["repetitions"] = repetitions
+        results["repetitions"] = grouped_results["repetition"].count()
         return results
 
     def save_results(self, results_path: Optional[Path] = None):

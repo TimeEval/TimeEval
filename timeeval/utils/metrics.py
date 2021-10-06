@@ -40,11 +40,11 @@ class Metric(Enum):
                           "y_true should be an integer array and y_score a float array!")
             return self._validate_scores(y_score, y_true)
 
-        y_true = column_or_1d(y_true)  # type: ignore
+        y_true: np.ndarray = column_or_1d(y_true)  # type: ignore
         assert_all_finite(y_true)
 
         # check scores
-        y_score = column_or_1d(y_score)  # type: ignore
+        y_score: np.ndarray = column_or_1d(y_score)  # type: ignore
 
         check_consistent_length([y_true, y_score])
         if self not in [Metric.ROC_AUC, Metric.PR_AUC, Metric.RANGE_PR_AUC, Metric.AVERAGE_PRECISION]:

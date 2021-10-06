@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+from pathlib import Path
+
 import tqdm
 
-from pathlib import Path
-from timeeval import Datasets, DatasetRecord
-from timeeval.datasets import DatasetAnalyzer
+from timeeval import Datasets
 from timeeval.constants import HPI_CLUSTER
+from timeeval.datasets import DatasetAnalyzer, DatasetRecord
+
 
 """
 Goes through all existing datasets and re-generates the metadata.
