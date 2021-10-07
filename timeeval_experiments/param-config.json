@@ -98,6 +98,14 @@
     "XGBoosting (RR)": {
       "learning_rate": 0.1,
       "n_trees": 10
+    },
+    "OmniAnomaly": {
+      "window_size": "1.0 dataset period size",
+      "latent_size": 4,
+      "linear_hidden_size": 100,
+      "rnn_hidden_size": 100,
+      "nf_layers": 5,
+      "l2_reg": 0.0001
     }
   },
   "__heuristic_function_mapping": {
