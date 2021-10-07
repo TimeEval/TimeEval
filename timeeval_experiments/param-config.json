@@ -132,7 +132,12 @@
     "max_lag": "10% of dataset length",
     "min_anomaly_window_size": "min anomaly length",
     "n_init_train": "10% of dataset length or until first anomaly",
-    "neighbourhood_size": "0.5 dataset period size",
+    "neighbourhood_size": [
+      "0.5 dataset period size",
+      "1.0 dataset period size",
+      "1.5 dataset period size",
+      "2.0 dataset period size"
+    ],
     "period": "dataset period size",
     "query_window_size": "1.5*window_size",
     "transient_window_size": "20% of train_window_size",

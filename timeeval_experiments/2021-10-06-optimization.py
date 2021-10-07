@@ -31,7 +31,7 @@ np.random.rand(42)
 
 def main():
     algo_page_size = 5
-    algo_page = 0
+    algo_page = 1
 
     dm = Datasets(HPI_CLUSTER.akita_test_case_path, create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="param-config.json")
@@ -52,15 +52,15 @@ def main():
         generic_rf(),
         generic_xgb(),
         grammarviz3(),
-        hybrid_knn(),
+        # hybrid_knn(),  # no parameters to optimize
         img_embedding_cae(),
-        kmeans(),
-        laser_dbn(),
-        left_stampi(),
+        # kmeans(),  # no parameters to optimize
+        # laser_dbn(),  # no parameters to optimize
+        # left_stampi(),  # no parameters to optimize
         lstm_ad(),
         median_method(),
         multi_hmm(),
-        norma(),
+        # norma(),  # no parameters to optimize
         normalizing_flows(),
         numenta_htm(),
         ocean_wnn(),
@@ -68,26 +68,26 @@ def main():
         phasespace_svm(),
         pst(),
         random_black_forest(),
-        robust_pca(),
+        # robust_pca(),  # no parameters to optimize
         sand(),
         series2graph(),
         sr(),
-        stamp(),
-        stomp(),
+        # stamp(),  # no parameters to optimize
+        # stomp(),  # no parameters to optimize
         subsequence_if(),
         subsequence_lof(),
         tarzan(),
         telemanom(),
         ts_bitmap(),
     ]
-    print(f"Selecting algorithms, page {algo_page+1} of {len(algorithms)//algo_page_size+1}:")
-    algorithms = algorithms[algo_page*algo_page_size:(algo_page+1)*algo_page_size]
+    print(f"Selecting algorithms, page {algo_page + 1} of {len(algorithms) // algo_page_size + 1}:")
+    algorithms = algorithms[algo_page * algo_page_size:(algo_page + 1) * algo_page_size]
     print(", ".join(a.name for a in algorithms))
 
     print("Configuring algorithms...")
     configurator.configure(algorithms,
-                           ignore_shared=False,    # use already optimized shared parameters
-                           perform_search=True,    # but perform search over the optimized parameter search spaces
+                           ignore_shared=False,  # use already optimized shared parameters
+                           perform_search=True,  # but perform search over the optimized parameter search spaces
                            assume_parameter_independence=True
                            )
 
