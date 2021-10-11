@@ -31,7 +31,7 @@ np.random.rand(42)
 
 def main():
     algo_page_size = 5
-    algo_page = 2
+    algo_page = 3
 
     dm = Datasets(HPI_CLUSTER.akita_test_case_path, create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="param-config.json")
