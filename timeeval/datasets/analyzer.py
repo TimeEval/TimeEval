@@ -3,7 +3,7 @@ import logging
 import shutil
 import warnings
 from pathlib import Path
-from typing import Optional, Union, List, Generator
+from typing import Optional, Union, List, Generator, Dict
 
 import numpy as np
 import pandas as pd
@@ -18,7 +18,9 @@ from timeeval.utils import datasets as datasets_utils
 class DatasetAnalyzer:
     def __init__(self, dataset_id: DatasetId, is_train: bool, df: Optional[pd.DataFrame] = None,
                  dataset_path: Optional[Path] = None,
-                 dmgr: Optional['Datasets'] = None) -> None:  # type: ignore
+                 dmgr: Optional['Datasets'] = None,  # type: ignore
+                 ignore_stationarity: bool = False,
+                 ignore_trend: bool = False) -> None:
         if df is None and not dataset_path and dmgr is None:
             raise ValueError("Either df, dataset_path, or dmgr must be supplied!")
         if df is None and dmgr:
@@ -31,8 +33,17 @@ class DatasetAnalyzer:
         self.is_train: bool = is_train
         self._log_prefix = f"[{self.dataset_id} ({'train' if self.is_train else 'test'})]"
         self._find_base_metadata()
-        self._find_stationarity()
-        self._find_trends()
+        if ignore_stationarity:
+            self.stationarity = dict(
+                (str(series.name), Stationarity.NOT_STATIONARY)
+                for _, series in self._df.iloc[:, 1:-1].items()
+            )
+        else:
+            self._find_stationarity()
+        if ignore_trend:
+            self.trends: Dict[str, List[Trend]] = {}
+        else:
+            self._find_trends()
 
     @property
     def metadata(self) -> DatasetMetadata:
