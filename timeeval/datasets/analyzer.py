@@ -3,7 +3,7 @@ import logging
 import shutil
 import warnings
 from pathlib import Path
-from typing import Optional, Union, List, Generator
+from typing import Optional, Union, List, Generator, Dict
 
 import numpy as np
 import pandas as pd
@@ -18,9 +18,9 @@ from timeeval.utils import datasets as datasets_utils
 class DatasetAnalyzer:
     def __init__(self, dataset_id: DatasetId, is_train: bool, df: Optional[pd.DataFrame] = None,
                  dataset_path: Optional[Path] = None,
-                 dmgr: Optional['Datasets'] = None,
+                 dmgr: Optional['Datasets'] = None,  # type: ignore
                  ignore_stationarity: bool = False,
-                 ignore_trend: bool = False) -> None:  # type: ignore
+                 ignore_trend: bool = False) -> None:
         if df is None and not dataset_path and dmgr is None:
             raise ValueError("Either df, dataset_path, or dmgr must be supplied!")
         if df is None and dmgr:
@@ -41,7 +41,7 @@ class DatasetAnalyzer:
         else:
             self._find_stationarity()
         if ignore_trend:
-            self.trends = {}
+            self.trends: Dict[str, List[Trend]] = {}
         else:
             self._find_trends()
 
