@@ -32,54 +32,6 @@ random.seed(42)
 np.random.rand(42)
 
 
-class Baselines:
-    @staticmethod
-    def random() -> Algorithm:
-        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
-            if isinstance(X, Path):
-                raise ValueError("Random baseline requires an np.ndarray as input!")
-            return np.random.default_rng().uniform(0, 1, X.shape[0])
-
-        return Algorithm(
-            name="Random",
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
-            data_as_file=False,
-            main=FunctionAdapter(fn)
-        )
-
-    @staticmethod
-    def normal() -> Algorithm:
-        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
-            if isinstance(X, Path):
-                raise ValueError("Normal baseline requires an np.ndarray as input!")
-            return np.zeros(X.shape[0])
-
-        return Algorithm(
-            name="normal",
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
-            data_as_file=False,
-            main=FunctionAdapter(fn)
-        )
-
-    @staticmethod
-    def increasing() -> Algorithm:
-        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
-            if isinstance(X, Path):
-                raise ValueError("Increasing baseline requires an np.ndarray as input!")
-            indices = np.arange(X.shape[0])
-            return MinMaxScaler().fit_transform(indices.reshape(-1, 1)).reshape(-1)
-
-        return Algorithm(
-            name="increasing",
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
-            data_as_file=False,
-            main=FunctionAdapter(fn)
-        )
-
-
 def main():
     dm = Datasets("/home/phillip/Datasets/GutenTAG/test-cases")
     configurator = AlgorithmConfigurator(config_path="param-config.json")
@@ -184,10 +136,7 @@ def main():
         # torsk(),
         # triple_es(),
         # ts_bitmap(),
-        # valmod(),
-        # Baselines.random(),
-        # Baselines.increasing(),
-        # Baselines.normal()
+        # valmod()
     ]
 
     print(f"Selected algorithms: {len(algorithms)}\n\n")
