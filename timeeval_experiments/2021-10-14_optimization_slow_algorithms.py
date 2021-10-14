@@ -55,6 +55,7 @@ def main():
                            )
     algorithms.append(
         numenta_htm(params=IndependentParameterGrid({
+            "alpha": [0.2, 0.5, 0.8],
             "globalDecay": [0, 0.1, 0.5],
             "encoding_output_width": [25, 50, 75],
             "encoding_input_width": [15, 21, 30],
