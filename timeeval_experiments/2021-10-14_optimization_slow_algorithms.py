@@ -5,7 +5,7 @@ import sys
 
 import numpy as np
 from durations import Duration
-from timeeval.params import IndependentParameterGrid
+from timeeval.params import IndependentParameterGrid, FullParameterGrid
 
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
@@ -43,7 +43,8 @@ def main():
 
     algorithms = [
         arima(),
-        deepnap()
+        deepnap(timeout=Duration("4 hours")),
+        pst()
     ]
 
     print("Configuring algorithms...")
@@ -76,6 +77,14 @@ def main():
             "newSynapseCount": [15, 20, 30],
             "minThreshold": [6, 9, 12],
             "maxSynapsesPerSegment": [16, 32, 64]
+        }))
+    )
+
+    algorithms.append(
+        numenta_htm(params=FullParameterGrid({
+            "n_trees": [10, 100, 200],
+            "n_estimators": [10, 100, 200],
+            "bootstrap": [True, False]
         }))
     )
 
