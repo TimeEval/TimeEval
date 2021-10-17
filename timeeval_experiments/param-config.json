@@ -50,10 +50,8 @@
       "window_size": "2.0 dataset period size"
     },
     "MultiHMM": {
-      "n_bins": 5
-    },
-    "PST": {
-      "n_bins": 5
+      "n_bins": 5,
+      "discretizer": "choquet"
     },
     "SR-CNN": {
       "num": 10,
@@ -97,7 +95,8 @@
     },
     "XGBoosting (RR)": {
       "learning_rate": 0.1,
-      "n_trees": 10
+      "n_trees": 10,
+      "booster": "gblinear"
     },
     "OmniAnomaly": {
       "window_size": "1.0 dataset period size",
@@ -106,6 +105,109 @@
       "rnn_hidden_size": 100,
       "nf_layers": 5,
       "l2_reg": 0.0001
+    },
+    "FFT": {
+      "max_sign_change_distance": 20
+      "local_outlier_threshold": 0.78,
+      "fft_parameters": 3
+    },
+    "Donut": {
+      "window_size": "1.0 dataset period size",
+      "linear_hidden_size": 130,
+      "latent_size": 5
+    },
+    "DeepAnT": {
+      "window_size": "0.5 dataset period size"
+    },
+    "DWT-MLEAD": {
+      "quantile_epsilon": 0.1
+    },
+    "DBStream": {
+      "window_size": "1.0 dataset period size",
+      "shared_density": true,
+      "radius": 1.3,
+      "min_weight": 0,
+      "lambda": 0.001,
+      "alpha": 0.5
+    },
+    "Random Forest Regressor (RR)": {
+      "bootstrap": true
+    },
+    "LSTM-AD": {
+      "window_size": "2.0 * dataset period size",
+      "lstm_layers": 1
+    },
+    "ImageEmbeddingCAE": {
+      "latent_size": 70
+    },
+    "GrammarViz": {
+      "paa_transform_size": 5,
+      "alphabet_size": 6
+    },
+    "OceanWNN": {
+      "wavelet_wbf": "mexican_hat",
+      "wavelet_cs_C": 2.275,
+      "wavelet_k": -1.95,
+      "wavelet_a": -3.25
+    },
+    "NumentaHTM": {
+      "alpha": 0.5
+    },
+    "Normalizing Flows": {
+      "window_size": "1.0 dataset period size",
+      "teacher_epochs": 100,
+      "distillation_iterations": 100
+    },
+    "MedianMethod": {
+      "neighbourhood_size": "2.0 * dataset period size"
+    },
+    "PhaseSpace-SVM": {
+      "coef0": 0,
+      "tol": 0.001,
+      "project_phasespace": true,
+      "gamma": 1.0,
+      "nu": 0.35,
+      "degree": 3,
+      "kernel": "rbf"
+    },
+    "PST": {
+      "n_bins": 5,
+      "window_size": "1.0 * dataset period size",
+      "__comment": "`sim` is still open!!"
+    },
+    "PCI": {
+      "window_size": "0.5 * dataset period size"
+    },
+    "TARZAN": {
+      "alphabet_size": 4
+    },
+    "Subsequence LOF": {
+      "window_size": "1.0 * dataset period size"
+    },
+    "Subsequence IF": {
+      "window_size": "1.0 * dataset period size",
+      "bootstrap": true
+    },
+    "Spectral Residual (SR)": {
+      "window_size": "2.0 * dataset period size"
+    },
+    "Series2Graph": {
+      "window_size": "1.0 * dataset period size",
+      "rate": 100
+    },
+    "Telemanom": {
+      "window_size": "1.5 * dataset period size",
+      "smoothing_window_size": 30,
+      "p": 0.17,
+      "error_buffer": 100
+    },
+    "TSBitmap": {
+      "level_size": 2,
+      "lead_window_size": 200,
+      "lag_window_size": 500,
+      "feature_window_size": 500,
+      "compression_ratio": 1,
+      "alphabet_size": 4
     }
   },
   "__heuristic_function_mapping": {
@@ -715,8 +817,8 @@
       false
     ],
     "sim": [
-      "simo",
-      "simn"
+      "SIMo",
+      "SIMn"
     ],
     "smoothing_window_size": [
       10,
