@@ -107,7 +107,7 @@
       "l2_reg": 0.0001
     },
     "FFT": {
-      "max_sign_change_distance": 20
+      "max_sign_change_distance": 20,
       "local_outlier_threshold": 0.78,
       "fft_parameters": 3
     },
