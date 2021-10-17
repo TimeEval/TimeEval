@@ -5,16 +5,15 @@ import sys
 
 import numpy as np
 from durations import Duration
-from timeeval.params import IndependentParameterGrid, FullParameterGrid
 
 from timeeval import TimeEval, Datasets
 from timeeval.constants import HPI_CLUSTER
+from timeeval.params import IndependentParameterGrid, FullParameterGrid
 from timeeval.remote import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints
 from timeeval.utils.metrics import Metric
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
-from timeeval_experiments.baselines import Baselines
 
 
 # Setup logging
@@ -38,13 +37,17 @@ def main():
     datasets = dm.select()
     datasets = [(collection, name) for (collection, name) in datasets
                 if not name.startswith("cbf-") or not name.startswith("rw-")]
-    # datasets = random.sample(datasets, 200)
+    all_datasets = datasets
+    datasets = []
+    datasets += random.sample([(c, d) for (c, d) in all_datasets if d.startswith("sinus")], 10)
+    datasets += random.sample([(c, d) for (c, d) in all_datasets if d.startswith("ecg")], 10)
+    datasets += random.sample([(c, d) for (c, d) in all_datasets if d.startswith("poly")], 10)
     print(f"Selected datasets: {len(datasets)}")
 
     algorithms = [
-        arima(),
-        deepnap(timeout=Duration("4 hours")),
-        pst()
+        # arima(),
+        # deepnap(timeout=Duration("4 hours")),
+        # pst()
     ]
 
     print("Configuring algorithms...")
@@ -54,35 +57,45 @@ def main():
                            assume_parameter_independence=True
                            )
     algorithms.append(
-        numenta_htm(params=IndependentParameterGrid({
-            "alpha": [0.2, 0.5, 0.8],
-            "globalDecay": [0, 0.1, 0.5],
-            "encoding_output_width": [25, 50, 75],
-            "encoding_input_width": [15, 21, 30],
-            "columnCount": [1024, 2048, 4096],
-            "cellsPerColumn": [16, 32, 64],
-            "autoDetectWaitRecords": [25, 50, 75],
-            "activationThreshold": [6, 12, 24],
-            "inputWidth": [1024, 2048, 4096],
-            "initialPerm": [0.15, 0.21, 0.3],
-            "maxAge": [0, 5, 10],
-            "synPermConnected": [0.05, 0.1, 0.2],
-            "synPermInactiveDec": [0.001, 0.005, 0.01],
-            "synPermActiveInc": [0.05, 0.1, 0.2],
-            "maxSegmentsPerCell": [64, 128, 256],
-            "potentialPct": [0.1, 0.5, 0.9],
-            "permanenceInc": [0.05, 0.1, 0.2],
-            "permanenceDec": [0.05, 0.1, 0.2],
-            "pamLength": [1, 3, 5],
-            "numActiveColumnsPerInhArea": [30, 40, 50],
-            "newSynapseCount": [15, 20, 30],
-            "minThreshold": [6, 9, 12],
-            "maxSynapsesPerSegment": [16, 32, 64]
-        }))
+        arima(params=IndependentParameterGrid({
+            "distance_metric": ["euclidean", "mahalanobis", "garch", "ssa", "fourier", "dtw", "edrs", "twed"]
+        }, default_params={
+            "window_size": "heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)",
+            "max_lag": "heuristic:RelativeDatasetSizeHeuristic(factor=0.1)",
+            "differencing_degree": 1,
+            "random_state": 42,
+        })),
     )
+    # algorithms.append(
+    #     numenta_htm(params=IndependentParameterGrid({
+    #         "alpha": [0.2, 0.5, 0.8],
+    #         "globalDecay": [0, 0.1, 0.5],
+    #         "encoding_output_width": [25, 50, 75],
+    #         "encoding_input_width": [15, 21, 30],
+    #         "columnCount": [1024, 2048, 4096],
+    #         "cellsPerColumn": [16, 32, 64],
+    #         "autoDetectWaitRecords": [25, 50, 75],
+    #         "activationThreshold": [6, 12, 24],
+    #         "inputWidth": [1024, 2048, 4096],
+    #         "initialPerm": [0.15, 0.21, 0.3],
+    #         "maxAge": [0, 5, 10],
+    #         "synPermConnected": [0.05, 0.1, 0.2],
+    #         "synPermInactiveDec": [0.001, 0.005, 0.01],
+    #         "synPermActiveInc": [0.05, 0.1, 0.2],
+    #         "maxSegmentsPerCell": [64, 128, 256],
+    #         "potentialPct": [0.1, 0.5, 0.9],
+    #         "permanenceInc": [0.05, 0.1, 0.2],
+    #         "permanenceDec": [0.05, 0.1, 0.2],
+    #         "pamLength": [1, 3, 5],
+    #         "numActiveColumnsPerInhArea": [30, 40, 50],
+    #         "newSynapseCount": [15, 20, 30],
+    #         "minThreshold": [6, 9, 12],
+    #         "maxSynapsesPerSegment": [16, 32, 64]
+    #     }))
+    # )
 
     algorithms.append(
-        numenta_htm(params=FullParameterGrid({
+        random_black_forest(params=FullParameterGrid({
             "n_trees": [10, 100, 200],
             "n_estimators": [10, 100, 200],
             "bootstrap": [True, False]
