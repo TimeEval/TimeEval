@@ -71,10 +71,6 @@ class AlgorithmConfigurator:
         if use_defaults:
             return
 
-        if not perform_search:
-            ignore_shared = True
-            ignore_optimized = True
-
         algos = self.wrap(algos)
         for algo in algos:
             configured_params = {}
@@ -133,7 +129,7 @@ class AlgorithmConfigurator:
                     configured_params[p] = self._substitute_heuristics(value, checked=True)
 
                 else:
-                    warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
+                    warnings.warn(f"{algo.name}: Cannot configure parameter {p}, because no configuration value was found! "
                                   "Using default.")
 
             if assume_parameter_independence:
