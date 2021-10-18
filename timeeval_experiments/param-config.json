@@ -79,7 +79,7 @@
     },
     "LSTM-AD": {
       "lstm_layers": 1,
-      "window_size": "2.0 * dataset period size"
+      "window_size": "2.0 dataset period size"
     },
     "MTAD-GAT": {
       "context_window_size": 30,
@@ -97,7 +97,7 @@
       "window_size": "2.0 dataset period size"
     },
     "MedianMethod": {
-      "neighbourhood_size": "2.0 * dataset period size"
+      "neighbourhood_size": "2.0 dataset period size"
     },
     "MultiHMM": {
       "discretizer": "choquet",
@@ -148,12 +148,12 @@
       "window_size": "1.0 dataset period size"
     },
     "PCI": {
-      "window_size": "0.5 * dataset period size"
+      "window_size": "0.5 dataset period size"
     },
     "PST": {
       "n_bins": 5,
       "sim": "SIMn",
-      "window_size": "1.0 * dataset period size",
+      "window_size": "1.0 dataset period size",
       "y_min": "default"
     },
     "PhaseSpace-SVM": {
@@ -191,18 +191,18 @@
     },
     "Series2Graph": {
       "rate": 100,
-      "window_size": "1.0 * dataset period size"
+      "window_size": "1.0 dataset period size"
     },
     "Spectral Residual (SR)": {
-      "window_size": "2.0 * dataset period size"
+      "window_size": "2.0 dataset period size"
     },
     "Subsequence IF": {
       "bootstrap": true,
-      "window_size": "1.0 * dataset period size",
+      "window_size": "1.0 dataset period size",
       "max_samples": "default"
     },
     "Subsequence LOF": {
-      "window_size": "1.0 * dataset period size"
+      "window_size": "1.0 dataset period size"
     },
     "TARZAN": {
       "alphabet_size": 4
@@ -223,7 +223,7 @@
       "error_buffer": 100,
       "p": 0.17,
       "smoothing_window_size": 30,
-      "window_size": "1.5 * dataset period size"
+      "window_size": "1.5 dataset period size"
     },
     "Torsk": {
       "context_window_size": 10,
