@@ -238,7 +238,13 @@
       "lstm_layers": 1
     },
     "ARIMA": {
-      "differencing_degree": 1
+      "differencing_degree": 1,
+      "distance_metric": "twed"
+    },
+    "Random Black Forest (RR)": {
+      "bootstrap": false,
+      "n_trees": 10,
+      "n_estimators": 200
     }
   },
   "__heuristic_function_mapping": {
