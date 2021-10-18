@@ -150,9 +150,6 @@
       "wavelet_k": -1.95,
       "wavelet_a": -3.25
     },
-    "NumentaHTM": {
-      "alpha": 0.5
-    },
     "Normalizing Flows": {
       "window_size": "1.0 dataset period size",
       "teacher_epochs": 100,
@@ -173,7 +170,7 @@
     "PST": {
       "n_bins": 5,
       "window_size": "1.0 * dataset period size",
-      "__comment": "`sim` is still open!!"
+      "sim": "SIMn"
     },
     "PCI": {
       "window_size": "0.5 * dataset period size"
@@ -208,6 +205,40 @@
       "feature_window_size": 500,
       "compression_ratio": 1,
       "alphabet_size": 4
+    },
+    "NumentaHTM": {
+      "alpha": 0.5,
+      "globalDecay": 0,
+      "encoding_output_width": 75,
+      "encoding_input_width": 21,
+      "columnCount": 2048,
+      "cellsPerColumn": 32,
+      "autoDetectWaitRecords": 50,
+      "activationThreshold": 12,
+      "inputWidth": 2048,
+      "initialPerm": 0.15,
+      "maxAge": 0,
+      "synPermConnected": 0.1,
+      "synPermInactiveDec": 0.01,
+      "synPermActiveInc": 0.05,
+      "maxSegmentsPerCell": 128,
+      "potentialPct": 0.1,
+      "permanenceInc": 0.1,
+      "permanenceDec": 0.1,
+      "pamLength": 1,
+      "numActiveColumnsPerInhArea": 50,
+      "newSynapseCount": 15,
+      "minThreshold": 9,
+      "maxSynapsesPerSegment": 32
+    },
+    "DeepNAP": {
+      "rnn_hidden_size": 200,
+      "linear_hidden_size": 100,
+      "partial_sequency_length": 1,
+      "lstm_layers": 1
+    },
+    "ARIMA": {
+      "differencing_degree": 1
     }
   },
   "__heuristic_function_mapping": {
