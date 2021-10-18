@@ -8,12 +8,12 @@ from timeeval.datasets import Dataset
 from .AnomalyLengthHeuristic import AnomalyLengthHeuristic
 from .CleanStartSequenceSizeHeuristic import CleanStartSequenceSizeHeuristic
 from .ContaminationHeuristic import ContaminationHeuristic
+from .DefaultExponentialFactorHeuristic import DefaultExponentialFactorHeuristic
+from .DefaultFactorHeuristic import DefaultFactorHeuristic
 from .EmbedDimRangeHeuristic import EmbedDimRangeHeuristic
 from .ParameterDependenceHeuristic import ParameterDependenceHeuristic
 from .PeriodSizeHeuristic import PeriodSizeHeuristic
 from .RelativeDatasetSizeHeuristic import RelativeDatasetSizeHeuristic
-from .DefaultFactorHeuristic import DefaultFactorHeuristic
-from .DefaultExponentialFactorHeuristic import DefaultExponentialFactorHeuristic
 from .base import TimeEvalParameterHeuristic
 
 
@@ -50,15 +50,22 @@ def inject_heuristic_values(
     for k, v in list(heuristic_params) + list(deferred_params):
         if isinstance(v, str) and v.startswith("heuristic:"):
             heuristic_signature: str = ":".join(v.split(":")[1:]).strip()
-            new_value = TimeEvalHeuristic(heuristic_signature)(
-                algorithm,
-                dataset_details,
-                dataset_path,
-                # required by ParameterDependenceHeuristic
-                params=updated_params,
-                # required by DefaultFactorHeuristic and DefaultExponentialFactorHeuristic
-                param_name=k
-            )
+            heuristic = TimeEvalHeuristic(heuristic_signature)
+            try:
+                new_value = heuristic(
+                    algorithm,
+                    dataset_details,
+                    dataset_path,
+                    # required by ParameterDependenceHeuristic
+                    params=updated_params,
+                    # required by DefaultFactorHeuristic and DefaultExponentialFactorHeuristic
+                    param_name=k
+                )
+            except Exception as ex:
+                raise ValueError(
+                    f"Applying heuristic {heuristic_signature} for algorithm {algorithm.name}, target parameter {k}, "
+                    f"dataset {dataset_details.datasetId}, and parameters '{updated_params}' failed!"
+                ) from ex
             if new_value is None:
                 del updated_params[k]
             else:
