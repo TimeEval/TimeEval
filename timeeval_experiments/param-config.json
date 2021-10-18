@@ -52,7 +52,9 @@
       "paa_transform_size": 5
     },
     "HBOS": {
-      "n_bins": 20
+      "n_bins": 20,
+      "alpha": "default",
+      "bin_tol": "default"
     },
     "HOT SAX": {
       "alphabet_size": 3,
@@ -151,7 +153,8 @@
     "PST": {
       "n_bins": 5,
       "sim": "SIMn",
-      "window_size": "1.0 * dataset period size"
+      "window_size": "1.0 * dataset period size",
+      "y_min": "default"
     },
     "PhaseSpace-SVM": {
       "coef0": 0,
@@ -165,10 +168,16 @@
     "Random Black Forest (RR)": {
       "bootstrap": false,
       "n_estimators": 200,
-      "n_trees": 10
+      "n_trees": 10,
+      "max_samples": "default"
     },
     "Random Forest Regressor (RR)": {
-      "bootstrap": true
+      "bootstrap": true,
+      "max_samples": "default",
+      "max_depth": "default"
+    },
+    "SAND": {
+      "alpha": 0.5
     },
     "SR-CNN": {
       "num": 10,
@@ -176,7 +185,9 @@
       "window_size": "1.5 dataset period size"
     },
     "SSA": {
-      "window_size": "2.0 dataset period size"
+      "window_size": "2.0 dataset period size",
+      "alpha": 0.2,
+      "ep": 3
     },
     "Series2Graph": {
       "rate": 100,
@@ -187,7 +198,8 @@
     },
     "Subsequence IF": {
       "bootstrap": true,
-      "window_size": "1.0 * dataset period size"
+      "window_size": "1.0 * dataset period size",
+      "max_samples": "default"
     },
     "Subsequence LOF": {
       "window_size": "1.0 * dataset period size"
@@ -244,7 +256,57 @@
     "XGBoosting (RR)": {
       "booster": "gblinear",
       "learning_rate": 0.1,
-      "n_trees": 10
+      "n_trees": 10,
+      "max_depth": "default",
+      "max_samples": "default",
+      "colsample_bytree": "default",
+      "colsample_bylevel": "default",
+      "colsample_bynode": "default"
+    },
+
+    "__comment": "############## the following algorithms were excluded from the parameter optimization ##############",
+
+    "CBLOF": {
+      "alpha": "default",
+      "beta": "default",
+      "use_weights": "default"
+    },
+    "DSPOT": {
+      "alert": "default",
+      "q": "default"
+    },
+    "Extended Isolation Forest (EIF)": {
+      "extension_level": "default",
+      "limit": "default",
+      "max_samples": "default"
+    },
+    "HealthESN": {
+      "activation": "default",
+      "connectivity": "default",
+      "linear_hidden_size": "default",
+      "spectral_radius": "default"
+    },
+    "IF-LOF": {
+      "alpha": "default",
+      "m": "default",
+      "max_samples": "default"
+    },
+    "Isolation Forest (iForest)": {
+      "bootstrap": "default",
+      "max_samples": "default"
+    },
+    "KNN": {
+      "method": "default",
+      "radius": "default"
+    },
+    "PCC": {
+      "n_components": "default",
+      "n_selected_components": "default",
+      "tol": "default",
+      "whiten": "default"
+    },
+    "Hybrid Isolation Forest (HIF)": {
+      "max_samples": "default"
     }
   },
   "__heuristic_function_mapping": {
