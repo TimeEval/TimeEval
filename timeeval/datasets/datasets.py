@@ -243,7 +243,10 @@ class Datasets(ContextManager['Datasets']):
                datetime_index: Optional[bool] = None,
                train_type: Optional[str] = None,
                train_is_normal: Optional[bool] = None,
-               input_type: Optional[str] = None
+               input_type: Optional[str] = None,
+               min_anomalies: Optional[int] = None,
+               max_anomalies: Optional[int] = None,
+               max_contamination: Optional[float] = None
                ) -> List[DatasetId]:
         """
         Returns a list of dataset identifiers from the benchmark dataset collection whose datasets match **all** of the
@@ -295,6 +298,12 @@ class Datasets(ContextManager['Datasets']):
                 selectors.append(df["train_is_normal"] == train_is_normal)
             if input_type is not None:
                 selectors.append(df["input_type"] == input_type)
+            if min_anomalies is not None:
+                selectors.append(df["num_anomalies"] >= min_anomalies)
+            if max_anomalies is not None:
+                selectors.append(df["num_anomalies"] <= max_anomalies)
+            if max_contamination is not None:
+                selectors.append(df["contamination"] <= max_contamination)
             default_mask = np.full(len(df), True)
             mask = reduce(lambda x, y: np.logical_and(x, y), selectors, default_mask)
             bench_datasets = (df[mask]
