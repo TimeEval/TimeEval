@@ -246,7 +246,7 @@ class TimeEval:
         self.results.to_csv(path.absolute(), index=False)
 
     @staticmethod
-    def rsync_results(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1):
+    def rsync_results_from(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1):
         excluded_aliases = [
             hostname := socket.gethostname(),
             socket.gethostbyname(hostname),
@@ -261,8 +261,8 @@ class TimeEval:
         with tqdm_joblib(tqdm.tqdm(hosts, desc="Collecting results", disable=disable_progress_bar, total=len(jobs))):
             Parallel(n_jobs)(jobs)
 
-    def _rsync_results(self):
-        TimeEval.rsync_results(
+    def rsync_results(self):
+        TimeEval.rsync_results_from(
             self.results_path,
             self.remote_config.worker_hosts,
             self.disable_progress_bar,
@@ -307,7 +307,7 @@ class TimeEval:
         self.log.debug(f"Collected {len(tasks)} algorithm finalize steps")
         self.remote.run_on_all_hosts(tasks, msg="Finalizing")
         self.remote.close()
-        self._rsync_results()
+        self.rsync_results()
 
     def run(self):
         assert len(self.exps.algorithms) > 0, "No algorithms given for evaluation"
