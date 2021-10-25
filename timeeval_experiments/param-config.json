@@ -19,7 +19,8 @@
       "min_weight": 0,
       "radius": 1.3,
       "shared_density": true,
-      "window_size": "1.0 dataset period size"
+      "window_size": "1.0 dataset period size",
+      "n_clusters": 30
     },
     "DWT-MLEAD": {
       "quantile_epsilon": 0.1
