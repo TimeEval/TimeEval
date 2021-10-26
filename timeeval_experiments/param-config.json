@@ -72,7 +72,7 @@
       "spectral_radius": 0.6
     },
     "Hybrid KNN": {
-      "n_estimators": 1000,
+      "n_estimators": 500,
       "n_neighbors": 10
     },
     "ImageEmbeddingCAE": {

@@ -45,7 +45,7 @@ class AlgorithmConfigurator:
         def substitute(v):
             try:
                 return f"heuristic:{self._heuristic_mapping[v]}"
-            except KeyError as e:
+            except (KeyError, TypeError) as e:
                 if checked:
                     raise ValueError(f"Entry {v} is not a valid heuristic!") from e
                 else:
@@ -82,8 +82,9 @@ class AlgorithmConfigurator:
                 if not ignore_overwrites and p in prio_params:
                     value = prio_params[p]
                     if value != "default":
-                        # allow specifying a search space or a fixed value
-                        value = self.wrap(value)
+                        # don't allow specifying a search space; assume lists are parameters of type list
+                        value = [value]
+
                         # map heuristics
                         value = self._substitute_heuristics(value)
                         configured_params[p] = value
