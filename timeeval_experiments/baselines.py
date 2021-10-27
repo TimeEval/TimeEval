@@ -10,7 +10,8 @@ from timeeval.adapters import FunctionAdapter
 
 class Baselines:
     @staticmethod
-    def random() -> Algorithm:
+    def random(input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE) -> Algorithm:
+        """Random baseline assigns random scores (between 0 and 1)"""
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("Random baseline requires an np.ndarray as input!")
@@ -19,13 +20,14 @@ class Baselines:
         return Algorithm(
             name="Random",
             training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
+            input_dimensionality=input_dimensionality,
             data_as_file=False,
             main=FunctionAdapter(fn)
         )
 
     @staticmethod
-    def normal() -> Algorithm:
+    def normal(input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE) -> Algorithm:
+        """Normal baseline declares everything as normal (score for all points=0)"""
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("Normal baseline requires an np.ndarray as input!")
@@ -34,13 +36,14 @@ class Baselines:
         return Algorithm(
             name="normal",
             training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
+            input_dimensionality=input_dimensionality,
             data_as_file=False,
             main=FunctionAdapter(fn)
         )
 
     @staticmethod
-    def increasing() -> Algorithm:
+    def increasing(input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE) -> Algorithm:
+        """Increasing baseline assigns linearly increasing scores between 0 and 1"""
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("Increasing baseline requires an np.ndarray as input!")
@@ -50,7 +53,7 @@ class Baselines:
         return Algorithm(
             name="increasing",
             training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
+            input_dimensionality=input_dimensionality,
             data_as_file=False,
             main=FunctionAdapter(fn)
         )

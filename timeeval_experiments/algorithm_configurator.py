@@ -45,7 +45,7 @@ class AlgorithmConfigurator:
         def substitute(v):
             try:
                 return f"heuristic:{self._heuristic_mapping[v]}"
-            except KeyError as e:
+            except (KeyError, TypeError) as e:
                 if checked:
                     raise ValueError(f"Entry {v} is not a valid heuristic!") from e
                 else:
@@ -71,10 +71,6 @@ class AlgorithmConfigurator:
         if use_defaults:
             return
 
-        if not perform_search:
-            ignore_shared = True
-            ignore_optimized = True
-
         algos = self.wrap(algos)
         for algo in algos:
             configured_params = {}
@@ -86,8 +82,9 @@ class AlgorithmConfigurator:
                 if not ignore_overwrites and p in prio_params:
                     value = prio_params[p]
                     if value != "default":
-                        # allow specifying a search space or a fixed value
-                        value = self.wrap(value)
+                        # don't allow specifying a search space; assume lists are parameters of type list
+                        value = [value]
+
                         # map heuristics
                         value = self._substitute_heuristics(value)
                         configured_params[p] = value
@@ -133,7 +130,7 @@ class AlgorithmConfigurator:
                     configured_params[p] = self._substitute_heuristics(value, checked=True)
 
                 else:
-                    warnings.warn(f"Cannot configure parameter {p}, because no configuration value was found! "
+                    warnings.warn(f"{algo.name}: Cannot configure parameter {p}, because no configuration value was found! "
                                   "Using default.")
 
             if assume_parameter_independence:
