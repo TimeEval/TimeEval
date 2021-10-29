@@ -19,7 +19,7 @@ class ResultMerger:
         self.target_folder = target_folder
 
     def _copy_run(self, run: pd.Series, overwrite: bool = False) -> None:
-        subfolder = Path(".") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(
+        subfolder = Path("../timeeval/utils") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(
             run["repetition"])
         if overwrite:
             shutil.rmtree(self.target_folder / subfolder)

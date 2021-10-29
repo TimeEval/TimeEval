@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from timeeval.utils.preprocess_dataset import process
+from .preprocess_dataset import process
 
 data_file = "./tests/example_data/data.txt"
 label_file = "./tests/example_data/labels.txt"

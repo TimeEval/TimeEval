@@ -1,10 +1,10 @@
-import numpy as np
-from enum import Enum
 import multiprocessing as mp
+from enum import Enum
 from itertools import cycle
 from typing import Optional, List
+
+import numpy as np
 from sklearn.base import TransformerMixin
-import timeit
 
 
 class Method(Enum):

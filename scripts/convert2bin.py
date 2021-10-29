@@ -1,6 +1,7 @@
 import argparse
 import struct
 from pathlib import Path
+
 import numpy as np
 
 
@@ -26,6 +27,19 @@ def numpy2bin(data: np.ndarray, output: Path):
                 next_progress_log += log_progress_step
 
 
+def _number_of_lines(file: Path) -> int:
+    number_of_lines: int = 0
+    with file.open("r", encoding="utf-8", errors="ignore") as in_file:
+        while True:
+            block = in_file.read(65536)
+            if not block:
+                break
+
+            number_of_lines += block.count("\n")
+
+    return number_of_lines
+
+
 def _create_arg_parser():
     argument_parser = argparse.ArgumentParser()
 
@@ -42,19 +56,6 @@ def _create_arg_parser():
     )
 
     return argument_parser
-
-
-def _number_of_lines(file: Path) -> int:
-    number_of_lines: int = 0
-    with file.open("r", encoding="utf-8", errors="ignore") as in_file:
-        while True:
-            block = in_file.read(65536)
-            if not block:
-                break
-
-            number_of_lines += block.count("\n")
-
-    return number_of_lines
 
 
 if __name__ == "__main__":

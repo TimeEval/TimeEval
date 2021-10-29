@@ -167,7 +167,7 @@ timestamp,value,is_anomaly
 #### Dataset preprocessing
 
 Datasets in different formats should be transformed in TimeEval's canonical file format.
-TimeEval provides a utility to perform this transformation: [`preprocess_datasets.py`](./timeeval/utils/preprocess_dataset.py).
+TimeEval provides a utility to perform this transformation: [`preprocess_datasets.py`](scripts/preprocess_dataset.py).
 
 A single dataset can be provided in two Numpy-readable text files.
 The first text file contains the data.
@@ -202,7 +202,7 @@ Labels file (line indices)
 4
 ```
 
-[`preprocess_datasets.py`](./timeeval/utils/preprocess_dataset.py) automatically generates the index column using an auto-incrementing integer value.
+[`preprocess_datasets.py`](scripts/preprocess_dataset.py) automatically generates the index column using an auto-incrementing integer value.
 The integer value can be substituted with a corresponding timestamp (auto-incrementing value is used as a time unit, such as seconds `s` or hours `h` from the unix epoch).
 See the tool documentation for further information:
 
