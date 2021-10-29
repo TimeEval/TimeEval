@@ -7,14 +7,13 @@ from typing import List, Tuple
 import numpy as np
 from durations import Duration
 
-from timeeval import TimeEval, Datasets, TrainingType, InputDimensionality
+from timeeval import TimeEval, Datasets, TrainingType
 from timeeval.constants import HPI_CLUSTER
 from timeeval.remote import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints, GB
 from timeeval.utils.metrics import Metric
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
-from timeeval_experiments.baselines import Baselines
 
 
 # Setup logging
