@@ -79,14 +79,22 @@ class Experiment:
         """
         Using TimeEval distributed, this method is executed on the remote node.
         """
+        # persist hyper parameters to disk
+        dump_params(self.params, self.results_path / HYPER_PARAMETERS)
+
         # perform training if necessary
         result = self._perform_training()
 
         # perform execution
-        y_true = load_labels_only(self.resolved_test_dataset_path)
         y_scores, execution_times = self._perform_execution()
         result.update(execution_times)
+        # backup results to disk
+        pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
+
+        y_true = load_labels_only(self.resolved_test_dataset_path)
         y_true, y_scores = self.scale_scores(y_true, y_scores)
+        # persist scores to disk
+        y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
 
         with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
             print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
@@ -100,6 +108,7 @@ class Experiment:
                 try:
                     score = metric(y_true, y_scores)
                     result[metric.name] = score
+                    print(f"  = {score}", file=logs_file)
                 except Exception as e:
                     print(f"Exception while computing metric {metric}: {e}", file=logs_file)
                     errors += 1
@@ -107,10 +116,8 @@ class Experiment:
                         last_exception = e
                     continue
 
-        # write result files
-        y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
+        # write all results to disk (overwriting backup)
         pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
-        dump_params(self.params, self.results_path / HYPER_PARAMETERS)
 
         # rethrow exception if no metric could be calculated
         if errors == len(self.metrics) and last_exception is not None:
