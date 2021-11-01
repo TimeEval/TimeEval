@@ -28,9 +28,9 @@ class Experiment:
     repetition: int
     dataset_training_type: str
     dataset_input_dimensionality: str
-    hyper_params: dict
+    hyper_params: Dict[str, Any]
     hyper_params_id: str
-    metrics: pd.DataFrame
+    metrics: Dict[str, float]
     status: Status
 
     @property
@@ -51,24 +51,24 @@ class Experiment:
             "repetition": self.repetition,
             "hyper_params": self.hyper_params
         }
-        if not self.metrics.empty:
-            obj.update(self.metrics.iloc[0, :].to_dict())
+        if self.metrics:
+            obj.update(self.metrics)
         return obj
 
 
 class ResultSummary:
 
-    def __init__(self, results_path: Path, data_path: Path, metrics: Optional[List[Metric]] = None):
+    def __init__(self, results_path: Path, data_path: Path, metric_list: Optional[List[Metric]] = None):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.results_path = results_path
         self.data_path = data_path
         self.dmgr = Datasets(data_path, create_if_missing=False)
         self.algos = self._build_algorithm_dict()
-        self.metrics: List[Metric] = metrics or Metric.default_list()
+        self.metric_list: List[Metric] = metric_list or Metric.default_list()
         self.df: Optional[pd.DataFrame] = None
 
     @staticmethod
-    def _names_from_path(path: Path) -> Tuple:
+    def _names_from_path(path: Path) -> Tuple[str, str, str]:
         dataset = path.parent.name
         hpi = path.parent.parent.parent.name
         algorithm = path.parent.parent.parent.parent.name
@@ -101,7 +101,7 @@ class ResultSummary:
         timeout_logs = list(filter(lambda log: "Container timeout after" in log and "disregard" not in log, logs))
         return len(timeout_logs) > 0
 
-    def _get_dataset_metadata(self, collection: str, dataset: str):
+    def _get_dataset_metadata(self, collection: str, dataset: str) -> Tuple[str, str]:
         try:
             meta = self.dmgr.get(collection, dataset)
             return meta.training_type.value, meta.input_dimensionality.value
@@ -120,19 +120,19 @@ class ResultSummary:
             self._logger.debug(f"Could not load hyper parameters for {algo} on {dataset} ({hpi}).", exc_info=e)
             return {}
 
-    def _load_metrics(self, path: Path) -> pd.DataFrame:
+    def _load_metrics(self, path: Path) -> Dict[str, float]:
         m_path = path / METRICS_CSV
         try:
-            return pd.read_csv(m_path)
+            return pd.read_csv(m_path).iloc[0, :].to_dict()
         except FileNotFoundError as e:
             algo, dataset, hpi = self._names_from_path(path)
             self._logger.debug(f"Could not load metrics for {algo} on {dataset} ({hpi}).", exc_info=e)
-            return pd.DataFrame()
+            return {}
 
-    def _calculate_status(self, path: Path, metrics: pd.DataFrame) -> Status:
+    def _calculate_status(self, path: Path, metrics: Dict[str, float]) -> Status:
         # if scores and metrics --> ok
         status = Status.OK
-        if metrics.empty:
+        if not metrics:
             # if scores, but no metrics --> recalculate metrics
             if (path / DOCKER_SCORES_FILE_NAME).exists():
                 algo, dataset, hpi = self._names_from_path(path)
@@ -160,7 +160,7 @@ class ResultSummary:
 
         results = {}
         errors = 0
-        for metric in self.metrics:
+        for metric in self.metric_list:
             try:
                 score = metric(y_true, y_scores)
                 results[metric.name] = score
@@ -169,8 +169,12 @@ class ResultSummary:
                 errors += 1
                 continue
 
-        # update metrics
+        # update metrics and write them to disk
         exp.metrics.update(results)
+        if exp.metrics:
+            self._logger.info(f"{exp.name}: Writing new metrics to {exp.path / METRICS_CSV}!")
+            pd.DataFrame([exp.metrics]).to_csv(exp.path / METRICS_CSV, index=False)
+
         if errors == 0:
             exp.status = Status.OK
         else:
@@ -263,11 +267,12 @@ class ResultSummary:
 
         data = [exp.to_dict() for exp in experiments]
         self.df = pd.DataFrame(data)
+        self.df.sort_values(by=["algorithm", "collection", "dataset"], inplace=True)
         self._logger.info("Finished!")
 
     def save(self) -> None:
         if self.df is not None:
-            self.df.to_csv("test.csv", index=False)
+            self.df.to_csv(self.results_path / RESULTS_CSV, index=False)
             self._logger.info(f"Stored experiment summary at {self.results_path / RESULTS_CSV}")
         else:
             raise ValueError("No results available! Run ResultSummary#create() first.")
