@@ -160,20 +160,32 @@ class ResultSummary:
         self._logger.info(f"Re-calculating quality metrics for {exp.name}")
         y_scores = np.genfromtxt(exp.path / DOCKER_SCORES_FILE_NAME, delimiter=",")
         if exp.algorithm.postprocess:
-            configurator.configure([exp.algorithm], perform_search=False)
-            param_grid = exp.algorithm.param_grid
-            if len(param_grid) == 1:
-                dataset = self.dmgr.get(exp.collection_name, exp.dataset_name)
-                params = inject_heuristic_values(param_grid[0], exp.algorithm, dataset, dataset_path)
-                y_scores = exp.algorithm.postprocess(y_scores, {
-                    "executionType": ExecutionType.EXECUTE,
-                    "results_path": exp.path,
-                    "hyper_params": params,
-                    "dataset_details": dataset
-                })
+            dataset = self.dmgr.get(exp.collection_name, exp.dataset_name)
+
+            if exp.hyper_params:
+                params = exp.hyper_params
             else:
-                self._logger.error(f"Cannot post-process algorithm scores!")
-                return
+                configurator.configure([exp.algorithm], perform_search=False)
+                param_grid = exp.algorithm.param_grid
+                if len(param_grid) == 1:
+                    params = inject_heuristic_values(param_grid[0], exp.algorithm, dataset, dataset_path)
+
+                    hp_path = exp.path / HYPER_PARAMETERS
+                    if not hp_path.exists():
+                        self._logger.warning(f"{exp.name}: Hyper parameters file is missing, recreating!")
+                        # persist hyper params to disk
+                        with hp_path.open("w") as fh:
+                            json.dump(params, fh)
+                else:
+                    self._logger.error(f"Cannot post-process algorithm scores! Multiple possible parameter "
+                                       f"configurations possible.")
+                    return
+            y_scores = exp.algorithm.postprocess(y_scores, {
+                "executionType": ExecutionType.EXECUTE,
+                "results_path": exp.path,
+                "hyper_params": params,
+                "dataset_details": dataset
+            })
 
         y_true = load_labels_only(dataset_path)
         y_true, y_scores = TimeEvalExperiment.scale_scores(y_true, y_scores)
