@@ -10,6 +10,7 @@ import pandas as pd
 # required to build a lookup-table for algorithm implementations
 import timeeval_experiments.algorithms as algorithms
 from timeeval import Algorithm, Status, Datasets, Metric
+from timeeval.data_types import ExecutionType
 from timeeval.experiments import Experiment as TimeEvalExperiment
 from timeeval.adapters.docker import SCORES_FILE_NAME as DOCKER_SCORES_FILE_NAME
 from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, EXECUTION_LOG, ANOMALY_SCORES_TS
@@ -147,9 +148,22 @@ class ResultSummary:
                 status = Status.ERROR
         return status
 
-    def _update_metrics(self, exp: Experiment):
+    def _update_metrics(self, exp: Experiment) -> None:
         self._logger.info(f"Re-calculating quality metrics for {exp.name}")
-        y_scores = pd.read_csv(exp.path / DOCKER_SCORES_FILE_NAME).values
+        y_scores = pd.read_csv(exp.path / DOCKER_SCORES_FILE_NAME).iloc[0, :].values
+        if exp.algorithm.postprocess:
+            param_grid = exp.algorithm.param_grid
+            if len(param_grid) == 1:
+                y_scores = exp.algorithm.postprocess(y_scores, {
+                    "executionType": ExecutionType.EXECUTE,
+                    "results_path": exp.path,
+                    "hyper_params": param_grid[0],
+                    "dataset_details": self.dmgr.get(exp.collection_name, exp.dataset_name)
+                })
+            else:
+                self._logger.error(f"Cannot post-process algorithm scores!")
+                return
+
         y_true = load_labels_only(self.dmgr.get_dataset_path((exp.collection_name, exp.dataset_name), train=False))
         y_true, y_scores = TimeEvalExperiment.scale_scores(y_true, y_scores)
 
