@@ -5,19 +5,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional
 
+import numpy as np
 import pandas as pd
+
+from timeeval import Algorithm, Status, Datasets, Metric
+from timeeval.adapters.docker import SCORES_FILE_NAME as DOCKER_SCORES_FILE_NAME
+from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, EXECUTION_LOG, ANOMALY_SCORES_TS
+from timeeval.data_types import ExecutionType
+from timeeval.experiments import Experiment as TimeEvalExperiment
+from timeeval.heuristics import inject_heuristic_values
+from timeeval.utils.datasets import load_labels_only
+from timeeval_experiments.baselines import Baselines
 
 # required to build a lookup-table for algorithm implementations
 import timeeval_experiments.algorithms as algorithms
-from timeeval import Algorithm, Status, Datasets, Metric
-from timeeval.data_types import ExecutionType
-from timeeval.experiments import Experiment as TimeEvalExperiment
-from timeeval.adapters.docker import SCORES_FILE_NAME as DOCKER_SCORES_FILE_NAME
-from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, EXECUTION_LOG, ANOMALY_SCORES_TS
 # noinspection PyUnresolvedReferences
-from timeeval.utils.datasets import load_labels_only
 from timeeval_experiments.algorithms import *
-from timeeval_experiments.baselines import Baselines
+from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 
 
 @dataclass
@@ -59,13 +63,13 @@ class Experiment:
 
 class ResultSummary:
 
-    def __init__(self, results_path: Path, data_path: Path, metric_list: Optional[List[Metric]] = None):
+    def __init__(self, results_path: Path, data_path: Path):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.results_path = results_path
         self.data_path = data_path
         self.dmgr = Datasets(data_path, create_if_missing=False)
         self.algos = self._build_algorithm_dict()
-        self.metric_list: List[Metric] = metric_list or Metric.default_list()
+        self.to_fix_experiments: Optional[pd.DataFrame] = None
         self.df: Optional[pd.DataFrame] = None
 
     @staticmethod
@@ -148,23 +152,30 @@ class ResultSummary:
                 status = Status.ERROR
         return status
 
-    def _update_metrics(self, exp: Experiment) -> None:
+    def _update_metrics(self, exp: Experiment, config_path: Path, metric_list: Optional[List[Metric]] = None) -> None:
+        metric_list: List[Metric] = metric_list or Metric.default_list()
+        configurator = AlgorithmConfigurator(config_path)
+        dataset_path = self.dmgr.get_dataset_path((exp.collection_name, exp.dataset_name), train=False)
+
         self._logger.info(f"Re-calculating quality metrics for {exp.name}")
-        y_scores = pd.read_csv(exp.path / DOCKER_SCORES_FILE_NAME).iloc[0, :].values
+        y_scores = np.genfromtxt(exp.path / DOCKER_SCORES_FILE_NAME, delimiter=",")
         if exp.algorithm.postprocess:
+            configurator.configure([exp.algorithm], perform_search=False)
             param_grid = exp.algorithm.param_grid
             if len(param_grid) == 1:
+                dataset = self.dmgr.get(exp.collection_name, exp.dataset_name)
+                params = inject_heuristic_values(param_grid[0], exp.algorithm, dataset, dataset_path)
                 y_scores = exp.algorithm.postprocess(y_scores, {
                     "executionType": ExecutionType.EXECUTE,
                     "results_path": exp.path,
-                    "hyper_params": param_grid[0],
-                    "dataset_details": self.dmgr.get(exp.collection_name, exp.dataset_name)
+                    "hyper_params": params,
+                    "dataset_details": dataset
                 })
             else:
                 self._logger.error(f"Cannot post-process algorithm scores!")
                 return
 
-        y_true = load_labels_only(self.dmgr.get_dataset_path((exp.collection_name, exp.dataset_name), train=False))
+        y_true = load_labels_only(dataset_path)
         y_true, y_scores = TimeEvalExperiment.scale_scores(y_true, y_scores)
 
         if not (exp.path / ANOMALY_SCORES_TS).exists():
@@ -174,7 +185,7 @@ class ResultSummary:
 
         results = {}
         errors = 0
-        for metric in self.metric_list:
+        for metric in metric_list:
             try:
                 score = metric(y_true, y_scores)
                 results[metric.name] = score
@@ -198,9 +209,15 @@ class ResultSummary:
         results_csv = self.results_path / RESULTS_CSV
         if results_csv.exists():
             self._logger.info(f"There already exists a {RESULTS_CSV} file, backing it up!")
-            results_csv.rename(results_csv.parent / "results.bak.csv")
+            # rename file if the name already exists in the target folder:
+            counter = 0
+            target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+            while target_filename.exists():
+                counter += 1
+                target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+            results_csv.rename(target_filename)
 
-    def create(self, fix_metrics: bool = False):
+    def create(self):
         self._inspect_result_folder()
 
         self._logger.info(f"Reading results from the directory {self.results_path} and parsing them...")
@@ -268,24 +285,28 @@ class ResultSummary:
                                     dataset_training_type=dataset_training_type,
                                     status=status
                                 ))
-        self._logger.info("Finished parsing results.")
-
-        if fix_metrics and len(to_fix_experiments):
-            self._logger.info(f"\nEncountered {len(to_fix_experiments)} experiments with missing metrics, "
-                              "recalculating quality measures. Runtimes are lost in all cases!")
-            for exp in to_fix_experiments:
-                self._update_metrics(exp)
-                experiments.append(exp)
-            del to_fix_experiments
-            self._logger.info("Finished recalculating metrics.")
-
+        if len(to_fix_experiments) > 0:
+            self.to_fix_experiments = to_fix_experiments
         data = [exp.to_dict() for exp in experiments]
         self.df = pd.DataFrame(data)
         self.df.sort_values(by=["algorithm", "collection", "dataset"], inplace=True)
-        self._logger.info("Finished!")
+        self._logger.info("Finished parsing results.")
+
+    def fix_metrics(self, param_config: Path, metric_list: List[Metric]):
+        if self.to_fix_experiments:
+            self._logger.info(f"\nFound {len(self.to_fix_experiments)} experiments with missing metrics, "
+                              "recalculating quality measures. Runtimes are lost in all cases!")
+            for exp in self.to_fix_experiments:
+                self._update_metrics(exp, param_config, metric_list=metric_list)
+                self.df = self.df.append(exp.to_dict(), ignore_index=True)
+            del self.to_fix_experiments
+            self._logger.info("Finished recalculating metrics.")
+        else:
+            self._logger.info("No experiments need a recalculation of the metrics.")
 
     def save(self) -> None:
         if self.df is not None:
+            self.df.sort_values(by=["algorithm", "collection", "dataset"], inplace=True)
             self.df.to_csv(self.results_path / RESULTS_CSV, index=False)
             self._logger.info(f"Stored experiment summary at {self.results_path / RESULTS_CSV}")
         else:
@@ -296,33 +317,34 @@ def _create_arg_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Takes an experiment result folder and re-creates the results.csv-file from the experiment backups."
     )
-    parser.add_argument("result_folder", type=Path, help="Folder of the experiment")
-    parser.add_argument("data_folder", type=Path, help="Folder, where the datasets from the experiment are stored."
-                                                       "This script loads the dataset metadata directly from the "
-                                                       "dataset index (datasets.csv).")
+    parser.add_argument("result_folder", type=Path,
+                        help="Folder of the experiment")
+    parser.add_argument("data_folder", type=Path,
+                        help="Folder, where the datasets from the experiment are stored. This script loads the dataset "
+                             "metadata directly from the dataset index (datasets.csv).")
     parser.add_argument("--loglevel", default="INFO", choices=("ERROR", "WARNING", "INFO", "DEBUG"),
                         help="Set logging verbosity (default: %(default)s)")
-    parser.add_argument("-f", "--fix", action="store_true", help="If successful experiments with missing metrics are "
-                                                                 "found, try to re-calculate those metrics based on "
-                                                                 "the algorithm (docker) scores.")
-    all_metric_choices = [
-                            Metric.ROC_AUC.name, Metric.PR_AUC.name,
-                            Metric.RANGE_PR_AUC.name, Metric.AVERAGE_PRECISION.name
-                        ]
+    parser.add_argument("-f", "--fix", action="store_true",
+                        help="If successful experiments with missing metrics are found, try to re-calculate those "
+                             "metrics based on the algorithm (docker) scores.")
+    all_metric_choices = [Metric.ROC_AUC.name, Metric.PR_AUC.name, Metric.RANGE_PR_AUC.name,
+                          Metric.AVERAGE_PRECISION.name]
     parser.add_argument("--metrics", type=str, nargs="*", default=all_metric_choices, choices=all_metric_choices,
                         help="Metrics to re-calculate if --fix is given as well. (default: %(default)s)")
+    parser.add_argument("--param-config", type=Path,
+                        help="Path to the param-config.json used to set the parameters for the algorithms. Only "
+                             "required if --fix is given as well.")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _create_arg_parser()
     logging.basicConfig(level=args.loglevel)
-    if args.fix:
-        metrics = args.metrics
-        metrics = [Metric[m] for m in metrics]
-    else:
-        metrics = []
 
-    rs = ResultSummary(args.result_folder, args.data_folder, metrics)
-    rs.create(fix_metrics=args.fix)
+    rs = ResultSummary(args.result_folder, args.data_folder)
+    rs.create()
+    if args.fix:
+        selected_metrics = args.metrics
+        selected_metrics = [Metric[m] for m in selected_metrics]
+        rs.fix_metrics(args.param_config, selected_metrics)
     rs.save()
