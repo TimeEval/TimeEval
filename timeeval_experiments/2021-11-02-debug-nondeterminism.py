@@ -95,7 +95,7 @@ def main():
 
     # copy parameter configuration file to results folder
     timeeval.results_path.mkdir(parents=True)
-    shutil.copy2(configurator.config_path, timeeval.results)
+    shutil.copy2(configurator.config_path, timeeval.results_path)
 
     timeeval.run()
     print(timeeval.get_results(aggregated=True, short=True))
