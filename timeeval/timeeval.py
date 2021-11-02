@@ -243,10 +243,11 @@ class TimeEval:
 
     def save_results(self, results_path: Optional[Path] = None):
         path = results_path or (self.results_path / RESULTS_CSV)
-        self.results.to_csv(path.absolute(), index=False)
+        self.results.to_csv(path.resolve(), index=False)
 
     @staticmethod
     def rsync_results_from(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1):
+        results_path = results_path.resolve()
         excluded_aliases = [
             hostname := socket.gethostname(),
             socket.gethostbyname(hostname),
