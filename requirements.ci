@@ -3,4 +3,3 @@ pytest-cov
 mypy==0.812
 twine
 freezegun
-jinja2
