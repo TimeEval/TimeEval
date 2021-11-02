@@ -15,13 +15,58 @@ from timeeval.data_types import ExecutionType
 from timeeval.experiments import Experiment as TimeEvalExperiment
 from timeeval.heuristics import inject_heuristic_values
 from timeeval.utils.datasets import load_labels_only
-from timeeval_experiments.baselines import Baselines
+from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 
 # required to build a lookup-table for algorithm implementations
 import timeeval_experiments.algorithms as algorithms
 # noinspection PyUnresolvedReferences
 from timeeval_experiments.algorithms import *
-from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
+from timeeval_experiments.baselines import Baselines
+
+
+def path_is_empty(path: Path) -> bool:
+    return not any(path.iterdir())
+
+
+@dataclass(frozen=True, eq=True)
+class Issue:
+    algorithm: str
+    description: str
+    collection: Optional[str] = None
+    dataset: Optional[str] = None
+    hyper_params_id: Optional[str] = None
+    repetition: Optional[int] = None
+
+    def exp_equals(self, other: 'Issue') -> bool:
+        def compare_optionals(a: Optional[Any], b: Optional[Any]) -> bool:
+            return b is None or (a is not None and b is not None and a == b)
+
+        return (
+            self.algorithm == other.algorithm
+            and compare_optionals(self.collection, other.collection)
+            and compare_optionals(self.dataset, other.dataset)
+            and compare_optionals(self.hyper_params_id, other.hyper_params_id)
+            and compare_optionals(self.repetition, other.repetition)
+        )
+
+    def __str__(self) -> str:
+        def format_if_defined(value: Optional[Any], fmt: str) -> str:
+            return fmt.format(value) if value is not None else ""
+
+        s = f"{self.algorithm}"
+        s += format_if_defined(self.collection, "-{}")
+        s += format_if_defined(self.dataset, "-{}")
+        s += format_if_defined(self.hyper_params_id, "-{}")
+        s += format_if_defined(self.repetition, "-{}")
+        s += f": {self.description}"
+
+        return s
+
+    @staticmethod
+    def remove_others(il: List['Issue'], issue: 'Issue') -> None:
+        to_remove = set(filter(lambda iss: iss.exp_equals(issue), il))
+        for i in to_remove:
+            il.remove(i)
 
 
 @dataclass
@@ -40,7 +85,7 @@ class Experiment:
 
     @property
     def name(self) -> str:
-        return f"{self.algorithm.name}-{self.dataset_name}-{self.hyper_params_id}-{self.repetition}"
+        return f"{self.algorithm.name}-{self.collection_name}/{self.dataset_name}-{self.hyper_params_id}-{self.repetition}"
 
     def to_dict(self):
         obj = {
@@ -70,14 +115,17 @@ class ResultSummary:
         self.dmgr = Datasets(data_path, create_if_missing=False)
         self.algos = self._build_algorithm_dict()
         self.to_fix_experiments: Optional[pd.DataFrame] = None
+        self.issues: List[Issue] = []
         self.df: Optional[pd.DataFrame] = None
 
     @staticmethod
-    def _names_from_path(path: Path) -> Tuple[str, str, str]:
+    def _names_from_path(path: Path) -> Tuple[str, str, str, str, int]:
+        repetition = int(path.name)
         dataset = path.parent.name
+        collection = path.parent.parent.name
         hpi = path.parent.parent.parent.name
         algorithm = path.parent.parent.parent.parent.name
-        return algorithm, dataset, hpi
+        return algorithm, collection, dataset, hpi, repetition
 
     @staticmethod
     def _build_algorithm_dict() -> Dict[str, Algorithm]:
@@ -106,13 +154,48 @@ class ResultSummary:
         timeout_logs = list(filter(lambda log: "Container timeout after" in log and "disregard" not in log, logs))
         return len(timeout_logs) > 0
 
-    def _get_dataset_metadata(self, collection: str, dataset: str) -> Tuple[str, str]:
+    def _inspect_result_folder(self) -> None:
+        results_csv = self.results_path / RESULTS_CSV
+        if results_csv.exists():
+            self._logger.info(f"There already exists a {RESULTS_CSV} file, backing it up!")
+            # rename file if the name already exists in the target folder:
+            counter = 0
+            target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+            while target_filename.exists():
+                counter += 1
+                target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+            results_csv.rename(target_filename)
+
+    def _get_algo_metadata(self, algorithm_name: str) -> Optional[Algorithm]:
+        try:
+            return self.algos[algorithm_name]
+        except KeyError as e:
+            self._logger.error(f"Could not find metadata about algorithm '{algorithm_name}', skipping!", exc_info=e)
+            self.issues.append(Issue(algorithm=algorithm_name, description="No metadata for algorithm found!"))
+            return None
+
+    def _get_dataset_metadata(self, algorithm_name: str, collection: str, dataset: str) -> Tuple[str, str]:
         try:
             meta = self.dmgr.get(collection, dataset)
             return meta.training_type.value, meta.input_dimensionality.value
         except KeyError as e:
             self._logger.error(f"Metadata about dataset {collection}-{dataset} not found!", exc_info=e)
+            self.issues.append(Issue(algorithm=algorithm_name, collection=collection, dataset=dataset,
+                                     description="No metadata for dataset found!"))
             return "", ""
+
+    def _check_if_empty(self, path) -> bool:
+        is_empty = path_is_empty(path)
+        if is_empty:
+            algo, collection, dataset, hpi, repetition = self._names_from_path(path)
+            self._logger.error(
+                f"No files found for experiment '{algo}-{collection}/{dataset}-{hpi}-{repetition}', skipping!",
+            )
+            self.issues.append(Issue(
+                algorithm=algo, collection=collection, dataset=dataset, hyper_params_id=hpi, repetition=repetition,
+                description="No files found! Was this experiment even executed?"
+            ))
+        return is_empty
 
     def _load_hyper_params(self, path: Path) -> Dict[str, Any]:
         hp_path = path / HYPER_PARAMETERS
@@ -121,8 +204,10 @@ class ResultSummary:
                 params = json.load(fh)
             return params
         except FileNotFoundError as e:
-            algo, dataset, hpi = self._names_from_path(path)
+            algo, collection, dataset, hpi, repetition = self._names_from_path(path)
             self._logger.debug(f"Could not load hyper parameters for {algo} on {dataset} ({hpi}).", exc_info=e)
+            self.issues.append(Issue(algo, "No hyper parameters found!", collection=collection, dataset=dataset,
+                                     hyper_params_id=hpi, repetition=repetition))
             return {}
 
     def _load_metrics(self, path: Path) -> Dict[str, float]:
@@ -130,19 +215,28 @@ class ResultSummary:
         try:
             return pd.read_csv(m_path).iloc[0, :].to_dict()
         except FileNotFoundError as e:
-            algo, dataset, hpi = self._names_from_path(path)
+            algo, collection, dataset, hpi, repetition = self._names_from_path(path)
             self._logger.debug(f"Could not load metrics for {algo} on {dataset} ({hpi}).", exc_info=e)
+            self.issues.append(Issue(algo, "No metrics found!", collection=collection, dataset=dataset,
+                                     hyper_params_id=hpi, repetition=repetition))
             return {}
 
-    def _calculate_status(self, path: Path, metrics: Dict[str, float]) -> Status:
+    def _calculate_status(self, path: Path, metrics: Dict[str, float]) -> Optional[Status]:
         # if scores and metrics --> ok
         status = Status.OK
         if not metrics:
             # if scores, but no metrics --> recalculate metrics
             if (path / DOCKER_SCORES_FILE_NAME).exists():
-                algo, dataset, hpi = self._names_from_path(path)
-                self._logger.warning(f"Found successful experiment with missing metrics: {algo}-{dataset} ({hpi})")
-                raise ValueError("Successful experiment with missing metrics")
+                algo, collection, dataset, hpi, repetition = self._names_from_path(path)
+                self._logger.warning("Found successful experiment with missing metrics: "
+                                     f"{algo}-{collection}/{dataset}-{repetition} ({hpi})")
+                issue = Issue(
+                    algorithm=algo, collection=collection, dataset=dataset, hyper_params_id=hpi, repetition=repetition,
+                    description="Successful experiment needs recalculation of metrics."
+                )
+                Issue.remove_others(self.issues, issue)
+                self.issues.append(issue)
+                return None
 
             # if no score and no metrics --> error or timeout
             # --> inspect execution.log, if timeout in logs --> timeout, else --> error
@@ -217,74 +311,41 @@ class ResultSummary:
         else:
             self._logger.error(f"There were errors while computing metrics for {exp.name}. Please consult DEBUG logs!")
 
-    def _inspect_result_folder(self) -> None:
-        results_csv = self.results_path / RESULTS_CSV
-        if results_csv.exists():
-            self._logger.info(f"There already exists a {RESULTS_CSV} file, backing it up!")
-            # rename file if the name already exists in the target folder:
-            counter = 0
-            target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
-            while target_filename.exists():
-                counter += 1
-                target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
-            results_csv.rename(target_filename)
-
     def create(self):
         self._inspect_result_folder()
 
         self._logger.info(f"Reading results from the directory {self.results_path} and parsing them...")
         experiments: List[Experiment] = []
         to_fix_experiments: List[Experiment] = []
-        for d_a in self.results_path.iterdir():
-            if d_a.is_dir():
-                algorithm_name = d_a.name
-                self._logger.info(f"Parsing results of {algorithm_name}")
-                # find algo
-                try:
-                    algo = self.algos[algorithm_name]
-                except KeyError as e:
-                    self._logger.error(f"Could not find metadata about algorithm '{algorithm_name}', skipping!",
-                                       exc_info=e)
-                    continue
+        for d_a in [d for d in self.results_path.iterdir() if d.is_dir()]:
+            algorithm_name = d_a.name
+            self._logger.info(f"Parsing results of {algorithm_name}")
+            algo = self._get_algo_metadata(algorithm_name)
+            if algo is None:
+                continue
 
-                for d_hpi in d_a.iterdir():
-                    hyper_params_id = d_hpi.name
-                    for d_c in d_hpi.iterdir():
-                        collection_name = d_c.name
-                        for d_d in d_c.iterdir():
-                            dataset_name = d_d.name
-                            dataset_input_dimensionality, dataset_training_type = \
-                                self._get_dataset_metadata(collection_name, dataset_name)
-                            for d_r in d_d.iterdir():
-                                repetition = int(d_r.name)
-                                # read hyper parameters from file
-                                hyper_params = self._load_hyper_params(d_r)
-                                # read metrics from file
-                                metrics = self._load_metrics(d_r)
+            for d_hpi in d_a.iterdir():
+                hyper_params_id = d_hpi.name
+                for d_c in d_hpi.iterdir():
+                    collection_name = d_c.name
+                    for d_d in d_c.iterdir():
+                        dataset_name = d_d.name
+                        dataset_input_dimensionality, dataset_training_type = \
+                            self._get_dataset_metadata(algorithm_name, collection_name, dataset_name)
+                        for d_r in d_d.iterdir():
+                            repetition = int(d_r.name)
 
-                                # figure out status:
-                                try:
-                                    status = self._calculate_status(d_r, metrics)
-                                except ValueError as e:
-                                    if "Successful experiment with missing metrics" in str(e):
-                                        to_fix_experiments.append(Experiment(
-                                            path=d_r,
-                                            algorithm=algo,
-                                            collection_name=collection_name,
-                                            dataset_name=dataset_name,
-                                            repetition=repetition,
-                                            hyper_params=hyper_params,
-                                            hyper_params_id=hyper_params_id,
-                                            metrics=metrics,
-                                            dataset_input_dimensionality=dataset_input_dimensionality,
-                                            dataset_training_type=dataset_training_type,
-                                            status=Status.ERROR
-                                        ))
-                                        continue
-                                    else:
-                                        raise e
-
-                                experiments.append(Experiment(
+                            # skip empty folders, but warn
+                            if self._check_if_empty(d_r):
+                                continue
+                            # read hyper parameters from file
+                            hyper_params = self._load_hyper_params(d_r)
+                            # read metrics from file
+                            metrics = self._load_metrics(d_r)
+                            # figure out status
+                            status = self._calculate_status(d_r, metrics)
+                            if status is None:
+                                to_fix_experiments.append(Experiment(
                                     path=d_r,
                                     algorithm=algo,
                                     collection_name=collection_name,
@@ -295,14 +356,46 @@ class ResultSummary:
                                     metrics=metrics,
                                     dataset_input_dimensionality=dataset_input_dimensionality,
                                     dataset_training_type=dataset_training_type,
-                                    status=status
+                                    status=Status.ERROR
                                 ))
+                                continue
+
+                            experiments.append(Experiment(
+                                path=d_r,
+                                algorithm=algo,
+                                collection_name=collection_name,
+                                dataset_name=dataset_name,
+                                repetition=repetition,
+                                hyper_params=hyper_params,
+                                hyper_params_id=hyper_params_id,
+                                metrics=metrics,
+                                dataset_input_dimensionality=dataset_input_dimensionality,
+                                dataset_training_type=dataset_training_type,
+                                status=status
+                            ))
+
         if len(to_fix_experiments) > 0:
             self.to_fix_experiments = to_fix_experiments
         data = [exp.to_dict() for exp in experiments]
         self.df = pd.DataFrame(data)
         self.df.sort_values(by=["algorithm", "collection", "dataset"], inplace=True)
         self._logger.info("Finished parsing results.")
+
+        dd_issues = {}
+        for i in self.issues:
+            if i.description not in dd_issues:
+                dd_issues[i.description] = []
+            dd_issues[i.description].append(i)
+        print("\nISSUES:")
+        for i_type in dd_issues:
+            print(f"# {i_type}")
+            for i in sorted([str(i) for i in dd_issues[i_type]]):
+                print(f"  {i}")
+            print()
+
+        print("ISSUE SUMMARY:")
+        for i_type in dd_issues:
+            print(f"  {len(dd_issues[i_type])}\t{i_type}")
 
     def fix_metrics(self, param_config: Path, metric_list: List[Metric]):
         if self.to_fix_experiments:
