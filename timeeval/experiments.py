@@ -14,7 +14,7 @@ from timeeval.datasets import Datasets
 from timeeval.datasets.datasets import Dataset
 from timeeval.heuristics import inject_heuristic_values
 from timeeval.resource_constraints import ResourceConstraints
-from timeeval.times import Times
+from timeeval.times import Times, timer
 from timeeval.utils.datasets import extract_features, load_dataset, load_labels_only
 from timeeval.utils.encode_params import dump_params
 from timeeval.utils.hash_dict import hash_dict
@@ -111,9 +111,10 @@ class Experiment:
             for metric in self.metrics:
                 print(f"Calculating {metric}", file=logs_file)
                 try:
-                    score = metric(y_true, y_scores)
+                    score, duration = timer(metric, y_true, y_scores)
                     result[metric.name] = score
-                    print(f"  = {score}", file=logs_file)
+                    print(f"  = {score} (after {duration} seconds)", file=logs_file)
+                    logs_file.flush()
                 except Exception as e:
                     print(f"Exception while computing metric {metric}: {e}", file=logs_file)
                     errors += 1

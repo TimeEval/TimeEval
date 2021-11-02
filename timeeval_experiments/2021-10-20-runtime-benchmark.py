@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import logging
 import random
+import shutil
 import sys
 from typing import List, Tuple
 
 import numpy as np
 from durations import Duration
 
-from timeeval import TimeEval, Datasets, TrainingType, InputDimensionality
+from timeeval import TimeEval, Datasets, TrainingType
 from timeeval.constants import HPI_CLUSTER
 from timeeval.remote import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints, GB
@@ -178,8 +179,12 @@ def main():
                         skip_invalid_combinations=True,
                         force_dimensionality_match=False,
                         force_training_type_match=False,
-                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.RANGE_PR_AUC, Metric.AVERAGE_PRECISION],
+                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.AVERAGE_PRECISION],
                         )
+
+    # copy parameter configuration file to results folder
+    timeeval.results_path.mkdir(parents=True)
+    shutil.copy2(configurator.config_path, timeeval.results_path)
 
     timeeval.run()
     print(timeeval.get_results(aggregated=True, short=True))
