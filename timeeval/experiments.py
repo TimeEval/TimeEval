@@ -70,9 +70,10 @@ class Experiment:
 
         # scale all other scores to [0, 1]
         scores = y_scores[~mask]
-        if len(scores.shape) == 1:
-            scores = scores.reshape(-1, 1)
-        y_scores[~mask] = MinMaxScaler().fit_transform(scores).ravel()
+        if scores.size != 0:
+            if len(scores.shape) == 1:
+                scores = scores.reshape(-1, 1)
+            y_scores[~mask] = MinMaxScaler().fit_transform(scores).ravel()
         return y_true, y_scores
 
     def evaluate(self) -> dict:
