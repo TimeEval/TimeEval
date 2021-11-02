@@ -19,8 +19,9 @@ class ResultMerger:
         self.target_folder = target_folder
 
     def _copy_run(self, run: pd.Series, overwrite: bool = False) -> None:
-        subfolder = Path("../timeeval/utils") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(
-            run["repetition"])
+        subfolder = Path(".") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(
+            run["repetition"]
+        )
         if overwrite:
             shutil.rmtree(self.target_folder / subfolder)
         shutil.copytree(self.right_folder / subfolder, self.target_folder / subfolder)
@@ -50,7 +51,7 @@ class ResultMerger:
 
     def prepare_target_folder(self) -> None:
         if self.left_folder == self.target_folder or self.right_folder == self.target_folder:
-            raise ValueError("The merge result can only be stored in a new empty folder for safety reasons!")
+            raise ValueError("The merge result can only be stored in a new folder for safety reasons!")
         if self.target_folder.exists():
             if not list(self.target_folder.iterdir()):
                 self._logger.debug(f"Target folder exists and is empty. Removing it in order to copy the reference "
