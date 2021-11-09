@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
 import random
-import shutil
 import sys
 from typing import List, Tuple
 
@@ -15,7 +14,6 @@ from timeeval.resource_constraints import ResourceConstraints, GB
 from timeeval.utils.metrics import Metric
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
-from timeeval_experiments.baselines import Baselines
 
 
 # Setup logging
@@ -31,11 +29,17 @@ random.seed(42)
 np.random.rand(42)
 
 
-def main():
-    dm = Datasets(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
-    configurator = AlgorithmConfigurator(config_path="param-config.json")
+def gutentag():
+    dm = Datasets(HPI_CLUSTER.akita_test_case_path, create_if_missing=False)
+    # Select all test case datasets
+    datasets = dm.select()
+    return dm, datasets
 
-    # Select datasets and algorithms
+
+def benchmark():
+    dm = Datasets(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
+
+    # Select certain benchmark datasets
     datasets: List[Tuple[str, str]] = []
     datasets += dm.select(collection_name="KDD-TSAD")
     datasets += dm.select(collection_name="Keogh")
@@ -60,82 +64,22 @@ def main():
     datasets += random.sample(dm.select(collection_name="WebscopeS5", min_anomalies=0), 50)
     datasets += random.sample(dm.select(collection_name="Exathlon", train_type=TrainingType.SUPERVISED.value), 2)
     datasets += random.sample(dm.select(collection_name="Exathlon", train_type=TrainingType.SEMI_SUPERVISED.value), 2)
-    print(f"Selecting {len(datasets)} datasets")
+    return dm, datasets
+
+
+def run(dm, datasets):
+    configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     algorithms = [
-        arima(),
-        # autoencoder(),  # exclude
         bagel(),
-        cblof(),
-        cof(),
-        copod(),
-        # dae(),  # exclude
         dbstream(),
-        deepant(),
         # deepnap(),  # run later with less datasets
-        donut(),
-        dspot(),
-        dwt_mlead(),
-        eif(),
-        encdec_ad(),
-        # ensemble_gi(),  # exclude
-        # fast_mcd(),  # exclude
-        fft(),
-        generic_rf(),
-        generic_xgb(),
-        grammarviz3(),
-        hbos(),
-        health_esn(),
-        hif(),
-        hotsax(),
         hybrid_knn(),
-        if_lof(),
-        iforest(),
-        img_embedding_cae(),
-        kmeans(),
-        knn(),
-        laser_dbn(),
-        left_stampi(),
-        lof(),
         lstm_ad(),
-        # lstm_vae(),  # exclude
-        median_method(),
-        # mscred(),  # exclude
-        # mtad_gat(),  # exclude
-        multi_hmm(),
-        norma(),
-        normalizing_flows(),
-        # novelty_svr(),  # exclude
-        numenta_htm(),
-        ocean_wnn(),
-        omnianomaly(),
-        pcc(),
-        pci(),
-        phasespace_svm(),
-        pst(),
-        random_black_forest(),
-        robust_pca(),
-        s_h_esd(),
-        sand(),
-        # sarima(),  # exclude
-        series2graph(),
-        sr(),
-        sr_cnn(),
-        ssa(),
-        stamp(),
-        stomp(),
-        # subsequence_fast_mcd(),  # exclude
-        subsequence_if(),
-        subsequence_lof(),
-        tanogan(),
-        tarzan(),
-        telemanom(),
-        torsk(),
-        triple_es(),
-        ts_bitmap(),
-        valmod(),
-        Baselines.normal()
+        multi_hmm()
     ]
+
+    print(f"Selecting {len(datasets)} datasets")
     print(f"Selecting {len(algorithms)} algorithms")
 
     print("Configuring algorithms...")
@@ -179,15 +123,25 @@ def main():
                         skip_invalid_combinations=True,
                         force_dimensionality_match=False,
                         force_training_type_match=False,
-                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.AVERAGE_PRECISION],
+                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.RANGE_PR_AUC, Metric.AVERAGE_PRECISION],
                         )
-
-    # copy parameter configuration file to results folder
-    timeeval.results_path.mkdir(parents=True)
-    shutil.copy2(configurator.config_path, timeeval.results_path)
 
     timeeval.run()
     print(timeeval.get_results(aggregated=True, short=True))
+
+
+def main():
+    print("\n\n##################################")
+    print("# Running on GutenTAG collection #")
+    print("##################################")
+    dm, datasets = gutentag()
+    run(dm, datasets)
+
+    print("\n\n###################################")
+    print("# Running on benchmark collection #")
+    print("###################################")
+    dm, datasets = benchmark()
+    run(dm, datasets)
 
 
 if __name__ == "__main__":

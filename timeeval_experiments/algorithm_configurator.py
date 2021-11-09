@@ -14,7 +14,7 @@ T = TypeVar("T")
 
 class AlgorithmConfigurator:
     def __init__(self, config_path: Union[str, Path], check: bool = True):
-        config_path = Path(config_path)
+        self.config_path = Path(config_path)
         with open(config_path, "r") as fh:
             config = json.load(fh)
         self._fixed_params = config[ParamConfigGenerator.FIXED_KEY]

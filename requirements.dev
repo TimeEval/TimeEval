@@ -7,3 +7,6 @@ tables
 pyyaml
 pylustrator==1.1.0
 plotly==5.1
+
+# for dask dashboard
+bokeh>=0.13.0
