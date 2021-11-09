@@ -1,9 +1,7 @@
-import argparse
 import warnings
 from enum import Enum
 from typing import Iterable, Callable, List, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 from prts import ts_precision, ts_recall, ts_fscore
 from sklearn.metrics import precision_recall_curve, roc_curve, auc, average_precision_score
@@ -94,7 +92,9 @@ class Metric(Enum):
         elif self == Metric.PR_AUC:
             return auc_precision_recall_curve(y_true, y_score, **kwargs)
         else:  # if self == Metric.AVERAGE_PRECISION:
-            return average_precision_score(y_true, y_score, **kwargs, pos_label=1)
+            kwargs.pop("plot", None)
+            kwargs.pop("plot_store", None)
+            return average_precision_score(y_true, y_score, pos_label=1, **kwargs)
 
 
 def _metric(y_true: np.ndarray, y_score: Iterable[float], _curve_function: Callable, plot: bool = False, **kwargs) -> float:
@@ -104,11 +104,18 @@ def _metric(y_true: np.ndarray, y_score: Iterable[float], _curve_function: Calla
         x, y = y, x
     area = auc(x, y)
     if plot:
+        store = False
+        if "plot_store" in kwargs:
+            store = kwargs["plot_store"]
+
+        import matplotlib.pyplot as plt
+
         name = _curve_function.__name__
         plt.plot(x, y, label=name, drawstyle="steps-post")
         # plt.plot([0, 1], [0, 1], linestyle="--", label="Random")
         plt.title(f"{name} | area = {area:.4f}")
-        plt.savefig(f"fig-{name}.pdf")
+        if store:
+            plt.savefig(f"fig-{name}.pdf")
         plt.show()
     return area
 
@@ -136,27 +143,3 @@ def auc_precision_recall_curve(y_true: np.ndarray, y_score: np.ndarray, **kwargs
 
 def auc_range_precision_recall_curve(y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:
     return _metric(y_true, y_score, range_precision_recall_curve, **kwargs)
-
-
-def _create_arg_parser():
-    parser = argparse.ArgumentParser(description=f"AUC Plotter")
-
-    parser.add_argument("--input-file", type=str, required=True, help="Path to input file")
-    parser.add_argument("--targets-file", type=str, required=True, help="Path to targets file")
-    parser.add_argument("--metric", type=str, default=Metric.ROC_AUC.name,
-                        choices=[Metric.ROC_AUC.name, Metric.PR_AUC.name, Metric.RANGE_PR_AUC.name],
-                        help="Metric to plot")
-
-    return parser
-
-
-if __name__ == "__main__":
-    parser = _create_arg_parser()
-    args = parser.parse_args()
-
-    anomaly_scores = np.loadtxt(args.input_file)
-    anomaly_labels = np.loadtxt(args.targets_file).astype(np.int_)
-    print(anomaly_labels)
-    print(anomaly_scores)
-
-    Metric[args.metric](anomaly_labels, anomaly_scores, plot=True)

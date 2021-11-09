@@ -62,19 +62,19 @@ class TestMetrics(unittest.TestCase):
             Metric.RANGE_F1(y_true, y_pred)
 
     def test_range_based_pr_curve_auc(self):
-        y_pred = np.array([0, 0.1, 1.,.5, 0, 0])
+        y_pred = np.array([0, 0.1, 1., .5, 0, 0])
         y_true = np.array([0, 1, 1, 1, 0, 0])
         result = Metric.RANGE_PR_AUC(y_true, y_pred)
         self.assertAlmostEqual(result, 0.9167, places=4)
 
     def test_pr_curve_auc(self):
-        y_pred = np.array([0, 0.1, 1.,.5, 0, 0])
+        y_pred = np.array([0, 0.1, 1., .5, 0, 0])
         y_true = np.array([0, 0, 1, 1, 0, 0])
         result = Metric.PR_AUC(y_true, y_pred)
         self.assertAlmostEqual(result, 1.0000, places=4)
 
     def test_average_precision(self):
-        y_pred = np.array([0, 0.1, 1.,.5, 0, 0])
+        y_pred = np.array([0, 0.1, 1., .5, 0, 0])
         y_true = np.array([0, 1, 1, 0, 0, 0])
         result = Metric.AVERAGE_PRECISION(y_true, y_pred)
         self.assertAlmostEqual(result, 0.8333, places=4)
