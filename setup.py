@@ -120,8 +120,8 @@ class CleanCommand(Command):
 
 setup(
     name="TimeEval",
-    version="0.5.0",
-    description="Evaluation Tool for Time Series Anomaly Detection",
+    version="1.0.0",
+    description="Evaluation Tool for Time Series Anomaly Detection Methods",
     long_description=README,
     long_description_content_type="text/markdown",
     author="Phillip Wenig and Sebastian Schmidl",
