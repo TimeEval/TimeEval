@@ -1,6 +1,8 @@
 from pathlib import Path
+from typing import List
 
 import numpy as np
+from docker.models.containers import Container
 
 from timeeval.adapters.docker import SCORES_FILE_NAME
 
@@ -12,7 +14,7 @@ class MockDockerContainer:
     def __init__(self):
         self.stopped = True
 
-    def wait(self, timeout=None):
+    def wait(self, timeout=None) -> dict:
         return {"Error": None, "StatusCode": 0}
 
     def run(self, image: str, cmd: str, volumes: dict, **kwargs):
@@ -27,14 +29,20 @@ class MockDockerContainer:
             np.arange(10, dtype=np.float64).tofile(real_path / Path(SCORES_FILE_NAME), sep="\n")
         return self
 
-    def prune(self, *args, **kwargs):
+    def prune(self, *args, **kwargs) -> None:
         pass
 
-    def stop(self, *args, **kwargs):
+    def remove(self, *args, **kwargs) -> None:
+        pass
+
+    def stop(self, *args, **kwargs) -> None:
         self.stopped = True
 
-    def logs(self):
+    def logs(self) -> bytes:
         return "".encode("utf-8")
+
+    def list(self, *args, **kwargs) -> List[Container]:
+        return [self]
 
 
 class MockImages:

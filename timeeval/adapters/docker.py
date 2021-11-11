@@ -213,8 +213,12 @@ class DockerAdapter(Adapter):
         def finalize():
             client = docker.from_env(timeout=Duration("10 minutes").to_seconds())
             try:
-                client.containers.prune(filters={"ancestor": self.image_name})
+                containers = client.containers.list(all=True, filters={"ancestor": self.image_name})
+                for c in containers:
+                    # force removal and also remove associated volumes
+                    c.remove(force=True, v=True)
             except DockerException:
+                # container cleanup is not critical; allow failure
                 pass
 
         return finalize

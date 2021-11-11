@@ -116,7 +116,8 @@ class TestDistributedTimeEval(unittest.TestCase):
             results = pd.DataFrame(results).reset_index()
             pd.testing.assert_frame_equal(
                 results,
-                self.results.loc[:, compare_columns])
+                self.results.loc[:, compare_columns]
+            )
 
             # wait a bit before testing if all processes have died to allow for slight delay
             time.sleep(0.5)
@@ -140,8 +141,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             remote = Remote(
                 remote_config=RemoteConfiguration(
                     scheduler_host="localhost",
-                    worker_hosts=["localhost", "localhost"],
-                    remote_python=os.popen("which python").read().rstrip("\n")
+                    worker_hosts=["localhost", "localhost"]
                 ))
             remote.run_on_all_hosts([(_test_func, [Path(tmp_path)], {})])
             remote.close()
