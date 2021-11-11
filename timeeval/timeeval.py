@@ -85,6 +85,7 @@ class TimeEval:
         self.disable_progress_bar = disable_progress_bar
 
         self.results_path = results_path.absolute() / start_date
+        self.results_path.mkdir(parents=True, exist_ok=True)
         self.log.info(f"Results are recorded in the directory {self.results_path}")
         self.metrics = metrics or Metric.default_list()
         self.metric_names = [m.name for m in self.metrics]
@@ -100,6 +101,8 @@ class TimeEval:
 
         self.distributed = distributed
         self.remote_config = remote_config or RemoteConfiguration()
+        self.remote_config.update_logging_path(self.results_path)
+        self.log.debug(f"Updated dask logging filepath to {self.remote_config.dask_logging_filename}")
         self.n_jobs = n_jobs
 
         if self.distributed:
@@ -306,8 +309,11 @@ class TimeEval:
             if finalize_fn := algorithm.finalize_fn():
                 tasks.append((finalize_fn, [], {}))
         self.log.debug(f"Collected {len(tasks)} algorithm finalize steps")
+        self.log.info("Running finalize steps on remote hosts")
         self.remote.run_on_all_hosts(tasks, msg="Finalizing")
+        self.log.info("Closing remote")
         self.remote.close()
+        self.log.info("Syncing results")
         self.rsync_results()
 
     def run(self):
