@@ -111,9 +111,9 @@ class Experiment:
             for metric in self.metrics:
                 print(f"Calculating {metric}", file=logs_file)
                 try:
-                    score, duration = timer(metric, y_true, y_scores)
+                    score = metric(y_true, y_scores)
                     result[metric.name] = score
-                    print(f"  = {score} (after {duration} seconds)", file=logs_file)
+                    print(f"  = {score}", file=logs_file)
                     logs_file.flush()
                 except Exception as e:
                     print(f"Exception while computing metric {metric}: {e}", file=logs_file)
