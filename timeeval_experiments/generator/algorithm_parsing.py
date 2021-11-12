@@ -66,7 +66,8 @@ def _collect_parameters(name: str, manifest: Dict[str, Any]) -> Dict:
                     parameters[param_obj["name"]] = param_obj
 
     if len(parameters) == 0:
-        warnings.warn(InvalidManifestWarning.msg(name, "no parameters found."), category=InvalidManifestWarning)
+        warnings.warn(InvalidManifestWarning.msg(name, "no parameters found.", will_skip=False),
+                      category=InvalidManifestWarning)
 
     return parameters
 
