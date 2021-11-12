@@ -32,8 +32,7 @@ np.random.rand(42)
 
 
 def main():
-    dm = Datasets("../../data/benchmark-data/data-processed", create_if_missing=False)
-    # dm = Datasets(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
+    dm = Datasets(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
@@ -84,7 +83,6 @@ def main():
             print(f"  {param}")
     print("=====================================================================================\n\n")
     sys.stdout.flush()
-    return
 
     cluster_config = RemoteConfiguration(
         scheduler_host=HPI_CLUSTER.odin01,
