@@ -1,9 +1,12 @@
 import logging
 import time
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
+from pathlib import Path
+from subprocess import Popen
 from typing import List, Callable, Optional, Tuple, Dict
 
 import tqdm
+from dask import config as dask_config
 from dask.distributed import Client, SSHCluster
 
 from timeeval.remote_configuration import RemoteConfiguration
@@ -20,6 +23,10 @@ class Remote:
         self.log.debug(f"Remoting configuration: {self.config}\n"
                        f"with {self.limits.tasks_per_host} tasks per host")
         self.futures: List[Future] = []
+
+        # setup logging of Dask:
+        self.log.info("Configuring dask logging")
+        dask_config.config["distributed"]["logging"] = self.config.get_remote_logging_config()
         self.log.info("Starting Dask SSH cluster ...")
         self.cluster = self.start_or_restart_cluster()
         self.client = Client(self.cluster.scheduler_address)
@@ -31,7 +38,7 @@ class Remote:
             raise RuntimeError("Could not start an SSHCluster because there is already one running, "
                                "that cannot be stopped!")
         try:
-            return SSHCluster(**self.config.to_ssh_cluster_kwargs(self.limits.tasks_per_host))
+            return SSHCluster(**self.config.to_ssh_cluster_kwargs(self.limits))
         except Exception as e:
             if "Worker failed to start" in str(e):
                 self.log.debug(f"Received SSHCluster error message: {e}")
@@ -41,7 +48,6 @@ class Remote:
 
                 self.log.warning(f"Failed to start cluster, because address already in use! "
                                  f"Trying to restart cluster at {scheduler_address}!")
-
 
                 with Client(scheduler_address) as client:
                     client.shutdown()
@@ -85,3 +91,13 @@ class Remote:
         self.cluster.close()
         self.client.shutdown()
         self.client.close()
+        self.log.debug("Renaming dask logfile based on the hostname to allow syncing it!")
+        logfile = Path(self.config.dask_logging_filename).resolve()
+        for host in self.config.worker_hosts:
+            command = f"ssh {host} mv {logfile} {logfile.parent}/{logfile.stem}-$(hostname){logfile.suffix}"
+            process = Popen(command, shell=True)
+            status = process.wait()
+            if status == 0:
+                self.log.debug(f"... {host} logfile renaming successful!")
+            else:
+                self.log.error(f"... {host} could not rename logfile!")
