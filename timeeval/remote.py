@@ -80,7 +80,7 @@ class Remote:
     def run_on_all_hosts_ssh(self, command: str) -> List[str]:
         failed_on: List[str] = []
         for host in self.config.worker_hosts:
-            process = Popen(f"ssh {host} {command}", shell=True)
+            process = Popen(f"ssh {host} '{command}'", shell=True)
             status = process.wait()
             if status == 0:
                 self.log.debug(f"Command '{command}' on host {host} successful!")
