@@ -2,21 +2,18 @@ import argparse
 import json
 import logging
 import time
-from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Optional
 
 import numpy as np
 import pandas as pd
 
 from timeeval import Algorithm, Status, Datasets, Metric
 from timeeval.adapters.docker import SCORES_FILE_NAME as DOCKER_SCORES_FILE_NAME
-from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, EXECUTION_LOG, ANOMALY_SCORES_TS
+from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, ANOMALY_SCORES_TS
 from timeeval.data_types import ExecutionType
 from timeeval.experiments import Experiment as TimeEvalExperiment
-from timeeval.heuristics import inject_heuristic_values
 from timeeval.utils.datasets import load_labels_only
-from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 
 # required to build a lookup-table for algorithm implementations
 import timeeval_experiments.algorithms as algorithms
@@ -148,7 +145,7 @@ class Evaluator:
                 for metric_name in metric_scores:
                     if metric_name in s_update:
                         s_update[metric_name] = metric_scores[metric_name]
-                self.df.iloc[0] = s_update
+                self.df.iloc[i] = s_update
             self._logger.info(f"Exp-{i:06d}: ... finished processing.")
 
         self._logger.info(f"Overwriting results file at {self.results_path / RESULTS_CSV}")
