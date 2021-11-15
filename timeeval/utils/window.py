@@ -36,7 +36,7 @@ class ReverseWindowing(TransformerMixin):
 
     def _reverse_windowing_vectorized_entire(self, scores: np.ndarray) -> np.ndarray:
         unwindowed_length = (self.window_size - 1) + len(scores)
-        mapped = np.zeros((unwindowed_length, self.window_size)) + np.nan
+        mapped = np.full(shape=(unwindowed_length, self.window_size), fill_value=np.nan)
         mapped[:len(scores), 0] = scores
 
         for w in range(1, self.window_size):
@@ -115,13 +115,32 @@ class ReverseWindowing(TransformerMixin):
             chunks = self._chunk_array(scores, len(scores) // self.chunksize, pad_start=pad_start, pad_end=pad_end)
             return self._vectorize_chunks(chunks)
 
+    def _has_enough_memory_for_vectorized_entire(self, n: int) -> bool:
+        import sys
+        import psutil
+        from pathlib import Path
+
+        container_limit_file = Path("/sys/fs/cgroup/memory/memory.limit_in_bytes")
+        memory_limit = psutil.virtual_memory().available
+        if container_limit_file.exists():
+            with container_limit_file.open("r") as fh:
+                container_limit = int(fh.read())
+            if container_limit < 1 * 1024 ** 4:
+                memory_limit = container_limit
+
+        estimated_mem_usage = sys.getsizeof(float()) * (n + self.window_size - 1) * self.window_size
+        return estimated_mem_usage <= memory_limit
+
     def fit_transform(self, X, y=None, **fit_params) -> np.ndarray:
         if self.n_jobs > 1:
             return self._reverse_windowing_parallel(X)
         elif self.chunksize is not None:
             return self._chunk_and_vectorize(X)
-        else:
+        elif self._has_enough_memory_for_vectorized_entire(len(X)):
             return self._reverse_windowing_vectorized_entire(X)
+        else:
+            print("Falling back to iterative reverse windowing function to limit memory usage!")
+            return self._reverse_windowing_iterative(X)
 
 
 def padding_borders(scores: np.ndarray, input_size: int) -> np.ndarray:
