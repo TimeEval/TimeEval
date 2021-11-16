@@ -93,17 +93,19 @@ class Evaluator:
                 y_scores = np.genfromtxt(processed_scores_path, delimiter=",")
             else:
                 self._logger.debug(f"Exp-{i:06d}: Processing anomaly scores.")
-                docker_scores = np.genfromtxt(docker_scores_path, delimiter=",")
-                with params_path.open("r") as fh:
-                    hyper_params = json.load(fh)
-                dataset = self.dmgr.get(s_exp.collection, s_exp.dataset)
-                args = {
-                    "executionType": ExecutionType.EXECUTE,
-                    "results_path": exp_path,
-                    "hyper_params": hyper_params,
-                    "dataset_details": dataset
-                }
-                y_scores = self.algos[s_exp.algorithm].postprocess(docker_scores, args)
+                y_scores = np.genfromtxt(docker_scores_path, delimiter=",")
+                post_fn = self.algos[s_exp.algorithm].postprocess
+                if post_fn is not None:
+                    with params_path.open("r") as fh:
+                        hyper_params = json.load(fh)
+                    dataset = self.dmgr.get(s_exp.collection, s_exp.dataset)
+                    args = {
+                        "executionType": ExecutionType.EXECUTE,
+                        "results_path": exp_path,
+                        "hyper_params": hyper_params,
+                        "dataset_details": dataset
+                    }
+                    y_scores = post_fn(y_scores, args)
                 _, y_scores = TimeEvalExperiment.scale_scores(y_true, y_scores)
                 self._logger.info(f"Exp-{i:06d}: Writing anomaly scores to {processed_scores_path}.")
                 y_scores.tofile(str(processed_scores_path), sep="\n")
