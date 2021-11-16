@@ -98,7 +98,7 @@ class TimeEval:
                                 force_training_type_match=force_training_type_match,
                                 force_dimensionality_match=force_dimensionality_match,
                                 metrics=self.metrics,
-                                failed_executions_file=experiment_combinations_file)
+                                experiment_combinations_file=experiment_combinations_file)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
         self.distributed = distributed

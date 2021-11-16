@@ -206,6 +206,7 @@ class Experiments:
                 ].empty
 
     def __iter__(self) -> Generator[Experiment, None, None]:
+        print(f"algorithm combinations", self.experiment_combinations)
         for algorithm in self.algorithms:
             for algorithm_config in algorithm.param_grid:
                 for dataset in self.datasets:
@@ -216,6 +217,7 @@ class Experiments:
                         params_id = hash_dict(algorithm_config)
                         params = inject_heuristic_values(algorithm_config, algorithm, dataset, test_path)
                         if self._should_be_run(algorithm, dataset, params_id):
+                            print(f"runs {algorithm.name} on {dataset.name}")
                             for repetition in range(1, self.repetitions + 1):
                                 yield Experiment(
                                     algorithm=algorithm,
