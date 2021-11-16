@@ -70,7 +70,8 @@ class TimeEval:
                  skip_invalid_combinations: bool = True,
                  force_training_type_match: bool = False,
                  force_dimensionality_match: bool = False,
-                 n_jobs: int = -1):
+                 n_jobs: int = -1,
+                 experiment_combinations_file: Optional[Path] = None):
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         resource_constraints = resource_constraints or ResourceConstraints()
@@ -96,7 +97,8 @@ class TimeEval:
                                 skip_invalid_combinations=skip_invalid_combinations,
                                 force_training_type_match=force_training_type_match,
                                 force_dimensionality_match=force_dimensionality_match,
-                                metrics=self.metrics)
+                                metrics=self.metrics,
+                                failed_executions_file=experiment_combinations_file)
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
         self.distributed = distributed

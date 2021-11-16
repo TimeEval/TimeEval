@@ -176,7 +176,8 @@ class Experiments:
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = False,
                  force_training_type_match: bool = False,
-                 force_dimensionality_match: bool = False):
+                 force_dimensionality_match: bool = False,
+                 experiment_combinations_file: Optional[Path] = None):
         self.dmgr = dmgr
         self.datasets = datasets
         self.algorithms = algorithms
@@ -187,12 +188,22 @@ class Experiments:
         self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match or force_dimensionality_match
         self.force_training_type_match = force_training_type_match
         self.force_dimensionality_match = force_dimensionality_match
+        self.experiment_combinations: Optional[pd.DataFrame] = pd.read_csv(experiment_combinations_file) if experiment_combinations_file else None
         if self.skip_invalid_combinations:
             self._N: Optional[int] = None
         else:
             self._N = sum(
                 [len(algo.param_grid) for algo in self.algorithms]
             ) * len(self.datasets) * self.repetitions
+
+    def _should_be_run(self, algorithm: Algorithm, dataset: Dataset, params_id: str) -> bool:
+        return self.experiment_combinations is None or \
+                not self.experiment_combinations[
+                    (self.experiment_combinations.algorithm == algorithm.name) &
+                    (self.experiment_combinations.collection == dataset.datasetId[0]) &
+                    (self.experiment_combinations.dataset == dataset.datasetId[1]) &
+                    (self.experiment_combinations.hyper_params_id == params_id)
+                ].empty
 
     def __iter__(self) -> Generator[Experiment, None, None]:
         for algorithm in self.algorithms:
@@ -204,25 +215,27 @@ class Experiments:
                         # (they replace the parameter values, but we want to be able to group by original configuration)
                         params_id = hash_dict(algorithm_config)
                         params = inject_heuristic_values(algorithm_config, algorithm, dataset, test_path)
-                        for repetition in range(1, self.repetitions + 1):
-                            yield Experiment(
-                                algorithm=algorithm,
-                                dataset=dataset,
-                                params=params,
-                                params_id=params_id,
-                                repetition=repetition,
-                                base_results_dir=self.base_result_path,
-                                resource_constraints=self.resource_constraints,
-                                metrics=self.metrics,
-                                resolved_test_dataset_path=test_path,
-                                resolved_train_dataset_path=train_path
-                            )
+                        if self._should_be_run(algorithm, dataset, params_id):
+                            for repetition in range(1, self.repetitions + 1):
+                                yield Experiment(
+                                    algorithm=algorithm,
+                                    dataset=dataset,
+                                    params=params,
+                                    params_id=params_id,
+                                    repetition=repetition,
+                                    base_results_dir=self.base_result_path,
+                                    resource_constraints=self.resource_constraints,
+                                    metrics=self.metrics,
+                                    resolved_test_dataset_path=test_path,
+                                    resolved_train_dataset_path=train_path
+                                )
 
     def __len__(self) -> int:
         if self._N is None:
             self._N = sum([
-                1 for algorithm in self.algorithms
-                for _algorithm_config in algorithm.param_grid
+                int(self._should_be_run(algorithm, dataset, hash_dict(algorithm_config)))
+                for algorithm in self.algorithms
+                for algorithm_config in algorithm.param_grid
                 for dataset in self.datasets
                 if self._check_compatible(dataset, algorithm)
                 for _repetition in range(1, self.repetitions + 1)
