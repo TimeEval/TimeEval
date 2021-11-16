@@ -3,14 +3,13 @@ import unittest
 from itertools import cycle
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
-from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian, ErroneousAlgorithm
+from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from timeeval import TimeEval, Algorithm, Datasets
 
 
-class TestRepetitions(unittest.TestCase):
+class TestExperimentCombinations(unittest.TestCase):
     def setUp(self) -> None:
         self.results = pd.read_csv("tests/example_data/results.csv")
         self.algorithms = [
