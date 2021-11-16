@@ -149,7 +149,6 @@ class Evaluator:
             self._logger.info(f"Exp-{i:06d}: ... finished processing.")
 
         self._logger.info(f"Overwriting results file at {self.results_path / RESULTS_CSV}")
-        self.df.sort_values(by=["algorithm", "collection", "dataset", "repetition"], inplace=True)
         self.df.to_csv(self.results_path / RESULTS_CSV, index=False)
 
     def _exp_path(self, exp: pd.Series) -> Path:
