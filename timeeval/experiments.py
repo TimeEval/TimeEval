@@ -206,7 +206,6 @@ class Experiments:
                 ].empty
 
     def __iter__(self) -> Generator[Experiment, None, None]:
-        print(f"algorithm combinations", self.experiment_combinations)
         for algorithm in self.algorithms:
             for algorithm_config in algorithm.param_grid:
                 for dataset in self.datasets:
