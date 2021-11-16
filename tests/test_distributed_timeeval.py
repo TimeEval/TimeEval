@@ -1,13 +1,9 @@
-import os
 import socket
 import tempfile
 import time
 import unittest
-from asyncio import Future
 from itertools import cycle
 from pathlib import Path
-from typing import Generator
-from typing import List, Union, Optional
 from unittest.mock import patch
 
 import numpy as np
@@ -17,77 +13,14 @@ import pytest
 from durations import Duration
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
+from tests.fixtures.call_mocks import MockProcess, MockRsync
+from tests.fixtures.dask_mocks import MockDaskClient, MockDaskSSHCluster, MockDaskExceptionClient, \
+    MockDaskDockerTimeoutExceptionClient
 from tests.fixtures.docker_mocks import MockDockerClient, TEST_DOCKER_IMAGE
 from timeeval import TimeEval, Algorithm, Datasets, RemoteConfiguration, Status
 from timeeval.adapters import DockerAdapter
-from timeeval.adapters.docker import DockerTimeoutError
 from timeeval.params import FullParameterGrid
-from timeeval.remote import Remote
 from timeeval.utils.hash_dict import hash_dict
-
-
-class MockWorker:
-    def __init__(self):
-        self.address = "localhost"
-
-
-class MockCluster:
-    def __init__(self, workers: int):
-        self.scheduler_address = "localhost:8000"
-        self.n_workers = workers
-
-    def close(self) -> None:
-        pass
-
-    @property
-    def workers(self):
-        dd = {}
-        for i in range(self.n_workers):
-            dd[i] = MockWorker()
-        return dd
-
-
-class MockClient:
-    def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
-        result = task(*args, **kwargs)
-        f = Future()  # type: ignore
-        f.set_result(result)
-        return f
-
-    def run(self, task, *args, **kwargs):
-        task(*args, **kwargs)
-
-    def gather(self, _futures: List[Future], *args, asynchronous=False, **kwargs) -> Union[Generator[Future, None, None], bool]:
-        if asynchronous:
-            for _ in _futures:
-                f = Future()  # type: ignore
-                f.set_result(True)
-                yield f
-        return True
-
-    def close(self) -> None:
-        self.closed = True
-
-    def shutdown(self) -> None:
-        self.did_shutdown = True
-
-
-class ExceptionForTest(Exception):
-    pass
-
-
-class MockExceptionClient(MockClient):
-    def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
-        f = Future()  # type: ignore
-        f.set_exception(ExceptionForTest("test-exception"))
-        return f
-
-
-class MockDockerTimeoutExceptionClient(MockClient):
-    def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
-        f = Future()  # type: ignore
-        f.set_exception(DockerTimeoutError("test-exception-timeout"))
-        return f
 
 
 class TestDistributedTimeEval(unittest.TestCase):
@@ -131,40 +64,18 @@ class TestDistributedTimeEval(unittest.TestCase):
                     f"{[p.cmdline() for p in processes]}"
             )
 
-    @pytest.mark.dask
-    def test_run_on_all_hosts(self):
-        def _test_func(*args, **kwargs):
-            a = time.time_ns()
-            os.mkdir(args[0] / str(a))
-
-        with tempfile.TemporaryDirectory() as tmp_path:
-            remote = Remote(
-                remote_config=RemoteConfiguration(
-                    scheduler_host="localhost",
-                    worker_hosts=["localhost", "localhost"]
-                ))
-            remote.run_on_all_hosts([(_test_func, [Path(tmp_path)], {})])
-            remote.close()
-            self.assertEqual(len(os.listdir(tmp_path)), 2)
-
+    @patch("timeeval.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
     @patch("timeeval.remote.Client")
     @patch("timeeval.remote.SSHCluster")
-    def test_distributed_phases(self, mock_cluster, mock_client, mock_docker, mock_call):
-        class Rsync:
-            def __init__(self):
-                self.params = []
-
-            def __call__(self, *args, **kwargs):
-                self.params.append(args[0])
-
-        rsync = Rsync()
-
-        mock_client.return_value = MockClient()
-        mock_cluster.return_value = MockCluster(workers=2)
+    def test_distributed_phases(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
+        mock_client.return_value = MockDaskClient()
+        mock_cluster.return_value = MockDaskSSHCluster(workers=2)
         mock_docker.return_value = MockDockerClient()
+        rsync = MockRsync()
         mock_call.side_effect = rsync
+        mock_popen.return_value = MockProcess()
 
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
@@ -204,24 +115,18 @@ class TestDistributedTimeEval(unittest.TestCase):
                 (timeeval.results_path / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
             )
 
+    @patch("timeeval.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
     @patch("timeeval.remote.Client")
     @patch("timeeval.remote.SSHCluster")
-    def test_aliases_excluded(self, mock_cluster, mock_client, mock_docker, mock_call):
-        class Rsync:
-            def __init__(self):
-                self.params = []
-
-            def __call__(self, *args, **kwargs):
-                self.params.append(args[0])
-
-        rsync = Rsync()
-
-        mock_client.return_value = MockClient()
-        mock_cluster.return_value = MockCluster(workers=2)
+    def test_aliases_excluded(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
+        mock_client.return_value = MockDaskClient()
+        mock_cluster.return_value = MockDaskSSHCluster(workers=2)
         mock_docker.return_value = MockDockerClient()
+        rsync = MockRsync()
         mock_call.side_effect = rsync
+        mock_popen.return_value = MockProcess()
 
         datasets = Datasets("./tests/example_data")
 
@@ -237,24 +142,17 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertEqual(len(rsync.params), 1)
             self.assertTrue(rsync.params[0], ["rsync", "-a", f"test-host:{tmp_path}/", tmp_path])
 
+    @patch("timeeval.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
     @patch("timeeval.remote.Client")
     @patch("timeeval.remote.SSHCluster")
-    def test_catches_future_exception(self, mock_cluster, mock_client, mock_docker, mock_call):
-        class Rsync:
-            def __init__(self):
-                self.params = []
-
-            def __call__(self, *args, **kwargs):
-                self.params.append(args[0])
-
-        rsync = Rsync()
-
-        mock_client.return_value = MockExceptionClient()
-        mock_cluster.return_value = MockCluster(workers=2)
+    def test_catches_future_exception(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
+        mock_client.return_value = MockDaskExceptionClient()
+        mock_cluster.return_value = MockDaskSSHCluster(workers=2)
         mock_docker.return_value = MockDockerClient()
-        mock_call.side_effect = rsync
+        mock_call.side_effect = MockRsync()
+        mock_popen.return_value = MockProcess()
 
         datasets = Datasets("./tests/example_data")
 
@@ -268,24 +166,17 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval.run()
             self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(), [Status.ERROR, "ExceptionForTest('test-exception')"])
 
+    @patch("timeeval.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
     @patch("timeeval.remote.Client")
     @patch("timeeval.remote.SSHCluster")
-    def test_catches_future_timeout_exception(self, mock_cluster, mock_client, mock_docker, mock_call):
-        class Rsync:
-            def __init__(self):
-                self.params = []
-
-            def __call__(self, *args, **kwargs):
-                self.params.append(args[0])
-
-        rsync = Rsync()
-
-        mock_client.return_value = MockDockerTimeoutExceptionClient()
-        mock_cluster.return_value = MockCluster(workers=2)
+    def test_catches_future_timeout_exception(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
+        mock_client.return_value = MockDaskDockerTimeoutExceptionClient()
+        mock_cluster.return_value = MockDaskSSHCluster(workers=2)
         mock_docker.return_value = MockDockerClient()
-        mock_call.side_effect = rsync
+        mock_call.side_effect = MockRsync()
+        mock_popen.return_value = MockProcess()
 
         datasets = Datasets("./tests/example_data")
 

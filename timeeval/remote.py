@@ -27,6 +27,13 @@ class Remote:
         # setup logging of Dask:
         self.log.info("Configuring dask logging")
         dask_config.config["distributed"]["logging"] = self.config.get_remote_logging_config()
+
+        self.log.debug("Creating folder structure for dask logfile")
+        logfile_folder = Path(self.config.dask_logging_filename).parent.resolve()
+        failed_on = self.run_on_all_hosts_ssh(f"mkdir -p {logfile_folder}")
+        if len(failed_on) != 0:
+            raise ValueError(f"Could not create target folder for Dask logfile on hosts {', '.join(failed_on)}!")
+
         self.log.info("Starting Dask SSH cluster ...")
         self.cluster = self.start_or_restart_cluster()
         self.client = Client(self.cluster.scheduler_address)
@@ -70,6 +77,18 @@ class Remote:
             self.log.debug(f"({msg}) Running task '{task}' with args {args} and kwargs {kwargs}")
             self.client.run(task, *args, **kwargs)
 
+    def run_on_all_hosts_ssh(self, command: str) -> List[str]:
+        failed_on: List[str] = []
+        for host in self.config.worker_hosts:
+            process = Popen(f"ssh {host} '{command}'", shell=True)
+            status = process.wait()
+            if status == 0:
+                self.log.debug(f"Command '{command}' on host {host} successful!")
+            else:
+                self.log.error(f"Command '{command}' on host {host} failed!")
+                failed_on.append(host)
+        return failed_on
+
     def fetch_results(self):
         n_experiments = len(self.futures)
         self.log.debug(f"Waiting for the results of {n_experiments} tasks submitted previously to the cluster")
@@ -91,13 +110,12 @@ class Remote:
         self.cluster.close()
         self.client.shutdown()
         self.client.close()
+
         self.log.debug("Renaming dask logfile based on the hostname to allow syncing it!")
         logfile = Path(self.config.dask_logging_filename).resolve()
-        for host in self.config.worker_hosts:
-            command = f"ssh {host} mv {logfile} {logfile.parent}/{logfile.stem}-$(hostname){logfile.suffix}"
-            process = Popen(command, shell=True)
-            status = process.wait()
-            if status == 0:
-                self.log.debug(f"... {host} logfile renaming successful!")
-            else:
-                self.log.error(f"... {host} could not rename logfile!")
+        command = f"mv {logfile} {logfile.parent}/{logfile.stem}-$(hostname){logfile.suffix}"
+        failed_on = self.run_on_all_hosts_ssh(command)
+        if len(failed_on) == 0:
+            self.log.debug(f"... logfile renaming successful!")
+        else:
+            self.log.error(f"... could not rename logfile on hosts {', '.join(failed_on)}!")
