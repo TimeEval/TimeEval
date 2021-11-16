@@ -411,7 +411,7 @@ class ResultSummary:
 
     def save(self) -> None:
         if self.df is not None:
-            self.df.sort_values(by=["algorithm", "collection", "dataset"], inplace=True)
+            self.df.sort_values(by=["algorithm", "collection", "dataset", "repetition"], inplace=True)
             self.df.to_csv(self.results_path / RESULTS_CSV, index=False)
             self._logger.info(f"Stored experiment summary at {self.results_path / RESULTS_CSV}")
         else:
