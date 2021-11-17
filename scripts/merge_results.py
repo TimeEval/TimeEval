@@ -12,12 +12,13 @@ import pandas as pd
 class ResultMerger:
     KEY_COLUMNS = ["algorithm", "collection", "dataset", "repetition", "hyper_params_id"]
 
-    def __init__(self, left_folder: Path, right_folder: Path, target_folder: Path, force_inplace: bool = False):
+    def __init__(self, left_folder: Path, right_folder: Path, target_folder: Path, force_inplace: bool = False, overwrite_errors: bool = False):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.left_folder = left_folder
         self.right_folder = right_folder
         self.target_folder = target_folder
         self.force_inplace = force_inplace
+        self.overwrite_errors = overwrite_errors
 
     def _copy_run(self, run: pd.Series, overwrite: bool = False) -> None:
         subfolder = Path(".") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(
@@ -93,7 +94,9 @@ class ResultMerger:
                 idx = ref_indices[0]
                 ref_status = df_ref.loc[idx, "status"]
                 right_status = record["status"]
-                if ref_status == "Status.ERROR" and (right_status == "Status.OK" or right_status == "Status.TIMEOUT"):
+                if ref_status == "Status.ERROR" and (
+                        self.overwrite_errors or right_status == "Status.OK" or right_status == "Status.TIMEOUT"
+                ):
                     self._replace(df_ref, idx, record, change_filesystem)
                     changed_idxs.append(idx)
                 elif ref_status == "Status.TIMEOUT" and right_status == "Status.OK":
@@ -146,10 +149,14 @@ def _create_arg_parser() -> argparse.Namespace:
     parser.add_argument("-f", "--force-inplace", action="store_true",
                         help="Prevent copying the reference experiment and add the new runs in-place. This will modify "
                              "the reference experiment folder!")
+    parser.add_argument("-o", "--overwrite-errors", action="store_true",
+                        help="Enable overwriting errors. This will overwrite erroneous runs of the reference "
+                             "experiment (`left`) with the runs from the `right` disregarding the status of the runs "
+                             "from `right`.")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _create_arg_parser()
     logging.basicConfig(level=args.loglevel)
-    ResultMerger(args.left, args.right, args.target, args.force_inplace).merge()
+    ResultMerger(args.left, args.right, args.target, args.force_inplace, args.overwrite_errors).merge()
