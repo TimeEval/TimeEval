@@ -11,8 +11,9 @@ import numpy as np
 from timeeval.utils.window import ReverseWindowing
 # post-processing for valmod
 def post_valmod(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_length = args.get("hyper_params", {}).get("min_anomaly_window_size", 30)
-    return ReverseWindowing(window_size=window_length).fit_transform(scores)
+    window_min = args.get("hyper_params", {}).get("min_anomaly_window_size", 30)
+    window_min = max(window_min, 4)
+    return ReverseWindowing(window_size=window_min).fit_transform(scores)
 
 
 _valmod_parameters: Dict[str, Dict[str, Any]] = {

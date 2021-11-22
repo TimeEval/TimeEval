@@ -12,11 +12,13 @@ import pandas as pd
 class ResultMerger:
     KEY_COLUMNS = ["algorithm", "collection", "dataset", "repetition", "hyper_params_id"]
 
-    def __init__(self, left_folder: Path, right_folder: Path, target_folder: Path):
+    def __init__(self, left_folder: Path, right_folder: Path, target_folder: Path, force_inplace: bool = False, overwrite_errors: bool = False):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.left_folder = left_folder
         self.right_folder = right_folder
         self.target_folder = target_folder
+        self.force_inplace = force_inplace
+        self.overwrite_errors = overwrite_errors
 
     def _copy_run(self, run: pd.Series, overwrite: bool = False) -> None:
         subfolder = Path(".") / run["algorithm"] / run["hyper_params_id"] / run["collection"] / run["dataset"] / str(
@@ -50,17 +52,27 @@ class ResultMerger:
         self._logger.debug(f"Replaced run {idx} with right side: {record.values}")
 
     def prepare_target_folder(self) -> None:
-        if self.left_folder == self.target_folder or self.right_folder == self.target_folder:
+        if self.right_folder == self.target_folder or (self.left_folder == self.target_folder and not self.force_inplace):
             raise ValueError("The merge result can only be stored in a new folder for safety reasons!")
-        if self.target_folder.exists():
-            if not list(self.target_folder.iterdir()):
-                self._logger.debug(f"Target folder exists and is empty. Removing it in order to copy the reference "
-                                   f"experiment (left) to target.")
-                self.target_folder.rmdir()
-            else:
-                raise ValueError("Target folder exists and is not empty!")
-        self._logger.info(f"Populating target folder with results from left (reference experiment)")
-        shutil.copytree(self.left_folder, self.target_folder)
+
+        if not self.force_inplace:
+            if self.target_folder.exists():
+                if not list(self.target_folder.iterdir()):
+                    self._logger.debug("Target folder exists and is empty. Removing it in order to copy the reference "
+                                       "experiment (left) to target.")
+                    self.target_folder.rmdir()
+                else:
+                    raise ValueError("Target folder exists and is not empty!")
+            self._logger.info("Populating target folder with results from left (reference experiment)")
+            shutil.copytree(self.left_folder, self.target_folder)
+
+        else:
+            if self.left_folder != self.target_folder:
+                raise ValueError("If --force-inplace is given, you must also set the target folder to the reference "
+                                 "experiment folder. This duplication is intentional to prevent you from accidentally "
+                                 "overwriting your reference experiment folder.")
+            self._logger.info(f"Using left (reference experiment) folder ({self.left_folder}) as target folder")
+            self.target_folder = self.left_folder
 
     def merge_runs(self, change_filesystem: bool = False) -> Tuple[pd.DataFrame, List[int]]:
         self._logger.debug(f"Changing filesystem is {'enabled' if change_filesystem else 'disabled'}!")
@@ -82,7 +94,9 @@ class ResultMerger:
                 idx = ref_indices[0]
                 ref_status = df_ref.loc[idx, "status"]
                 right_status = record["status"]
-                if ref_status == "Status.ERROR" and (right_status == "Status.OK" or right_status == "Status.TIMEOUT"):
+                if ref_status == "Status.ERROR" and (
+                        self.overwrite_errors or right_status == "Status.OK" or right_status == "Status.TIMEOUT"
+                ):
                     self._replace(df_ref, idx, record, change_filesystem)
                     changed_idxs.append(idx)
                 elif ref_status == "Status.TIMEOUT" and right_status == "Status.OK":
@@ -110,7 +124,7 @@ class ResultMerger:
                 counter += 1
                 target_filename = self.target_folder / f"{file.stem}-{counter}{file.suffix}"
 
-            logging.info(f"Copying additional file {file.name} --> {target_filename.name}")
+            self._logger.info(f"Copying additional file {file.name} --> {target_filename.name}")
             shutil.copy2(file, target_filename)
 
     def merge(self):
@@ -132,10 +146,17 @@ def _create_arg_parser() -> argparse.Namespace:
                         help="Path where the merged results are written to.")
     parser.add_argument("--loglevel", default="INFO", choices=("ERROR", "WARNING", "INFO", "DEBUG"),
                         help="Set logging verbosity (default: %(default)s)")
+    parser.add_argument("-f", "--force-inplace", action="store_true",
+                        help="Prevent copying the reference experiment and add the new runs in-place. This will modify "
+                             "the reference experiment folder!")
+    parser.add_argument("-o", "--overwrite-errors", action="store_true",
+                        help="Enable overwriting errors. This will overwrite erroneous runs of the reference "
+                             "experiment (`left`) with the runs from the `right` disregarding the status of the runs "
+                             "from `right`.")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _create_arg_parser()
     logging.basicConfig(level=args.loglevel)
-    ResultMerger(args.left, args.right, args.target).merge()
+    ResultMerger(args.left, args.right, args.target, args.force_inplace, args.overwrite_errors).merge()

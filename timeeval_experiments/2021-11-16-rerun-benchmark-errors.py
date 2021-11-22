@@ -163,7 +163,7 @@ def main():
                         force_dimensionality_match=False,
                         force_training_type_match=False,
                         metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.AVERAGE_PRECISION],
-                        experiment_combinations_file=Path("/home/projects/akita/results/re-execution-experiments.csv")
+                        experiment_combinations_file=Path("/home/projects/akita/results/re-execution-experiments-2.csv")
                         )
 
     # copy parameter configuration file to results folder
