@@ -89,4 +89,4 @@ class TestOutputData(unittest.TestCase):
             results = pd.read_csv(parent_path / METRICS_CSV)
 
             self.assertAlmostEqual(0.8102250625173659, results.loc[0, "ROC_AUC"], places=4)
-            self.assertAlmostEqual(0.0002446183953033, results.loc[0, "RANGE_PR_AUC"], places=4)
+            self.assertAlmostEqual(0.0002446183953033, results.loc[0, "RANGE_PR_AUC"], places=3)
