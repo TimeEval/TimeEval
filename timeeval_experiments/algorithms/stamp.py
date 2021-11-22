@@ -12,6 +12,9 @@ from timeeval.utils.window import ReverseWindowing
 # post-processing for stamp
 def post_stamp(scores: np.ndarray, args: dict) -> np.ndarray:
     window_size = args.get("hyper_params", {}).get("anomaly_window_size", 30)
+    if window_size < 4:
+      print("WARN: window_size must be at least 4. Dynamically fixing it by setting window_size to 4")
+      window_size = 4
     return ReverseWindowing(window_size=window_size).fit_transform(scores)
 
 
