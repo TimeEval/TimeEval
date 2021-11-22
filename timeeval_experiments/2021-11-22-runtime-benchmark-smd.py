@@ -161,7 +161,7 @@ def main():
                         )
 
     # copy parameter configuration file to results folder
-    timeeval.results_path.mkdir(parents=True)
+    timeeval.results_path.mkdir(parents=True, exist_ok=True)
     shutil.copy2(configurator.config_path, timeeval.results_path)
 
     timeeval.run()
