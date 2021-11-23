@@ -38,7 +38,11 @@ def main():
     configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
-    datasets: List[Tuple[str, str]] = dm.select(collection_name="SSA", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets: List[Tuple[str, str]] = dm.select(
+        collection_name="SSA",
+        # max_contamination=MAX_CONTAMINATION,  # ignore, bc. no dataset with contamination < 0.1; it's for all > 0.14!
+        min_anomalies=MIN_ANOMALIES,
+    )
     print(f"Selecting {len(datasets)} datasets")
 
     algorithms = [
