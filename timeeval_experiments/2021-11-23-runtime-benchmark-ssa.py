@@ -158,7 +158,7 @@ def main():
                         skip_invalid_combinations=True,
                         force_dimensionality_match=False,
                         force_training_type_match=False,
-                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.AVERAGE_PRECISION],
+                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.AVERAGE_PRECISION, Metric.RANGE_PR_AUC],
                         )
 
     # copy parameter configuration file to results folder
