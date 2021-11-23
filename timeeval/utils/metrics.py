@@ -120,9 +120,18 @@ def _metric(y_true: np.ndarray, y_score: Iterable[float], _curve_function: Calla
     return area
 
 
-def range_precision_recall_curve(y_true: np.ndarray, y_score: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def range_precision_recall_curve(y_true: np.ndarray, y_score: np.ndarray, max_samples=50) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     thresholds = np.unique(y_score)
     thresholds.sort()
+
+    # sample thresholds
+    if (n_thresholds := thresholds.shape[0]) > max_samples:
+        every_nth = n_thresholds // (max_samples - 1)
+        if thresholds[-1] == (sampled_thresholds := thresholds[::every_nth])[-1]:
+            thresholds = sampled_thresholds
+        else:
+            thresholds = np.r_[sampled_thresholds, thresholds[-1]]
+
     recalls = np.zeros_like(thresholds)
     precisions = np.zeros_like(thresholds)
     for i, threshold in enumerate(thresholds):
