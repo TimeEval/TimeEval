@@ -1,0 +1,216 @@
+% !TEX root = main.tex
+% !TEX program = pdflatex
+% !TEX encoding = UTF-8
+% !TEX spellcheck = en_US
+
+%%%%
+% common preamble used for papers
+%%%%
+\usepackage[utf8]{inputenc}
+% subfigures and subcaptions
+\usepackage{caption,subcaption}
+% math support
+\usepackage{textcomp,amsmath,amssymb}
+% fancy tables
+\usepackage{booktabs,multirow}
+% abbreviations
+\usepackage{glossaries}
+% todos
+\usepackage{todonotes}
+% drawing
+\usepackage{tikz,pgfplots}
+\usepgfplotslibrary{statistics}
+\pgfplotsset{compat=1.16}
+
+%%%% BIBLIOGRAPHY
+% biblatex
+\usepackage[%
+  backend=biber,% or bibtex
+  bibencoding=utf8,%
+  url=false,%
+  bibstyle=ACM-Reference-Format,%
+  maxcitenames=2,%
+]{biblatex}
+
+% prevent selected fields from being displayed
+% source: https://tex.stackexchange.com/questions/187643/biblatex-how-can-i-suppress-some-fields-for-multiple-entry-types
+% avoid specifying the correct field type by brute-forcing all :)
+\newcommand{\myclear}[1]{\clearfield{#1}\clearname{#1}\clearlist{#1}}
+\AtEveryBibitem{%
+\ifentrytype{book}{
+    \myclear{url}%
+    \myclear{urldate}%
+    % \myclear{isbn}%
+}{}
+\ifentrytype{article}{
+    % \myclear{doi}%
+    \myclear{url}%
+    \myclear{urldate}%
+    \myclear{shortjournal}%
+    \myclear{issn}%
+    \myclear{publisher}%
+}{}
+\ifentrytype{inproceedings}{
+    % \myclear{doi}%
+    \myclear{url}%
+    \myclear{urldate}%
+    \myclear{eventtitle}%
+    \myclear{isbn}%
+    \myclear{venue}%
+    \myclear{volume}%
+    \myclear{series}%
+    \myclear{shorttitle}%
+    \myclear{publisher}%
+    \myclear{location}%
+}{}
+\ifentrytype{online}{
+    % \myclear{url}%
+    % \myclear{urldate}%
+}{}
+\ifentrytype{software}{
+%   \myclear{url}%
+%   \myclear{urldate}%
+}{}
+% display date only using year info
+\myclear{day}
+\myclear{month}
+% general
+\myclear{langid}
+\myclear{file}
+}
+%%%%
+
+
+%%%% COMPACT AND CUSTOM LISTS
+\usepackage{enumitem}
+
+%% use `enuminline' only for lists >= 3 items!
+% (i) item 1, (ii) item 2, and (iii) item 3
+\newlist{enuminline}{enumerate*}{1}
+\setlist[enuminline]{label={(\roman*)},itemjoin={,\ },itemjoin*={, and\ }}
+% (i) item 1 (ii) item 2 (iii) item 3
+\newlist{enuminline*}{enumerate*}{1}
+\setlist[enuminline*]{label={(\roman*)},itemjoin={\ },itemjoin*={\ }}
+%%%%
+
+
+%%%% GLOSSARIES + NAME-DEFS
+% misc commands
+\newcommand{\eg}{e.\,g.} % beispielsweise = for example
+\newcommand{\wrt}{w.\,r.\,t.}
+\newcommand{\ia}{i.\,a.} % unter anderem
+\newcommand{\ie}{i.\,e.} % d.h. = that is
+\newcommand{\cf}{cf.} % vgl. = compare with
+
+\newcommand{\algonum}{71\space} % implemented algos for this eval paper
+\newcommand{\datanum}{200\space} % datasets used for our evaluation
+\newcommand{\papernum}{158\space} % papers about algos/techniques for TS AD
+
+% algorithms
+
+% Usage:
+% \stomp{} expands to "STOMP"
+% \stomp[cite]{} expands to "STOMP~\cite{ZhuEtAl2016Matrix}"
+% !! Always add the braces ({})! We don't use the package xspace, because https://tex.stackexchange.com/questions/86565/drawbacks-of-xspace
+\makeatletter
+\newcommand{\algonamedef}[3][\@nil]{{%
+    \def\tmp{#1}%
+    #2%
+    \ifx\tmp\@nnil%
+    \else%
+        \ifx&#3&%
+        \else%
+            ~\cite{#3}%
+        \fi%
+    \fi%
+}}
+\newcommand{\ensemblegi}[1][\@nil]{\algonamedef[#1]{Ensemble GI}{GaoEtAl2020Ensemble}}
+\newcommand{\grammarviz}[1][\@nil]{\algonamedef[#1]{GrammarViz}{SeninEtAl2015Time}}
+\newcommand{\hotsax}[1][\@nil]{\algonamedef[#1]{HOT SAX}{KeoghEtAl2005HOT}}
+\newcommand{\laserdbn}[1][\@nil]{\algonamedef[#1]{LaserDBN}{OgbechieEtAl2017Dynamic}}
+\newcommand{\multihmm}[1][\@nil]{\algonamedef[#1]{MultiHMM}{LiEtAl2017Multivariate}}
+\newcommand{\pcc}[1][\@nil]{\algonamedef[#1]{PCC}{ShyuEtAl2003novel}}
+\newcommand{\robustpca}[1][\@nil]{\algonamedef[#1]{RobustPCA}{PaffenrothEtAl2018Robust}}
+\newcommand{\tarzan}[1][\@nil]{\algonamedef[#1]{TARZAN}{KeoghEtAl2002Finding}}
+\newcommand{\tsbitmap}[1][\@nil]{\algonamedef[#1]{TSBitmap}{WeiEtAl2005Assumptionfree}}
+\newcommand{\cblof}[1][\@nil]{\algonamedef[#1]{CBLOF}{HeEtAl2003Discovering}}
+\newcommand{\cof}[1][\@nil]{\algonamedef[#1]{COF}{TangEtAl2002Enhancing}}
+\newcommand{\dbstream}[1][\@nil]{\algonamedef[#1]{DBStream}{HahslerBolaos2016Clustering}}
+\newcommand{\hbos}[1][\@nil]{\algonamedef[#1]{HBOS}{GoldsteinDengel2012Histogrambased}}
+\newcommand{\hybridknn}[1][\@nil]{\algonamedef[#1]{Hybrid KNN}{SongEtAl2017Hybrid}}
+\newcommand{\kmeans}[1][\@nil]{\algonamedef[#1]{k-Means}{YairiEtAl2001Fault}}
+\newcommand{\knn}[1][\@nil]{\algonamedef[#1]{KNN}{RamaswamyEtAl2000Efficient}}
+\newcommand{\lof}[1][\@nil]{\algonamedef[#1]{LOF}{BreunigEtAl2000LOF}}
+\newcommand{\norma}[1][\@nil]{\algonamedef[#1]{NormA}{BoniolEtAl2021Unsupervised}}
+\newcommand{\noveltysvr}[1][\@nil]{\algonamedef[#1]{NoveltySVR}{MaPerkins2003Online}}
+\newcommand{\phasespacesvm}[1][\@nil]{\algonamedef[#1]{PhaseSpace-SVM}{MaPerkins2003Timeseries}}
+\newcommand{\seriestograph}[1][\@nil]{\algonamedef[#1]{Series2Graph}{BoniolPalpanas2020Series2Graph}}
+\newcommand{\ssa}[1][\@nil]{\algonamedef[#1]{SSA}{YaoEtAl2010Online}}
+\newcommand{\stamp}[1][\@nil]{\algonamedef[#1]{STAMP}{YehEtAl2016Matrix}}
+\newcommand{\leftstampi}[1][\@nil]{\algonamedef[#1]{Left STAMPi}{YehEtAl2016Matrix}}
+\newcommand{\stomp}[1][\@nil]{\algonamedef[#1]{STOMP}{ZhuEtAl2016Matrix}}
+\newcommand{\subsequencelof}[1][\@nil]{\algonamedef[#1]{Subsequence LOF}{}}
+\newcommand{\valmod}[1][\@nil]{\algonamedef[#1]{VALMOD}{LinardiEtAl2020Matrix}}
+\newcommand{\copod}[1][\@nil]{\algonamedef[#1]{COPOD}{LiEtAl2020COPOD}}
+\newcommand{\dwtmlead}[1][\@nil]{\algonamedef[#1]{DWT-MLEAD}{ThillEtAl2017Time}}
+\newcommand{\fastmcd}[1][\@nil]{\algonamedef[#1]{Fast-MCD}{Rosseeuw1999FastMCD}}
+\newcommand{\normalizingflows}[1][\@nil]{\algonamedef[#1]{Normalizing Flows}{ryzhikov2019normalizing}}
+\newcommand{\shesd}[1][\@nil]{\algonamedef[#1]{S-H-ESD (Twitter)}{HochenbaumEtAl2017Automatic}}
+\newcommand{\dspot}[1][\@nil]{\algonamedef[#1]{DSPOT}{SifferEtAl2017Anomaly}}
+\newcommand{\subsequencefastmcd}[1][\@nil]{\algonamedef[#1]{Subsequence Fast-MCD}{}}
+\newcommand{\adlti}[1][\@nil]{\algonamedef[#1]{AD-LTI}{WuEtAl2020Developing}}
+\newcommand{\arima}[1][\@nil]{\algonamedef[#1]{ARIMA}{HyndmanAthanasopoulos2018Forecasting}}
+\newcommand{\deepant}[1][\@nil]{\algonamedef[#1]{DeepAnT}{MunirEtAl2019DeepAnT}}
+\newcommand{\deepnap}[1][\@nil]{\algonamedef[#1]{DeepNAP}{KimEtAl2018DeepNAP}}
+\newcommand{\healthesn}[1][\@nil]{\algonamedef[#1]{HealthESN}{ChenEtAl2020Imbalanced}}
+\newcommand{\medianmethod}[1][\@nil]{\algonamedef[#1]{MedianMethod}{BasuMeckesheimer2007Automatic}}
+\newcommand{\mtadgat}[1][\@nil]{\algonamedef[#1]{MTAD-GAT}{ZhaoEtAl2020Multivariate}}
+\newcommand{\numentahtm}[1][\@nil]{\algonamedef[#1]{NumentaHTM}{AhmadEtAl2017Unsupervised}}
+\newcommand{\oceanwnn}[1][\@nil]{\algonamedef[#1]{OceanWNN}{WangEtAl2019Study}}
+\newcommand{\randomblackforest}[1][\@nil]{\algonamedef[#1]{Random Black Forest (RR)}{Ziegelmeir2019Development}}
+\newcommand{\randomforest}[1][\@nil]{\algonamedef[#1]{Random Forest Regressor (RR)}{}}
+\newcommand{\sarima}[1][\@nil]{\algonamedef[#1]{SARIMA}{GreisEtAl2018Comparing}}
+\newcommand{\telemanom}[1][\@nil]{\algonamedef[#1]{Telemanom}{HundmanEtAl2018Detecting}}
+\newcommand{\torsk}[1][\@nil]{\algonamedef[#1]{Torsk}{HeimAvery2019Adaptive}}
+\newcommand{\triplees}[1][\@nil]{\algonamedef[#1]{Triple ES (Holt-Winter's)}{Aboode2018Anomaly}}
+\newcommand{\xgboosting}[1][\@nil]{\algonamedef[#1]{XGBoosting (RR)}{}}
+\newcommand{\autoencoder}[1][\@nil]{\algonamedef[#1]{AutoEncoder (AE)}{SakuradaYairi2014Anomaly}}
+\newcommand{\bagel}[1][\@nil]{\algonamedef[#1]{Bagel}{LiEtAl2018Robust}}
+\newcommand{\dae}[1][\@nil]{\algonamedef[#1]{DenoisingAutoEncoder (DAE)}{SakuradaYairi2014Anomaly}}
+\newcommand{\donut}[1][\@nil]{\algonamedef[#1]{Donut}{XuEtAl2018Unsupervised}}
+\newcommand{\encdecad}[1][\@nil]{\algonamedef[#1]{EncDec-AD}{MalhotraEtAl2016LSTMbased}}
+\newcommand{\fft}[1][\@nil]{\algonamedef[#1]{FFT}{RasheedEtAl2009Fourier}}
+\newcommand{\iecae}[1][\@nil]{\algonamedef[#1]{ImageEmbeddingCAE}{GarciaEtAl2020Time}}
+\newcommand{\lstmad}[1][\@nil]{\algonamedef[#1]{LSTM-AD}{MalhotraEtAl2015Long}}
+\newcommand{\lstmvae}[1][\@nil]{\algonamedef[#1]{LSTM-VAE}{ParkEtAl2018Multimodal}}
+\newcommand{\mscred}[1][\@nil]{\algonamedef[#1]{MSCRED}{ZhangEtAl2019Deep}}
+\newcommand{\omnianomaly}[1][\@nil]{\algonamedef[#1]{OmniAnomaly}{SuEtAl2019Robust}}
+\newcommand{\pci}[1][\@nil]{\algonamedef[#1]{PCI}{YuEtAl2014Time}}
+\newcommand{\tanogan}[1][\@nil]{\algonamedef[#1]{TAnoGan}{BasharNayak2020TAnoGAN}}
+\newcommand{\eif}[1][\@nil]{\algonamedef[#1]{Extended Isolation Forest (EIF)}{HaririEtAl2019Extended}}
+\newcommand{\hif}[1][\@nil]{\algonamedef[#1]{Hybrid Isolation Forest (HIF)}{MarteauEtAl2017Hybrid}}
+\newcommand{\iflof}[1][\@nil]{\algonamedef[#1]{IF-LOF}{ChengEtAl2019Outlier}}
+\newcommand{\iforest}[1][\@nil]{\algonamedef[#1]{Isolation Forest (iForest)}{LiuEtAl2008Isolation}}
+\newcommand{\pst}[1][\@nil]{\algonamedef[#1]{PST}{SunEtAl2006Mining}}
+\newcommand{\subsequenceif}[1][\@nil]{\algonamedef[#1]{Subsequence IF}{}}
+\newcommand{\sr}[1][\@nil]{\algonamedef[#1]{Spectral Residual (SR)}{RenEtAl2019TimeSeries}}
+\newcommand{\srcnn}[1][\@nil]{\algonamedef[#1]{SR-CNN}{RenEtAl2019TimeSeries}}
+\newcommand{\sand}[1][\@nil]{\algonamedef[#1]{SAND}{BoniolEtAl2021SAND}}
+
+% other global names
+\newcommand{\timeeval}{TimeEval}
+
+\makeatother
+%%%%
+
+
+%%%% HYPERREF
+% load hyperref last!
+\usepackage{hyperref}
+%%%%
+
+
+%%%% CLEVEREF
+% load after algorithm2e and after hyperref!!
+\usepackage[noabbrev,capitalize]{cleveref}
+%%%%

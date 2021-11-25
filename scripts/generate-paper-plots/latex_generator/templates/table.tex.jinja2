@@ -1,0 +1,23 @@
+\newcommand{\myrotate}[1]{\rotatebox[origin=c]{90}{#1}}
+\begin{tabular}{@{}c@{\hspace{0.25em}}c@{\hspace{0.25em}}l@{\hspace{0.25em}}r@{\hspace{0.25em}}r@{\hspace{0.25em}}r@{}}
+    \toprule
+    \textbf{Dim.} & \textbf{Learn.} & \textbf{Algorithm} & \textbf{TL} & \textbf{OOM} & \textbf{ERR}\\
+    \midrule
+    ((# test comment #))
+    ((* for algo in algorithms *))
+    (( algo.dim )) & (( algo.learn )) & (( algo.name )) & (( algo.timeout )) & (( algo.oom )) & (( algo.error ))\\
+    ((* endfor *))
+    % \multirow{28}{*}{\myrotate{MULTIVARIATE}} & \multirow{11}{*}{\myrotate{SEMI-SUPERVISED}} & TAnoGan & 67~\% & 00~\% & 00~\%\\& & Hybrid KNN & 00~\% & 00~\% & 01~\%\\
+    % & & RobustPCA & 00~\% & 00~\% & 00~\%\\
+    % & & LaserDBN & 00~\% & 00~\% & 06~\%\\
+    % & & OmniAnomaly & 00~\% & 04~\% & 01~\%\\
+    % & & EncDec-AD & 54~\% & 19~\% & 10~\%\\
+    % & & Random Black Forest (RR) & 07~\% & 00~\% & 00~\%\\
+    % & & LSTM-AD & 15~\% & 30~\% & 25~\%\\
+    % & & DeepAnT & 00~\% & 24~\% & 04~\%\\
+    % & & Telemanom & 00~\% & 00~\% & 00~\%\\
+    % & & HealthESN & 59~\% & 00~\% & 00~\%\\
+    % \cmidrule[0.25pt](lr){2-6}
+    % & \multirow{1}{*}{\myrotate{SUPER.}} & MultiHMM & 00~\% & 00~\% & 51~\%\\
+    \bottomrule
+\end{tabular}

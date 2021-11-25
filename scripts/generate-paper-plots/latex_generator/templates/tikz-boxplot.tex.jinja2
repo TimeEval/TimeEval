@@ -1,0 +1,73 @@
+\providecommand{\restrictheight}{\textheight}
+
+\begin{tikzpicture}
+    \begin{axis}[
+        scale only axis,
+        width=\textwidth,
+        height=\restrictheight,
+        boxplot/draw direction=x,
+        major tick length=2pt,
+        xmin=-0.025,xmax=1.025,
+        xtick pos=bottom,
+        xlabel={(( title ))},
+        x label style={at={(0.5, 1.06)}},
+        ytick={0,...,(( algo_boxplots|length ))},
+        ymin=-1,ymax=(( algo_boxplots|length + 1 )),
+        ymajorticks=false,
+        % boxplot/variable width,
+        boxplot/every box/.style={
+            draw=black,
+            solid,
+        },
+        boxplot/every whisker/.style={
+            draw=black,
+            solid,
+        },
+        boxplot/every median/.style={
+            draw=orange,
+            solid,
+        },
+        boxplot/every average/.style={
+            draw=green,
+            solid,
+        },
+        boxplot/draw/average/.code={
+            \draw [/pgfplots/boxplot/every average/.try]
+                (boxplot box cs:\pgfplotsboxplotvalue{average},0)
+                --
+                (boxplot box cs:\pgfplotsboxplotvalue{average},1)
+            ;
+        },
+        boxplot outlier style/.style={
+            mark=o,
+            every mark/.append style={
+                draw=black,
+                fill=white,
+                scale=0.5,
+            },
+        },
+    ]
+    ((* for box in algo_boxplots *))
+        \addplot+ [
+            ((* if show_outliers *))
+            boxplot outlier style,
+            ((* endif *))
+            boxplot prepared={
+                lower whisker=(( box.lower_whisker )), upper whisker=(( box.upper_whisker )),
+                lower quartile=(( box.lower_quartile )), upper quartile=(( box.upper_quartile )),
+                median=(( box.median )), average=(( box.average )),
+                box extend=(( box_extend )),
+            }] coordinates {((* if show_outliers *))((* for outlier in box.outliers *))
+                (0, (( outlier )))
+            ((* endfor *))((* endif *))};
+    ((* endfor *))
+
+        ((# \addplot+ [boxplot outlier style, boxplot prepared={
+            lower whisker=41, upper whisker=50,
+            lower quartile=42, upper quartile=50,
+            median=48, average=47,
+            sample size=,
+            box extend=0.8,
+        }] coordinates {(0, 38) (0, 40) (0, 53)}; #))
+    \end{axis}
+\end{tikzpicture}
