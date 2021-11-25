@@ -1,0 +1,24 @@
+% !TEX root = main.tex
+% !TEX program = pdflatex
+% !TEX encoding = UTF-8
+% !TEX spellcheck = en_US
+
+\documentclass{standalone}
+
+\usepackage[T1]{fontenc}
+\usepackage[type1=true]{libertine}
+
+\PassOptionsToPackage{disable}{todonotes}
+\PassOptionsToPackage{draft}{hyperref}
+
+\input{preamble.tex}
+\bibliography{2021-11-24-akita}
+
+\begin{document}
+
+\tiny
+\newcommand{\boxplotwidth}{3cm}
+\newcommand{\boxplotheight}{1em}
+\input{overview-table}
+
+\end{document}

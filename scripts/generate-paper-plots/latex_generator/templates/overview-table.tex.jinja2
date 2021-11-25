@@ -1,0 +1,110 @@
+\providecommand{\boxplotwidth}{(( 1 / ( boxplot_titles|length + 1 ) ))\textwidth}
+\providecommand{\boxplotheight}{1em}
+\pgfplotsset{
+    boxplot/every box/.style={
+        draw=black,
+    },
+    boxplot/every whisker/.style={
+        draw=black,
+    },
+    boxplot/every median/.style={
+        draw=orange,
+    },
+    boxplot/every average/.style={
+        draw=green,
+        dashed,
+    },
+    boxplot/draw/average/.code={
+        \draw [/pgfplots/boxplot/every average/.try]
+            (boxplot box cs:\pgfplotsboxplotvalue{average},0)
+            --
+            (boxplot box cs:\pgfplotsboxplotvalue{average},1)
+        ;
+    },
+    boxplot outlier style/.style={
+        mark=o,
+        every mark/.append style={
+            draw=black,
+            fill=white,
+            scale=0.5,
+        },
+    },
+    boxplot axis props/.style={
+        boxplot/draw direction=x,
+        xmin=-0.025,xmax=1.025,
+        ymajorticks=false,
+        xmajorticks=false,
+        axis line style={draw=none},
+    }
+}
+\newcommand{\myrotate}[1]{\rotatebox[origin=c]{90}{#1}}
+\newcommand{\makeboxplot}[6]{%
+\begin{tikzpicture}
+    \begin{axis}[
+        scale only axis,
+        width=\boxplotwidth,
+        height=\boxplotheight,
+        boxplot axis props,
+    ]
+        \addplot+ [boxplot outlier style, boxplot prepared={
+            lower whisker=#1, upper whisker=#2,
+            lower quartile=#3, upper quartile=#4,
+            median=#5, average=#6,
+            box extend=(( box_extend )),
+        }] coordinates {};
+    \end{axis}
+\end{tikzpicture}%
+}
+\newcommand{\makescaleplot}{%
+\begin{tikzpicture}
+    \begin{axis}[
+        scale only axis,
+        width=\boxplotwidth,
+        height=\boxplotheight,
+        xmin=-0.025,xmax=1.025,
+        % xtick={0,0.2,0.4,0.6,0.8,1},
+        major tick length=0.25\boxplotheight,
+        ymin=0, ymax=0.1,
+        axis y line=none,
+        axis x line*=bottom,
+    ]
+    \end{axis}
+\end{tikzpicture}%
+}
+\begin{tabular}{%
+        @{}c@{\hspace{0.25em}}%
+        c@{\hspace{0.25em}}%
+        l@{\hspace{0.25em}}%
+        r@{\hspace{0.25em}}%
+        r@{\hspace{0.25em}}%
+        r@{\hspace{0.25em}}|%
+        ((* for title in boxplot_titles *))
+            ((* if loop.last and gt_boxplots -*))
+                @{\hspace{0.25em}}|@{\hspace{0.25em}}c
+            ((*- else -*))
+                @{\hspace{0.25em}}c
+            ((*- endif -*))
+        ((*- endfor *))%
+        @{}%
+    }
+    \toprule
+    \textbf{Dim.} & \textbf{Learn.} & \textbf{Algorithm} & \textbf{TL} & \textbf{OOM} & \textbf{ERR} ((* for title in boxplot_titles *))& \textbf{(( title ))} ((* endfor *))\\
+    \midrule
+    ((* for algo in algorithms *))
+    (( algo.dim )) & (( algo.learn )) & (( algo.name )) & (( algo.timeout )) & (( algo.oom )) & (( algo.error ))
+        ((* for box in algo.boxes *))
+        ((* if box *))
+        & \makeboxplot{(( box.lower_whisker ))}{(( box.upper_whisker ))}{(( box.lower_quartile ))}{(( box.upper_quartile ))}{(( box.median ))}{(( box.average ))}
+        ((* else *))
+        &
+        ((* endif *))
+        ((*- endfor -*))
+        ((*- if algo.gt_box *))
+        & \makeboxplot{(( algo.gt_box.lower_whisker ))}{(( algo.gt_box.upper_whisker ))}{(( algo.gt_box.lower_quartile ))}{(( algo.gt_box.upper_quartile ))}{(( algo.gt_box.median ))}{(( algo.gt_box.average ))}
+        ((*- elif gt_boxplots *))
+        &
+        ((*- endif -*)) \\
+    ((* endfor *))
+     & & & & & ((* for title in boxplot_titles *))& \makescaleplot{} ((* endfor *))\\
+    \bottomrule
+\end{tabular}
