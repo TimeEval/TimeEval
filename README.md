@@ -115,15 +115,18 @@ from timeeval.adapters import FunctionAdapter
 from timeeval.constants import HPI_CLUSTER
 import numpy as np
 
+
 # Load dataset metadata
 dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
+
 
 # Define algorithm
 def my_algorithm(data: np.ndarray) -> np.ndarray:
     return np.zeros_like(data)
 
+
 # Select datasets and algorithms
-datasets = dm.select(collection_name="NAB")
+datasets = dm.select(collection="NAB")
 algorithms = [
     # Add algorithms to evaluate...
     Algorithm(

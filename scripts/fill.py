@@ -15,7 +15,8 @@ def main():
   existing_datasets = dmgr.select()
   datasets = [
     dataset
-    for dataset in old_dmgr.select(collection_name="LTDB") + old_dmgr.select(collection_name="Kitsune") + old_dmgr.select(collection_name="GHL")
+    for dataset in old_dmgr.select(collection="LTDB") + old_dmgr.select(collection="Kitsune") + old_dmgr.select(
+          collection="GHL")
     if dataset not in existing_datasets
   ]
   print(f"Filling dataset index table with {len(datasets)} datasets")

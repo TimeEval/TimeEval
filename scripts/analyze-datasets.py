@@ -3,7 +3,7 @@ from pathlib import Path
 
 import tqdm
 
-from timeeval import Datasets
+from timeeval import Datasets, TrainingType
 from timeeval.constants import HPI_CLUSTER
 from timeeval.datasets import DatasetAnalyzer, DatasetRecord
 
@@ -40,7 +40,7 @@ def unsupervised(dmgr, dmgr_new):
 
   unsupervised_datasets = [
     dataset
-    for dataset in dmgr.select(train_type="unsupervised")
+    for dataset in dmgr.select(training_type=TrainingType.UNSUPERVISED)
     if dataset[0] not in ignore_collections
     if dataset[1] not in ignore_datasets
     if dataset not in existing_datasets
@@ -59,7 +59,7 @@ def supervised(dmgr, dmgr_new):
 
   supervised_datasets = [
     dataset
-    for dataset in dmgr.select(train_type="supervised") + dmgr.select(train_type="semi-supervised")
+    for dataset in dmgr.select(training_type=TrainingType.SUPERVISED) + dmgr.select(training_type=TrainingType.SEMI_SUPERVISED)
     if dataset[0] not in ignore_collections
     if dataset[1] not in ignore_datasets
     if dataset not in existing_datasets
