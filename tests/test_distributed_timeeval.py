@@ -134,7 +134,7 @@ class TestDistributedTimeEval(unittest.TestCase):
             hosts = [
                 socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
             ]
-            timeeval = TimeEval(datasets, [], [], distributed=True,
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [self.algorithms[0]], distributed=True,
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
                                 results_path=Path(tmp_path),
                                 n_jobs=1)

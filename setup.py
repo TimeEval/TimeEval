@@ -11,6 +11,10 @@ from setuptools import setup, find_packages
 
 README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 HERE = Path(os.path.dirname(__file__)).absolute()
+# get __version__ from timeeval/_version.py
+with open(Path("timeeval") / "_version.py") as f:
+    exec(f.read())
+VERSION: str = __version__  # noqa
 
 
 def load_dependencies():
@@ -120,7 +124,7 @@ class CleanCommand(Command):
 
 setup(
     name="TimeEval",
-    version="1.0.0",
+    version=VERSION,
     description="Evaluation Tool for Time Series Anomaly Detection Methods",
     long_description=README,
     long_description_content_type="text/markdown",

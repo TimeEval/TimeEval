@@ -1,3 +1,4 @@
+from ._version import __version__
 from .algorithm import Algorithm
 from .data_types import AlgorithmParameter, TrainingType, InputDimensionality
 from .datasets import Datasets
