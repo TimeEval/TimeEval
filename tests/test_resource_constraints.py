@@ -2,8 +2,9 @@ import unittest
 
 import psutil
 from durations import Duration
+from tests.fixtures.algorithms import DeviatingFromMean
 
-from timeeval import TimeEval, Datasets, ResourceConstraints
+from timeeval import TimeEval, Datasets, ResourceConstraints, Algorithm
 from timeeval.resource_constraints import GB, DEFAULT_TIMEOUT
 
 
@@ -58,8 +59,11 @@ class TestResourceConstraints(unittest.TestCase):
 
     def test_tasks_per_node_overwrite_when_non_distributed(self):
         limits = ResourceConstraints(tasks_per_host=4)
+        algorithm = Algorithm(name="dummy", main=DeviatingFromMean)
 
-        timeeval = TimeEval(Datasets("./tests/example_data"), [], [], distributed=False, resource_constraints=limits)
+        timeeval = TimeEval(Datasets("./tests/example_data"), [("test", "dataset-int")], [algorithm],
+                            distributed=False,
+                            resource_constraints=limits)
         self.assertEqual(1, timeeval.exps.resource_constraints.tasks_per_host)
 
     def test_timeout(self):
