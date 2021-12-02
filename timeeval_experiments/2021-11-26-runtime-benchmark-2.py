@@ -3,6 +3,7 @@ import logging
 import random
 import shutil
 import sys
+from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
@@ -38,11 +39,41 @@ def main():
     configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
-    datasets: List[Tuple[str, str]] = dm.select(
-        collection_name="WebscopeS5",
-        max_contamination=MAX_CONTAMINATION,
-        min_anomalies=MIN_ANOMALIES,
-    )
+    datasets: List[Tuple[str, str]] = []
+    datasets += dm.select(collection_name="CalIt2", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="Daphnet", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    # no datasets match criteria for Dodgers
+    # datasets += dm.select(collection_name="Dodgers", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    # select 4 datasets of large-timeseries collection Exathlon
+    datasets += random.sample(dm.select(collection_name="Exathlon", train_type=TrainingType.SUPERVISED.value), 2)
+    datasets += random.sample(dm.select(collection_name="Exathlon", train_type=TrainingType.SEMI_SUPERVISED.value), 2)
+    datasets += dm.select(collection_name="GHL", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="Genesis", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    # GutenTAG uses a separate run
+    # select 4 datasets of large-timeseries collection IOPS
+    datasets += random.sample(dm.select(collection_name="IOPS", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES), 4)
+    # include everything from KDD-TSAD!
+    datasets += dm.select(collection_name="KDD-TSAD")
+    datasets += dm.select(collection_name="Keogh", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    # exclude Kitsune completely, bc it's too large!
+    # datasets += random.sample(dm.select(collection_name="Kitsune", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES), 4)
+    # exclude LTDB completely, bc it's too large!
+    # datasets += random.sample(dm.select(collection_name="LTDB", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES), 4)
+    datasets += dm.select(collection_name="MGAB", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="MITDB", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="Metro", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    # include everything from NAB!
+    datasets += dm.select(collection_name="NAB")
+    datasets += dm.select(collection_name="NASA-MSL", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="NASA-SMAP", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="OPPORTUNITY", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    # no datasets match criteria for Occupancy
+    datasets += dm.select(collection_name="Occupancy", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="SMD", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    # no datasets match criteria for SSA, bc contamination > 0.14 for all datasets
+    # datasets += dm.select(collection_name="SSA")
+    datasets += dm.select(collection_name="SVDB", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
+    datasets += dm.select(collection_name="WebscopeS5", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
     print(f"Selecting {len(datasets)} datasets")
 
     algorithms = [
@@ -162,7 +193,8 @@ def main():
                         skip_invalid_combinations=True,
                         force_dimensionality_match=False,
                         force_training_type_match=False,
-                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.AVERAGE_PRECISION, Metric.RANGE_PR_AUC],
+                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.RANGE_PR_AUC, Metric.AVERAGE_PRECISION],
+                        # experiment_combinations_file=Path("/home/projects/akita/results/2021-11-26_runtime-benchmark-2/re-execution-experiments.csv")
                         )
 
     # copy parameter configuration file to results folder

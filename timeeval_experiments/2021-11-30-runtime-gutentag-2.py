@@ -34,15 +34,11 @@ MIN_ANOMALIES = 1
 
 
 def main():
-    dm = Datasets(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
+    dm = Datasets(HPI_CLUSTER.akita_test_case_path, create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
-    datasets: List[Tuple[str, str]] = dm.select(
-        collection_name="WebscopeS5",
-        max_contamination=MAX_CONTAMINATION,
-        min_anomalies=MIN_ANOMALIES,
-    )
+    datasets: List[Tuple[str, str]] = dm.select()
     print(f"Selecting {len(datasets)} datasets")
 
     algorithms = [
@@ -159,10 +155,8 @@ def main():
                         distributed=True,
                         remote_config=cluster_config,
                         resource_constraints=limits,
-                        skip_invalid_combinations=True,
-                        force_dimensionality_match=False,
-                        force_training_type_match=False,
-                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.AVERAGE_PRECISION, Metric.RANGE_PR_AUC],
+                        force_training_type_match=True,
+                        metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.RANGE_PR_AUC, Metric.AVERAGE_PRECISION],
                         )
 
     # copy parameter configuration file to results folder
