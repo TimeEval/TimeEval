@@ -3,6 +3,7 @@ import logging
 import random
 import shutil
 import sys
+from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
@@ -193,6 +194,7 @@ def main():
                         force_dimensionality_match=False,
                         force_training_type_match=False,
                         metrics=[Metric.ROC_AUC, Metric.PR_AUC, Metric.RANGE_PR_AUC, Metric.AVERAGE_PRECISION],
+                        experiment_combinations_file=Path("/home/projects/akita/results/2021-11-26_runtime-benchmark-2/re-execution-experiments.csv")
                         )
 
     # copy parameter configuration file to results folder
