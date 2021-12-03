@@ -13,7 +13,7 @@ from timeeval.utils.window import ReverseWindowing
 def _post_deepant(scores: np.ndarray, args: dict) -> np.ndarray:
     window_size = args.get("hyper_params", {}).get("window_size", 45)
     prediction_window_size = args.get("hyper_params", {}).get("prediction_window_size", 1)
-    size = window_size + prediction_window_size + 1
+    size = window_size + prediction_window_size
     return ReverseWindowing(window_size=size).fit_transform(scores)
 
 
