@@ -127,7 +127,7 @@ class Evaluator:
                         score = metric_name(y_true, y_scores)
                         results[metric_name.name] = score
                     except Exception as e:
-                        self._logger.debug(f"Exp-{i:06d}: Exception while computing metric {metric_name}!", exc_info=e)
+                        self._logger.warning(f"Exp-{i:06d}: Exception while computing metric {metric_name}!", exc_info=e)
                         errors += 1
                         continue
 

@@ -72,8 +72,37 @@ class TimeEval:
                  force_dimensionality_match: bool = False,
                  n_jobs: int = -1,
                  experiment_combinations_file: Optional[Path] = None):
+        assert len(datasets) > 0, "No datasets given for evaluation!"
+        assert len(algorithms) > 0, "No algorithms given for evaluation!"
+        assert repetitions > 0, "Negative or 0 repetitions are not supported!"
+        assert n_jobs >= -1, f"n_jobs={n_jobs} not supported (must be >= -1)!"
+        if experiment_combinations_file is not None:
+            assert experiment_combinations_file.exists(), "Experiment combination file not found!"
+
+        dataset_details = []
+        not_found_datasets = []
+        for d in datasets:
+            try:
+                dataset_details.append(dataset_mgr.get(d))
+            except KeyError:
+                not_found_datasets.append(repr(d))
+        assert len(
+            not_found_datasets) == 0, "Some datasets could not be found in DatasetManager!\n  " \
+                                      f"{', '.join(not_found_datasets)}"
+
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        self.results_path = results_path.absolute() / start_date
+        self.disable_progress_bar = disable_progress_bar
+        self.metrics = metrics or Metric.default_list()
+        self.metric_names = [m.name for m in self.metrics]
+        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
+        self.distributed = distributed
+        self.n_jobs = n_jobs
+
+        self.log.info(f"Results are recorded in the directory {self.results_path}")
+        self.results_path.mkdir(parents=True, exist_ok=True)
+
         resource_constraints = resource_constraints or ResourceConstraints()
         if not distributed and resource_constraints.tasks_per_host > 1:
             self.log.warning(
@@ -83,14 +112,7 @@ class TimeEval:
                 "Explicitly set constraints to limit the resources for local executions of TimeEval."
             )
             resource_constraints.tasks_per_host = 1
-        self.disable_progress_bar = disable_progress_bar
 
-        self.results_path = results_path.absolute() / start_date
-        self.results_path.mkdir(parents=True, exist_ok=True)
-        self.log.info(f"Results are recorded in the directory {self.results_path}")
-        self.metrics = metrics or Metric.default_list()
-        self.metric_names = [m.name for m in self.metrics]
-        dataset_details = [dataset_mgr.get(d) for d in datasets]
         self.exps = Experiments(dataset_mgr, dataset_details, algorithms, self.results_path,
                                 resource_constraints=resource_constraints,
                                 repetitions=repetitions,
@@ -99,13 +121,10 @@ class TimeEval:
                                 force_dimensionality_match=force_dimensionality_match,
                                 metrics=self.metrics,
                                 experiment_combinations_file=experiment_combinations_file)
-        self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
 
-        self.distributed = distributed
         self.remote_config = remote_config or RemoteConfiguration()
         self.remote_config.update_logging_path(self.results_path)
         self.log.debug(f"Updated dask logging filepath to {self.remote_config.dask_logging_filename}")
-        self.n_jobs = n_jobs
 
         if self.distributed:
             self.log.info("TimeEval is running in distributed environment, setting up remoting ...")
@@ -319,8 +338,6 @@ class TimeEval:
         self.rsync_results()
 
     def run(self):
-        assert len(self.exps.algorithms) > 0, "No algorithms given for evaluation"
-
         print("Running PREPARE phase")
         self.log.info("Running PREPARE phase")
         t0 = time()

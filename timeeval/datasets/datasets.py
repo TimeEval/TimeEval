@@ -237,13 +237,13 @@ class Datasets(ContextManager['Datasets']):
         return self._custom_datasets.get_dataset_names() + list(self._df.index.get_level_values(1).unique())
 
     def select(self,
-               collection_name: Optional[str] = None,
-               dataset_name: Optional[str] = None,
+               collection: Optional[str] = None,
+               dataset: Optional[str] = None,
                dataset_type: Optional[str] = None,
                datetime_index: Optional[bool] = None,
-               train_type: Optional[str] = None,
+               training_type: Optional[TrainingType] = None,
                train_is_normal: Optional[bool] = None,
-               input_type: Optional[str] = None,
+               input_dimensionality: Optional[InputDimensionality] = None,
                min_anomalies: Optional[int] = None,
                max_anomalies: Optional[int] = None,
                max_contamination: Optional[float] = None
@@ -252,38 +252,46 @@ class Datasets(ContextManager['Datasets']):
         Returns a list of dataset identifiers from the benchmark dataset collection whose datasets match **all** of the
         given conditions.
 
-        :param collection_name: restrict datasets to a specific collection
-        :param dataset_name: restrict datasets to a specific name
+        :param collection: restrict datasets to a specific collection
+        :param dataset: restrict datasets to a specific name
         :param dataset_type: restrict dataset type (e.g. "real" or "synthetic")
         :param datetime_index: only select datasets for which a datetime index exists;
           if `true`: "timestamp"-column has datetime values;
           if `false`: "timestamp"-column has monotonically increasing integer values
-        :param train_type: select datasets for specific training needs: "supervised", "semi-supervised", or "unsupervised"
+        :param training_type: select datasets for specific training needs:
+          "supervised" (`TrainingType.SUPERVISED`),
+          "semi-supervised" (`TrainingType.SEMI_SUPERVISED`), or
+          "unsupervised" (`TrainingType.UNSUPERVISED`)
         :param train_is_normal:
           if `true`: only return datasets for which the training dataset does not contain anomalies;
           if `false`: only return datasets for which the training dataset contains anomalies
-        :param input_type: restrict dataset to input type: "univariate" or "multivariate"
+        :param input_dimensionality: restrict dataset to input type: `InputDimensionality.UNIVARIATE` or
+          `InputDimensionality.MULTIVARIATE`
+        :param min_anomalies: restrict datasets to those with a minimum number of `min_anomalies` anomalous subsequences
+        :param max_anomalies: restrict datasets to those with a maximum number of `max_anomalies` anomalous subsequences
+        :param max_contamination: restrict datasets to those having a contamination smaller or equal to
+          `max_contamination`
         :return: list of dataset identifiers (combination of collection name and dataset name)
         """
 
         def any_selector() -> bool:
-            return bool(dataset_type or datetime_index or train_type or train_is_normal or input_type)
+            return bool(dataset_type or datetime_index or training_type or train_is_normal or input_dimensionality)
 
-        if collection_name in self._custom_datasets.get_collection_names():
+        if collection in self._custom_datasets.get_collection_names():
             names = self._custom_datasets.get_dataset_names()
-            if any_selector() or (dataset_name and dataset_name not in names):
+            if any_selector() or (dataset and dataset not in names):
                 return []
-            elif dataset_name and dataset_name in names:
-                return [(collection_name, dataset_name)]
+            elif dataset and dataset in names:
+                return [(collection, dataset)]
             else:
-                return [(collection_name, name) for name in names]
+                return [(collection, name) for name in names]
         else:
             # if any selector is applied, there are no matches in custom datasets by definition!
             if any_selector():
                 custom_datasets = []
             else:
                 custom_datasets = [
-                    ("custom", name) for name in self._custom_datasets.get_dataset_names() if name == dataset_name
+                    ("custom", name) for name in self._custom_datasets.get_dataset_names() if name == dataset
                 ]
 
             df = self._df  # self.df()
@@ -292,11 +300,15 @@ class Datasets(ContextManager['Datasets']):
                 selectors.append(df["dataset_type"] == dataset_type)
             if datetime_index is not None:
                 selectors.append(df["datetime_index"] == datetime_index)
-            if train_type is not None:
+            if training_type is not None:
+                # translate to internal representation (strings)
+                train_type: str = training_type.value
                 selectors.append(df["train_type"] == train_type)
             if train_is_normal is not None:
                 selectors.append(df["train_is_normal"] == train_is_normal)
-            if input_type is not None:
+            if input_dimensionality is not None:
+                # translate to internal representation (strings)
+                input_type: str = input_dimensionality.value
                 selectors.append(df["input_type"] == input_type)
             if min_anomalies is not None:
                 selectors.append(df["num_anomalies"] >= min_anomalies)
@@ -307,7 +319,7 @@ class Datasets(ContextManager['Datasets']):
             default_mask = np.full(len(df), True)
             mask = reduce(lambda x, y: np.logical_and(x, y), selectors, default_mask)
             bench_datasets = (df[mask]
-                              .loc[(slice(collection_name, collection_name), slice(dataset_name, dataset_name)), :]
+                              .loc[(slice(collection, collection), slice(dataset, dataset)), :]
                               .index
                               .to_list())
 

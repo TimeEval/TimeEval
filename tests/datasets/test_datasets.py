@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from timeeval import Datasets
+from timeeval import Datasets, InputDimensionality, TrainingType
 from timeeval.datasets import DatasetRecord
 
 
@@ -226,12 +226,12 @@ def _test_select_helper(path, lines=(content_nab, content_test), **kwargs):
 
 
 def test_select_collection(tmp_path):
-    names = _test_select_helper(tmp_path, collection_name=nab_record.collection_name)
+    names = _test_select_helper(tmp_path, collection=nab_record.collection_name)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
 
 def test_select_name(tmp_path):
-    names = _test_select_helper(tmp_path, dataset_name=nab_record.dataset_name)
+    names = _test_select_helper(tmp_path, dataset=nab_record.dataset_name)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
 
@@ -247,7 +247,7 @@ def test_select_datetime_index(tmp_path):
 
 
 def test_select_train_type(tmp_path):
-    names = _test_select_helper(tmp_path, train_type=nab_record.train_type)
+    names = _test_select_helper(tmp_path, training_type=TrainingType(nab_record.train_type))
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
 
@@ -257,14 +257,14 @@ def test_select_train_is_normal(tmp_path):
 
 
 def test_select_input_type(tmp_path):
-    names = _test_select_helper(tmp_path, input_type=nab_record.input_type)
+    names = _test_select_helper(tmp_path, input_dimensionality=InputDimensionality(nab_record.input_type))
     assert names == [(nab_record.collection_name, nab_record.dataset_name),
                      (test_record.collection_name, test_record.dataset_name)]
 
 
 def test_select_combined(tmp_path):
     names = _test_select_helper(tmp_path,
-                                collection_name=nab_record.collection_name,
+                                collection=nab_record.collection_name,
                                 train_is_normal=nab_record.train_is_normal)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
@@ -272,7 +272,7 @@ def test_select_combined(tmp_path):
 def test_select_wrong_order(tmp_path):
     names = _test_select_helper(tmp_path,
                                 lines=[content_test, content_nab],
-                                collection_name=test_record.collection_name,
+                                collection=test_record.collection_name,
                                 train_is_normal=test_record.train_is_normal)
     assert names == [(test_record.collection_name, test_record.dataset_name)]
 
@@ -285,31 +285,31 @@ def _test_select_with_custom_helper(path, **kwargs):
 
 def test_select_with_custom(tmp_path):
     names = _test_select_with_custom_helper(tmp_path,
-                                            collection_name=nab_record.collection_name,
+                                            collection=nab_record.collection_name,
                                             train_is_normal=nab_record.train_is_normal)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
-    names = _test_select_with_custom_helper(tmp_path, dataset_name=nab_record.dataset_name)
+    names = _test_select_with_custom_helper(tmp_path, dataset=nab_record.dataset_name)
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
 
 def test_select_with_custom_dataset(tmp_path):
-    names = _test_select_with_custom_helper(tmp_path, collection_name="custom", dataset_name="dataset.1")
+    names = _test_select_with_custom_helper(tmp_path, collection="custom", dataset="dataset.1")
     assert names == [("custom", "dataset.1")]
-    names = _test_select_with_custom_helper(tmp_path, collection_name="custom")
+    names = _test_select_with_custom_helper(tmp_path, collection="custom")
     assert names == [("custom", name) for name in custom_dataset_names]
-    names = _test_select_with_custom_helper(tmp_path, dataset_name="dataset.1")
+    names = _test_select_with_custom_helper(tmp_path, dataset="dataset.1")
     assert names == [("custom", "dataset.1")]
 
 
 def test_select_with_custom_and_selector(tmp_path):
-    names = _test_select_with_custom_helper(tmp_path, collection_name="custom", train_type="unsupervised")
+    names = _test_select_with_custom_helper(tmp_path, collection="custom", training_type=TrainingType.UNSUPERVISED)
     assert names == []
-    names = _test_select_with_custom_helper(tmp_path, dataset_name="dataset.1.train", train_type="unsupervised")
+    names = _test_select_with_custom_helper(tmp_path, dataset="dataset.1.train", training_type=TrainingType.UNSUPERVISED)
     assert names == []
 
 
 def test_select_with_custom_only_selector(tmp_path):
-    names = _test_select_with_custom_helper(tmp_path, train_type=nab_record.train_type)
+    names = _test_select_with_custom_helper(tmp_path, training_type=TrainingType(nab_record.train_type))
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
 
