@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from typing import List
 
-from tests.datasets.test_metadata import dataset_metadata, dataset_metadata_dict
+from tests.fixtures.dataset_fixtures import dataset_metadata, dataset_metadata_dict
 from timeeval.datasets import DatasetAnalyzer
 
 

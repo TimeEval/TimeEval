@@ -4,35 +4,9 @@ from copy import copy, deepcopy
 
 import numpy as np
 
+from tests.fixtures.dataset_fixtures import dataset_metadata
 from timeeval.datasets.metadata import Trend, TrendType, DatasetMetadata, AnomalyLength, Stationarity, \
     DatasetMetadataEncoder
-
-dataset_metadata = DatasetMetadata(
-    dataset_id=('test', 'dataset1'),
-    is_train=False,
-    length=3600,
-    dimensions=1,
-    contamination=0.0002777777777777778,
-    num_anomalies=1,
-    anomaly_length=AnomalyLength(min=1, median=1, max=1),
-    means={'value': 15836.711944444445},
-    stddevs={'value': 7084.011043358856},
-    trends={'value': []},
-    stationarities={'value': Stationarity.DIFFERENCE_STATIONARY}
-)
-dataset_metadata_dict = {
-    "dataset_id": ["test", "dataset1"],
-    "is_train": False,
-    "length": 3600,
-    "dimensions": 1,
-    "contamination": 0.0002777777777777778,
-    "num_anomalies": 1,
-    "anomaly_length": {"min": 1, "median": 1, "max": 1},
-    "means": {"value": 15836.711944444445},
-    "stddevs": {"value": 7084.011043358856},
-    "trends": {"value": []},
-    "stationarities": {"value": "difference_stationary"}
-}
 
 
 class TestTrend(unittest.TestCase):
