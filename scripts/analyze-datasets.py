@@ -77,7 +77,7 @@ def supervised(dmgr, dmgr_new):
 def analyze(dmgr, dataset, train: bool = False):
   tqdm.tqdm.write(f"Analyzing dataset {dataset} ({'training' if train else 'testing'})")
   da = DatasetAnalyzer(dataset, is_train=train, dmgr=dmgr)
-  meta_file = dmgr.get_dataset_path(dataset, train=train).parent / f"{dataset[1]}.{Datasets.METADATA_FILENAME_PREFIX}"
+  meta_file = dmgr.get_dataset_path(dataset, train=train).parent / f"{dataset[1]}.{Datasets.METADATA_FILENAME_SUFFIX}"
   da.save_to_json(meta_file, overwrite=not train)
   return da.metadata
 
