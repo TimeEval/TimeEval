@@ -14,7 +14,8 @@ from timeeval import (
     InputDimensionality,
     Status,
     Metric,
-    ResourceConstraints
+    ResourceConstraints,
+    DatasetManager
 )
 from timeeval.datasets import Dataset, DatasetRecord
 from timeeval.experiments import Experiment, Experiments
@@ -24,7 +25,7 @@ from timeeval.utils.hash_dict import hash_dict
 class TestDatasetAndAlgorithmMatch(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.dmgr = Datasets("./tests/example_data")
+        self.dmgr = DatasetManager("./tests/example_data")
         self.algorithms = [
             Algorithm(
                 name="supervised_deviating_from_mean",
@@ -35,8 +36,10 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             )
         ]
 
-    def _prepare_dmgr(self, path: Path, training_type: Iterable[str] = ("unsupervised",), dimensionality: Iterable[str] = ("univariate",)) -> Datasets:
-        dmgr = Datasets(path / "data")
+    def _prepare_dmgr(self, path: Path,
+                      training_type: Iterable[str] = ("unsupervised",),
+                      dimensionality: Iterable[str] = ("univariate",)) -> Datasets:
+        dmgr = DatasetManager(path / "data")
         for t, d in zip(training_type, dimensionality):
             dmgr.add_dataset(DatasetRecord(
                 collection_name="test",

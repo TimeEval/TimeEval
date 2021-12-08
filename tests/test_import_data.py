@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
-from timeeval import TimeEval, Algorithm, Datasets, AlgorithmParameter
+from timeeval import TimeEval, Algorithm, AlgorithmParameter, DatasetManager
 
 
 class DeviationFromMedian(object):
@@ -27,7 +27,7 @@ def generates_results(dataset, from_file: bool = False) -> pd.DataFrame:
         Algorithm(name="deviating_from_median", main=DeviatingFromMedian(), preprocess=preprocess, data_as_file=from_file)
     ]
 
-    datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+    datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
 
     with tempfile.TemporaryDirectory() as tmp_path:
         timeeval = TimeEval(datasets, [dataset], algorithms, results_path=Path(tmp_path))
@@ -43,7 +43,7 @@ def generates_results_multi(dataset) -> pd.DataFrame:
         Algorithm(name="deviating_from_median", main=DeviatingFromMedian(), data_as_file=False)
     ]
 
-    datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+    datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
     with tempfile.TemporaryDirectory() as tmp_file:
         timeeval = TimeEval(datasets, [dataset], algorithms, results_path=Path(tmp_file))
         timeeval.run()

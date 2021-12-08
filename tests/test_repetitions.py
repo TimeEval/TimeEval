@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian, ErroneousAlgorithm
-from timeeval import TimeEval, Algorithm, Datasets
+from timeeval import TimeEval, Algorithm, DatasetManager
 
 
 class TestRepetitions(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestRepetitions(unittest.TestCase):
 
     def test_multiple_results(self):
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
@@ -33,7 +33,7 @@ class TestRepetitions(unittest.TestCase):
 
     def test_return_no_aggregation(self):
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
                                 repetitions=3, results_path=Path(tmp_path))
@@ -43,7 +43,7 @@ class TestRepetitions(unittest.TestCase):
 
     def test_return_aggregated_but_not_short(self):
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
                                 repetitions=3, results_path=Path(tmp_path))
@@ -56,7 +56,7 @@ class TestRepetitions(unittest.TestCase):
 
     def test_error_in_repetition(self):
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
 
         algorithms = [
             # two datasets with 3 repitions each: skip only one repetition of the second dataset: 5

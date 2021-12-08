@@ -7,14 +7,14 @@ import numpy as np
 import pandas as pd
 
 from tests.fixtures.algorithms import ErroneousAlgorithm
-from timeeval import TimeEval, Algorithm, Datasets, Status
+from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, Status
 from timeeval.adapters import FunctionAdapter
 
 
 class TestTimeEvalExceptions(unittest.TestCase):
     def setUp(self) -> None:
         self.datasets_config = Path("./tests/example_data/datasets.json")
-        self.datasets = Datasets("./tests/example_data", custom_datasets_file=self.datasets_config)
+        self.datasets: Datasets = DatasetManager("./tests/example_data", custom_datasets_file=self.datasets_config)
         self.identity_algorithm = Algorithm(name="test", main=FunctionAdapter.identity(), data_as_file=False)
 
     @patch("timeeval.experiments.load_dataset")

@@ -17,7 +17,7 @@ from tests.fixtures.call_mocks import MockProcess, MockRsync
 from tests.fixtures.dask_mocks import MockDaskClient, MockDaskSSHCluster, MockDaskExceptionClient, \
     MockDaskDockerTimeoutExceptionClient
 from tests.fixtures.docker_mocks import MockDockerClient, TEST_DOCKER_IMAGE
-from timeeval import TimeEval, Algorithm, Datasets, RemoteConfiguration, Status
+from timeeval import TimeEval, Algorithm, DatasetManager, RemoteConfiguration, Status
 from timeeval.adapters import DockerAdapter
 from timeeval.params import FullParameterGrid
 from timeeval.utils.hash_dict import hash_dict
@@ -35,7 +35,7 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.dask
     def test_distributed_results_and_shutdown_cluster(self):
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
@@ -78,7 +78,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         mock_popen.return_value = MockProcess()
 
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
         adapter = DockerAdapter("test-image:latest")
 
         with tempfile.TemporaryDirectory() as tmp_path:
@@ -103,7 +103,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         mock_docker.return_value = MockDockerClient()
 
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
         adapter = DockerAdapter("test-image:latest")
 
         with tempfile.TemporaryDirectory() as tmp_path:
@@ -128,7 +128,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         mock_call.side_effect = rsync
         mock_popen.return_value = MockProcess()
 
-        datasets = Datasets("./tests/example_data")
+        datasets = DatasetManager("./tests/example_data")
 
         with tempfile.TemporaryDirectory() as tmp_path:
             hosts = [
@@ -154,7 +154,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         mock_call.side_effect = MockRsync()
         mock_popen.return_value = MockProcess()
 
-        datasets = Datasets("./tests/example_data")
+        datasets = DatasetManager("./tests/example_data")
 
         with tempfile.TemporaryDirectory() as tmp_path:
             hosts = [
@@ -178,7 +178,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         mock_call.side_effect = MockRsync()
         mock_popen.return_value = MockProcess()
 
-        datasets = Datasets("./tests/example_data")
+        datasets = DatasetManager("./tests/example_data")
 
         with tempfile.TemporaryDirectory() as tmp_path:
             hosts = [
@@ -194,7 +194,7 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.dask
     @pytest.mark.docker
     def test_catches_future_exception_dask(self):
-        datasets = Datasets("./tests/example_data")
+        datasets = DatasetManager("./tests/example_data")
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
@@ -215,7 +215,7 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.dask
     @pytest.mark.docker
     def test_catches_future_timeout_exception_dask(self):
-        datasets = Datasets("./tests/example_data")
+        datasets = DatasetManager("./tests/example_data")
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("1 seconds")),
                          data_as_file=True)
@@ -235,7 +235,7 @@ class TestDistributedTimeEval(unittest.TestCase):
     @pytest.mark.dask
     @pytest.mark.docker
     def test_runs_docker_in_dask(self):
-        datasets = Datasets("./tests/example_data")
+        datasets = DatasetManager("./tests/example_data")
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,

@@ -4,7 +4,7 @@ import psutil
 from durations import Duration
 from tests.fixtures.algorithms import DeviatingFromMean
 
-from timeeval import TimeEval, Datasets, ResourceConstraints, Algorithm
+from timeeval import TimeEval, DatasetManager, ResourceConstraints, Algorithm
 from timeeval.resource_constraints import GB, DEFAULT_TIMEOUT
 
 
@@ -61,7 +61,7 @@ class TestResourceConstraints(unittest.TestCase):
         limits = ResourceConstraints(tasks_per_host=4)
         algorithm = Algorithm(name="dummy", main=DeviatingFromMean)
 
-        timeeval = TimeEval(Datasets("./tests/example_data"), [("test", "dataset-int")], [algorithm],
+        timeeval = TimeEval(DatasetManager("./tests/example_data"), [("test", "dataset-int")], [algorithm],
                             distributed=False,
                             resource_constraints=limits)
         self.assertEqual(1, timeeval.exps.resource_constraints.tasks_per_host)

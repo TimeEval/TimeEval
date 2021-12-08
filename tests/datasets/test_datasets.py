@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from timeeval import Datasets, InputDimensionality, TrainingType
+from timeeval import Datasets, DatasetManager, InputDimensionality, TrainingType
 from timeeval.datasets import DatasetRecord
 
 
@@ -102,111 +102,33 @@ def _read_file(path):
         return [l.strip() for l in f.readlines()]
 
 
-def _add_dataset(dm):
-    dm.add_dataset(DatasetRecord(
-        collection_name=test_record.collection_name,
-        dataset_name=test_record.dataset_name,
-        train_path=test_record.train_path,
-        test_path=test_record.test_path,
-        dataset_type=test_record.dataset_type,
-        datetime_index=test_record.datetime_index,
-        split_at=test_record.split_at,
-        train_type=test_record.train_type,
-        train_is_normal=test_record.train_is_normal,
-        input_type=test_record.input_type,
-        length=test_record.length,
-        dimensions=test_record.dimensions,
-        contamination=test_record.contamination,
-        num_anomalies=test_record.num_anomalies,
-        min_anomaly_length=test_record.min_anomaly_length,
-        median_anomaly_length=test_record.median_anomaly_length,
-        max_anomaly_length=test_record.max_anomaly_length,
-        mean=test_record.mean,
-        stddev=test_record.stddev,
-        trend=test_record.trend,
-        stationarity=test_record.stationarity,
-        period_size=None
-    ))
-
-
 def test_initialize_empty_folder(tmp_path):
-    Datasets(data_folder=tmp_path)
+    DatasetManager(data_folder=tmp_path)
     assert os.path.isfile(tmp_path / Datasets.INDEX_FILENAME)
 
 
 def test_initialize_missing_folder(tmp_path):
     target = tmp_path / "subfolder"
-    Datasets(data_folder=target)
+    DatasetManager(data_folder=target)
     assert os.path.isfile(target / Datasets.INDEX_FILENAME)
 
 
 def test_initialize_raise_error_empty_folder(tmp_path):
     target = tmp_path / "missing"
     with pytest.raises(FileNotFoundError) as ex:
-        Datasets(data_folder=target, create_if_missing=False)
+        DatasetManager(data_folder=target, create_if_missing=False)
         assert "Could not find the index file" in str(ex.value)
 
 
 def test_initialize_existing(tmp_path):
     _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path)
+    dm = DatasetManager(data_folder=tmp_path)
     assert list(dm.get_collection_names()) == ["NAB"]
     assert list(dm.get_dataset_names()) == ["art_daily_no_noise"]
 
 
-def test_add_dataset(tmp_path):
-    dm = Datasets(data_folder=tmp_path)
-    _add_dataset(dm)
-    assert list(dm.get_collection_names()) == ["test-collection"]
-    assert list(dm.get_dataset_names()) == ["test_dataset"]
-
-    with pytest.raises(Exception) as ex:
-        dm.refresh()
-        assert "unsaved changes" in str(ex.value)
-    lines = _read_file(tmp_path)
-    assert len(lines) == 1
-    assert lines[0] == header
-
-
-def test_add_batch_datasets(tmp_path):
-    dm = Datasets(data_folder=tmp_path)
-    dm.add_datasets([test_record, nab_record])
-    dm.save()
-    # entries are internally sorted to allow fast MultiIndex-Slicing!
-    assert list(dm.get_collection_names()) == ["NAB", "test-collection"]
-    assert list(dm.get_dataset_names()) == ["art_daily_no_noise", "test_dataset"]
-
-    lines = _read_file(tmp_path)
-    assert len(lines) == 3
-    assert lines[0] == header
-    assert lines[1] == content_nab
-    assert lines[2] == content_test
-
-
-def test_add_dataset_and_save(tmp_path):
-    dm = Datasets(data_folder=tmp_path)
-    _add_dataset(dm)
-    dm.save()
-    lines = _read_file(tmp_path)
-    assert len(lines) == 2
-    assert lines[0] == header
-    assert lines[1] == content_test
-
-
-def test_add_dataset_and_save_with_existing_content(tmp_path):
-    _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path)
-    _add_dataset(dm)
-    dm.save()
-    lines = _read_file(tmp_path)
-    assert len(lines) == 3
-    assert lines[0] == header
-    assert lines[1] == content_nab
-    assert lines[2] == content_test
-
-
 def test_refresh(tmp_path):
-    dm = Datasets(data_folder=tmp_path)
+    dm = DatasetManager(data_folder=tmp_path)
     assert list(dm.get_collection_names()) == []
     assert list(dm.get_dataset_names()) == []
 
@@ -221,7 +143,7 @@ def test_refresh(tmp_path):
 
 def _test_select_helper(path, lines=(content_nab, content_test), **kwargs):
     _fill_file(path, lines)
-    dm = Datasets(data_folder=path)
+    dm = DatasetManager(data_folder=path)
     return dm.select(**kwargs)
 
 
@@ -279,7 +201,7 @@ def test_select_wrong_order(tmp_path):
 
 def _test_select_with_custom_helper(path, **kwargs):
     _fill_file(path)
-    dm = Datasets(data_folder=path, custom_datasets_file="tests/example_data/datasets.json")
+    dm = DatasetManager(data_folder=path, custom_datasets_file="tests/example_data/datasets.json")
     return dm.select(**kwargs)
 
 
@@ -313,24 +235,13 @@ def test_select_with_custom_only_selector(tmp_path):
     assert names == [(nab_record.collection_name, nab_record.dataset_name)]
 
 
-def test_context_manager(tmp_path):
-    _fill_file(tmp_path)
-    with Datasets(data_folder=tmp_path) as dm:
-        _add_dataset(dm)
-    lines = _read_file(tmp_path)
-    assert len(lines) == 3
-    assert lines[0] == header
-    assert lines[1] == content_nab
-    assert lines[2] == content_test
-
-
 def test_get_dataset_methods(tmp_path):
     _fill_file(tmp_path, lines=[content_test])
     # write example data
     with open(tmp_path / "path_test.csv", "w") as f:
         f.write(dataset_content)
 
-    dm = Datasets(data_folder=tmp_path)
+    dm = DatasetManager(data_folder=tmp_path)
     # get_path
     test_path = dm.get_dataset_path((test_record.collection_name, test_record.dataset_name))
     assert test_path == tmp_path / test_record.test_path
@@ -348,7 +259,7 @@ def test_get_dataset_methods(tmp_path):
 
 
 def test_get_dataset_df_datetime_parsing():
-    dm = Datasets(data_folder="tests/example_data")
+    dm = DatasetManager(data_folder="tests/example_data")
     df = dm.get_dataset_df(("test", "dataset-datetime"))
     assert df["timestamp"].dtype == np.dtype("<M8[ns]")
     df = dm.get_dataset_df(("test", "dataset-int"))
@@ -357,7 +268,7 @@ def test_get_dataset_df_datetime_parsing():
 
 def test_get_dataset_path_missing(tmp_path):
     _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path)
+    dm = DatasetManager(data_folder=tmp_path)
     with pytest.raises(KeyError) as ex:
         dm.get_dataset_path((nab_record.collection_name, "unknown"))
         assert "not found" in str(ex.value)
@@ -368,7 +279,7 @@ def test_get_dataset_path_missing(tmp_path):
 
 def test_get_dataset_path_missing_path(tmp_path):
     _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path)
+    dm = DatasetManager(data_folder=tmp_path)
     with pytest.raises(KeyError) as ex:
         dm.get_dataset_path((nab_record.collection_name, nab_record.dataset_name), train=True)
         assert "not found" in str(ex.value)
@@ -376,14 +287,14 @@ def test_get_dataset_path_missing_path(tmp_path):
 
 def test_initialize_custom_datasets(tmp_path):
     _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path, custom_datasets_file="tests/example_data/datasets.json")
+    dm = DatasetManager(data_folder=tmp_path, custom_datasets_file="tests/example_data/datasets.json")
     assert list(dm.get_collection_names()) == ["custom", "NAB"]
     assert list(dm.get_dataset_names()) == custom_dataset_names + ["art_daily_no_noise"]
 
 
 def test_load_custom_datasets(tmp_path):
     _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path)
+    dm = DatasetManager(data_folder=tmp_path)
     assert list(dm.get_collection_names()) == ["NAB"]
     assert list(dm.get_dataset_names()) == ["art_daily_no_noise"]
 
@@ -394,7 +305,7 @@ def test_load_custom_datasets(tmp_path):
 
 def test_df(tmp_path):
     _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path)
+    dm = DatasetManager(data_folder=tmp_path)
     df = dm.df()
     assert len(df) == 1
     assert list(df.index.get_level_values(0)) == [nab_record.collection_name]
@@ -403,7 +314,7 @@ def test_df(tmp_path):
 
 def test_df_with_custom(tmp_path):
     _fill_file(tmp_path)
-    dm = Datasets(data_folder=tmp_path, custom_datasets_file="tests/example_data/datasets.json")
+    dm = DatasetManager(data_folder=tmp_path, custom_datasets_file="tests/example_data/datasets.json")
     df = dm.df()
     assert len(df) == 5
     assert list(df.index.get_level_values(0)) == [nab_record.collection_name] + 4 * ["custom"]
@@ -420,9 +331,8 @@ def test_metadata(tmp_path):
     with open(tmp_path / "path_train.csv", "w") as f:
         f.write(dataset_content)
 
-
     metadata_file = tmp_path / f"{test_record.dataset_name}.metadata.json"
-    dm = Datasets(tmp_path)
+    dm = DatasetManager(tmp_path)
     # test generate file
     metadata = dm.get_detailed_metadata((test_record.collection_name, test_record.dataset_name), train=False)
     assert metadata_file.exists()

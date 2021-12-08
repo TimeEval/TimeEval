@@ -3,7 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
-from timeeval import Datasets, Algorithm, TrainingType, InputDimensionality, Metric
+from timeeval import Algorithm, TrainingType, InputDimensionality, Metric, DatasetManager
 from timeeval.experiments import Experiments
 from timeeval.params import FullParameterGrid
 
@@ -11,7 +11,7 @@ from timeeval.params import FullParameterGrid
 class TestExperiments(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.dmgr = Datasets("./tests/example_data")
+        self.dmgr = DatasetManager("./tests/example_data")
         self.algorithms = [
             Algorithm(
                 name="supervised_deviating_from_mean",
