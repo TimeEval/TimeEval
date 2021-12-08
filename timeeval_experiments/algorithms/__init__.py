@@ -65,6 +65,7 @@ from .stomp import stomp
 from .subsequence_fast_mcd import subsequence_fast_mcd
 from .subsequence_if import subsequence_if
 from .subsequence_lof import subsequence_lof
+from .subsequence_lof_multi_sum import subsequence_lof_multi_sum
 from .tanogan import tanogan
 from .tarzan import tarzan
 from .telemanom import telemanom
