@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from freezegun import freeze_time
 
-from timeeval import TimeEval, Algorithm, Datasets, AlgorithmParameter, Metric
+from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, AlgorithmParameter, Metric
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
 from timeeval.params import FullParameterGrid
@@ -25,7 +25,8 @@ def deviating_from_mean(X: AlgorithmParameter, args: dict):
 class TestOutputData(unittest.TestCase):
     def setUp(self) -> None:
         self.DATASET = ("test", "dataset-int")
-        self.datasets = Datasets("./tests/example_data", custom_datasets_file=Path("./tests/example_data/datasets.json"))
+        self.datasets: Datasets = DatasetManager("./tests/example_data",
+                                                 custom_datasets_file=Path("./tests/example_data/datasets.json"))
         self.hyper_params = FullParameterGrid({"a": [0]})
         self.hash = hash_dict(self.hyper_params[0])
         self.algorithms = [

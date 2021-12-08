@@ -1,9 +1,9 @@
+import abc
 import logging
 from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from types import TracebackType
-from typing import Final, ContextManager, List, Type, Union, NamedTuple, Optional
+from typing import Final, List, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -14,31 +14,6 @@ from timeeval.datasets.custom import CustomDatasets
 from timeeval.datasets.custom_base import CustomDatasetsBase
 from timeeval.datasets.custom_noop import NoOpCustomDatasets
 from timeeval.datasets.metadata import DatasetId, DatasetMetadata
-
-
-class DatasetRecord(NamedTuple):
-    collection_name: str
-    dataset_name: str
-    train_path: Optional[str]
-    test_path: str
-    dataset_type: str
-    datetime_index: bool
-    split_at: int
-    train_type: str
-    train_is_normal: bool
-    input_type: str
-    length: int
-    dimensions: int
-    contamination: float
-    num_anomalies: int
-    min_anomaly_length: int
-    median_anomaly_length: int
-    max_anomaly_length: int
-    mean: float
-    stddev: float
-    trend: str
-    stationarity: str
-    period_size: Optional[int]
 
 
 @dataclass
@@ -74,53 +49,24 @@ class Dataset:
             return self.num_anomalies > 0
 
 
-class Datasets(ContextManager['Datasets']):
+class Datasets(abc.ABC):
     """
-    Manages benchmark datasets and their meta-information.
-
-    ATTENTION: Not multi-processing-safe!
-    There is no check for changes to the underlying `dataset.csv` file while this class is loaded.
-
-    Read-only access is fine with multiple processes.
+    Provides read-only access to benchmark datasets and their meta-information.
     """
 
     INDEX_FILENAME: Final[str] = "datasets.csv"
-    METADATA_FILENAME_PREFIX: Final[str] = "metadata.json"
+    METADATA_FILENAME_SUFFIX: Final[str] = "metadata.json"
 
-    _filepath: Path
-    _dirty: bool
-    _df: pd.DataFrame
-    _custom_datasets: CustomDatasetsBase
-
-    def __init__(self, data_folder: Union[str, Path], custom_datasets_file: Optional[Union[str, Path]] = None, create_if_missing: bool = True):
+    def __init__(self, df: pd.DataFrame, custom_datasets_file: Optional[Union[str, Path]] = None):
         """
-        :param data_folder: Path to the folder, where the benchmark data is stored.
-          This folder consists of the file `datasets.csv` and the datasets in an hierarchical storage layout.
+        :param custom_datasets_file: Path to a file listing additional custom datasets.
         """
-        self.log = logging.getLogger(self.__class__.__name__)
-        self._filepath = Path(data_folder) / self.INDEX_FILENAME
-        self._dirty = False
-        if not self._filepath.exists():
-            if create_if_missing:
-                self._df = self._create_index_file()
-            else:
-                raise FileNotFoundError(f"Could not find the index file ({self._filepath.resolve()}). "
-                                        "Is your data_folder correct?")
-        else:
-            self.refresh(force=True)
+        self._df: pd.DataFrame = df
 
         if custom_datasets_file:
             self.load_custom_datasets(custom_datasets_file)
         else:
-            self._custom_datasets = NoOpCustomDatasets()
-
-    def __enter__(self) -> 'Datasets':
-        return self
-
-    def __exit__(self, exception_type: Optional[Type[BaseException]], exception_value: Optional[BaseException],
-                 exception_traceback: Optional[TracebackType]) -> Optional[bool]:
-        self.save()
-        return None
+            self._custom_datasets: CustomDatasetsBase = NoOpCustomDatasets()
 
     def __repr__(self) -> str:
         return f"{repr(self._df)}\nCustom datasets:\n{repr(self._custom_datasets)}"
@@ -128,18 +74,31 @@ class Datasets(ContextManager['Datasets']):
     def __str__(self) -> str:
         return f"{str(self._df)}\nCustom datasets:\n{str(self._custom_datasets)}"
 
-    def _create_index_file(self) -> pd.DataFrame:
+    @property
+    @abc.abstractmethod
+    def _log(self) -> logging.Logger:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def refresh(self, force: bool = False) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def _get_dataset_path_internal(self, dataset_id: DatasetId, train: bool = False) -> Path:
+        raise NotImplementedError()
+
+    def _create_index_file(self, filepath: Path) -> pd.DataFrame:
         df_temp = pd.DataFrame(
             columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index",
                      "split_at", "train_type", "train_is_normal", "input_type", "length", "dimensions", "contamination",
                      "num_anomalies", "min_anomaly_length", "median_anomaly_length", "max_anomaly_length", "mean",
                      "stddev", "trend", "stationarity", "period_size"])
         df_temp.set_index(["collection_name", "dataset_name"], inplace=True)
-        dataset_dir = self._filepath.parent
+        dataset_dir = filepath.parent
         if not dataset_dir.is_dir():
-            print(f"Directory {dataset_dir} does not exist, creating it!")
+            self._log.warning(f"Directory {dataset_dir} does not exist, creating it!")
             dataset_dir.mkdir(parents=True)
-        df_temp.to_csv(self._filepath)
+        df_temp.to_csv(filepath)
         return df_temp
 
     def _get_value_internal(self, dataset_id: DatasetId, column_name: str):
@@ -166,69 +125,6 @@ class Datasets(ContextManager['Datasets']):
             return pd.DataFrame(data, index=indices, columns=self._df.columns)
         else:
             return pd.DataFrame()
-
-    def add_dataset(self, dataset: DatasetRecord) -> None:
-        """
-        Add a new dataset to the benchmark dataset collection (in-memory).
-        If the same dataset ID (collection_name, dataset_name) is specified than an existing dataset,
-        its entries are overwritten!
-        """
-        df_new = pd.DataFrame({
-            "train_path": dataset.train_path,
-            "test_path": dataset.test_path,
-            "dataset_type": dataset.dataset_type,
-            "datetime_index": dataset.datetime_index,
-            "split_at": dataset.split_at,
-            "train_type": dataset.train_type,
-            "train_is_normal": dataset.train_is_normal,
-            "input_type": dataset.input_type,
-            "length": dataset.length,
-            "dimensions": dataset.dimensions,
-            "contamination": dataset.contamination,
-            "num_anomalies": dataset.num_anomalies,
-            "min_anomaly_length": dataset.min_anomaly_length,
-            "median_anomaly_length": dataset.median_anomaly_length,
-            "max_anomaly_length": dataset.max_anomaly_length,
-            "mean": dataset.mean,
-            "stddev": dataset.stddev,
-            "trend": dataset.trend,
-            "stationarity": dataset.stationarity,
-            "period_size": dataset.period_size
-        }, index=[(dataset.collection_name, dataset.dataset_name)])
-        df = pd.concat([self._df, df_new], axis=0)
-        df = df[~df.index.duplicated(keep="last")]
-        self._df = df.sort_index()
-        self._dirty = True
-
-    def add_datasets(self, datasets: List[DatasetRecord]) -> None:
-        """
-        Add a list of new datasets to the benchmark dataset collection (in-memory).
-        Already existing keys are overwritten!
-        """
-        df_new = pd.DataFrame(datasets)
-        df_new.set_index(["collection_name", "dataset_name"], inplace=True)
-        df = pd.concat([self._df, df_new], axis=0)
-        df = df[~df.index.duplicated(keep="last")]
-        self._df = df.sort_index()
-        self._dirty = True
-
-    def refresh(self, force: bool = False) -> None:
-        """Re-read the benchmark dataset collection information from the `datasets.csv` file."""
-        if not force and self._dirty:
-            raise Exception("There are unsaved changes in memory that would get lost by reading from disk again!")
-        else:
-            df = pd.read_csv(self._filepath, index_col=["collection_name", "dataset_name"])
-            self._df = df.sort_index()
-
-    def save(self) -> None:
-        """
-        Persist newly added benchmark datasets from memory to the benchmark dataset collection file `datasets.csv`.
-        Custom datasets are excluded from persistence and cannot be saved to disk;
-        use :py:meth:`Datasets.add_dataset` or :py:meth:`Datasets.add_datasets` to add datasets to the
-        permanent benchmark dataset collection.
-        """
-        self._df.to_csv(self._filepath)
-        self._dirty = False
 
     def get_collection_names(self) -> List[str]:
         return self._custom_datasets.get_collection_names() + list(self._df.index.get_level_values(0).unique())
@@ -344,7 +240,7 @@ class Datasets(ContextManager['Datasets']):
             raise ValueError(f"Cannot use {collection_name} and {dataset_name} as index!")
 
         if index[0] in self._custom_datasets.get_collection_names():
-            self.log.warning(f"Custom datasets lack all meta information! "
+            self._log.warning(f"Custom datasets lack all meta information! "
                              f"Assuming {TrainingType.UNSUPERVISED} and {InputDimensionality.UNIVARIATE} for {index}")
             return Dataset(
                 datasetId=index,
@@ -388,10 +284,7 @@ class Datasets(ContextManager['Datasets']):
                 raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
             return data_path.absolute()
         else:
-            path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
-            if not path or (isinstance(path, (np.float64, np.int64, float)) and np.isnan(path)):
-                raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
-            return self._filepath.parent.absolute() / path
+            return self._get_dataset_path_internal(dataset_id, train)
 
     def get_dataset_df(self, dataset_id: DatasetId, train: bool = False) -> pd.DataFrame:
         path = self.get_dataset_path(dataset_id, train)
@@ -409,7 +302,7 @@ class Datasets(ContextManager['Datasets']):
     def get_training_type(self, dataset_id: DatasetId) -> TrainingType:
         collection_name, dataset_name = dataset_id
         if collection_name in self._custom_datasets.get_collection_names():
-            self.log.warning(f"Custom datasets lack all meta information! "
+            self._log.warning(f"Custom datasets lack all meta information! "
                              f"Assuming {TrainingType.UNSUPERVISED} for {dataset_id}")
             return TrainingType.UNSUPERVISED
         else:
@@ -417,26 +310,26 @@ class Datasets(ContextManager['Datasets']):
             train_type_name = self._get_value_internal(dataset_id, "train_type")
             training_type = TrainingType.from_text(train_type_name)
             if training_type == TrainingType.SEMI_SUPERVISED and not train_is_normal:
-                self.log.warning(f"Dataset {dataset_id} is specified as {training_type} ('train_type'). However, "
-                                 f"'train_is_normal' is False! Reverting back to {TrainingType.SUPERVISED}!\n"
-                                 f"Please check your dataset configuration!")
+                self._log.warning(f"Dataset {dataset_id} is specified as {training_type} ('train_type'). However, "
+                                  f"'train_is_normal' is False! Reverting back to {TrainingType.SUPERVISED}!\n"
+                                  f"Please check your dataset configuration!")
                 training_type = TrainingType.SUPERVISED
             return training_type
 
     def get_detailed_metadata(self, dataset_id: DatasetId, train: bool = False) -> DatasetMetadata:
         path = self.get_dataset_path(dataset_id, train)
-        metadata_file = path.parent / f"{dataset_id[1]}.{self.METADATA_FILENAME_PREFIX}"
+        metadata_file = path.parent / f"{dataset_id[1]}.{self.METADATA_FILENAME_SUFFIX}"
         if metadata_file.exists():
             try:
                 return DatasetAnalyzer.load_from_json(metadata_file, train)
             except ValueError:
-                self.log.debug(f"Metadata file existed, but the requested file info was not found, recreating it.")
+                self._log.debug(f"Metadata file existed, but the requested file info was not found, recreating it.")
         else:
-            self.log.debug(
+            self._log.debug(
                 f"No metadata file for {dataset_id} exists. Analyzing dataset on-the-fly and storing result.")
         dm = DatasetAnalyzer(dataset_id, is_train=train, dataset_path=path)
         if dataset_id[0] in self._custom_datasets.get_collection_names():
-            self.log.warning("Cannot store metadata information for custom datasets!")
+            self._log.warning("Cannot store metadata information for custom datasets!")
         else:
             dm.save_to_json(metadata_file)
         return dm.metadata

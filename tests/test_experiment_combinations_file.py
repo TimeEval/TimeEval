@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
-from timeeval import TimeEval, Algorithm, Datasets
+from timeeval import TimeEval, Algorithm, DatasetManager
 
 
 class TestExperimentCombinations(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestExperimentCombinations(unittest.TestCase):
 
     def test_only_specific_combination(self):
         datasets_config = Path("./tests/example_data/datasets.json")
-        datasets = Datasets("./tests/example_data", custom_datasets_file=datasets_config)
+        datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
 
         with tempfile.TemporaryDirectory() as tmp_path:
             combinations_file = Path(tmp_path) / "combinations.csv"
