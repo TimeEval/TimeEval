@@ -96,7 +96,6 @@ def main():
             "n_neighbors": [50],
         }))
     ]
-    algorithms = [a for a in algorithms if a.input_dimensionality == InputDimensionality.MULTIVARIATE]
     print(f"Selecting {len(algorithms)} algorithms")
 
     print("\nDatasets:")
