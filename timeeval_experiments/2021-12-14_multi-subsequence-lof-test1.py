@@ -38,7 +38,7 @@ def main():
     #     root_data_path / "test-cases"
     # )
     dm = DatasetManager(
-        HPI_CLUSTER.akita_test_case_path
+        HPI_CLUSTER.akita_correlation_anomalies_path
     )
 
     # Select datasets and algorithms
