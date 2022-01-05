@@ -35,7 +35,7 @@ TimeEval takes 4 different inputs for the experiment creation:
 
 - Algorithms
 - Datasets
-- Algorithm ParameterGrids - **WIP**
+- Algorithm ParameterGrids
 - A repetition number
 
 ### TimeEval.Distributed
@@ -110,14 +110,14 @@ pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@g
 **tl;dr**
 
 ```python
-from timeeval import TimeEval, Datasets, Algorithm
+from timeeval import TimeEval, DatasetManager, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import HPI_CLUSTER
 import numpy as np
 
 
 # Load dataset metadata
-dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
+dm = DatasetManager(HPI_CLUSTER.akita_benchmark_path)
 
 
 # Define algorithm
@@ -132,7 +132,9 @@ algorithms = [
     Algorithm(
         name="MyAlgorithm",
         main=FunctionAdapter(my_algorithm),
-        data_as_file=False
+        data_as_file=False,
+        training_type=TrainingType.UNSUPERVISED,
+        input_dimensionality=InputDimensionality.UNIVARIATE,
     )
 ]
 timeeval = TimeEval(dm, datasets, algorithms)
@@ -215,16 +217,25 @@ python timeeval/utils/preprocess_dataset.py --help
 
 #### Registering datasets
 
-TimeEval comes with its own collection of benchmark datasets (**currently not included**, find them at `odin01:/home/projects/akita/data/benchmark-data`).
+TimeEval comes with its own collection of benchmark datasets (**currently not included**, download them [from our website](https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html)).
 They can directly be used using the dataset manager `Datasets`:
 
 ```python
-from timeeval import Datasets
+from pathlib import Path
+
+from timeeval import DatasetManager
 from timeeval.constants import HPI_CLUSTER
 
-dm = Datasets(HPI_CLUSTER.akita_benchmark_path)
+datasets_folder: Path = HPI_CLUSTER.akita_benchmark_path  # or Path("./datasets-folder")
+dm = DatasetManager(datasets_folder)
 datasets = dm.select()
 ```
+
+##### Custom datasets
+
+> **Attention!**
+>
+> The custom datasets feature is currently not supported anymore! It needs a redesign to include necessary metadata about the datasets.
 
 TimeEval can also use **custom datasets** for the evaluation.
 To tell the TimeEval tool where it can find those custom datasets, a configuration file is needed.
@@ -269,12 +280,14 @@ Use `data_as_file=True` as a keyword argument to the algorithm declaration.
 The `main` function of an algorithm must implement the `timeeval.adapters.Adapter`-interface.
 TimeEval comes with four different adapter types described in section [Algorithm adapters](#Algorithm-adapters).
 
-Currently only __unsupervised__ algorithms are supported.
+Each algorithm is associated with metadata including its learning type and input dimensionality.
+TimeEval distinguishes between the three learning types `LearningType.UNSUPERVISED` (default), `LearningType.SEMI_SUPERVISED`, and `LearningType.SUPERVISED`
+and the two input dimensionality definitions `InputDimensionality.UNIVARIATE` (default) and `InputDimensionality.MULTIVARIATE`.
 
 #### Registering algorithms
 
 ```python
-from timeeval import TimeEval, Datasets, Algorithm
+from timeeval import TimeEval, DatasetManager, Algorithm
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import HPI_CLUSTER
 import numpy as np
@@ -282,17 +295,17 @@ import numpy as np
 def my_algorithm(data: np.ndarray) -> np.ndarray:
     return np.zeros_like(data)
 
-datasets = [("WebscopeS5","A1Benchmark-1")]
+datasets = [("WebscopeS5", "A1Benchmark-1")]
 algorithms = [
     # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
         main=FunctionAdapter(my_algorithm),
-        data_as_file=False
+        data_as_file=False,
     )
 ]
 
-timeeval = TimeEval(Datasets(HPI_CLUSTER.akita_benchmark_path), datasets, algorithms)
+timeeval = TimeEval(DatasetManager(HPI_CLUSTER.akita_benchmark_path), datasets, algorithms)
 ```
 
 #### Algorithm adapters
@@ -313,7 +326,7 @@ class MyAdapter(Adapter):
 
     # AlgorithmParameter = Union[np.ndarray, Path]
     def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
-        # e.g. create another process or call make a call to another language
+        # e.g. create another process or make a call to another language
         pass
 ```
 
@@ -375,6 +388,7 @@ If `n_jobs > 1`, the algorithms are executed in parallel.
 
 The [`DockerAdapter`](./timeeval/adapters/docker.py) allows you to run an algorithm as a Docker container.
 This means that the algorithm is available as a Docker image.
+This is the main adapter used for our evaluations.
 Usage example:
 
 ```python
