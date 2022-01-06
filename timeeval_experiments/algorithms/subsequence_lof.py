@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 import numpy as np
 
@@ -66,8 +66,8 @@ def subsequence_lof(params: ParameterConfig = None, skip_pull: bool = False, tim
         ),
         preprocess=None,
         postprocess=post_sLOF,
-        params=_subsequence_lof_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_subsequence_lof_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

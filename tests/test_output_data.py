@@ -30,7 +30,7 @@ class TestOutputData(unittest.TestCase):
         self.hyper_params = FullParameterGrid({"a": [0]})
         self.hash = hash_dict(self.hyper_params[0])
         self.algorithms = [
-            Algorithm(name="deviating_from_mean", main=FunctionAdapter(deviating_from_mean), param_grid=self.hyper_params)
+            Algorithm(name="deviating_from_mean", main=FunctionAdapter(deviating_from_mean), param_config=self.hyper_params)
         ]
 
     def test_output_files_exists(self):

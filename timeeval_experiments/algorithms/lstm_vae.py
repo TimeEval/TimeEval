@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 
 _lstm_vae_parameters: Dict[str, Dict[str, Any]] = {
@@ -75,8 +75,8 @@ def lstm_vae(params: ParameterConfig = None, skip_pull: bool = False, timeout: O
         ),
         preprocess=None,
         postprocess=None,
-        params=_lstm_vae_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_lstm_vae_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 
 _eif_parameters: Dict[str, Dict[str, Any]] = {
@@ -51,8 +51,8 @@ def eif(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
         ),
         preprocess=None,
         postprocess=None,
-        params=_eif_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_eif_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

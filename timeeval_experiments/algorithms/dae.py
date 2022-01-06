@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 
 _dae_parameters: Dict[str, Dict[str, Any]] = {
@@ -69,8 +69,8 @@ def dae(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
         ),
         preprocess=None,
         postprocess=None,
-        params=_dae_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_dae_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

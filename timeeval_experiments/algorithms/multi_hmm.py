@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 
 _multi_hmm_parameters: Dict[str, Dict[str, Any]] = {
@@ -39,8 +39,8 @@ def multi_hmm(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
         ),
         preprocess=None,
         postprocess=None,
-        params=_multi_hmm_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_multi_hmm_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

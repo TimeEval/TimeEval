@@ -1,1 +1,1 @@
-from .search import ParameterConfig, FullParameterGrid, IndependentParameterGrid
+from .search import ParameterConfig, FullParameterGrid, IndependentParameterGrid, FixedParameters
