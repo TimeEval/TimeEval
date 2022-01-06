@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 
 _dwt_mlead_parameters: Dict[str, Dict[str, Any]] = {
@@ -39,8 +39,8 @@ def dwt_mlead(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
         ),
         preprocess=None,
         postprocess=None,
-        params=_dwt_mlead_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_dwt_mlead_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

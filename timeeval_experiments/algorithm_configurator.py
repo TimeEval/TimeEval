@@ -78,7 +78,7 @@ class AlgorithmConfigurator:
             if algo.name in self._algorithm_overwrites:
                 prio_params = self._algorithm_overwrites[algo.name]
 
-            for p in algo.params:
+            for p in algo.param_schema:
                 if not ignore_overwrites and p in prio_params:
                     value = prio_params[p]
                     if value != "default":
@@ -147,6 +147,6 @@ class AlgorithmConfigurator:
                         if isinstance(value, list):
                             value = tuple(value)
                         default_params[p] = value
-                algo.param_grid = IndependentParameterGrid(search_params, default_params=default_params)
+                algo.param_config = IndependentParameterGrid(search_params, default_params=default_params)
             else:
-                algo.param_grid = FullParameterGrid(configured_params)
+                algo.param_config = FullParameterGrid(configured_params)

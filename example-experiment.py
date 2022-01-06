@@ -106,7 +106,7 @@ def main():
     configurator.configure(algorithms, ignore_dependent=False, perform_search=False)
     for algo in algorithms:
         print(f"Algorithm {algo.name} param_grid:")
-        for config in algo.param_grid:
+        for config in algo.param_config:
             print(f"  {config}")
 
     cluster_config = RemoteConfiguration(

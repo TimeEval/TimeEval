@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 import numpy as np
 
@@ -86,8 +86,8 @@ def deepant(params: ParameterConfig = None, skip_pull: bool = False, timeout: Op
         ),
         preprocess=None,
         postprocess=_post_deepant,
-        params=_deepant_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_deepant_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.SEMI_SUPERVISED,
         input_dimensionality=InputDimensionality("multivariate")

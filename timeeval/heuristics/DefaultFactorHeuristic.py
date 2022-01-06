@@ -16,7 +16,7 @@ class DefaultFactorHeuristic(TimeEvalParameterHeuristic):
     def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Union[int, float]:
         param_name = kwargs["param_name"]
         try:
-            default = algorithm.params[param_name]["defaultValue"]
+            default = algorithm.param_schema[param_name]["defaultValue"]
         except KeyError as e:
             raise ValueError(f"Could not find the default value for parameter {param_name}") from e
 

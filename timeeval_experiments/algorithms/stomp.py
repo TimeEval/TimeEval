@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
-from timeeval.params import ParameterConfig, FullParameterGrid
+from timeeval.params import ParameterConfig
 
 import numpy as np
 
@@ -63,8 +63,8 @@ def stomp(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
         ),
         preprocess=None,
         postprocess=post_stomp,
-        params=_stomp_parameters,
-        param_grid=params or FullParameterGrid({}),
+        param_schema=_stomp_parameters,
+        param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality("univariate")

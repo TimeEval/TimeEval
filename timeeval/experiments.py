@@ -193,7 +193,7 @@ class Experiments:
             self._N: Optional[int] = None
         else:
             self._N = sum(
-                [len(algo.param_grid) for algo in self.algorithms]
+                [len(algo.param_config) for algo in self.algorithms]
             ) * len(self.datasets) * self.repetitions
 
     def _should_be_run(self, algorithm: Algorithm, dataset: Dataset, params_id: str) -> bool:
@@ -207,7 +207,7 @@ class Experiments:
 
     def __iter__(self) -> Generator[Experiment, None, None]:
         for algorithm in self.algorithms:
-            for algorithm_config in algorithm.param_grid:
+            for algorithm_config in algorithm.param_config:
                 for dataset in self.datasets:
                     if self._check_compatible(dataset, algorithm):
                         test_path, train_path = self._resolve_dataset_paths(dataset, algorithm)
@@ -235,7 +235,7 @@ class Experiments:
             self._N = sum([
                 int(self._should_be_run(algorithm, dataset, hash_dict(algorithm_config)))
                 for algorithm in self.algorithms
-                for algorithm_config in algorithm.param_grid
+                for algorithm_config in algorithm.param_config
                 for dataset in self.datasets
                 if self._check_compatible(dataset, algorithm)
                 for _repetition in range(1, self.repetitions + 1)

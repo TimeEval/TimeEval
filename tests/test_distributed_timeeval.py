@@ -29,7 +29,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         self.algorithms = [
             Algorithm(name="deviating_from_mean", main=DeviatingFromMean()),
             Algorithm(name="deviating_from_median", main=DeviatingFromMedian(),
-                      param_grid=FullParameterGrid({"test": [np.int64(2), np.int32(4)]}))
+                      param_config=FullParameterGrid({"test": [np.int64(2), np.int32(4)]}))
         ]
 
     @pytest.mark.dask
@@ -198,7 +198,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
-                         param_grid=FullParameterGrid({"raise": [True], "sleep": [1]}))
+                         param_config=FullParameterGrid({"raise": [True], "sleep": [1]}))
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
@@ -239,7 +239,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         algo = Algorithm(name="docker-test-timeout",
                          main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True, timeout=Duration("5 seconds")),
                          data_as_file=True,
-                         param_grid=FullParameterGrid({"sleep": [1]}))
+                         param_config=FullParameterGrid({"sleep": [1]}))
 
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],

@@ -105,7 +105,7 @@ def run(dm, datasets, is_gutentag: bool = False):
     print("=====================================================================================")
     for algo in algorithms:
         print(algo.name)
-        for param in algo.param_grid:
+        for param in algo.param_config:
             print(f"  {param}")
     print("=====================================================================================\n\n")
     sys.stdout.flush()

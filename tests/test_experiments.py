@@ -19,7 +19,7 @@ class TestExperiments(unittest.TestCase):
                 training_type=TrainingType.SUPERVISED,
                 input_dimensionality=InputDimensionality.UNIVARIATE,
                 data_as_file=False,
-                param_grid=FullParameterGrid({
+                param_config=FullParameterGrid({
                     "param1": range(3),
                     "param2": ["a", "b"]
                 })
@@ -47,7 +47,7 @@ class TestExperiments(unittest.TestCase):
     def test_common_params_id_for_heuristics(self):
         datasets = [self.dmgr.get(d) for d in self.dmgr.select()]
         algorithms = deepcopy(self.algorithms)
-        algorithms[0].param_grid = FullParameterGrid({
+        algorithms[0].param_config = FullParameterGrid({
             "param1": range(2),
             "param2": ["heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)"]
         })

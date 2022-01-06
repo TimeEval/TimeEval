@@ -260,7 +260,7 @@ class ResultSummary:
                 params = exp.hyper_params
             else:
                 configurator.configure([exp.algorithm], perform_search=False)
-                param_grid = exp.algorithm.param_grid
+                param_grid = exp.algorithm.param_config
                 if len(param_grid) == 1:
                     params = inject_heuristic_values(param_grid[0], exp.algorithm, dataset, dataset_path)
 

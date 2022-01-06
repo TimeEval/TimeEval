@@ -10,13 +10,43 @@ from timeeval.params import ParameterConfig
 
 @dataclass
 class Algorithm:
+    """
+    This class is a wrapper for any `Adapter` and an instruction plan for the TimeEval tool.
+    It tells TimeEval what algorithm to execute, what pre- and post-steps to perform
+    and how the parameters and data are provided to the algorithm.
+    Moreover, it defines attributes that are necessary to help TimeEval know
+    what kind of time series can be put into the algorithm.
+
+    Attributes:
+        name (str): The name of the Algorithm shown in the results.
+        main (Adapter): Adapter The [Adapter](timeeval/adapters/base.py) that contains the algorithm to evaluate.
+        preprocess (Optional[TSFunction]): Optional function to perform before `main` to modify input data.
+        postprocess (Optional[TSFunctionPost]): Optional function to perform after `main` to modify output data.
+        data_as_file (bool): Whether the data is input as `Path` or as `numpy.ndarray`.
+        param_schema (Dict[str, Dict[str, Any]]): Optional schema of the algorithm's input parameters needed by AlgorithmConfigurator. Schema definition:
+            ```
+            [
+                "param_name": {
+                    "name": str
+                    "defaultValue": Any
+                    "description": str
+                    "type": str
+                },
+            ]
+            ```
+
+        param_config (ParameterConfig): Optional object of type ParameterConfig to define a search grid or fixed parameters.
+        training_type (TrainingType): Definition of training type to receive the correct dataset formats (needed if TimeEval is run with `force_training_type_match` config).
+        input_dimensionality (InputDimensionality): Definition of training type to receive the correct dataset formats (needed if TimeEval is run with `force_dimensionality_match` config).
+    """
+
     name: str
     main: Adapter
     preprocess: Optional[TSFunction] = None
     postprocess: Optional[TSFunctionPost] = None
     data_as_file: bool = False
-    params: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {})
-    param_grid: ParameterConfig = ParameterConfig.defaults()
+    param_schema: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {})
+    param_config: ParameterConfig = ParameterConfig.defaults()
     training_type: TrainingType = TrainingType.UNSUPERVISED
     input_dimensionality: InputDimensionality = InputDimensionality.UNIVARIATE
 
