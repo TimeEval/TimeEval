@@ -27,11 +27,13 @@
 | Webscope-S5                            |   ✓   | [🗎][Yahoo] |  |
 | credit-card-fraud                      |   x   |            | Timestamps are not equi-distant. |
 | genesis-demonstrator                   |   ✓   | [🗎][gen]   | A single dataset |
-| GHL                                    |   ✓   | [🗎][ghl]  | |
-| SSA                                    |   ✓   | [🗎][ssa]  | Annotation source unclear, brittle datasets. |
-| Keogh                                  |   ✓   | [🗎][keogh]| Collection of datasets from Eammon Keogh |
-| MGAB                                   |   ✓   | [🗎][mgab] |  |
+| GHL                                    |   ✓   | [🗎][ghl]   | |
+| SSA                                    |   ✓   | [🗎][ssa]   | Annotation source unclear, brittle datasets. |
+| Keogh                                  |   ✓   | [🗎][keogh] | Collection of datasets from Eammon Keogh |
+| MGAB                                   |   ✓   | [🗎][mgab]  |  |
 | KDD-TSAD-contest                       |   ✓   | [🗎][kdd-tsad]|  |
+| SWaT                                   |       | [🗎][swat]  |  |
+| WADI                                   |       | [🗎][wadi]  |  |
 
 ## TODO
 
@@ -69,3 +71,5 @@ Check against datasets in [John's benchmark framework](https://github.com/johnpa
 [keogh]: ./Keogh.ipynb
 [mgab]: ./MGAB.ipynb
 [kdd-tsad]: ./KDD-TSAD.ipynb
+[swat]: ./SWaT.ipynb
+[wadi]: ./WADI.ipynb
