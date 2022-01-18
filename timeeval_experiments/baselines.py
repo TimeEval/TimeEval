@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -57,3 +57,53 @@ class Baselines:
             data_as_file=False,
             main=FunctionAdapter(fn)
         )
+
+    @staticmethod
+    def deviating_from_mean() -> Algorithm:
+        """
+        Baseline that outputs the difference between current value and time series mean as anomaly score.
+        If the dataset is multivariate, the mean deviation is used.
+        """
+        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
+            if isinstance(X, Path):
+                raise ValueError("DeviatingFromMean baseline requires an np.ndarray as input!")
+            return Baselines._deviating_from(X, np.nanmean)
+
+        return Algorithm(
+            name="DeviatingFromMean",
+            training_type=TrainingType.UNSUPERVISED,
+            input_dimensionality=InputDimensionality.MULTIVARIATE,
+            data_as_file=False,
+            main=FunctionAdapter(fn)
+        )
+
+    @staticmethod
+    def deviating_from_median() -> Algorithm:
+        """
+        Baseline that outputs the difference between current value and time series median as anomaly score.
+        If the dataset is multivariate, the mean deviation is used.
+        """
+        def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
+            if isinstance(X, Path):
+                raise ValueError("DeviatingFromMedian baseline requires an np.ndarray as input!")
+            return Baselines._deviating_from(X, np.nanmedian)
+
+        return Algorithm(
+            name="DeviatingFromMedian",
+            training_type=TrainingType.UNSUPERVISED,
+            input_dimensionality=InputDimensionality.MULTIVARIATE,
+            data_as_file=False,
+            main=FunctionAdapter(fn)
+        )
+
+    @staticmethod
+    def _deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
+        # univariate
+        if len(data.shape) == 1:
+            diffs = np.abs(data - fn(data))
+            return diffs / diffs.max()
+        # multivariate
+        else:
+            diffs = np.abs(data - fn(data, axis=0))
+            diffs = diffs / diffs.max(axis=0)
+            return diffs.mean(axis=1)
