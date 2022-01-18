@@ -50,8 +50,8 @@ def main():
     # no datasets match criteria for Dodgers
     # datasets += dm.select(collection="Dodgers", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
     # select 4 datasets of large-timeseries collection Exathlon
-    datasets += random.sample(dm.select(collection="Exathlon", training_type=TrainingType.SUPERVISED.value), 2)
-    datasets += random.sample(dm.select(collection="Exathlon", training_type=TrainingType.SEMI_SUPERVISED.value), 2)
+    datasets += random.sample(dm.select(collection="Exathlon", training_type=TrainingType.SUPERVISED), 2)
+    datasets += random.sample(dm.select(collection="Exathlon", training_type=TrainingType.SEMI_SUPERVISED), 2)
     datasets += dm.select(collection="GHL", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
     datasets += dm.select(collection="Genesis", max_contamination=MAX_CONTAMINATION, min_anomalies=MIN_ANOMALIES)
     # GutenTAG uses a separate run
