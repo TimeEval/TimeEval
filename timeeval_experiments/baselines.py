@@ -67,7 +67,8 @@ class Baselines:
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("DeviatingFromMean baseline requires an np.ndarray as input!")
-            return Baselines._deviating_from(X, np.nanmean)
+            data = np.asarray(X, dtype=np.float_)
+            return Baselines._deviating_from(data, np.nanmean)
 
         return Algorithm(
             name="DeviatingFromMean",
@@ -86,7 +87,8 @@ class Baselines:
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("DeviatingFromMedian baseline requires an np.ndarray as input!")
-            return Baselines._deviating_from(X, np.nanmedian)
+            data = np.asarray(X, dtype=np.float_)
+            return Baselines._deviating_from(data, np.nanmedian)
 
         return Algorithm(
             name="DeviatingFromMedian",
