@@ -1,14 +1,19 @@
-# TimeEval
+<div align="center">
+<img width="100px" src="./timeeval-icon.png" alt="TimeEval logo"/>
+<h1 align="center">TimeEval</h1>
+<p>
+Evaluation Tool for Anomaly Detection Algorithms on time series.
+</p>
 
-[![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/main/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/main)
-[![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/main/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/main)
-[![release info](https://img.shields.io/badge/Release-1.0.0-blue)](https://gitlab.hpi.de/akita/bp2020fn1/timeeval/-/releases/v1.0.0)
+[![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
+[![coverage report](https://gitlab.hpi.de/akita/timeeval/badges/main/coverage.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
+[![release info](https://img.shields.io/badge/Release-1.1.0-blue)](https://gitlab.hpi.de/akita/timeeval/-/releases/v1.1.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![python version 3.8|3.9](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)](#)
 
-Evaluation Tool for Anomaly Detection Algorithms on time series.
+</div>
 
-See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) for algorithms that are compatible to this tool.
+See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) (use [this link](https://github.com/HPI-Information-Systems/TimeEval-algorithms) on Github) for algorithms that are compatible to this tool.
 The algorithms in this repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
 
 ## Features
@@ -89,7 +94,7 @@ The following tools are required to install TimeEval from source:
 
 ### Installation using `pip`
 
-Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/bp2020fn1/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
+Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
 
 #### Prerequisites
 
