@@ -1,9 +1,9 @@
-<p align="center">
-  <img width="100" src="./timeeval-icon.png" alt="TimeEval logo"/>
-</p>
-<h1 align="center">TimeEval</h1>
 <div align="center">
+<img width="100px" src="./timeeval-icon.png" alt="TimeEval logo"/>
+<h1 align="center">TimeEval</h1>
+<p>
 Evaluation Tool for Anomaly Detection Algorithms on time series.
+</p>
 
 [![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
 [![coverage report](https://gitlab.hpi.de/akita/timeeval/badges/main/coverage.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
