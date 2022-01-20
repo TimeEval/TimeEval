@@ -1,4 +1,9 @@
-# TimeEval
+<p align="center">
+  <img width="100" src="./timeeval-icon.png" alt="TimeEval logo"/>
+</p>
+<h1 align="center">TimeEval</h1>
+<div align="center">
+Evaluation Tool for Anomaly Detection Algorithms on time series.
 
 [![pipeline status](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/main/pipeline.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/main)
 [![coverage report](https://gitlab.hpi.de/bp2020fn1/timeeval/badges/main/coverage.svg)](https://gitlab.hpi.de/bp2020fn1/timeeval/-/commits/main)
@@ -6,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![python version 3.8|3.9](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)](#)
 
-Evaluation Tool for Anomaly Detection Algorithms on time series.
+</div>
 
 See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) for algorithms that are compatible to this tool.
 The algorithms in this repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
