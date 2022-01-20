@@ -13,7 +13,7 @@ Evaluation Tool for Anomaly Detection Algorithms on time series.
 
 </div>
 
-See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) for algorithms that are compatible to this tool.
+See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) (use [this link](https://github.com/HPI-Information-Systems/TimeEval-algorithms) on Github) for algorithms that are compatible to this tool.
 The algorithms in this repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
 
 ## Features
