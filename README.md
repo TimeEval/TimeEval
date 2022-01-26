@@ -223,7 +223,7 @@ python timeeval/utils/preprocess_dataset.py --help
 #### Registering datasets
 
 TimeEval comes with its own collection of benchmark datasets (**currently not included**, download them [from our website](https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html)).
-They can directly be used using the dataset manager `Datasets`:
+They can directly be used using the dataset manager `DatasetManager`:
 
 ```python
 from pathlib import Path

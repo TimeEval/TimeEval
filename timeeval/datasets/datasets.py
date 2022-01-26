@@ -243,12 +243,10 @@ class Datasets(abc.ABC):
                 and self._get_value_internal(dataset_id, "datetime_index")):
             return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
         else:
-            return pd.read_csv(path)
+            return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
 
     def get_dataset_ndarray(self, dataset_id: DatasetId, train: bool = False) -> np.ndarray:
-        path = self.get_dataset_path(dataset_id, train)
-        # TODO: supply numpy with type information, especially for datasets with datetime_index == True
-        return np.genfromtxt(path, delimiter=",", skip_header=1)
+        return self.get_dataset_df(dataset_id, train).values
 
     def get_training_type(self, dataset_id: DatasetId) -> TrainingType:
         collection_name, dataset_name = dataset_id

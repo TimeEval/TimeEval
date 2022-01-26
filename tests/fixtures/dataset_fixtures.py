@@ -86,7 +86,7 @@ timestamp,value,is_anomaly
 dataset_content_io = StringIO(dataset_content)
 dataset_df = pd.read_csv(dataset_content_io, parse_dates=["timestamp"], infer_datetime_format=True)
 dataset_content_io.seek(0)
-dataset_ndarray = np.genfromtxt(dataset_content_io, delimiter=",", skip_header=1)
+dataset_ndarray = dataset_df.values
 
 
 def fill_file(path, lines=(dataset_index_content_nab,)):
@@ -132,17 +132,17 @@ def add_dataset(dm: DatasetManager):
 
 
 dataset_metadata = DatasetMetadata(
-    dataset_id=('test', 'dataset1'),
+    dataset_id=("test", "dataset1"),
     is_train=False,
     length=3600,
     dimensions=1,
     contamination=0.0002777777777777778,
     num_anomalies=1,
     anomaly_length=AnomalyLength(min=1, median=1, max=1),
-    means={'value': 15836.711944444445},
-    stddevs={'value': 7084.011043358856},
-    trends={'value': []},
-    stationarities={'value': Stationarity.DIFFERENCE_STATIONARY}
+    means={"value": 15836.711944444445},
+    stddevs={"value": 7084.011043358856},
+    trends={"value": []},
+    stationarities={"value": Stationarity.DIFFERENCE_STATIONARY}
 )
 dataset_metadata_dict = {
     "dataset_id": ["test", "dataset1"],

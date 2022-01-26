@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from tests.fixtures.dataset_fixtures import fill_file, dataset_index_content_nab, dataset_index_content_test, \
-    nab_record, test_record, custom_dataset_names, dataset_content, dataset_df, dataset_ndarray
+    nab_record, test_record, custom_dataset_names, dataset_content, dataset_df, dataset_ndarray, CUSTOM_DATASET_PATH
 from timeeval import Datasets, DatasetManager, InputDimensionality, TrainingType
 
 
@@ -26,7 +26,7 @@ def test_initialize_raise_error_empty_folder(tmp_path):
     target = tmp_path / "missing"
     with pytest.raises(FileNotFoundError) as ex:
         DatasetManager(data_folder=target, create_if_missing=False)
-        assert "Could not find the index file" in str(ex.value)
+    assert "Could not find the index file" in str(ex.value)
 
 
 def test_initialize_existing(tmp_path):
@@ -167,6 +167,28 @@ def test_get_dataset_methods(tmp_path):
     np.testing.assert_equal(test_ndarray, dataset_ndarray)
 
 
+def test_get_dataset_methods_custom(tmp_path):
+    dm = DatasetManager(data_folder=tmp_path, custom_datasets_file=CUSTOM_DATASET_PATH)
+    dataset_id = ("custom", "dataset.1.train")
+    # get_path
+    test_path = dm.get_dataset_path(dataset_id)
+    assert test_path == Path("./tests/example_data/dataset.test.csv").resolve()
+    train_path = dm.get_dataset_path(dataset_id, train=True)
+    assert train_path == tmp_path / Path("./tests/example_data/dataset.train.csv").resolve()
+
+    # get_df
+    df = dm.get_dataset_df(dataset_id)
+    dataset_df = pd.read_csv(Path("./tests/example_data/dataset.test.csv").resolve(),
+                             parse_dates=["timestamp"],
+                             infer_datetime_format=True)
+    pd.testing.assert_frame_equal(df, dataset_df, check_datetimelike_compat=True)
+
+    # get ndarray
+    test_ndarray = dm.get_dataset_ndarray(dataset_id)
+    assert test_ndarray.shape == dataset_df.shape
+    np.testing.assert_equal(test_ndarray, dataset_df.values)
+
+
 def test_get_dataset_df_datetime_parsing():
     dm = DatasetManager(data_folder="tests/example_data")
     df = dm.get_dataset_df(("test", "dataset-datetime"))
@@ -180,10 +202,10 @@ def test_get_dataset_path_missing(tmp_path):
     dm = DatasetManager(data_folder=tmp_path)
     with pytest.raises(KeyError) as ex:
         dm.get_dataset_path((nab_record.collection_name, "unknown"))
-        assert "not found" in str(ex.value)
+    assert "not found" in str(ex.value)
     with pytest.raises(KeyError) as ex:
         dm.get_dataset_path(("custom", "unknown"))
-        assert "not found" in str(ex.value)
+    assert "not found" in str(ex.value)
 
 
 def test_get_dataset_path_missing_path(tmp_path):
@@ -191,7 +213,7 @@ def test_get_dataset_path_missing_path(tmp_path):
     dm = DatasetManager(data_folder=tmp_path)
     with pytest.raises(KeyError) as ex:
         dm.get_dataset_path((nab_record.collection_name, nab_record.dataset_name), train=True)
-        assert "not found" in str(ex.value)
+    assert "not found" in str(ex.value)
 
 
 def test_initialize_custom_datasets(tmp_path):

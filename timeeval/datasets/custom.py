@@ -106,7 +106,7 @@ class CustomDatasets(CustomDatasetsBase):
         dataset = self._dataset_store[dataset_name]
 
         if train:
-            if train_path := dataset.train_path is None:
+            if (train_path := dataset.train_path) is None:
                 raise ValueError(f"Custom dataset {dataset_name} is unsupervised and has no training time series!")
             else:
                 return train_path
