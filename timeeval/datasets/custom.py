@@ -5,10 +5,10 @@ from typing import List, Union, Tuple, Optional, Dict, NamedTuple
 import numpy as np
 import pandas as pd
 
-from ..data_types import TrainingType
 from .analyzer import DatasetAnalyzer
 from .custom_base import CustomDatasetsBase
 from .dataset import Dataset
+from ..data_types import TrainingType
 
 
 TRAIN_PATH_KEY = "train_path"
@@ -19,17 +19,8 @@ PERIOD_KEY = "period"
 
 class CDEntry(NamedTuple):
     test_path: Path
-    train_path: Path
+    train_path: Optional[Path]
     details: Dataset
-
-
-def _validate_dataset(name: str, ds_obj: dict) -> None:
-    if TEST_PATH_KEY not in ds_obj:
-        raise ValueError(f"The dataset {name} misses the required '{TEST_PATH_KEY}' property.")
-    elif not Path(ds_obj[TEST_PATH_KEY]).exists():
-        raise ValueError(f"The test file for dataset {name} was not found (property '{TEST_PATH_KEY}')!")
-    if TRAIN_PATH_KEY in ds_obj and not Path(ds_obj[TRAIN_PATH_KEY]).exists():
-        raise ValueError(f"The train file for dataset {name} was not found (property '{TRAIN_PATH_KEY}')!")
 
 
 def _dataset_id(name: str, collection_name: str = "custom") -> Tuple[str, str]:
@@ -58,22 +49,33 @@ class CustomDatasets(CustomDatasetsBase):
 
         store = {}
         for dataset in config:
-            _validate_dataset(dataset, config[dataset])
+            self._validate_dataset(dataset, config[dataset])
             store[dataset] = self._analyze_dataset(dataset, config[dataset])
 
         self._dataset_store: Dict[str, CDEntry] = store
 
+    def _extract_path(self, obj: dict, key: str) -> Path:
+        path_string = obj[key]
+        path = self.root_path / path_string
+        return path.resolve()
+
+    def _validate_dataset(self, name: str, ds_obj: dict) -> None:
+        if TEST_PATH_KEY not in ds_obj:
+            raise ValueError(f"The dataset {name} misses the required '{TEST_PATH_KEY}' property.")
+        elif not self._extract_path(ds_obj, TEST_PATH_KEY).exists():
+            raise ValueError(f"The test file for dataset {name} was not found (property '{TEST_PATH_KEY}')!")
+        if TRAIN_PATH_KEY in ds_obj and not self._extract_path(ds_obj, TRAIN_PATH_KEY).exists():
+            raise ValueError(f"The train file for dataset {name} was not found (property '{TRAIN_PATH_KEY}')!")
+
     def _analyze_dataset(self, name: str, ds_obj: dict) -> CDEntry:
         dataset_id = _dataset_id(name)
-        train_path = ds_obj.get(TRAIN_PATH_KEY, None)
         dataset_type = ds_obj.get(TYPE_KEY, "unknown")
         period = ds_obj.get(PERIOD_KEY, None)
 
-        test_path = Path(self.root_path) / ds_obj[TEST_PATH_KEY]
-        test_path = test_path.resolve()
-        if train_path is not None:
-            train_path = Path(self.root_path) / train_path
-            train_path = train_path.resolve()
+        test_path = self._extract_path(ds_obj, TEST_PATH_KEY)
+        train_path = None
+        if TRAIN_PATH_KEY in ds_obj:
+            train_path = self._extract_path(ds_obj, TRAIN_PATH_KEY)
 
         # get training type by inspecting training file
         training_type = _training_type(train_path)
@@ -103,10 +105,11 @@ class CustomDatasets(CustomDatasetsBase):
     def get_path(self, dataset_name: str, train: bool) -> Path:
         dataset = self._dataset_store[dataset_name]
 
-        if train and dataset.details.training_type == TrainingType.UNSUPERVISED:
-            raise ValueError(f"Custom dataset {dataset_name} is unsupervised and has no training time series!")
-        elif train:
-            return dataset.train_path
+        if train:
+            if train_path := dataset.train_path is None:
+                raise ValueError(f"Custom dataset {dataset_name} is unsupervised and has no training time series!")
+            else:
+                return train_path
 
         return dataset.test_path
 

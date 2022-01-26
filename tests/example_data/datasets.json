@@ -1,18 +1,20 @@
 {
   "dataset.1": {
-    "dataset": "./tests/example_data/dataset.train.csv",
-    "train_type": "test"
+    "test_path": "./dataset.test.csv",
+    "type": "synthetic test",
+    "period": 10
   },
   "dataset.1.train": {
-    "dataset": "./tests/example_data/dataset.train.csv",
-    "train_type": "train"
+    "train_path": "./dataset.train.csv",
+    "test_path": "./dataset.test.csv",
+    "type": "synthetic test"
   },
   "dataset.3": {
-    "dataset": "./tests/example_data/dataset.test.csv",
-    "train_type": "test"
+    "test_path": "./dataset.test.csv",
+    "type": "synthetic test"
   },
   "dataset.4": {
-    "dataset": "./tests/example_data/dataset.multi.csv",
-    "train_type": "test"
+    "test_path": "./dataset.multi.csv",
+    "type": "synthetic test"
   }
 }
