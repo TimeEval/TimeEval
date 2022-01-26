@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 import os
 
@@ -227,7 +229,7 @@ def test_df_with_custom(tmp_path):
     assert list(df.index.get_level_values(0)) == [nab_record.collection_name] + 4 * ["custom"]
     assert df.loc[(nab_record.collection_name, nab_record.dataset_name), "train_type"] == nab_record.train_type
     assert np.isnan(df.loc[("custom", "dataset.1"), "train_type"])
-    assert df.loc[("custom", "dataset.1.train"), "train_path"] == "tests/example_data/dataset.train.csv"
+    assert df.loc[("custom", "dataset.1.train"), "train_path"] == str(Path("tests/example_data/dataset.train.csv").resolve())
 
 
 def test_metadata(tmp_path):

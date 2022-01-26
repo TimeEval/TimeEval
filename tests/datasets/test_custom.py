@@ -31,23 +31,19 @@ class TestCustomDatasets(unittest.TestCase):
 
     def test_get_path(self):
         cd = CustomDatasets(CUSTOM_DATASET_PATH)
-        path = cd.get_path("dataset.1", train=False)
-        assert path == Path("./tests/example_data/dataset.train.csv")
+        path = cd.get_path("dataset.1.train", train=False)
+        assert path == Path("./tests/example_data/dataset.test.csv").resolve()
 
     def test_get_path_train(self):
         cd = CustomDatasets(CUSTOM_DATASET_PATH)
         path = cd.get_path("dataset.1.train", train=True)
-        assert path == Path("./tests/example_data/dataset.train.csv")
+        assert path == Path("./tests/example_data/dataset.train.csv").resolve()
 
     def test_get_path_wrong_type(self):
         cd = CustomDatasets(CUSTOM_DATASET_PATH)
         with self.assertRaises(ValueError) as cm:
             cd.get_path("dataset.1", train=True)
-            assert "meant for testing and not for training" in str(cm.exception)
+            assert "unsupervised and has no training time series" in str(cm.exception)
         with self.assertRaises(ValueError) as cm:
-            cd.get_path("dataset.1.train", train=False)
-            assert "meant for training and not for testing" in str(cm.exception)
-
-
-if __name__ == "__main__":
-    unittest.main()
+            cd.get_path("dataset.3", train=True)
+            assert "unsupervised and has no training time series" in str(cm.exception)
