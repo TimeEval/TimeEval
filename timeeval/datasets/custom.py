@@ -1,25 +1,98 @@
 import json
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Tuple, Optional, Dict, NamedTuple
 
-from timeeval.datasets.custom_base import CustomDatasetsBase
+import numpy as np
+import pandas as pd
+
+from timeeval.data_types import TrainingType
+from .analyzer import DatasetAnalyzer
+from .custom_base import CustomDatasetsBase
+from .datasets import Dataset
+
+
+TRAIN_PATH_KEY = "train_path"
+TEST_PATH_KEY = "test_path"
+TYPE_KEY = "type"
+PERIOD_KEY = "period"
+
+
+class CDEntry(NamedTuple):
+    test_path: Path
+    train_path: Path
+    details: Dataset
+
+
+def _validate_dataset(name: str, ds_obj: dict) -> None:
+    if TEST_PATH_KEY not in ds_obj:
+        raise ValueError(f"The dataset {name} misses the required '{TEST_PATH_KEY}' property.")
+    elif not Path(ds_obj[TEST_PATH_KEY]).exists():
+        raise ValueError(f"The test file for dataset {name} was not found (property '{TEST_PATH_KEY}')!")
+    if TRAIN_PATH_KEY in ds_obj and not Path(ds_obj[TRAIN_PATH_KEY]).exists():
+        raise ValueError(f"The train file for dataset {name} was not found (property '{TRAIN_PATH_KEY}')!")
+
+
+def _dataset_id(name: str, collection_name: str = "custom") -> Tuple[str, str]:
+    return collection_name, name
+
+
+def _training_type(train_path: Optional[Path]) -> TrainingType:
+    if train_path is None:
+        return TrainingType.UNSUPERVISED
+    else:
+        labels = pd.read_csv(train_path).iloc[:, -1]
+        if np.any(labels):
+            return TrainingType.SUPERVISED
+        else:
+            return TrainingType.SEMI_SUPERVISED
 
 
 class CustomDatasets(CustomDatasetsBase):
 
     def __init__(self, dataset_config: Union[str, Path]):
         super().__init__()
-        with Path(dataset_config).open("r") as f:
-            store = json.load(f)
-        for dataset in store:
-            if not self._validate_dataset(store[dataset]):
-                raise ValueError(
-                    "A dataset obj in your dataset config file must have 'dataset' and 'train_type' paths.")
+        dataset_config_path = Path(dataset_config)
+        with dataset_config_path.open("r") as f:
+            config = json.load(f)
+        self.root_path: Path = dataset_config_path.parent
 
-        self._dataset_store = store
+        store = {}
+        for dataset in config:
+            _validate_dataset(dataset, config[dataset])
+            store[dataset] = self._analyze_dataset(dataset, config[dataset])
 
-    def _validate_dataset(self, ds_obj: dict) -> bool:
-        return "train_type" in ds_obj and "dataset" in ds_obj
+        self._dataset_store: Dict[str, CDEntry] = store
+
+    def _analyze_dataset(self, name: str, ds_obj: dict) -> CDEntry:
+        dataset_id = _dataset_id(name)
+        train_path = ds_obj.get(TRAIN_PATH_KEY, None)
+        dataset_type = ds_obj.get(TYPE_KEY, "unknown")
+        period = ds_obj.get(PERIOD_KEY, None)
+
+        test_path = Path(self.root_path) / ds_obj[TEST_PATH_KEY]
+        test_path = test_path.resolve()
+        if train_path is not None:
+            train_path = Path(self.root_path) / train_path
+            train_path = train_path.resolve()
+
+        # get training type by inspecting training file
+        training_type = _training_type(train_path)
+
+        # analyze test time series
+        dm = DatasetAnalyzer(dataset_id, is_train=False, dataset_path=test_path)
+
+        return CDEntry(test_path, train_path, Dataset(
+            datasetId=dataset_id,
+            dataset_type=dataset_type,
+            training_type=training_type,
+            dimensions=dm.metadata.dimensions,
+            length=dm.metadata.length,
+            min_anomaly_length=dm.metadata.anomaly_length.min,
+            median_anomaly_length=dm.metadata.anomaly_length.median,
+            max_anomaly_length=dm.metadata.anomaly_length.max,
+            num_anomalies=dm.metadata.num_anomalies,
+            period_size=period
+        ))
 
     def get_collection_names(self) -> List[str]:
         return ["custom"]
@@ -28,12 +101,14 @@ class CustomDatasets(CustomDatasetsBase):
         return [name for name in self._dataset_store]
 
     def get_path(self, dataset_name: str, train: bool) -> Path:
-        ds_obj = self._dataset_store[dataset_name]
+        dataset = self._dataset_store[dataset_name]
 
-        train_type = ds_obj["train_type"]
-        if train and train_type != "train":
-            raise ValueError(f"Custom dataset {dataset_name} is meant for testing and not for training!")
-        if not train and train_type != "test":
-            raise ValueError(f"Custom dataset {dataset_name} is meant for training and not for testing!")
+        if train and dataset.details.training_type == TrainingType.UNSUPERVISED:
+            raise ValueError(f"Custom dataset {dataset_name} is unsupervised and has no training time series!")
+        elif train:
+            return dataset.train_path
 
-        return Path(ds_obj.get("dataset"))
+        return dataset.test_path
+
+    def get(self, dataset_name: str) -> Dataset:
+        return self._dataset_store[dataset_name].details

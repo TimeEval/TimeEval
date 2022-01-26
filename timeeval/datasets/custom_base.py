@@ -2,8 +2,14 @@ import abc
 from pathlib import Path
 from typing import List
 
+from .datasets import Dataset
+
 
 class CustomDatasetsBase(abc.ABC):
+
+    @abc.abstractmethod
+    def get_collection_names(self) -> List[str]:
+        ...
 
     @abc.abstractmethod
     def get_dataset_names(self) -> List[str]:
@@ -14,5 +20,5 @@ class CustomDatasetsBase(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_collection_names(self) -> List[str]:
+    def get(self, dataset_name: str) -> Dataset:
         ...

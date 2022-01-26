@@ -183,6 +183,7 @@ class Datasets(abc.ABC):
                 return [(collection, name) for name in names]
         else:
             # if any selector is applied, there are no matches in custom datasets by definition!
+            # FIXME: this does not apply anymore!
             if any_selector():
                 custom_datasets = []
             else:
@@ -240,21 +241,7 @@ class Datasets(abc.ABC):
             raise ValueError(f"Cannot use {collection_name} and {dataset_name} as index!")
 
         if index[0] in self._custom_datasets.get_collection_names():
-            self._log.warning(f"Custom datasets lack all meta information! "
-                             f"Assuming {TrainingType.UNSUPERVISED} and {InputDimensionality.UNIVARIATE} for {index}")
-            return Dataset(
-                datasetId=index,
-                dataset_type="custom",
-                training_type=TrainingType.UNSUPERVISED,
-                dimensions=1,
-                length=-1,
-                min_anomaly_length=-1,
-                median_anomaly_length=-1,
-                max_anomaly_length=-1,
-                num_anomalies=-1,
-                period_size=-1
-            )
-            # raise NotImplementedError("Custom datasets lack all meta information!")
+            return self._custom_datasets.get(index[1])
         else:
             entry = self._df.loc[index]
             training_type = self.get_training_type(index)
@@ -279,10 +266,7 @@ class Datasets(abc.ABC):
     def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Path:
         collection_name, dataset_name = dataset_id
         if collection_name in self._custom_datasets.get_collection_names():
-            data_path = self._custom_datasets.get_path(dataset_name, train)
-            if not data_path:
-                raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
-            return data_path.absolute()
+            return self._custom_datasets.get_path(dataset_name, train)
         else:
             return self._get_dataset_path_internal(dataset_id, train)
 
@@ -302,9 +286,7 @@ class Datasets(abc.ABC):
     def get_training_type(self, dataset_id: DatasetId) -> TrainingType:
         collection_name, dataset_name = dataset_id
         if collection_name in self._custom_datasets.get_collection_names():
-            self._log.warning(f"Custom datasets lack all meta information! "
-                             f"Assuming {TrainingType.UNSUPERVISED} for {dataset_id}")
-            return TrainingType.UNSUPERVISED
+            return self._custom_datasets.get(dataset_name).training_type
         else:
             train_is_normal = self._get_value_internal(dataset_id, "train_is_normal")
             train_type_name = self._get_value_internal(dataset_id, "train_type")
