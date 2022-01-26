@@ -5,10 +5,10 @@ from typing import List, Union, Tuple, Optional, Dict, NamedTuple
 import numpy as np
 import pandas as pd
 
-from timeeval.data_types import TrainingType
+from ..data_types import TrainingType
 from .analyzer import DatasetAnalyzer
 from .custom_base import CustomDatasetsBase
-from .datasets import Dataset
+from .dataset import Dataset
 
 
 TRAIN_PATH_KEY = "train_path"

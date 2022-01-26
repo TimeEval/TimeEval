@@ -2,7 +2,7 @@ import abc
 from pathlib import Path
 from typing import List
 
-from .datasets import Dataset
+from .dataset import Dataset
 
 
 class CustomDatasetsBase(abc.ABC):

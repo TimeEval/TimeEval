@@ -10,9 +10,8 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.stattools import adfuller, kpss
 
-from timeeval.datasets.metadata import DatasetId, DatasetMetadata, AnomalyLength, Stationarity, Trend, TrendType, \
-    DatasetMetadataEncoder
-from timeeval.utils import datasets as datasets_utils
+from ..utils import datasets as datasets_utils
+from .metadata import DatasetId, DatasetMetadata, AnomalyLength, Stationarity, Trend, TrendType, DatasetMetadataEncoder
 
 
 class DatasetAnalyzer:

@@ -1,6 +1,5 @@
 import abc
 import logging
-from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from typing import Final, List, Union, Optional
@@ -8,45 +7,13 @@ from typing import Final, List, Union, Optional
 import numpy as np
 import pandas as pd
 
-from timeeval.data_types import TrainingType, InputDimensionality
-from timeeval.datasets.analyzer import DatasetAnalyzer
-from timeeval.datasets.custom import CustomDatasets
-from timeeval.datasets.custom_base import CustomDatasetsBase
-from timeeval.datasets.custom_noop import NoOpCustomDatasets
-from timeeval.datasets.metadata import DatasetId, DatasetMetadata
-
-
-@dataclass
-class Dataset:
-    datasetId: DatasetId
-    dataset_type: str
-    training_type: TrainingType
-    length: int
-    dimensions: int
-    min_anomaly_length: int
-    median_anomaly_length: int
-    max_anomaly_length: int
-    period_size: Optional[int] = None
-    num_anomalies: Optional[int] = None
-
-    @property
-    def name(self) -> str:
-        return self.datasetId[1]
-
-    @property
-    def collection_name(self):
-        return self.datasetId[0]
-
-    @property
-    def input_dimensionality(self) -> InputDimensionality:
-        return InputDimensionality.from_dimensions(self.dimensions)
-
-    @property
-    def has_anomalies(self) -> Optional[bool]:
-        if self.num_anomalies is None:
-            return None
-        else:
-            return self.num_anomalies > 0
+from ..data_types import TrainingType, InputDimensionality
+from .analyzer import DatasetAnalyzer
+from .custom import CustomDatasets
+from .custom_base import CustomDatasetsBase
+from .custom_noop import NoOpCustomDatasets
+from .dataset import Dataset
+from .metadata import DatasetId, DatasetMetadata
 
 
 class Datasets(abc.ABC):

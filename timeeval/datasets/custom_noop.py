@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List
 
-from timeeval.datasets import Dataset
-from timeeval.datasets.custom_base import CustomDatasetsBase
+from .dataset import Dataset
+from .custom_base import CustomDatasetsBase
 
 
 class NoOpCustomDatasets(CustomDatasetsBase):
