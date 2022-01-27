@@ -7,13 +7,13 @@ from typing import Final, List, Union, Optional
 import numpy as np
 import pandas as pd
 
-from ..data_types import TrainingType, InputDimensionality
 from .analyzer import DatasetAnalyzer
 from .custom import CustomDatasets
 from .custom_base import CustomDatasetsBase
 from .custom_noop import NoOpCustomDatasets
 from .dataset import Dataset
 from .metadata import DatasetId, DatasetMetadata
+from ..data_types import TrainingType, InputDimensionality
 
 
 class Datasets(abc.ABC):
@@ -136,28 +136,14 @@ class Datasets(abc.ABC):
           `max_contamination`
         :return: list of dataset identifiers (combination of collection name and dataset name)
         """
+        custom_datasets = self._custom_datasets.select(collection, dataset, dataset_type, datetime_index,
+                                                       training_type, train_is_normal, input_dimensionality,
+                                                       min_anomalies, max_anomalies, max_contamination)
 
-        def any_selector() -> bool:
-            return bool(dataset_type or datetime_index or training_type or train_is_normal or input_dimensionality)
-
-        if collection in self._custom_datasets.get_collection_names():
-            names = self._custom_datasets.get_dataset_names()
-            if any_selector() or (dataset and dataset not in names):
-                return []
-            elif dataset and dataset in names:
-                return [(collection, dataset)]
-            else:
-                return [(collection, name) for name in names]
+        if (collection in self._custom_datasets.get_collection_names()
+                or dataset in self._custom_datasets.get_dataset_names()):
+            return custom_datasets
         else:
-            # if any selector is applied, there are no matches in custom datasets by definition!
-            # FIXME: this does not apply anymore!
-            if any_selector():
-                custom_datasets = []
-            else:
-                custom_datasets = [
-                    ("custom", name) for name in self._custom_datasets.get_dataset_names() if name == dataset
-                ]
-
             df = self._df  # self.df()
             selectors: List[np.ndarray] = []
             if dataset_type is not None:
@@ -187,7 +173,7 @@ class Datasets(abc.ABC):
                               .index
                               .to_list())
 
-            return custom_datasets + bench_datasets
+            return bench_datasets + custom_datasets
 
     def df(self) -> pd.DataFrame:
         """Returns a copy of the internal dataset metadata collection."""

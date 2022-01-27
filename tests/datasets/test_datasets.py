@@ -150,14 +150,25 @@ def test_select_with_custom_dataset(tmp_path):
 
 def test_select_with_custom_and_selector(tmp_path):
     names = _test_select_with_custom_helper(tmp_path, collection="custom", training_type=TrainingType.UNSUPERVISED)
-    assert names == []
+    assert names == [("custom", "dataset.1"), ("custom", "dataset.3"), ("custom", "dataset.4")]
     names = _test_select_with_custom_helper(tmp_path, dataset="dataset.1.train", training_type=TrainingType.UNSUPERVISED)
     assert names == []
 
 
 def test_select_with_custom_only_selector(tmp_path):
-    names = _test_select_with_custom_helper(tmp_path, training_type=TrainingType(nab_record.train_type))
-    assert names == [(nab_record.collection_name, nab_record.dataset_name)]
+    names = _test_select_with_custom_helper(tmp_path, max_contamination=0.01)
+    assert names == [('custom', 'dataset.1'), ('custom', 'dataset.1.train'),
+                     ('custom', 'dataset.3'), ('custom', 'dataset.4')]
+    names = _test_select_with_custom_helper(tmp_path, input_dimensionality=InputDimensionality.MULTIVARIATE)
+    assert names == [('custom', 'dataset.4')]
+
+
+def test_select_with_custom_ignores_datetime_index(tmp_path):
+    names = _test_select_with_custom_helper(tmp_path, datetime_index=True)
+    # the custom datasets do not contain information about the index type and therefore ignore the
+    # 'datetime_index'-selector (see warning in output)
+    assert names == [(nab_record.collection_name, nab_record.dataset_name), ('custom', 'dataset.1'),
+                     ('custom', 'dataset.1.train'), ('custom', 'dataset.3'), ('custom', 'dataset.4')]
 
 
 def test_get(tmp_path):

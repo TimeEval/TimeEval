@@ -1,4 +1,5 @@
 import json
+import warnings
 from pathlib import Path
 from typing import List, Union, Tuple, Optional, Dict, NamedTuple
 
@@ -8,7 +9,8 @@ import pandas as pd
 from .analyzer import DatasetAnalyzer
 from .custom_base import CustomDatasetsBase
 from .dataset import Dataset
-from ..data_types import TrainingType
+from .metadata import DatasetId
+from ..data_types import TrainingType, InputDimensionality
 
 
 TRAIN_PATH_KEY = "train_path"
@@ -116,3 +118,49 @@ class CustomDatasets(CustomDatasetsBase):
 
     def get(self, dataset_name: str) -> Dataset:
         return self._dataset_store[dataset_name].details
+
+    def select(self,
+               collection: Optional[str] = None,
+               dataset: Optional[str] = None,
+               dataset_type: Optional[str] = None,
+               datetime_index: Optional[bool] = None,
+               training_type: Optional[TrainingType] = None,
+               train_is_normal: Optional[bool] = None,
+               input_dimensionality: Optional[InputDimensionality] = None,
+               min_anomalies: Optional[int] = None,
+               max_anomalies: Optional[int] = None,
+               max_contamination: Optional[float] = None
+               ) -> List[DatasetId]:
+        if (collection is not None and collection not in self.get_collection_names()) or (
+                dataset is not None and dataset not in self.get_dataset_names()):
+            return []
+        else:
+            selectors = []
+            # used for an early-skip already
+            # if dataset is not None:
+            #     selectors.append(lambda meta: meta.datasetId[1] == dataset)
+            if dataset_type is not None:
+                selectors.append(lambda meta: meta.dataset_type == dataset_type)
+            if datetime_index is not None:
+                warnings.warn("Filter for index type (datetime or int) is not supported for custom dataset! "
+                              "Ignoring it!")
+            if training_type is not None:
+                selectors.append(lambda meta: meta.training_type == training_type)
+            if input_dimensionality is not None:
+                selectors.append(lambda meta: meta.input_dimensionality == input_dimensionality)
+            if min_anomalies is not None:
+                selectors.append(lambda meta: meta.num_anomalies >= min_anomalies)
+            if max_anomalies is not None:
+                selectors.append(lambda meta: meta.num_anomalies <= max_anomalies)
+            if max_contamination is not None:
+                selectors.append(lambda meta: meta.contamination <= max_contamination)
+
+            custom_datasets = []
+            for d in self._dataset_store:
+                if dataset is not None and dataset != d:
+                    continue
+
+                _, _, metadata = self._dataset_store[d]
+                if np.all([fn(metadata) for fn in selectors]):
+                    custom_datasets.append(d)
+            return [("custom", name) for name in custom_datasets]
