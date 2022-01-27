@@ -5,8 +5,8 @@
     "period": 10
   },
   "dataset.1.train": {
-    "train_path": "./dataset.train.csv",
     "test_path": "./dataset.test.csv",
+    "train_path": "./dataset.train.csv",
     "type": "synthetic test"
   },
   "dataset.3": {
