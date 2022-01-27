@@ -223,6 +223,7 @@ class Datasets(abc.ABC):
                 training_type=training_type,
                 length=entry["length"],
                 dimensions=entry["dimensions"],
+                contamination=entry["contamination"],
                 num_anomalies=entry["num_anomalies"],
                 min_anomaly_length=entry["min_anomaly_length"],
                 median_anomaly_length=entry["median_anomaly_length"],

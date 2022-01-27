@@ -139,6 +139,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 num_anomalies=1,
                 dimensions=1,
                 length=3000,
+                contamination=0.0002777777777777778,
                 min_anomaly_length=1,
                 median_anomaly_length=1,
                 max_anomaly_length=1,

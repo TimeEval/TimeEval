@@ -18,6 +18,7 @@ dataset = Dataset(
     num_anomalies=3,
     dimensions=1,
     length=3000,
+    contamination=0.0002777777777777778,
     min_anomaly_length=1,
     median_anomaly_length=5,
     max_anomaly_length=20,

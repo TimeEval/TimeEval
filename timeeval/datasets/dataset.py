@@ -12,6 +12,7 @@ class Dataset:
     training_type: TrainingType
     length: int
     dimensions: int
+    contamination: float
     min_anomaly_length: int
     median_anomaly_length: int
     max_anomaly_length: int

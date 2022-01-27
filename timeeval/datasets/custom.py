@@ -89,6 +89,7 @@ class CustomDatasets(CustomDatasetsBase):
             training_type=training_type,
             dimensions=dm.metadata.dimensions,
             length=dm.metadata.length,
+            contamination=dm.metadata.contamination,
             min_anomaly_length=dm.metadata.anomaly_length.min,
             median_anomaly_length=dm.metadata.anomaly_length.median,
             max_anomaly_length=dm.metadata.anomaly_length.max,
