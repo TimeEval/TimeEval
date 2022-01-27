@@ -17,14 +17,20 @@ class Algorithm:
     Moreover, it defines attributes that are necessary to help TimeEval know
     what kind of time series can be put into the algorithm.
 
-    Attributes:
-        name (str): The name of the Algorithm shown in the results.
-        main (Adapter): Adapter The [Adapter](timeeval/adapters/base.py) that contains the algorithm to evaluate.
-        preprocess (Optional[TSFunction]): Optional function to perform before `main` to modify input data.
-        postprocess (Optional[TSFunctionPost]): Optional function to perform after `main` to modify output data.
-        data_as_file (bool): Whether the data is input as `Path` or as `numpy.ndarray`.
-        param_schema (Dict[str, Dict[str, Any]]): Optional schema of the algorithm's input parameters needed by AlgorithmConfigurator. Schema definition:
-            ```
+    Parameter
+    ---------
+    name : str
+        The name of the Algorithm shown in the results.
+    main : Adapter
+        Adapter The [Adapter](timeeval/adapters/base.py) that contains the algorithm to evaluate.
+    preprocess : Optional[TSFunction]
+        Optional function to perform before `main` to modify input data.
+    postprocess : Optional[TSFunctionPost]
+        Optional function to perform after `main` to modify output data.
+    data_as_file : bool
+        Whether the data is input as `Path` or as `numpy.ndarray`.
+    param_schema : Dict[str, Dict[str, Any]]
+        Optional schema of the algorithm's input parameters needed by AlgorithmConfigurator. Schema definition::
             [
                 "param_name": {
                     "name": str
@@ -33,11 +39,14 @@ class Algorithm:
                     "type": str
                 },
             ]
-            ```
-
-        param_config (ParameterConfig): Optional object of type ParameterConfig to define a search grid or fixed parameters.
-        training_type (TrainingType): Definition of training type to receive the correct dataset formats (needed if TimeEval is run with `force_training_type_match` config).
-        input_dimensionality (InputDimensionality): Definition of training type to receive the correct dataset formats (needed if TimeEval is run with `force_dimensionality_match` config).
+    param_config : ParameterConfig
+        Optional object of type ParameterConfig to define a search grid or fixed parameters.
+    training_type : TrainingType
+        Definition of training type to receive the correct dataset formats (needed if TimeEval is run with
+        `force_training_type_match` config).
+    input_dimensionality : InputDimensionality
+        Definition of training type to receive the correct dataset formats (needed if TimeEval is run with
+        `force_dimensionality_match` config).
     """
 
     name: str
