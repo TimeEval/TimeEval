@@ -7,6 +7,10 @@ from .metadata import DatasetId
 
 @dataclass
 class Dataset:
+    """Dataset information containing basic metadata about the dataset.
+
+    This class is used within TimeEval heuristics to determine the heuristic values based on the dataset properties.
+    """
     datasetId: DatasetId
     dataset_type: str
     training_type: TrainingType

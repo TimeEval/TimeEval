@@ -57,6 +57,7 @@ class Trend:
 
 @dataclass
 class DatasetMetadata:
+    """Represents the metadata of a single time series of a dataset (for each channel)."""
     dataset_id: DatasetId
     is_train: bool
     length: int
@@ -79,9 +80,9 @@ class DatasetMetadata:
 
     @property
     def mean(self) -> float:
-        # mypy can't infer that this actually is a float
         if not self.means:
             return 0
+        # mypy can't infer that this actually is a float
         return np.mean(list(self.means.values()))  # type: ignore
 
     @property

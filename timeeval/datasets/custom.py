@@ -41,6 +41,13 @@ def _training_type(train_path: Optional[Path]) -> TrainingType:
 
 
 class CustomDatasets(CustomDatasetsBase):
+    """Implementation of the custom datasets API.
+
+    Internal API! You should **not need to use or modify** this class.
+
+    This class behaves similar to the :class:`timeeval.datasets.Datasets`-API while using a different internal
+    representation for the dataset index.
+    """
 
     def __init__(self, dataset_config: Union[str, Path]):
         super().__init__()

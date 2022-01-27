@@ -36,27 +36,42 @@ class DatasetRecord(NamedTuple):
 
 
 class DatasetManager(ContextManager['DatasetManager'], Datasets):
-    """
-    Manages benchmark datasets and their meta-information.
+    """Manages benchmark datasets and their meta-information.
 
-    ATTENTION: Not multi-processing-safe!
-    There is no check for changes to the underlying `dataset.csv` file while this class is loaded.
+    Manages dataset collections and their meta-information that are stored in a single folder with an index file.
+    You can also use this class to create a new TimeEval dataset collection.
+
+    Warnings
+    --------
+    ATTENTION: Not multi-processing-safe! There is no check for changes to the underlying *dataset.csv* file while
+    this class is loaded.
 
     Read-only access is fine with multiple processes.
+
+    Parameters
+    ----------
+    data_folder : path
+        Path to the folder, where the benchmark data is stored. This folder consists of the file *datasets.csv* and
+        the datasets in an hierarchical storage layout.
+    custom_datasets_file : path
+        Path to a file listing additional custom datasets.
+    create_if_missing : bool
+        Create an index-file in the `data_folder` if none could be found. Set this to ``False`` if an exception should
+        be raised if the folder is wrong or does not exist.
+
+    Raises
+    ------
+    FileNotFoundError
+        If `create_if_missing` is set to ``False`` and no *datasets.csv*-file was found in the `data_folder`.
+
+    See Also
+    --------
+    :class:`timeeval.datasets.Datasets`
+    :class:`timeeval.datasets.MultiDatasetManager`
     """
 
     def __init__(self, data_folder: Union[str, Path], custom_datasets_file: Optional[Union[str, Path]] = None,
                  create_if_missing: bool = True):
-        """
-        Manages dataset collections and their meta-information that are stored in a single folder with an index file.
-        You can also use this class to create a new TimeEval dataset collection.
-
-        :param data_folder: Path to the folder, where the benchmark data is stored.
-          This folder consists of the file `datasets.csv` and the datasets in an hierarchical storage layout.
-        :param custom_datasets_file: Path to a file listing additional custom datasets.
-        :param create_if_missing: Create an index-file in the `data_folder` if none could be found. Set this to `False`
-          if an exception should be raised if the folder is wrong or does not exist.
-        """
         self._log_: logging.Logger = logging.getLogger(self.__class__.__name__)
         self._filepath = Path(data_folder) / self.INDEX_FILENAME
         self._dirty = False
@@ -88,7 +103,6 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
         return self._log_
 
     def refresh(self, force: bool = False) -> None:
-        """Re-read the benchmark dataset collection information from the `datasets.csv` file."""
         if not force and self._dirty:
             raise Exception("There are unsaved changes in memory that would get lost by reading from disk again!")
         else:
@@ -102,10 +116,17 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
     ### end overwrites
 
     def add_dataset(self, dataset: DatasetRecord) -> None:
-        """
-        Add a new dataset to the benchmark dataset collection (in-memory).
-        If the same dataset ID (collection_name, dataset_name) is specified than an existing dataset,
-        its entries are overwritten!
+        """Adds a new dataset to the benchmark dataset collection (in-memory).
+
+        The provided dataset metadata is added to this dataset collection (to the in-memory index). You can save the
+        in-memory index to disk using the :func:`timeeval.datasets.DatasetManager.save`-method. The referenced time
+        series files (training and testing paths) are not touched. If the same dataset ID
+        (collection_name, dataset_name) than an existing dataset is specified, its entries are overwritten!
+
+        Parameters
+        ----------
+        dataset: DatasetRecord object
+            The dataset information to add to the benchmark collection.
         """
         df_new = pd.DataFrame({
             "train_path": dataset.train_path,
@@ -135,9 +156,19 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
         self._dirty = True
 
     def add_datasets(self, datasets: List[DatasetRecord]) -> None:
-        """
-        Add a list of new datasets to the benchmark dataset collection (in-memory).
-        Already existing keys are overwritten!
+        """Add a list of datasets to the dataset collection.
+
+        Add a list of new datasets to the benchmark dataset collection (in-memory). Already existing keys are
+        overwritten!
+
+        Parameters
+        ----------
+        datasets: list of DatasetRecord objects
+            List of dataset metdata to add to this dataset collection.
+
+        See Also
+        --------
+        :func:`timeeval.datasets.DatasetManager.add_dataset`
         """
         df_new = pd.DataFrame(datasets)
         df_new.set_index(["collection_name", "dataset_name"], inplace=True)
@@ -147,11 +178,12 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
         self._dirty = True
 
     def save(self) -> None:
-        """
-        Persist newly added benchmark datasets from memory to the benchmark dataset collection file `datasets.csv`.
-        Custom datasets are excluded from persistence and cannot be saved to disk;
-        use :py:meth:`Datasets.add_dataset` or :py:meth:`Datasets.add_datasets` to add datasets to the
-        permanent benchmark dataset collection.
+        """Saves the in-memory dataset index to disk.
+
+        Persists newly added benchmark datasets from memory to the benchmark dataset collection file `datasets.csv`.
+        Custom datasets are excluded from persistence and cannot be saved to disk; use
+        :func:`timeeval.datasets.DatasetManager.add_dataset` or :func:`timeeval.datasets.DatasetManager.add_datasets`
+        to add datasets to the benchmark dataset collection.
         """
         self._df.to_csv(self._filepath)
         self._dirty = False

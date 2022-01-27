@@ -302,8 +302,13 @@ def test_df_with_custom(tmp_path):
     df = dm.df()
     assert len(df) == 5
     assert list(df.index.get_level_values(0)) == [nab_record.collection_name] + 4 * ["custom"]
+    assert list(df.index.get_level_values(1)) == [
+        nab_record.dataset_name, "dataset.1", "dataset.1.train", "dataset.3", "dataset.4"
+    ]
     assert df.loc[(nab_record.collection_name, nab_record.dataset_name), "train_type"] == nab_record.train_type
-    assert np.isnan(df.loc[("custom", "dataset.1"), "train_type"])
+    assert np.isnan(df.loc[("custom", "dataset.1"), "stddev"])
+    assert np.isnan(df.loc[("custom", "dataset.1.train"), "mean"])
+    assert np.isnan(df.loc[("custom", "dataset.3"), "period_size"])
     assert df.loc[("custom", "dataset.1.train"), "train_path"] == str(Path("tests/example_data/dataset.train.csv").resolve())
 
 

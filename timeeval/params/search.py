@@ -9,6 +9,13 @@ class ParameterConfig(abc.ABC, Iterable, Sized):
     @property
     @abc.abstractmethod
     def param_grid(self) -> ParameterGrid:
+        """The parameter search grid.
+
+        Returns
+        -------
+        param_grid: sklearn parameter grid object
+            A parameter search grid compatible with sklearn: :class:`sklearn.model_selection.ParameterGrid`
+        """
         pass
 
     def __iter__(self) -> Iterator[Dict[str, Any]]:
@@ -41,7 +48,7 @@ class FullParameterGrid(ParameterConfig):
 
     Parameters
     ----------
-    params : dict of str to sequence
+    param_grid : dict of str to sequence
         The parameter grid to explore, as a dictionary mapping parameters to sequences of allowed values.
         An empty dict signifies default parameters.
 

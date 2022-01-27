@@ -8,6 +8,10 @@ from ..data_types import TrainingType, InputDimensionality
 
 
 class CustomDatasetsBase(abc.ABC):
+    """API definition for custom datasets.
+
+    Internal API! You should **not need to use or modify** this class.
+    """
 
     @abc.abstractmethod
     def get_collection_names(self) -> List[str]:
