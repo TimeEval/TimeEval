@@ -239,11 +239,22 @@ class Datasets(abc.ABC):
 
     def get_dataset_df(self, dataset_id: DatasetId, train: bool = False) -> pd.DataFrame:
         path = self.get_dataset_path(dataset_id, train)
-        if (dataset_id[0] not in self._custom_datasets.get_collection_names()
-                and self._get_value_internal(dataset_id, "datetime_index")):
-            return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+        if dataset_id[0] not in self._custom_datasets.get_collection_names():
+            if self._get_value_internal(dataset_id, "datetime_index"):
+                return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+            else:
+                return pd.read_csv(path)
         else:
-            return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+            df = pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+            # timestamp parsing failed, hopefully because we have an integer-timestamp
+            if df["timestamp"].dtype == np.dtype("O"):
+                try:
+                    df["timestamp"] = df["timestamp"].astype(np.int_)
+                except ValueError as e:
+                    raise TypeError(
+                        f"Incorrect timestamp format (expected valid date or integer index) of dataset {dataset_id}"
+                    ) from e
+            return df
 
     def get_dataset_ndarray(self, dataset_id: DatasetId, train: bool = False) -> np.ndarray:
         return self.get_dataset_df(dataset_id, train).values
