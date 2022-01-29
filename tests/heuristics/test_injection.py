@@ -26,6 +26,8 @@ class TestInjection(unittest.TestCase):
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
         obj = TimeEvalHeuristic("DefaultExponentialFactorHeuristic(exponent=2)")
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
+        obj = TimeEvalHeuristic("DatasetIdHeuristic()")
+        self.assertIsInstance(obj, TimeEvalParameterHeuristic)
 
     def test_unknown_heuristic_factory(self):
         with self.assertRaises(ValueError):
@@ -52,7 +54,8 @@ class TestInjection(unittest.TestCase):
             "to_be_removed": "heuristic:ParameterDependenceHeuristic(source_parameter='missing')",
             "contamination": "heuristic:ContaminationHeuristic()",
             "alpha": "heuristic:DefaultFactorHeuristic(factor=2.0)",
-            "beta": "heuristic:DefaultExponentialFactorHeuristic(exponent=-2)"
+            "beta": "heuristic:DefaultExponentialFactorHeuristic(exponent=-2)",
+            "dataset_id": "heuristic:DatasetIdHeuristic()"
         }
         # required by DefaultFactorHeuristics and DefaultExponentialFactorHeuristic:
         fixtures.algorithm.param_schema = {"alpha": {"defaultValue": 0.1}, "beta": {"defaultValue": 5.0}}
@@ -78,6 +81,7 @@ class TestInjection(unittest.TestCase):
             "period": 1 if fixtures.dataset.period_size is None else fixtures.dataset.period_size,
             "contamination": 1.0 / 3600,
             "alpha": 0.2,
-            "beta": 0.05
+            "beta": 0.05,
+            "dataset_id": fixtures.dataset.datasetId
         })
         np.testing.assert_array_equal(actual_embed_dim_range, expected_embed_dim_range)
