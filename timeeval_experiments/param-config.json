@@ -332,7 +332,8 @@
     "e-2 default value": "DefaultExponentialFactorHeuristic(exponent=-2)",
     "e-3 default value": "DefaultExponentialFactorHeuristic(exponent=-3)",
     "max anomaly length": "AnomalyLengthHeuristic(agg_type='max')",
-    "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')"
+    "min anomaly length": "AnomalyLengthHeuristic(agg_type='min')",
+    "dataset id": "DatasetIdHeuristic()"
   },
   "dependent_params": {
     "anomaly_window_size": "max anomaly length",

@@ -8,6 +8,7 @@ from timeeval.datasets import Dataset
 from .AnomalyLengthHeuristic import AnomalyLengthHeuristic
 from .CleanStartSequenceSizeHeuristic import CleanStartSequenceSizeHeuristic
 from .ContaminationHeuristic import ContaminationHeuristic
+from .DatasetIdHeuristic import DatasetIdHeuristic
 from .DefaultExponentialFactorHeuristic import DefaultExponentialFactorHeuristic
 from .DefaultFactorHeuristic import DefaultFactorHeuristic
 from .EmbedDimRangeHeuristic import EmbedDimRangeHeuristic
@@ -21,7 +22,7 @@ def _check_signature(signature: str) -> bool:
     res = re.fullmatch(
         r"^(RelativeDatasetSizeHeuristic|AnomalyLengthHeuristic|CleanStartSequenceSizeHeuristic|"
         r"ParameterDependenceHeuristic|PeriodSizeHeuristic|EmbedDimRangeHeuristic|ContaminationHeuristic|"
-        r"DefaultFactorHeuristic|DefaultExponentialFactorHeuristic)[(].*[)]$",
+        r"DefaultFactorHeuristic|DefaultExponentialFactorHeuristic|DatasetIdHeuristic)[(].*[)]$",
         signature,
         re.M
     )
