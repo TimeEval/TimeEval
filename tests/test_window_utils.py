@@ -1,6 +1,8 @@
+import os
 import unittest
 
 import numpy as np
+import pytest
 
 from timeeval.utils.window import ReverseWindowing, Method, padding_borders
 
@@ -11,7 +13,9 @@ class TestReverseWindowing(unittest.TestCase):
         self.y_mean = np.concatenate([np.arange(1, 3.5, .5), np.arange(4, 198), np.arange(198, 200.5, .5)])
         self.y_mean_non_reversed = np.arange(3, 199)
         self.y_median = np.concatenate([np.arange(1, 3.5, .5), np.arange(4, 198), np.arange(198, 200.5, .5)])
-        self.y_sum = np.concatenate([np.array([1,3,6,10]), np.arange(15, 199*5, 5), np.array([794, 597, 399, 200])])
+        self.y_sum = np.concatenate(
+            [np.array([1, 3, 6, 10]), np.arange(15, 199 * 5, 5), np.array([794, 597, 399, 200])]
+        )
 
     def test_reverse_windowing_vectorized_mean(self):
         y_reversed = ReverseWindowing(window_size=5).fit_transform(self.X)
@@ -41,10 +45,12 @@ class TestReverseWindowing(unittest.TestCase):
         y_reversed = ReverseWindowing(window_size=5, chunksize=10).fit_transform(self.X)
         np.testing.assert_array_equal(self.y_mean, y_reversed)
 
+    @pytest.mark.skipif(condition=os.getenv("CI", "false") == "true", reason="CI never finishes on mut")
     def test_mp_windowing_iterative_mean(self):
         y_reversed = ReverseWindowing(window_size=5, n_jobs=4).fit_transform(self.X)
         np.testing.assert_array_equal(self.y_mean, y_reversed)
 
+    @pytest.mark.skipif(condition=os.getenv("CI", "false") == "true", reason="CI never finishes on mut")
     def test_mp_windowing_chunks_mean(self):
         y_reversed = ReverseWindowing(window_size=5, n_jobs=4, chunksize=10).fit_transform(self.X)
         np.testing.assert_array_equal(self.y_mean, y_reversed)
@@ -59,7 +65,7 @@ class TestReverseWindowing(unittest.TestCase):
 
     def test_padding_borders(self):
         padded = np.concatenate([np.zeros(5), self.X, np.zeros(5)])
-        y_padded = padding_borders(self.X, len(self.X)+10)
+        y_padded = padding_borders(self.X, len(self.X) + 10)
         np.testing.assert_array_equal(padded, y_padded)
 
 
