@@ -1,5 +1,5 @@
 import abc
-from collections import Iterable, Sized
+from collections.abc import Iterable, Sized
 from typing import Iterator, Any, Dict, Mapping, Optional
 
 from sklearn.model_selection import ParameterGrid
