@@ -35,8 +35,16 @@ def multi_grammarviz_algorithms():
     docker_image_name = "mut:5000/akita/grammarviz3-multi"
     docker_image_tag = "280553e5"
 
-    default_params = {"alphabet_size": 6, "paa_transform_size": 5}
-    explorative_params = {"alphabet_size": [4, 5, 7], "paa_transform_size": [3, 4, 6]}
+    default_params = {
+        "alphabet_size": 6,
+        "paa_transform_size": 5,
+        "anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=1.5, fb_value=150)"
+    }
+    explorative_params = {
+        "alphabet_size": [4, 5, 7],
+        "paa_transform_size": [3, 4, 6],
+        "anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=1.5, fb_value=150)"
+    }
     extended_explorative_params = {
         "alphabet_size": [4, 5, 7, 8],
         "paa_transform_size": [4, 6, 7, 8, 9],
@@ -150,14 +158,13 @@ def main():
         max_contamination=MAX_CONTAMINATION,
         min_anomalies=MIN_ANOMALIES,
         input_dimensionality=InputDimensionality.MULTIVARIATE,
-        training_type=TrainingType.UNSUPERVISED,
     )
     # exclude too large datasets
-    datasets = [(c, d) for c, d in datasets if c not in ["Exathlon", "IOPS", "LTDB", "Kitsune"]]
-    # add the univariate GutenTAG datasets for reference
+    # and exclude GutenTAG dataset, because they contain semi-, supervised, and unsupervised datasets that are the same
+    datasets = [(c, d) for c, d in datasets if c not in ["Exathlon", "IOPS", "LTDB", "Kitsune", "GutenTAG"]]
+    # add the GutenTAG datasets (univariate and multivariate), but just use the unsupervised ones
     datasets += dm.select(
         collection="GutenTAG",
-        input_dimensionality=InputDimensionality.UNIVARIATE,
         training_type=TrainingType.UNSUPERVISED
     )
 
@@ -201,6 +208,8 @@ def main():
         for param in algo.param_config:
             print(f"  {param}")
     print("=====================================================================================\n\n")
+    print(f"Datasets: {len(datasets)}")
+    print(f"Algorithms: {len(algorithms)}")
     sys.stdout.flush()
 
     cluster_config = RemoteConfiguration(
