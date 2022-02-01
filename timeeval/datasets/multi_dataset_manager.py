@@ -10,15 +10,30 @@ from .metadata import DatasetId
 
 
 class MultiDatasetManager(Datasets):
+    """Provides read-only access to multiple benchmark datasets collections and their meta-information.
+
+    Manages dataset collections and their meta-information that are stored in multiple folders. The entries in all
+    index files must be unique and are NOT allowed to overlap! This would lead to information loss!
+
+    Parameters
+    ----------
+    data_folders : list of paths
+        List of data paths that hold the datasets and the index files.
+    custom_datasets_file : path
+        Path to a file listing additional custom datasets.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the *datasets.csv*-file was not found in any of the `data_folders`.
+
+    See Also
+    --------
+    :class:`timeeval.datasets.Datasets`
+    :class:`timeeval.datasets.DatasetManager`
+    """
 
     def __init__(self, data_folders: List[Union[str, Path]], custom_datasets_file: Optional[Union[str, Path]] = None):
-        """
-        Manages dataset collections and their meta-information that are stored in multiple folders. The entries in all
-        index files must be unique and are NOT allowed to overlap! This would lead to information loss!
-
-        :param data_folders: List of data paths that hold the datasets and the index files.
-        :param custom_datasets_file: Path to a file listing additional custom datasets.
-        """
         self._log_: logging.Logger = logging.getLogger(self.__class__.__name__)
         self._filepaths = [Path(folder) / self.INDEX_FILENAME for folder in data_folders]
         existing_files = np.array([p.exists() for p in self._filepaths])
@@ -48,7 +63,6 @@ class MultiDatasetManager(Datasets):
         return root_path_mapping, df.sort_index()
 
     def refresh(self, force: bool = False) -> None:
-        """Re-read the benchmark dataset collection information from the `datasets.csv` files."""
         # ignore the force parameter
         self._df = self._load_df()
 

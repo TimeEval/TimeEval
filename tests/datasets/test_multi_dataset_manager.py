@@ -37,5 +37,5 @@ def test_missing_dataset_path(tmp_path):
     target = tmp_path / "missing"
     with pytest.raises(FileNotFoundError) as ex:
         MultiDatasetManager(["./tests/example_data", target])
-        assert "Could not find the index files" in str(ex.value)
-        assert "missing" in str(ex.value)
+    assert "Could not find the index files" in str(ex.value)
+    assert "missing" in str(ex.value)

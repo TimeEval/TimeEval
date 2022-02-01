@@ -10,8 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 from timeeval.algorithm import Algorithm
 from timeeval.constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
 from timeeval.data_types import AlgorithmParameter, TrainingType, InputDimensionality
-from timeeval.datasets import Datasets
-from timeeval.datasets.datasets import Dataset
+from timeeval.datasets import Datasets, Dataset
 from timeeval.heuristics import inject_heuristic_values
 from timeeval.resource_constraints import ResourceConstraints
 from timeeval.times import Times, timer

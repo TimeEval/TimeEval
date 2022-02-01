@@ -10,13 +10,59 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.stattools import adfuller, kpss
 
-from timeeval.datasets.metadata import DatasetId, DatasetMetadata, AnomalyLength, Stationarity, Trend, TrendType, \
-    DatasetMetadataEncoder
-from timeeval.utils import datasets as datasets_utils
+from .metadata import DatasetId, DatasetMetadata, AnomalyLength, Stationarity, Trend, TrendType, DatasetMetadataEncoder
+from ..utils import datasets as datasets_utils
 
 
 class DatasetAnalyzer:
-    def __init__(self, dataset_id: DatasetId, is_train: bool, df: Optional[pd.DataFrame] = None,
+    """Utility class to analyze a dataset and infer metadata about the dataset.
+
+    Use this class to compute necessary metadata from a time series. The computation is started directly when
+    instantiating this class. You can access the results using the property ``metadata``. There multiple ways to
+    instantiate this class, but you always have to specify the dataset ID, because it is part of the metadata:
+
+        1. Use an existing pandas data frame object. Supply a value to the parameter `df`.
+        2. Use a path to a time series. Supply a value to the parameter `dataset_path`.
+        3. Use a dataset ID and a reference to the dataset manager. Supply a value to the parameter `dmgr`.
+
+    This class computes simple metadata, such as number of anomalies, mean, and standard deviation, as well as advanced
+    metadata, such as trends or stationarity information for all time series channels. The simple metadata is exact. But
+    the advanced metadata is estimated based on the observed time series data. The trend is computed by fitting linear
+    regression models of different order to the time series. If the regression has a high enough correlation with the
+    observed values, the trends and their confidence are recorded. The stationarity of the time series is estimated
+    using two statistical tests, the Kwiatkowski-Phillips-Schmidt-Shin (KPSS) and the Augmented Dickey Fuller (ADF)
+    test.
+
+    The metadata of a dataset can be stored to disk. This class provides utility functions to create a JSON-file per
+    dataset, containing the metadata about the test time series and the optional training time series.
+
+    Parameters
+    ----------
+    dataset_id : tuple of str, str
+        ID of the dataset consisting of collection and dataset name.
+    is_train : bool
+        If the analyzed time series is the testing or training time series of the dataset.
+    df : data frame, optional
+        Time series data frame. If `df` is supplied, you can omit `dataset_path` and `dmgr`.
+    dataset_path : path, optional
+        Path to the time series. If `dataset_path` is supplied, you can omit `df` and `dmgr`.
+    dmgr : Datasets object, optional
+        Dataset manager instance that is used to load the time series if `df` and `dataset_path` are not specified.
+    ignore_stationarity : bool, optional
+        Don't estimate the time series' channels stationarity. This might be necessary for large datasets, because this
+        step takes a lot of time.
+    ignore_trend : bool, optional
+        Don't estimate the time series' channels trend type. This might be necessary for large datasets, because this
+        step takes a lot of time.
+
+    See Also
+    --------
+    :class:`statsmodels.tsa.stattools.adfuller`
+    :class:`statsmodels.tsa.stattools.kpss`
+    """
+
+    def __init__(self, dataset_id: DatasetId, is_train: bool,
+                 df: Optional[pd.DataFrame] = None,
                  dataset_path: Optional[Path] = None,
                  dmgr: Optional['Datasets'] = None,  # type: ignore
                  ignore_stationarity: bool = False,
@@ -47,6 +93,7 @@ class DatasetAnalyzer:
 
     @property
     def metadata(self) -> DatasetMetadata:
+        """Returns the computed metadata about the time series."""
         return DatasetMetadata(
             dataset_id=self.dataset_id,
             is_train=self.is_train,
@@ -62,6 +109,21 @@ class DatasetAnalyzer:
         )
 
     def save_to_json(self, filename: Union[str, Path], overwrite: bool = False) -> None:
+        """Save the computed metadata for a dataset to disk.
+
+        This method writes a dataset's metadata to a JSON-formatted file to disk. The file contains a list of
+        metadata specifications. One specification for the test time series and potentially another one for the test
+        time series. Since the DatasetAnalyzer just analyzes a single time series at a time, this method appends the
+        current metadata to the existing list per default. If you want to overwrite the existing content of the file,
+        you can use the parameter `overwrite`.
+
+        Parameters
+        ----------
+        filename: path
+            Path to the file, where the metadata should be written to. Might already exist.
+        overwrite: bool
+            If existing data in the file should be overwritten or the current metadata should just be added to it.
+        """
         fp = Path(filename)
         metadata = []
         if fp.exists():
@@ -86,6 +148,24 @@ class DatasetAnalyzer:
 
     @staticmethod
     def load_from_json(filename: Union[str, Path], train: bool = False) -> DatasetMetadata:
+        """Loads existing time series metadata from disk.
+
+        If there are multiple metadata entries with the same dataset ID and training/testing-label, the first entry is
+        used.
+
+        Parameters
+        ----------
+        filename: path
+            Path to the JSON-file containing the dataset metadata. Can be written using
+            :func:`timeeval.datasets.DatasetAnalyzer.save_to_json`.
+        train: bool
+            Whether the training or testing time series' metadata should be loaded from the file.
+
+        Returns
+        -------
+        metadata: time series metadata object
+            Metadata of the training or testing time series.
+        """
         with open(filename, "r") as f:
             metadata_list: List[DatasetMetadata] = json.load(f, object_hook=DatasetMetadataEncoder.object_hook)
             for metadata in metadata_list:
@@ -134,7 +214,8 @@ class DatasetAnalyzer:
                            f"{kpss_output}")
             return kpss_output["p-value"] < sigma
         except Exception as e:
-            self.log.error(f"{self._log_prefix} KPSS trend stationarity test for {series.name} encountered an error: {e}")
+            self.log.error(
+                f"{self._log_prefix} KPSS trend stationarity test for {series.name} encountered an error: {e}")
             return False
 
     def _analyze_series(self, series: pd.Series) -> Stationarity:

@@ -13,7 +13,7 @@ CUSTOM_DATASET_PATH = Path("tests/example_data/datasets.json")
 custom_dataset_names = ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4"]
 
 dataset_index_header = "collection_name,dataset_name,train_path,test_path,dataset_type,datetime_index,split_at,train_type,train_is_normal,input_type,length,dimensions,contamination,num_anomalies,min_anomaly_length,median_anomaly_length,max_anomaly_length,mean,stddev,trend,stationarity,period_size"
-dataset_index_content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary,"
+dataset_index_content_nab = "NAB,art_daily_no_noise,,data-processed/univariate/NAB/art_daily_no_noise.test.csv,synthetic,True,,unsupervised,False,univariate,4032,1,0.015,1,5,5,6,564.52,2.468,no trend,not_stationary,"
 dataset_index_content_test = "test-collection,test_dataset,path_train.csv,path_test.csv,real,True,,supervised,True,univariate,12,1,0.01,2,5,5,6,564.52,2.468,no trend,not_stationary,"
 nab_record = DatasetRecord(
     collection_name="NAB",
@@ -28,8 +28,8 @@ nab_record = DatasetRecord(
     input_type="univariate",
     length=4032,
     dimensions=1,
-    contamination=0.01,
-    num_anomalies=2,
+    contamination=0.015,
+    num_anomalies=1,
     min_anomaly_length=5,
     median_anomaly_length=5,
     max_anomaly_length=6,
@@ -86,7 +86,7 @@ timestamp,value,is_anomaly
 dataset_content_io = StringIO(dataset_content)
 dataset_df = pd.read_csv(dataset_content_io, parse_dates=["timestamp"], infer_datetime_format=True)
 dataset_content_io.seek(0)
-dataset_ndarray = np.genfromtxt(dataset_content_io, delimiter=",", skip_header=1)
+dataset_ndarray = dataset_df.values
 
 
 def fill_file(path, lines=(dataset_index_content_nab,)):
@@ -132,17 +132,17 @@ def add_dataset(dm: DatasetManager):
 
 
 dataset_metadata = DatasetMetadata(
-    dataset_id=('test', 'dataset1'),
+    dataset_id=("test", "dataset1"),
     is_train=False,
     length=3600,
     dimensions=1,
     contamination=0.0002777777777777778,
     num_anomalies=1,
     anomaly_length=AnomalyLength(min=1, median=1, max=1),
-    means={'value': 15836.711944444445},
-    stddevs={'value': 7084.011043358856},
-    trends={'value': []},
-    stationarities={'value': Stationarity.DIFFERENCE_STATIONARY}
+    means={"value": 15836.711944444445},
+    stddevs={"value": 7084.011043358856},
+    trends={"value": []},
+    stationarities={"value": Stationarity.DIFFERENCE_STATIONARY}
 )
 dataset_metadata_dict = {
     "dataset_id": ["test", "dataset1"],

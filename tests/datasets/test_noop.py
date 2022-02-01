@@ -3,7 +3,7 @@ import unittest
 from timeeval.datasets.custom_noop import NoOpCustomDatasets
 
 
-class TestCustomDatasets(unittest.TestCase):
+class TestNoOpCustomDatasets(unittest.TestCase):
 
     def test_get_collection_names(self):
         cd = NoOpCustomDatasets()
@@ -17,8 +17,10 @@ class TestCustomDatasets(unittest.TestCase):
         cd = NoOpCustomDatasets()
         with self.assertRaises(KeyError) as cm:
             cd.get_path("dataset.1", train=False)
-            assert "No custom datasets loaded!" in str(cm.exception)
+        assert "No custom datasets loaded!" in str(cm.exception)
 
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_noop(self):
+        cd = NoOpCustomDatasets()
+        with self.assertRaises(KeyError) as cm:
+            cd.get("dataset.1")
+        assert "No custom datasets loaded!" in str(cm.exception)
