@@ -37,7 +37,10 @@ def load_dependencies():
         return pip_deps, conda
 
     def to_pip(dep):
-        return dep.replace("=", "==")
+        if "<" in dep or ">" in dep:
+            return dep
+        else:
+            return dep.replace("=", "==")
 
     def excluded(name):
         return any([excl in name for excl in EXCLUDES])
@@ -122,28 +125,33 @@ class CleanCommand(Command):
                     pass
 
 
-setup(
-    name="TimeEval",
-    version=VERSION,
-    description="Evaluation Tool for Time Series Anomaly Detection Methods",
-    long_description=README,
-    long_description_content_type="text/markdown",
-    author="Phillip Wenig and Sebastian Schmidl",
-    author_email="phillip.wenig@hpi.de",
-    url="https://gitlab.hpi.de/akita/bp2020fn1/timeeval",
-    license="MIT",
-    classifiers=[
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
-    ],
-    packages=find_packages(exclude=("tests",)),
-    package_data={"timeeval": ["py.typed"], "timeeval_experiments": ["py.typed"]},
-    install_requires=load_dependencies(),
-    python_requires=">=3.7",
-    cmdclass={
-        "test": PyTestCommand,
-        "typecheck": MyPyCheckCommand,
-        "clean": CleanCommand
-    },
-    zip_safe=False
-)
+if __name__ == "__main__":
+    setup(
+        name="TimeEval",
+        version=VERSION,
+        description="Evaluation Tool for Time Series Anomaly Detection Methods",
+        long_description=README,
+        long_description_content_type="text/markdown",
+        author="Phillip Wenig and Sebastian Schmidl",
+        author_email="phillip.wenig@hpi.de",
+        url="https://gitlab.hpi.de/akita/bp2020fn1/timeeval",
+        license="MIT",
+        classifiers=[
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10"
+        ],
+        packages=find_packages(exclude=("tests",)),
+        package_data={"timeeval": ["py.typed"], "timeeval_experiments": ["py.typed"]},
+        install_requires=load_dependencies(),
+        python_requires=">=3.7",
+        test_suite="tests",
+        cmdclass={
+            "test": PyTestCommand,
+            "typecheck": MyPyCheckCommand,
+            "clean": CleanCommand
+        },
+        zip_safe=False
+    )
