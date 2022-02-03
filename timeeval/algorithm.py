@@ -77,12 +77,14 @@ class Algorithm:
         return self.main.get_prepare_fn()
 
     def prepare(self) -> None:
-        if fn := self.prepare_fn():
+        fn = self.prepare_fn()
+        if fn:
             fn()
 
     def finalize_fn(self) -> Optional[Callable[[], None]]:
         return self.main.get_finalize_fn()
 
     def finalize(self) -> None:
-        if fn := self.finalize_fn():
+        fn = self.finalize_fn()
+        if fn:
             fn()

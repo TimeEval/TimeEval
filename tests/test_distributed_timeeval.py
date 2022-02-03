@@ -205,7 +205,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 distributed=True,
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
                                 results_path=Path(tmp_path))
-        timeeval.run()
+            timeeval.run()
         status = timeeval.results.loc[0, "status"]
         error_message = timeeval.results.loc[0, "error_message"]
 
@@ -225,7 +225,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 distributed=True,
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
                                 results_path=Path(tmp_path))
-        timeeval.run()
+            timeeval.run()
 
         status = timeeval.results.loc[0, "status"]
         error_message = timeeval.results.loc[0, "error_message"]
@@ -246,7 +246,7 @@ class TestDistributedTimeEval(unittest.TestCase):
                                 distributed=True,
                                 remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
                                 results_path=Path(tmp_path))
-        timeeval.run()
+            timeeval.run()
 
         status = timeeval.results.loc[0, "status"]
         self.assertEqual(status, Status.OK)

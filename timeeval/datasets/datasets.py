@@ -2,7 +2,7 @@ import abc
 import logging
 from functools import reduce
 from pathlib import Path
-from typing import Final, List, Union, Optional
+from typing import List, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -31,8 +31,8 @@ class Datasets(abc.ABC):
         Path to a file listing additional custom datasets.
     """
 
-    INDEX_FILENAME: Final[str] = "datasets.csv"
-    METADATA_FILENAME_SUFFIX: Final[str] = "metadata.json"
+    INDEX_FILENAME: str = "datasets.csv"
+    METADATA_FILENAME_SUFFIX: str = "metadata.json"
 
     def __init__(self, df: pd.DataFrame, custom_datasets_file: Optional[Union[str, Path]] = None):
         self._df: pd.DataFrame = df

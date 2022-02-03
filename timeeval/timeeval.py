@@ -272,8 +272,9 @@ class TimeEval:
     @staticmethod
     def rsync_results_from(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1):
         results_path = results_path.resolve()
+        hostname = socket.gethostname()
         excluded_aliases = [
-            hostname := socket.gethostname(),
+            hostname,
             socket.gethostbyname(hostname),
             "localhost",
             socket.gethostbyname("localhost")
@@ -311,7 +312,8 @@ class TimeEval:
     def _distributed_prepare(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.exps.algorithms:
-            if prepare_fn := algorithm.prepare_fn():
+            prepare_fn = algorithm.prepare_fn()
+            if prepare_fn:
                 tasks.append((prepare_fn, [], {}))
         self.log.debug(f"Collected {len(tasks)} algorithm prepare steps")
 
@@ -327,7 +329,8 @@ class TimeEval:
     def _distributed_finalize(self):
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.exps.algorithms:
-            if finalize_fn := algorithm.finalize_fn():
+            finalize_fn = algorithm.finalize_fn()
+            if finalize_fn:
                 tasks.append((finalize_fn, [], {}))
         self.log.debug(f"Collected {len(tasks)} algorithm finalize steps")
         self.log.info("Running finalize steps on remote hosts")
