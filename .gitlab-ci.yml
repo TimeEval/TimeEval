@@ -31,6 +31,7 @@ workflow:
     - conda env update -n timeeval -f environment.yml
     - source activate timeeval
     - pip install -r requirements.ci
+    - python --version
   parallel:
     matrix:
         - PYTHON_VERSION: ["3.7", "3.8", "3.9"]
