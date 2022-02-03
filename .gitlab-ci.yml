@@ -47,7 +47,7 @@ test:
     reports:
       cobertura: coverage.xml
 
-build-source:
+build:
   stage: build
   needs:
     - test
@@ -59,29 +59,16 @@ build-source:
   before_script:
     - *common-before-script
   script:
-    - python setup.py sdist
+    - python setup.py sdist bdist_wheel
   artifacts:
     paths:
       - dist/*.tar.gz
-
-build-binaries:
-  extends: .matrix-common
-  stage: build
-  needs:
-    - test
-  only:
-    - tags
-  script:
-    - python setup.py bdist_wheel
-  artifacts:
-    paths:
       - dist/*.whl
 
 deploy:
   stage: deploy
   needs:
-    - build-source
-    - build-binaries
+    - build
   tags:
     - akita
     - conda
@@ -91,6 +78,6 @@ deploy:
     - export PIP_CACHE_DIR="/opt/cache/pip"
     - echo "Setting up conda environment with twine for deployment"
     - conda create -y -n deploy python=3.7 twine
-    - conda activate deploy
+    - source activate deploy
   script:
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url https://gitlab.hpi.de/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
