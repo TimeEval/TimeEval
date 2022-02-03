@@ -13,7 +13,8 @@ class TestMultivarAdapter(unittest.TestCase):
     def setUp(self) -> None:
         np.random.seed(4444)
         self.X = np.random.rand(100, 3)
-        self.y = (x := np.abs(self.X - np.median(self.X, axis=0))) / x.max(axis=0)
+        tmp = np.abs(self.X - np.median(self.X, axis=0))
+        self.y = tmp / tmp.max(axis=0)
         self.y_median = np.median(self.y, axis=1)
         self.y_mean = np.mean(self.y, axis=1)
         self.y_max = np.max(self.y, axis=1)

@@ -20,19 +20,26 @@ workflow:
     - if: '$CI_COMMIT_BRANCH =~ /^doc\//'
       when: never
 
-before_script:
-  - export PIP_CACHE_DIR="/opt/cache/pip"
-  - echo "Setting up conda environment and installing dependencies"
-  - conda env create -n timeeval -f environment.yml
-  - source activate timeeval
-  - pip install -r requirements.ci
-
-test:
-  stage: test
-  interruptible: true
+.matrix-common:
   tags:
     - akita
     - conda
+  before_script: &common-before-script
+    - export PIP_CACHE_DIR="/opt/cache/pip"
+    - echo "Setting up conda environment and installing dependencies"
+    - conda create -y -n timeeval python=${PYTHON_VERSION:-3.7}
+    - conda env update -n timeeval -f environment.yml
+    - source activate timeeval
+    - pip install -r requirements.ci
+    - python --version
+  parallel:
+    matrix:
+        - PYTHON_VERSION: ["3.7", "3.8", "3.9"]
+
+test:
+  extends: .matrix-common
+  stage: test
+  interruptible: true
   script:
     - python setup.py typecheck
     - python setup.py test
@@ -42,24 +49,35 @@ test:
 
 build:
   stage: build
+  needs:
+    - test
   tags:
     - akita
     - conda
   only:
     - tags
+  before_script:
+    - *common-before-script
   script:
     - python setup.py sdist bdist_wheel
   artifacts:
     paths:
-      - dist/*.whl
       - dist/*.tar.gz
+      - dist/*.whl
 
 deploy:
   stage: deploy
+  needs:
+    - build
   tags:
     - akita
     - conda
   only:
     - tags
+  before_script:
+    - export PIP_CACHE_DIR="/opt/cache/pip"
+    - echo "Setting up conda environment with twine for deployment"
+    - conda create -y -n deploy python=3.7 twine
+    - source activate deploy
   script:
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url https://gitlab.hpi.de/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*

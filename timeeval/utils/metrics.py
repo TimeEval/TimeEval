@@ -125,9 +125,11 @@ def range_precision_recall_curve(y_true: np.ndarray, y_score: np.ndarray, max_sa
     thresholds.sort()
 
     # sample thresholds
-    if (n_thresholds := thresholds.shape[0]) > max_samples:
+    n_thresholds = thresholds.shape[0]
+    if n_thresholds > max_samples:
         every_nth = n_thresholds // (max_samples - 1)
-        if thresholds[-1] == (sampled_thresholds := thresholds[::every_nth])[-1]:
+        sampled_thresholds = thresholds[::every_nth]
+        if thresholds[-1] == sampled_thresholds[-1]:
             thresholds = sampled_thresholds
         else:
             thresholds = np.r_[sampled_thresholds, thresholds[-1]]

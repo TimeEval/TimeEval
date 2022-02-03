@@ -2,7 +2,7 @@ import json
 import subprocess
 from dataclasses import dataclass, asdict, field
 from pathlib import Path, WindowsPath, PosixPath
-from typing import Optional, Any, Callable, Final, Tuple, Dict
+from typing import Optional, Any, Callable, Tuple, Dict
 
 import docker
 import numpy as np
@@ -198,8 +198,8 @@ class DockerAdapter(Adapter):
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:
         if not self.skip_pull:
             # capture variables for the function closure
-            image: Final[str] = self.image_name
-            tag: Final[str] = self.tag
+            image: str = self.image_name
+            tag: str = self.tag
 
             def prepare():
                 client = docker.from_env(timeout=Duration("5 minutes").to_seconds())
