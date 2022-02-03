@@ -134,11 +134,12 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         author="Phillip Wenig and Sebastian Schmidl",
         author_email="phillip.wenig@hpi.de",
-        url="https://gitlab.hpi.de/akita/bp2020fn1/timeeval",
+        url="https://gitlab.hpi.de/akita/timeeval",
         license="MIT",
         classifiers=[
             "License :: OSI Approved :: MIT License",
             "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10"
