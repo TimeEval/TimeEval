@@ -21,7 +21,7 @@ logging.basicConfig(
     filename="timeeval.log",
     filemode="a",
     level=logging.INFO,
-    force=True,
+    # force=True,
     format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
 )
 
@@ -171,26 +171,26 @@ def main():
     algorithms = [
         Algorithm(
             name="DPIE",
-            main=DockerAdapter(image_name="mut:5000/akita/dpie", tag="70d9afea"),
+            main=DockerAdapter(image_name="mut:5000/akita/dpie", tag="9e9abd94"),
             data_as_file=True,
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=InputDimensionality.MULTIVARIATE,
             param_config=FixedParameters({"dataset_id": "heuristic:DatasetIdHeuristic()"})
         ),
-        Algorithm(
-            name="MultiNormA",
-            main=DockerAdapter(image_name="mut:5000/akita/multinorma", tag="3545a123"),
-            data_as_file=True,
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE,
-            param_config=FixedParameters({
-                "anomaly_window_size": "heuristic:AnomalyLengthHeuristic(agg_type='max')",
-                "normal_model_percentage": 0.5,
-                "random_state": 42
-            })
-        )
+        # Algorithm(
+        #     name="MultiNormA",
+        #     main=DockerAdapter(image_name="mut:5000/akita/multinorma", tag="3545a123"),
+        #     data_as_file=True,
+        #     training_type=TrainingType.UNSUPERVISED,
+        #     input_dimensionality=InputDimensionality.MULTIVARIATE,
+        #     param_config=FixedParameters({
+        #         "anomaly_window_size": "heuristic:AnomalyLengthHeuristic(agg_type='max')",
+        #         "normal_model_percentage": 0.5,
+        #         "random_state": 42
+        #     })
+        # )
     ]
-    algorithms.extend(multi_grammarviz_algorithms())
+    # algorithms.extend(multi_grammarviz_algorithms())
 
     print("\nDatasets:")
     print("=====================================================================================")
