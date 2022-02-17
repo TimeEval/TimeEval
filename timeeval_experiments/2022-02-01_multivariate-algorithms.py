@@ -177,20 +177,20 @@ def main():
             input_dimensionality=InputDimensionality.MULTIVARIATE,
             param_config=FixedParameters({"dataset_id": "heuristic:DatasetIdHeuristic()"})
         ),
-        # Algorithm(
-        #     name="MultiNormA",
-        #     main=DockerAdapter(image_name="mut:5000/akita/multinorma", tag="3545a123"),
-        #     data_as_file=True,
-        #     training_type=TrainingType.UNSUPERVISED,
-        #     input_dimensionality=InputDimensionality.MULTIVARIATE,
-        #     param_config=FixedParameters({
-        #         "anomaly_window_size": "heuristic:AnomalyLengthHeuristic(agg_type='max')",
-        #         "normal_model_percentage": 0.5,
-        #         "random_state": 42
-        #     })
-        # )
+        Algorithm(
+            name="MultiNormA",
+            main=DockerAdapter(image_name="mut:5000/akita/multinorma", tag="3545a123"),
+            data_as_file=True,
+            training_type=TrainingType.UNSUPERVISED,
+            input_dimensionality=InputDimensionality.MULTIVARIATE,
+            param_config=FixedParameters({
+                "anomaly_window_size": "heuristic:AnomalyLengthHeuristic(agg_type='max')",
+                "normal_model_percentage": 0.5,
+                "random_state": 42
+            })
+        )
     ]
-    # algorithms.extend(multi_grammarviz_algorithms())
+    algorithms.extend(multi_grammarviz_algorithms())
 
     print("\nDatasets:")
     print("=====================================================================================")
