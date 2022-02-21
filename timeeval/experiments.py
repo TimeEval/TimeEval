@@ -170,7 +170,7 @@ class Experiments:
                  datasets: List[Dataset],
                  algorithms: List[Algorithm],
                  base_result_path: Path,
-                 resource_constraints: ResourceConstraints = ResourceConstraints.no_constraints(),
+                 resource_constraints: ResourceConstraints = ResourceConstraints.default_constraints(),
                  repetitions: int = 1,
                  metrics: Optional[List[Metric]] = None,
                  skip_invalid_combinations: bool = False,
