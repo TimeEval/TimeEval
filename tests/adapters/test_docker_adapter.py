@@ -136,6 +136,7 @@ class TestDockerAdapter(unittest.TestCase):
 class TestDockerAdapterDocker(unittest.TestCase):
     def setUp(self) -> None:
         self.docker = docker.from_env()
+        self.input_data_path = Path("./tests/example_data/dataset.train.csv").absolute()
 
     def tearDown(self) -> None:
         # remove test containers
@@ -148,50 +149,172 @@ class TestDockerAdapterDocker(unittest.TestCase):
         return self.docker.containers.list(all=True, filters={"ancestor": ancestor_image})
 
     @pytest.mark.docker
-    def test_timeout_docker(self):
-        with self.assertRaises(DockerTimeoutError):
-            # unit typo in Durations lib (https://github.com/oleiade/durations/blob/master/durations/constants.py#L34)
-            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
-            adapter(Path("dummy"))
+    def test_execute_successful(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            args = {
+                "executionType": ExecutionType.EXECUTE,
+                "resource_constraints": ResourceConstraints.default_constraints(),
+                "hyper_params": {"sleep": 0.1},
+                "results_path": tmp_path
+            }
+            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds"))
+            res = adapter(self.input_data_path, args)
+        np.testing.assert_array_equal(np.zeros(3600), res)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 1)
         self.assertEqual(containers[0].status, "exited")
 
     @pytest.mark.docker
-    def test_train_timeout_docker(self):
-        args = {
-            "executionType": ExecutionType.TRAIN,
-            "resource_constraints": ResourceConstraints(train_fails_on_timeout=True)
-        }
-        with self.assertRaises(DockerTimeoutError):
+    def test_execute_timeout(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            args = {
+                "results_path": tmp_path
+            }
+            # unit typo in Durations lib (https://github.com/oleiade/durations/blob/master/durations/constants.py#L34)
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+            with self.assertRaises(DockerTimeoutError):
+                adapter(self.input_data_path, args)
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_execute_timeout_2(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            args = {
+                "results_path": tmp_path,
+                "resource_constraints": ResourceConstraints(execute_timeout=Duration("100 miliseconds"))
+            }
+            adapter = DockerAdapter(TEST_DOCKER_IMAGE)
+            with self.assertRaises(DockerTimeoutError):
+                adapter(self.input_data_path, args)
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_execute_timeout_if_no_scores(self):
+        args = {
+            "executionType": ExecutionType.EXECUTE,
+            "resource_constraints": ResourceConstraints(use_preliminary_scores_on_execute_timeout=False)
+        }
+        adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+        with self.assertRaises(DockerTimeoutError):
             adapter(Path("dummy"), args)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 1)
         self.assertEqual(containers[0].status, "exited")
 
     @pytest.mark.docker
-    def test_raise_train_timeout_if_no_model_docker(self):
+    def test_execute_ignore_timeout_if_scores(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            args = {
+                "executionType": ExecutionType.EXECUTE,
+                "resource_constraints": ResourceConstraints(use_preliminary_scores_on_execute_timeout=True),
+                "hyper_params": {"write_prelim_results": True, "sleep": 20},
+                "results_path": tmp_path
+            }
+            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("5 seconds"))
+            res = adapter(self.input_data_path, args)
+        np.testing.assert_array_equal(np.zeros(3600), res)
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_execute_timeout_besides_model(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            # add a model file from potentially previous training
+            (tmp_path / MODEL_FILE_NAME).touch()
+            args = {
+                "executionType": ExecutionType.EXECUTE,
+                "resource_constraints": ResourceConstraints(use_preliminary_scores_on_execute_timeout=False),
+                "results_path": tmp_path
+            }
+            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+            with self.assertRaises(DockerTimeoutError):
+                adapter(self.input_data_path, args)
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_train_successful(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            args = {
+                "executionType": ExecutionType.TRAIN,
+                "resource_constraints": ResourceConstraints.default_constraints(),
+                "hyper_params": {"sleep": 0.1},
+                "results_path": tmp_path
+            }
+            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds"))
+            result = adapter(self.input_data_path, args)
+
+        # TEST_DOCKER_IMAGE does not write a model file, therefore, we don't assert its existence!
+        self.assertEqual(result, self.input_data_path)
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_train_timeout(self):
+        args = {
+            "executionType": ExecutionType.TRAIN,
+            "resource_constraints": ResourceConstraints(use_preliminary_model_on_train_timeout=False)
+        }
+        adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+        with self.assertRaises(DockerTimeoutError):
+            adapter(Path("dummy"), args)
+
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_train_timeout_2(self):
+        args = {
+            "executionType": ExecutionType.TRAIN,
+            "resource_constraints": ResourceConstraints(
+                use_preliminary_model_on_train_timeout=False,
+                train_timeout=Duration("100 miliseconds")
+            )
+        }
+        adapter = DockerAdapter(TEST_DOCKER_IMAGE)
+        with self.assertRaises(DockerTimeoutError):
+            adapter(Path("dummy"), args)
+
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_train_timeout_if_no_model(self):
         # TEST_DOCKER_IMAGE does not write a model file!
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             args = {
                 "executionType": ExecutionType.TRAIN.value,
-                # "resource_constraints": ResourceConstraints.no_constraints(),
+                "resource_constraints": ResourceConstraints(use_preliminary_model_on_train_timeout=True),
                 "results_path": tmp_path
             }
-            dummy_path = Path("dummy")
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
-
             with self.assertRaises(DockerTimeoutError) as e:
-                adapter(dummy_path, args)
+                adapter(Path("dummy"), args)
+
         containers = self._list_test_containers()
         self.assertIn("not build a model", str(e.exception))
         self.assertEqual(len(containers), 1)
         self.assertEqual(containers[0].status, "exited")
 
     @pytest.mark.docker
-    def test_ignore_train_timeout_docker(self):
+    def test_train_ignore_timeout_if_model(self):
+        dummy_path = Path("dummy")
         # TEST_DOCKER_IMAGE does not write a model file!
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
@@ -199,10 +322,8 @@ class TestDockerAdapterDocker(unittest.TestCase):
             (tmp_path / MODEL_FILE_NAME).touch()
             args = {
                 "executionType": ExecutionType.TRAIN,
-                # "resource_constraints": ResourceConstraints.no_constraints(),
                 "results_path": tmp_path
             }
-            dummy_path = Path("dummy")
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
             res = adapter(dummy_path, args)
         containers = self._list_test_containers()
@@ -211,7 +332,8 @@ class TestDockerAdapterDocker(unittest.TestCase):
         self.assertEqual(res, dummy_path)
 
     @pytest.mark.docker
-    def test_ignore_train_timeout_docker_2(self):
+    def test_train_ignore_timeout_if_model_2(self):
+        dummy_path = Path("dummy")
         # TEST_DOCKER_IMAGE does not write a model file!
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
@@ -220,12 +342,11 @@ class TestDockerAdapterDocker(unittest.TestCase):
             args = {
                 "executionType": ExecutionType.TRAIN.value,
                 "resource_constraints": ResourceConstraints(
-                    train_fails_on_timeout=False,
+                    use_preliminary_model_on_train_timeout=True,
                     train_timeout=Duration("100 miliseconds")
                 ),
                 "results_path": tmp_path
             }
-            dummy_path = Path("dummy")
             adapter = DockerAdapter(TEST_DOCKER_IMAGE)
             res = adapter(dummy_path, args)
         containers = self._list_test_containers()
@@ -234,7 +355,7 @@ class TestDockerAdapterDocker(unittest.TestCase):
         self.assertEqual(res, dummy_path)
 
     @pytest.mark.docker
-    def test_algorithm_error_docker(self):
+    def test_algorithm_error(self):
         with self.assertRaises(DockerAlgorithmFailedError):
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("1 minute"))
             adapter(Path("dummy"), {"hyper_params": {"raise": True}})
@@ -243,24 +364,22 @@ class TestDockerAdapterDocker(unittest.TestCase):
         self.assertEqual(containers[0].status, "exited")
 
     @pytest.mark.docker
-    def test_faster_than_timeout_docker(self):
+    def test_faster_than_timeout(self):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
-            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("1 minute, 40 seconds"))
-            result = adapter(Path("./tests/example_data/dataset.train.csv").absolute(),
-                             {"results_path": tmp_path, "hyper_params": {}})
-            np.testing.assert_array_equal(np.zeros(3600), result)
+            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("30 seconds"))
+            result = adapter(self.input_data_path, {"results_path": tmp_path, "hyper_params": {"sleep": 1}})
+        np.testing.assert_array_equal(np.zeros(3600), result)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 1)
         self.assertEqual(containers[0].status, "exited")
 
     @pytest.mark.docker
-    def test_prune_docker(self):
+    def test_prune(self):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             adapter = DockerAdapter(TEST_DOCKER_IMAGE)
-            _ = adapter(Path("./tests/example_data/dataset.train.csv").absolute(),
-                        {"results_path": tmp_path, "hyper_params": {"sleep": 2}})
+            _ = adapter(self.input_data_path, {"results_path": tmp_path, "hyper_params": {"sleep": 0.1}})
         self.assertEqual(len(self._list_test_containers()), 1)
         adapter.get_finalize_fn()()
         self.assertListEqual(self._list_test_containers(), [])

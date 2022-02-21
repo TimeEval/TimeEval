@@ -24,7 +24,8 @@ class ResourceConstraints:
     task_cpu_limit: Optional[float] = None
     train_timeout: Duration = DEFAULT_TIMEOUT
     execute_timeout: Duration = DEFAULT_TIMEOUT
-    train_fails_on_timeout: bool = False
+    use_preliminary_model_on_train_timeout: bool = True
+    use_preliminary_scores_on_execute_timeout: bool = True
 
     def get_compute_resource_limits(self,
                                     memory_overwrite: Optional[int] = None,
@@ -92,5 +93,5 @@ class ResourceConstraints:
         return timeout
 
     @staticmethod
-    def no_constraints() -> 'ResourceConstraints':
+    def default_constraints() -> 'ResourceConstraints':
         return ResourceConstraints()
