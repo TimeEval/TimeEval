@@ -93,10 +93,16 @@ class DockerAdapter(Adapter):
             return constraints.get_execute_timeout(self.timeout)
 
     @staticmethod
-    def _should_fail_on_timeout(args: dict) -> bool:
+    def _should_use_prelim_model(args: dict) -> bool:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
-        return (exec_type != ExecutionType.TRAIN and exec_type != ExecutionType.TRAIN.value) or constraints.train_fails_on_timeout
+        return (exec_type == ExecutionType.TRAIN or exec_type == ExecutionType.TRAIN.value) and constraints.use_preliminary_model_on_train_timeout
+
+    @staticmethod
+    def _should_use_prelim_results(args: dict) -> bool:
+        exec_type = args.get("executionType", "")
+        constraints = args.get("resource_constraints", ResourceConstraints())
+        return (exec_type == ExecutionType.EXECUTE or exec_type == ExecutionType.EXECUTE.value) and constraints.use_preliminary_scores_on_execute_timeout
 
     @staticmethod
     def _results_path(args: Dict[str, Any], absolute: bool = False) -> Path:
@@ -151,21 +157,34 @@ class DockerAdapter(Adapter):
             result = container.wait(timeout=timeout.to_seconds())
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             if "timed out" in str(e):
-                if self._should_fail_on_timeout(args):
-                    print(f"Container timeout after {timeout}, raising DockerTimeoutError!")
-                    raise DockerTimeoutError(f"{self.image_name} timed out after {timeout}") from e
-                else:
+                if self._should_use_prelim_results(args):
+                    # check whether results file is stored
+                    target_path = args.get("results_path", Path("./results"))
+                    if (target_path / SCORES_FILE_NAME).is_file():
+                        print(f"Container timeout after {timeout}, but TimeEval disregards this because "
+                              f"'ResourceConstraints.preliminary_results_on_timeout' is set to True."
+                              f"\nWill be using preliminary results for evaluation.")
+                        result = {"StatusCode": 0}
+                    else:
+                        print(f"Container timeout after {timeout} and "
+                              f"'ResourceConstraints.preliminary_results_on_timeout' is set to True. However, the "
+                              f"algorithm did not store a preliminary result; raising DockerTimeoutError anyway!")
+                        raise DockerTimeoutError(f"{self.image_name} could not create results after {timeout}") from e
+                elif self._should_use_prelim_model(args):
                     # check if model was stored
                     target_path = args.get("results_path", Path("./results"))
                     if (target_path / MODEL_FILE_NAME).is_file():
                         print(f"Container timeout after {timeout}, but TimeEval disregards this because "
-                              "'ResourceConstraints.train_fails_on_timeout' is set to False.")
+                              "'ResourceConstraints.use_preliminary_model_on_train_timeout' is set to True.")
                         result = {"StatusCode": 0}
                     else:
-                        print(f"Container timeout after {timeout} and 'ResourceConstraints.train_fails_on_timeout' is "
-                              "set to False. However, the algorithm did not store a model; "
+                        print(f"Container timeout after {timeout} and 'ResourceConstraints.use_preliminary_model_on_train_timeout' is "
+                              "set to True. However, the algorithm did not store a model; "
                               "raising DockerTimeoutError anyway!")
                         raise DockerTimeoutError(f"{self.image_name} could not build a model within {timeout}") from e
+                else:
+                    print(f"Container timeout after {timeout}, raising DockerTimeoutError!")
+                    raise DockerTimeoutError(f"{self.image_name} timed out after {timeout}") from e
             else:
                 print(f"Waiting for container failed with error: {e}")
                 raise e

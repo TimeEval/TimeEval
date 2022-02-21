@@ -148,7 +148,7 @@ def main():
         tasks_per_host=10,
         task_cpu_limit=1.,
         task_memory_limit=3*GB,
-        train_fails_on_timeout=False,
+        use_preliminary_model_on_train_timeout=True,
         train_timeout=Duration("2 hours"),
         execute_timeout=Duration("2 hours"),
     )

@@ -67,9 +67,9 @@ class TestResourceConstraints(unittest.TestCase):
         self.assertEqual(1, timeeval.exps.resource_constraints.tasks_per_host)
 
     def test_timeout(self):
-        self.assertEqual(ResourceConstraints.no_constraints().get_train_timeout(), DEFAULT_TIMEOUT)
-        self.assertEqual(ResourceConstraints.no_constraints().get_execute_timeout(), DEFAULT_TIMEOUT)
+        self.assertEqual(ResourceConstraints.default_constraints().get_train_timeout(), DEFAULT_TIMEOUT)
+        self.assertEqual(ResourceConstraints.default_constraints().get_execute_timeout(), DEFAULT_TIMEOUT)
 
     def test_timeout_overwrite(self):
         timeout_overwrite = Duration("1 minute")
-        self.assertEqual(ResourceConstraints.no_constraints().get_train_timeout(timeout_overwrite), timeout_overwrite)
+        self.assertEqual(ResourceConstraints.default_constraints().get_train_timeout(timeout_overwrite), timeout_overwrite)
