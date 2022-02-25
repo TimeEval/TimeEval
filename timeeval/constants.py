@@ -57,3 +57,4 @@ class HPI_CLUSTER:
     akita_benchmark_path: Path = Path("/home/projects/akita/data/benchmark-data/data-processed")
     akita_test_case_path: Path = Path("/home/projects/akita/data/test-cases")
     akita_correlation_anomalies_path: Path = Path("/home/projects/akita/data/correlation-anomalies")
+    akita_test_case_variable_length_path: Path = Path("/home/projects/akita/data/variable-length")
