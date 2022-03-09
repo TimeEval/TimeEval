@@ -10,7 +10,7 @@ from durations import Duration
 from timeeval import TimeEval, MultiDatasetManager, TrainingType, InputDimensionality, Algorithm
 from timeeval.adapters import DockerAdapter
 from timeeval.constants import HPI_CLUSTER
-from timeeval.params import IndependentParameterGrid, FixedParameters, FullParameterGrid, ParameterConfig
+from timeeval.params import FixedParameters
 from timeeval.remote import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints, GB
 from timeeval.utils.metrics import Metric
@@ -56,13 +56,13 @@ def main():
     # add the GutenTAG datasets (univariate and multivariate), but just use the unsupervised ones
     datasets += dm.select(
         collection="GutenTAG",
-        training_type=TrainingType.UNSUPERVISED
+        training_type=TrainingType.SEMI_SUPERVISED
     )
 
     algorithms = [
         Algorithm(
             name="Telemanom Improved",
-            main=DockerAdapter(image_name="mut:5000/akita/telemanom-improved", tag="e07be8f2"),
+            main=DockerAdapter(image_name="mut:5000/akita/telemanom-improved", tag="65ae437b"),
             postprocess=post_telemanom,
             data_as_file=True,
             training_type=TrainingType.SEMI_SUPERVISED,
