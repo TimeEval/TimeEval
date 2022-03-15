@@ -158,7 +158,7 @@ def numenta_htm(params: ParameterConfig = None, skip_pull: bool = False, timeout
     return Algorithm(
         name="NumentaHTM",
         main=DockerAdapter(
-            image_name="mut:5000/akita/numenta_htm",
+            image_name="sopedu:5000/akita/numenta_htm",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

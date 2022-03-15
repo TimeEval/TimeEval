@@ -81,7 +81,7 @@ def grammarviz3(params: ParameterConfig = None, skip_pull: bool = False, timeout
     return Algorithm(
         name="GrammarViz",
         main=DockerAdapter(
-            image_name="mut:5000/akita/grammarviz3",
+            image_name="sopedu:5000/akita/grammarviz3",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

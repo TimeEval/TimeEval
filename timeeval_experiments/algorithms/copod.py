@@ -20,7 +20,7 @@ def copod(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
     return Algorithm(
         name="COPOD",
         main=DockerAdapter(
-            image_name="mut:5000/akita/copod",
+            image_name="sopedu:5000/akita/copod",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

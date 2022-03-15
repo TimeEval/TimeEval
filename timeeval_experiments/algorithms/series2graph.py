@@ -50,7 +50,7 @@ def series2graph(params: ParameterConfig = None, skip_pull: bool = False, timeou
     return Algorithm(
         name="Series2Graph",
         main=DockerAdapter(
-            image_name="mut:5000/akita/series2graph",
+            image_name="sopedu:5000/akita/series2graph",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

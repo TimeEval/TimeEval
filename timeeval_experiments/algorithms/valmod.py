@@ -60,7 +60,7 @@ def valmod(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opt
     return Algorithm(
         name="VALMOD",
         main=DockerAdapter(
-            image_name="mut:5000/akita/valmod",
+            image_name="sopedu:5000/akita/valmod",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

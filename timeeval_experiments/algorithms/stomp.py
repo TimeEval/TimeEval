@@ -56,7 +56,7 @@ def stomp(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
     return Algorithm(
         name="STOMP",
         main=DockerAdapter(
-            image_name="mut:5000/akita/stomp",
+            image_name="sopedu:5000/akita/stomp",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -41,7 +41,7 @@ def subsequence_fast_mcd(params: ParameterConfig = None, skip_pull: bool = False
     return Algorithm(
         name="Subsequence Fast-MCD",
         main=DockerAdapter(
-            image_name="mut:5000/akita/subsequence_fast_mcd",
+            image_name="sopedu:5000/akita/subsequence_fast_mcd",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

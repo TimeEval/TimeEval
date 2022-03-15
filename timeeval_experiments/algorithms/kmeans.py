@@ -53,7 +53,7 @@ def kmeans(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opt
     return Algorithm(
         name="k-Means",
         main=DockerAdapter(
-            image_name="mut:5000/akita/kmeans",
+            image_name="sopedu:5000/akita/kmeans",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

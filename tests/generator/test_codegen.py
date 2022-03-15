@@ -27,7 +27,7 @@ class TestCodeGen(unittest.TestCase):
                 "print(f\"{algo.main.image_name}:{algo.main.tag}\")"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm\nunsupervised\nmultivariate\nmut:5000/akita/timeeval_test_algorithm:latest\n",
+                "DEMO algorithm\nunsupervised\nmultivariate\nsopedu:5000/akita/timeeval_test_algorithm:latest\n",
                 process.stdout.decode("utf-8"),
             )
 

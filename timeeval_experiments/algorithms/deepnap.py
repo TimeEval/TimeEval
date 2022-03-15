@@ -107,7 +107,7 @@ def deepnap(params: ParameterConfig = None, skip_pull: bool = False, timeout: Op
     return Algorithm(
         name="DeepNAP",
         main=DockerAdapter(
-            image_name="mut:5000/akita/deepnap",
+            image_name="sopedu:5000/akita/deepnap",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

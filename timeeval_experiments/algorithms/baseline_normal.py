@@ -13,7 +13,7 @@ def baseline_normal(params: ParameterConfig = None, skip_pull: bool = False, tim
     return Algorithm(
         name="Normal Baseline",
         main=DockerAdapter(
-            image_name="mut:5000/akita/baseline_normal",
+            image_name="sopedu:5000/akita/baseline_normal",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

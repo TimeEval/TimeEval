@@ -68,7 +68,7 @@ def lstm_vae(params: ParameterConfig = None, skip_pull: bool = False, timeout: O
     return Algorithm(
         name="LSTM-VAE",
         main=DockerAdapter(
-            image_name="mut:5000/akita/lstm_vae",
+            image_name="sopedu:5000/akita/lstm_vae",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

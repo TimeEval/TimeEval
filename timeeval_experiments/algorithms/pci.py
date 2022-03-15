@@ -32,7 +32,7 @@ def pci(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
     return Algorithm(
         name="PCI",
         main=DockerAdapter(
-            image_name="mut:5000/akita/pci",
+            image_name="sopedu:5000/akita/pci",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

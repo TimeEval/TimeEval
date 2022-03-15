@@ -92,7 +92,7 @@ def img_embedding_cae(params: ParameterConfig = None, skip_pull: bool = False, t
     return Algorithm(
         name="ImageEmbeddingCAE",
         main=DockerAdapter(
-            image_name="mut:5000/akita/img_embedding_cae",
+            image_name="sopedu:5000/akita/img_embedding_cae",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
