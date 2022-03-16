@@ -110,7 +110,7 @@ def ocean_wnn(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
     return Algorithm(
         name="OceanWNN",
         main=DockerAdapter(
-            image_name="mut:5000/akita/ocean_wnn",
+            image_name="sopedu:5000/akita/ocean_wnn",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

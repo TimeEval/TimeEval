@@ -23,7 +23,7 @@ def {{ image_name }}(params: ParameterConfig = None, skip_pull: bool = {{ skip_p
     return Algorithm(
         name="{{ name }}",
         main=DockerAdapter(
-            image_name="mut:5000/akita/{{ image_name }}",
+            image_name="sopedu:5000/akita/{{ image_name }}",
 {% if image_tag is defined %}
             tag="{{ image_tag }}",
 {% endif %}

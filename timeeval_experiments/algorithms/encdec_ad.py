@@ -101,7 +101,7 @@ def encdec_ad(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
     return Algorithm(
         name="EncDec-AD",
         main=DockerAdapter(
-            image_name="mut:5000/akita/encdec_ad",
+            image_name="sopedu:5000/akita/encdec_ad",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

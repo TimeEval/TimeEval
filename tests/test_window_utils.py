@@ -45,12 +45,12 @@ class TestReverseWindowing(unittest.TestCase):
         y_reversed = ReverseWindowing(window_size=5, chunksize=10).fit_transform(self.X)
         np.testing.assert_array_equal(self.y_mean, y_reversed)
 
-    @pytest.mark.skipif(condition=os.getenv("CI", "false") == "true", reason="CI never finishes on mut")
+    @pytest.mark.skipif(condition=os.getenv("CI", "false") == "true", reason="CI never finishes on sopedu")
     def test_mp_windowing_iterative_mean(self):
         y_reversed = ReverseWindowing(window_size=5, n_jobs=4).fit_transform(self.X)
         np.testing.assert_array_equal(self.y_mean, y_reversed)
 
-    @pytest.mark.skipif(condition=os.getenv("CI", "false") == "true", reason="CI never finishes on mut")
+    @pytest.mark.skipif(condition=os.getenv("CI", "false") == "true", reason="CI never finishes on sopedu")
     def test_mp_windowing_chunks_mean(self):
         y_reversed = ReverseWindowing(window_size=5, n_jobs=4, chunksize=10).fit_transform(self.X)
         np.testing.assert_array_equal(self.y_mean, y_reversed)

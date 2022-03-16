@@ -68,7 +68,7 @@ def dbstream(params: ParameterConfig = None, skip_pull: bool = False, timeout: O
     return Algorithm(
         name="DBStream",
         main=DockerAdapter(
-            image_name="mut:5000/akita/dbstream",
+            image_name="sopedu:5000/akita/dbstream",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

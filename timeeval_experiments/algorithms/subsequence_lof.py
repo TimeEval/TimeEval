@@ -59,7 +59,7 @@ def subsequence_lof(params: ParameterConfig = None, skip_pull: bool = False, tim
     return Algorithm(
         name="Subsequence LOF",
         main=DockerAdapter(
-            image_name="mut:5000/akita/subsequence_lof",
+            image_name="sopedu:5000/akita/subsequence_lof",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

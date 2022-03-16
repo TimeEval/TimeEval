@@ -50,7 +50,7 @@ def fft(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
     return Algorithm(
         name="FFT",
         main=DockerAdapter(
-            image_name="mut:5000/akita/fft",
+            image_name="sopedu:5000/akita/fft",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

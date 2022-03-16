@@ -20,7 +20,7 @@ def baseline_random(params: ParameterConfig = None, skip_pull: bool = False, tim
     return Algorithm(
         name="Random Baseline",
         main=DockerAdapter(
-            image_name="mut:5000/akita/baseline_random",
+            image_name="sopedu:5000/akita/baseline_random",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

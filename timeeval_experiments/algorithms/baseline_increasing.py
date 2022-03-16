@@ -13,7 +13,7 @@ def baseline_increasing(params: ParameterConfig = None, skip_pull: bool = False,
     return Algorithm(
         name="Increasing Baseline",
         main=DockerAdapter(
-            image_name="mut:5000/akita/baseline_increasing",
+            image_name="sopedu:5000/akita/baseline_increasing",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

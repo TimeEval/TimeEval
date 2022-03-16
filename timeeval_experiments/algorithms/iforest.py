@@ -56,7 +56,7 @@ def iforest(params: ParameterConfig = None, skip_pull: bool = False, timeout: Op
     return Algorithm(
         name="Isolation Forest (iForest)",
         main=DockerAdapter(
-            image_name="mut:5000/akita/iforest",
+            image_name="sopedu:5000/akita/iforest",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

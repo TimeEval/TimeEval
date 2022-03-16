@@ -62,7 +62,7 @@ def main():
     algorithms = [
         Algorithm(
             name="MultiNormA",
-            main=DockerAdapter(image_name="mut:5000/akita/multinorma", tag="40e1bc8e"),
+            main=DockerAdapter(image_name="sopedu:5000/akita/multinorma", tag="40e1bc8e"),
             data_as_file=True,
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=InputDimensionality.MULTIVARIATE,

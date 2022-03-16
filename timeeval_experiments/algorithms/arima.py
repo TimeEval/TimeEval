@@ -68,7 +68,7 @@ def arima(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
     return Algorithm(
         name="ARIMA",
         main=DockerAdapter(
-            image_name="mut:5000/akita/arima",
+            image_name="sopedu:5000/akita/arima",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

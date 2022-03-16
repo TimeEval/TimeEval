@@ -13,7 +13,7 @@ def main():
 
     algorithm = Algorithm(
         name="COF",
-        main=DockerAdapter(image_name="mut:5000/akita/cof", skip_pull=True),
+        main=DockerAdapter(image_name="sopedu:5000/akita/cof", skip_pull=True),
         param_config=FixedParameters({
             "n_neighbors": 20,
             "random_state": 42

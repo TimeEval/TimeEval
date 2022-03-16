@@ -59,7 +59,7 @@ def subsequence_lof_multi_sum(params: ParameterConfig = None, skip_pull: bool = 
     return Algorithm(
         name="Subsequence LOF Multivariate Sum",
         main=DockerAdapter(
-            image_name="mut:5000/akita/subsequence_lof_multi_sum",
+            image_name="sopedu:5000/akita/subsequence_lof_multi_sum",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -72,7 +72,7 @@ def phasespace_svm(params: ParameterConfig = None, skip_pull: bool = False, time
     return Algorithm(
         name="PhaseSpace-SVM",
         main=DockerAdapter(
-            image_name="mut:5000/akita/phasespace_svm",
+            image_name="sopedu:5000/akita/phasespace_svm",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

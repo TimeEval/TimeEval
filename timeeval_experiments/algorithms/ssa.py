@@ -44,7 +44,7 @@ def ssa(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
     return Algorithm(
         name="SSA",
         main=DockerAdapter(
-            image_name="mut:5000/akita/ssa",
+            image_name="sopedu:5000/akita/ssa",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
