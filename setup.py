@@ -34,6 +34,7 @@ def load_dependencies():
         if len(pip_deps) == 1:
             pip_deps = pip_deps[0].get("pip", []) or []
         conda = list(filter(lambda x: not isinstance(x, dict), deps))
+        conda = list(map(lambda x: x.split("::")[-1], conda))
         return pip_deps, conda
 
     def to_pip(dep):
