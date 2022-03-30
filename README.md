@@ -1,5 +1,5 @@
 <div align="center">
-<img width="100px" src="./timeeval-icon.png" alt="TimeEval logo"/>
+<img width="100px" src="https://github.com/HPI-Information-Systems/TimeEval/raw/main/timeeval-icon.png" alt="TimeEval logo"/>
 <h1 align="center">TimeEval</h1>
 <p>
 Evaluation Tool for Anomaly Detection Algorithms on time series.
