@@ -134,7 +134,7 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         author="Phillip Wenig and Sebastian Schmidl",
         author_email="phillip.wenig@hpi.de",
-        url="https://gitlab.hpi.de/akita/timeeval",
+        url="https://github.com/HPI-Information-Systems/TimeEval",
         license="MIT",
         classifiers=[
             "License :: OSI Approved :: MIT License",
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9"
         ],
-        packages=find_packages(exclude=("tests",)),
+        packages=find_packages(exclude=("tests", "tests.*")),
         package_data={"timeeval": ["py.typed"], "timeeval_experiments": ["py.typed"]},
         install_requires=load_dependencies(),
         python_requires=">=3.7",

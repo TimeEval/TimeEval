@@ -5,11 +5,11 @@
 Evaluation Tool for Anomaly Detection Algorithms on time series.
 </p>
 
-[![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
-[![coverage report](https://gitlab.hpi.de/akita/timeeval/badges/main/coverage.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
-[![release info](https://img.shields.io/badge/Release-1.2.1-blue)](https://gitlab.hpi.de/akita/timeeval/-/releases/v1.2.1)
+![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)
+![coverage report](https://gitlab.hpi.de/akita/timeeval/badges/main/coverage.svg)
+[![release info](https://img.shields.io/badge/Release-1.2.2-blue)](https://pypi.org/project/TimeEval/1.2.2/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![python version 3.7|3.8|3.9](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)](#)
+![python version 3.7|3.8|3.9](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
 
 </div>
 
@@ -60,7 +60,31 @@ To retrieve the raw results, you can either `timeeval.get_results(aggregated=Fal
 
 ## Installation
 
-TimeEval can be installed (as package or) from source.
+TimeEval can be installed as a package or from source.
+
+### Installation using `pip`
+
+Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/) and to [PyPI](https://pypi.org/project/TimeEval/).
+
+#### Prerequisites
+
+- python >= 3.7, <=3.9
+- pip >= 20
+- (optional) A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` (read) or another type of access token able to read the package registry of TimeEval hosted at [gitlab.hpi.de](https://gitlab.hpi.de/).
+
+#### Steps
+
+You can use `pip` to install TimeEval using (PyPI):
+
+```sh
+pip install TimeEval
+```
+
+or (PI@gitlab.hpi.de):
+
+```sh
+pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@gitlab.hpi.de/api/v4/projects/4041/packages/pypi/simple
+```
 
 ### Installation from source
 
@@ -91,24 +115,6 @@ The following tools are required to install TimeEval from source:
    `python setup.py install`.
 4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
-
-### Installation using `pip`
-
-Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
-
-#### Prerequisites
-
-- python >= 3.7, <=3.9
-- pip >= 20
-- A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` (read) or another type of access token able to read the package registry of TimeEval hosted at [gitlab.hpi.de](https://gitlab.hpi.de/).
-
-#### Steps
-
-You can use `pip` to install TimeEval using:
-
-```sh
-pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@gitlab.hpi.de/api/v4/projects/4041/packages/pypi/simple
-```
 
 ## Usage
 
