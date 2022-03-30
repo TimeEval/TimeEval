@@ -2,11 +2,10 @@ import glob
 import os
 import shutil
 import sys
-from distutils.cmd import Command
-from distutils.errors import DistutilsError
+from setuptools.errors import DistutilsError
 from pathlib import Path
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Command
 
 
 README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")

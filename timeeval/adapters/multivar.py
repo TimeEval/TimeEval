@@ -1,6 +1,6 @@
 import multiprocessing as mp
 from enum import Enum
-from typing import Callable, List
+from typing import Callable, List, Any
 
 import numpy as np
 
@@ -15,7 +15,7 @@ class AggregationMethod(Enum):
 
     def __call__(self, data: List[np.ndarray]) -> np.ndarray:
         if self == self.MEAN:
-            fn = np.mean
+            fn: Any = np.mean
         elif self == self.MEDIAN:
             fn = np.median
         else:  # if self == self.MAX:
