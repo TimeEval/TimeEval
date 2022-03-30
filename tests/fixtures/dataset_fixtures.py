@@ -136,11 +136,11 @@ dataset_metadata = DatasetMetadata(
     is_train=False,
     length=3600,
     dimensions=1,
-    contamination=0.0002777777777777778,
+    contamination=0.000278,
     num_anomalies=1,
     anomaly_length=AnomalyLength(min=1, median=1, max=1),
-    means={"value": 15836.711944444445},
-    stddevs={"value": 7084.011043358856},
+    means={"value": 15836.711944},
+    stddevs={"value": 7084.011043},
     trends={"value": []},
     stationarities={"value": Stationarity.DIFFERENCE_STATIONARY}
 )
@@ -149,11 +149,11 @@ dataset_metadata_dict = {
     "is_train": False,
     "length": 3600,
     "dimensions": 1,
-    "contamination": 0.0002777777777777778,
+    "contamination": 0.000278,
     "num_anomalies": 1,
     "anomaly_length": {"min": 1, "median": 1, "max": 1},
-    "means": {"value": 15836.711944444445},
-    "stddevs": {"value": 7084.011043358856},
+    "means": {"value": 15836.711944},
+    "stddevs": {"value": 7084.011043},
     "trends": {"value": []},
     "stationarities": {"value": "difference_stationary"}
 }
