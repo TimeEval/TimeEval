@@ -16,15 +16,15 @@ T = TypeVar("T", DatasetMetadata, dict)
 
 
 def _round_meta(metadata: T, decimals: int = 6) -> T:
-    meta = deepcopy(metadata)
+    meta: T = deepcopy(metadata)
 
     def round_dict(dd: Dict[str, float]):
         return dict((k, np.around(v, decimals)) for k, v in dd.items())
 
     if isinstance(meta, DatasetMetadata):
-        meta.contamination = np.around(metadata.contamination, decimals)
-        meta.means = round_dict(metadata.means)
-        meta.stddevs = round_dict(metadata.stddevs)
+        meta.contamination = np.around(metadata.contamination, decimals)  # type: ignore
+        meta.means = round_dict(metadata.means)  # type: ignore
+        meta.stddevs = round_dict(metadata.stddevs)  # type: ignore
     else:
         meta["contamination"] = np.around(metadata["contamination"], decimals)
         meta["means"] = round_dict(metadata["means"])
