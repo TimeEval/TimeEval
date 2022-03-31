@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +10,7 @@ from freezegun import freeze_time
 from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, AlgorithmParameter, Metric
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
-from timeeval.params import FullParameterGrid
+from timeeval.params import FullParameterGrid, FixedParameters
 from timeeval.utils.hash_dict import hash_dict
 
 
@@ -27,7 +28,7 @@ class TestOutputData(unittest.TestCase):
         self.DATASET = ("test", "dataset-int")
         self.datasets: Datasets = DatasetManager("./tests/example_data",
                                                  custom_datasets_file=Path("./tests/example_data/datasets.json"))
-        self.hyper_params = FullParameterGrid({"a": [0]})
+        self.hyper_params = FixedParameters({"a": 0})
         self.hash = hash_dict(self.hyper_params[0])
         self.algorithms = [
             Algorithm(name="deviating_from_mean", main=FunctionAdapter(deviating_from_mean), param_config=self.hyper_params)
@@ -49,11 +50,13 @@ class TestOutputData(unittest.TestCase):
     def test_log_exists_and_is_correct(self):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
-            timeeval = TimeEval(self.datasets, [self.DATASET], self.algorithms, results_path=tmp_path)
+            algo = deepcopy(self.algorithms[0])
+            algo.param_config = FixedParameters({"a": 0, "results_path": str(tmp_path)})
+            timeeval = TimeEval(self.datasets, [self.DATASET], [algo], results_path=tmp_path)
             timeeval.run()
-            parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / self.hash / "test" / "dataset-int" / "1"
+            parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / hash_dict(algo.param_config[0]) / "test" / "dataset-int" / "1"
 
-            self.assertIn(str(parent_path), (parent_path / EXECUTION_LOG).open("r").read())
+            self.assertIn(str(tmp_path), (parent_path / EXECUTION_LOG).open("r").read())
 
     def test_hyper_params_json_exists_and_is_correct(self):
         with tempfile.TemporaryDirectory() as tmp_path:
