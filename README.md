@@ -1,15 +1,15 @@
 <div align="center">
-<img width="100px" src="./timeeval-icon.png" alt="TimeEval logo"/>
+<img width="100px" src="https://github.com/HPI-Information-Systems/TimeEval/raw/main/timeeval-icon.png" alt="TimeEval logo"/>
 <h1 align="center">TimeEval</h1>
 <p>
 Evaluation Tool for Anomaly Detection Algorithms on time series.
 </p>
 
-[![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
-[![coverage report](https://gitlab.hpi.de/akita/timeeval/badges/main/coverage.svg)](https://gitlab.hpi.de/akita/timeeval/-/commits/main)
-[![release info](https://img.shields.io/badge/Release-1.2.1-blue)](https://gitlab.hpi.de/akita/timeeval/-/releases/v1.2.1)
+![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)
+![coverage report](https://gitlab.hpi.de/akita/timeeval/badges/main/coverage.svg)
+[![PyPI version](https://badge.fury.io/py/TimeEval.svg)](https://badge.fury.io/py/TimeEval)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![python version 3.7|3.8|3.9](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)](#)
+![python version 3.7|3.8|3.9](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
 
 </div>
 
@@ -60,7 +60,31 @@ To retrieve the raw results, you can either `timeeval.get_results(aggregated=Fal
 
 ## Installation
 
-TimeEval can be installed (as package or) from source.
+TimeEval can be installed as a package or from source.
+
+### Installation using `pip`
+
+Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/) and to [PyPI](https://pypi.org/project/TimeEval/).
+
+#### Prerequisites
+
+- python >= 3.7, <=3.9
+- pip >= 20
+- (optional) A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` (read) or another type of access token able to read the package registry of TimeEval hosted at [gitlab.hpi.de](https://gitlab.hpi.de/).
+
+#### Steps
+
+You can use `pip` to install TimeEval using (PyPI):
+
+```sh
+pip install TimeEval
+```
+
+or (Package Index @ gitlab.hpi.de):
+
+```sh
+pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@gitlab.hpi.de/api/v4/projects/4041/packages/pypi/simple
+```
 
 ### Installation from source
 
@@ -92,61 +116,47 @@ The following tools are required to install TimeEval from source:
 4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
 
-### Installation using `pip`
-
-Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/).
-
-#### Prerequisites
-
-- python >= 3.7, <=3.9
-- pip >= 20
-- A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` (read) or another type of access token able to read the package registry of TimeEval hosted at [gitlab.hpi.de](https://gitlab.hpi.de/).
-
-#### Steps
-
-You can use `pip` to install TimeEval using:
-
-```sh
-pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@gitlab.hpi.de/api/v4/projects/4041/packages/pypi/simple
-```
-
 ## Usage
 
 **tl;dr**
 
 ```python
+from typing import Dict, Any
+
+import numpy as np
+
 from timeeval import TimeEval, DatasetManager, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import HPI_CLUSTER
-import numpy as np
+from timeeval.params import FixedParameters
 
 
 # Load dataset metadata
-dm = DatasetManager(HPI_CLUSTER.akita_benchmark_path)
-
+dm = DatasetManager(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
 
 # Define algorithm
-def my_algorithm(data: np.ndarray) -> np.ndarray:
-    return np.zeros_like(data)
-
+def my_algorithm(data: np.ndarray, args: Dict[str, Any]) -> np.ndarray:
+    score_value = args.get("score_value", 0)
+    return np.full_like(data, fill_value=score_value)
 
 # Select datasets and algorithms
 datasets = dm.select(collection="NAB")
+datasets = datasets[-1:]
+# Add algorithms to evaluate...
 algorithms = [
-    # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
         main=FunctionAdapter(my_algorithm),
         data_as_file=False,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality.UNIVARIATE,
+        param_config=FixedParameters({"score_value": 1.})
     )
 ]
 timeeval = TimeEval(dm, datasets, algorithms)
 
 # execute evaluation
 timeeval.run()
-
 # retrieve results
 print(timeeval.get_results())
 ```

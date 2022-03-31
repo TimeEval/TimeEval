@@ -230,7 +230,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         status = timeeval.results.loc[0, "status"]
         error_message = timeeval.results.loc[0, "error_message"]
         self.assertEqual(status, Status.TIMEOUT)
-        self.assertTrue("timed out after" in error_message)
+        self.assertIn("could not create results after", error_message)
 
     @pytest.mark.dask
     @pytest.mark.docker

@@ -2,11 +2,10 @@ import glob
 import os
 import shutil
 import sys
-from distutils.cmd import Command
-from distutils.errors import DistutilsError
+from setuptools.errors import DistutilsError
 from pathlib import Path
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Command
 
 
 README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
@@ -34,6 +33,7 @@ def load_dependencies():
         if len(pip_deps) == 1:
             pip_deps = pip_deps[0].get("pip", []) or []
         conda = list(filter(lambda x: not isinstance(x, dict), deps))
+        conda = list(map(lambda x: x.split("::")[-1], conda))
         return pip_deps, conda
 
     def to_pip(dep):
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         author="Phillip Wenig and Sebastian Schmidl",
         author_email="phillip.wenig@hpi.de",
-        url="https://gitlab.hpi.de/akita/timeeval",
+        url="https://github.com/HPI-Information-Systems/TimeEval",
         license="MIT",
         classifiers=[
             "License :: OSI Approved :: MIT License",
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9"
         ],
-        packages=find_packages(exclude=("tests",)),
+        packages=find_packages(exclude=("tests", "tests.*")),
         package_data={"timeeval": ["py.typed"], "timeeval_experiments": ["py.typed"]},
         install_requires=load_dependencies(),
         python_requires=">=3.7",
