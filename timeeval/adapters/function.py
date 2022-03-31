@@ -8,10 +8,13 @@ class FunctionAdapter(Adapter):
         self.fn = fn
 
     def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:
-        return self.fn(dataset, args)
+        # extract hyper parameters and forward them to the function
+        params = args.get("hyper_params", {})
+        return self.fn(dataset, params)
 
     @staticmethod
     def identity() -> 'FunctionAdapter':
         def identity_fn(data: AlgorithmParameter, _: dict) -> AlgorithmParameter:
             return data
+
         return FunctionAdapter(fn=identity_fn)

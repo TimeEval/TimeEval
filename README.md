@@ -80,7 +80,7 @@ You can use `pip` to install TimeEval using (PyPI):
 pip install TimeEval
 ```
 
-or (PI@gitlab.hpi.de):
+or (Package Index @ gitlab.hpi.de):
 
 ```sh
 pip install TimeEval --extra-index-url https://__token__:<your_personal_token>@gitlab.hpi.de/api/v4/projects/4041/packages/pypi/simple
@@ -121,38 +121,42 @@ The following tools are required to install TimeEval from source:
 **tl;dr**
 
 ```python
+from typing import Dict, Any
+
+import numpy as np
+
 from timeeval import TimeEval, DatasetManager, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import HPI_CLUSTER
-import numpy as np
+from timeeval.params import FixedParameters
 
 
 # Load dataset metadata
-dm = DatasetManager(HPI_CLUSTER.akita_benchmark_path)
-
+dm = DatasetManager(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
 
 # Define algorithm
-def my_algorithm(data: np.ndarray) -> np.ndarray:
-    return np.zeros_like(data)
-
+def my_algorithm(data: np.ndarray, args: Dict[str, Any]) -> np.ndarray:
+    score_value = args.get("score_value", 0)
+    return np.full_like(data, fill_value=score_value)
 
 # Select datasets and algorithms
 datasets = dm.select(collection="NAB")
+datasets = datasets[-1:]
+# Add algorithms to evaluate...
 algorithms = [
-    # Add algorithms to evaluate...
     Algorithm(
         name="MyAlgorithm",
         main=FunctionAdapter(my_algorithm),
         data_as_file=False,
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality.UNIVARIATE,
+        param_config=FixedParameters({"score_value": 1.})
     )
 ]
 timeeval = TimeEval(dm, datasets, algorithms)
 
 # execute evaluation
 timeeval.run()
-
 # retrieve results
 print(timeeval.get_results())
 ```
