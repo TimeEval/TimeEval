@@ -133,9 +133,9 @@ class TimeEval:
             self.results["future_result"] = np.nan
 
             self.log.info("... registering signal handlers ...")
-            orig_handler: Callable[[signal.Signals, FrameType], Any] = signal.getsignal(signal.SIGINT)  # type: ignore
+            orig_handler: Callable[[int, Optional[FrameType]], Any] = signal.getsignal(signal.SIGINT)  # type: ignore
 
-            def sigint_handler(sig: signal.Signals, frame: FrameType):
+            def sigint_handler(sig: int, frame: Optional[FrameType] = None):
                 self.log.warning(f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
                                  "containers on all worker nodes (we do not remove them when terminating "
                                  "ungracefully).")
