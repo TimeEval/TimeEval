@@ -198,7 +198,7 @@ class TimeEval:
             "algo_input_dimensionality": exp.algorithm.input_dimensionality.name,
             "dataset_training_type": exp.dataset.training_type.name,
             "dataset_input_dimensionality": exp.dataset.input_dimensionality.name,
-            "status": status.name,
+            "status": status,
             "error_message": error_message,
             "repetition": exp.repetition,
             "hyper_params": dumps_params(exp.params),
