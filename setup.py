@@ -2,7 +2,6 @@ import glob
 import os
 import shutil
 import sys
-from setuptools.errors import DistutilsError
 from pathlib import Path
 
 from setuptools import setup, find_packages, Command
@@ -67,15 +66,15 @@ class PyTestCommand(Command):
         exit_code = pytest.main(["--cov-report=term", "--cov-report=xml:coverage.xml",
                                  "--cov=timeeval", "--cov=timeeval_experiments.generator", "tests"])
         if exit_code == ExitCode.TESTS_FAILED:
-            raise DistutilsError("Tests failed!")
+            raise ValueError("Tests failed!")
         elif exit_code == ExitCode.INTERRUPTED:
-            raise DistutilsError("pytest was interrupted!")
+            raise ValueError("pytest was interrupted!")
         elif exit_code == ExitCode.INTERNAL_ERROR:
-            raise DistutilsError("pytest internal error!")
+            raise ValueError("pytest internal error!")
         elif exit_code == ExitCode.USAGE_ERROR:
-            raise DistutilsError("Pytest was not correctly used!")
+            raise ValueError("Pytest was not correctly used!")
         elif exit_code == ExitCode.NO_TESTS_COLLECTED:
-            raise DistutilsError("No tests found!")
+            raise ValueError("No tests found!")
         # else: everything is fine
 
 
