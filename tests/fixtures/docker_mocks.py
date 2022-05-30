@@ -7,7 +7,7 @@ from docker.models.containers import Container
 from timeeval.adapters.docker import SCORES_FILE_NAME
 
 
-TEST_DOCKER_IMAGE = "sopedu:5000/akita/timeeval-test-algorithm"
+TEST_DOCKER_IMAGE = "registry.gitlab.hpi.de/akita/i/timeeval-test-algorithm"
 
 
 class MockDockerContainer:
