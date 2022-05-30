@@ -198,7 +198,7 @@ class TimeEval:
             "algo_input_dimensionality": exp.algorithm.input_dimensionality.name,
             "dataset_training_type": exp.dataset.training_type.name,
             "dataset_input_dimensionality": exp.dataset.input_dimensionality.name,
-            "status": status.name,
+            "status": status,
             "error_message": error_message,
             "repetition": exp.repetition,
             "hyper_params": dumps_params(exp.params),
@@ -242,10 +242,10 @@ class TimeEval:
 
         df = self.results
 
-        if Status.ERROR.name in df.status.unique() or Status.TIMEOUT.name in df.status.unique():
+        if Status.ERROR in df.status.unique() or Status.TIMEOUT in df.status.unique():
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
                              "To see all results, call .get_results(aggregated=False)")
-            df = df[df.status == Status.OK.name]
+            df = df[df.status == Status.OK]
 
         if short:
             time_names = ["train_main_time", "execute_main_time"]
