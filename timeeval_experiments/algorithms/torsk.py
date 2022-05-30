@@ -121,7 +121,7 @@ def torsk(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
     return Algorithm(
         name="Torsk",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/torsk",
+            image_name="registry.gitlab.hpi.de/akita/i/torsk",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

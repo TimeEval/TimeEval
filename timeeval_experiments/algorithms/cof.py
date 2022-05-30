@@ -26,7 +26,7 @@ def cof(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
     return Algorithm(
         name="COF",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/cof",
+            image_name="registry.gitlab.hpi.de/akita/i/cof",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -110,7 +110,7 @@ def novelty_svr(params: ParameterConfig = None, skip_pull: bool = False, timeout
     return Algorithm(
         name="NoveltySVR",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/novelty_svr",
+            image_name="registry.gitlab.hpi.de/akita/i/novelty_svr",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

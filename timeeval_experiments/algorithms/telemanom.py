@@ -107,7 +107,7 @@ def telemanom(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
     return Algorithm(
         name="Telemanom",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/telemanom",
+            image_name="registry.gitlab.hpi.de/akita/i/telemanom",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

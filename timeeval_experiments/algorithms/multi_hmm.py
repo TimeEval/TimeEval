@@ -32,7 +32,7 @@ def multi_hmm(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
     return Algorithm(
         name="MultiHMM",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/multi_hmm",
+            image_name="registry.gitlab.hpi.de/akita/i/multi_hmm",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

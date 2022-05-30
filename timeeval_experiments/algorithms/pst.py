@@ -56,7 +56,7 @@ def pst(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
     return Algorithm(
         name="PST",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/pst",
+            image_name="registry.gitlab.hpi.de/akita/i/pst",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

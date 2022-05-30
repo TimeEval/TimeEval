@@ -56,7 +56,7 @@ def ts_bitmap(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
     return Algorithm(
         name="TSBitmap",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/ts_bitmap",
+            image_name="registry.gitlab.hpi.de/akita/i/ts_bitmap",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

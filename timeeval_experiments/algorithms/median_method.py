@@ -26,7 +26,7 @@ def median_method(params: ParameterConfig = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="MedianMethod",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/median_method",
+            image_name="registry.gitlab.hpi.de/akita/i/median_method",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

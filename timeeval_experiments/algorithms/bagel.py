@@ -83,7 +83,7 @@ def bagel(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
     return Algorithm(
         name="Bagel",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/bagel",
+            image_name="registry.gitlab.hpi.de/akita/i/bagel",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

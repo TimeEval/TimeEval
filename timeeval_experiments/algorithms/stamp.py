@@ -56,7 +56,7 @@ def stamp(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
     return Algorithm(
         name="STAMP",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/stamp",
+            image_name="registry.gitlab.hpi.de/akita/i/stamp",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

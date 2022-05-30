@@ -56,7 +56,7 @@ def knn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Option
     return Algorithm(
         name="KNN",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/knn",
+            image_name="registry.gitlab.hpi.de/akita/i/knn",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

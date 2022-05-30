@@ -62,7 +62,7 @@ def main():
     algorithms = [
         Algorithm(
             name="Telemanom Improved",
-            main=DockerAdapter(image_name="mut:5000/akita/telemanom-improved", tag="65ae437b"),
+            main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/telemanom-improved", tag="65ae437b"),
             postprocess=post_telemanom,
             data_as_file=True,
             training_type=TrainingType.SEMI_SUPERVISED,

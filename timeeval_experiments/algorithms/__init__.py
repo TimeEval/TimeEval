@@ -39,6 +39,7 @@ from .lstm_ad import lstm_ad
 from .lstm_vae import lstm_vae
 from .median_method import median_method
 from .mscred import mscred
+from .mstamp import mstamp
 from .mtad_gat import mtad_gat
 from .multi_hmm import multi_hmm
 from .norma import norma
@@ -53,12 +54,12 @@ from .phasespace_svm import phasespace_svm
 from .pst import pst
 from .random_black_forest import random_black_forest
 from .robust_pca import robust_pca
+from .s_h_esd import s_h_esd
 from .sand import sand
 from .sarima import sarima
 from .series2graph import series2graph
-from .s_h_esd import s_h_esd
-from .sr_cnn import sr_cnn
 from .sr import sr
+from .sr_cnn import sr_cnn
 from .ssa import ssa
 from .stamp import stamp
 from .stomp import stomp

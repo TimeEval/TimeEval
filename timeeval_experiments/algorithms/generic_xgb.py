@@ -98,7 +98,7 @@ def generic_xgb(params: ParameterConfig = None, skip_pull: bool = False, timeout
     return Algorithm(
         name="XGBoosting (RR)",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/generic_xgb",
+            image_name="registry.gitlab.hpi.de/akita/i/generic_xgb",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

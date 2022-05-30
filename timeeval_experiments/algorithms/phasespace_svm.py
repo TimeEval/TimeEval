@@ -64,6 +64,12 @@ _phasespace_svm_parameters: Dict[str, Dict[str, Any]] = {
   "description": "Tolerance for stopping criterion.",
   "name": "tol",
   "type": "float"
+ },
+ "use_column_index": {
+  "defaultValue": 0,
+  "description": "The column index to use as input for the univariate algorithm for multivariate datasets. The selected single channel of the multivariate time series is analyzed by the algorithms. The index is 0-based and does not include the index-column ('timestamp'). The single channel of an univariate dataset, therefore, has index 0.",
+  "name": "use_column_index",
+  "type": "int"
  }
 }
 
@@ -72,7 +78,7 @@ def phasespace_svm(params: ParameterConfig = None, skip_pull: bool = False, time
     return Algorithm(
         name="PhaseSpace-SVM",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/phasespace_svm",
+            image_name="registry.gitlab.hpi.de/akita/i/phasespace_svm",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

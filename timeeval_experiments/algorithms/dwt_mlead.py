@@ -24,6 +24,12 @@ _dwt_mlead_parameters: Dict[str, Dict[str, Any]] = {
   "description": "First discrete wavelet decomposition level to consider",
   "name": "start_level",
   "type": "int"
+ },
+ "use_column_index": {
+  "defaultValue": 0,
+  "description": "The column index to use as input for the univariate algorithm for multivariate datasets. The selected single channel of the multivariate time series is analyzed by the algorithms. The index is 0-based and does not include the index-column ('timestamp'). The single channel of an univariate dataset, therefore, has index 0.",
+  "name": "use_column_index",
+  "type": "int"
  }
 }
 
@@ -32,7 +38,7 @@ def dwt_mlead(params: ParameterConfig = None, skip_pull: bool = False, timeout: 
     return Algorithm(
         name="DWT-MLEAD",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/dwt_mlead",
+            image_name="registry.gitlab.hpi.de/akita/i/dwt_mlead",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
