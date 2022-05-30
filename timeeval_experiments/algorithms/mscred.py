@@ -99,7 +99,7 @@ def mscred(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opt
     return Algorithm(
         name="MSCRED",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/mscred",
+            image_name="registry.gitlab.hpi.de/akita/i/mscred",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

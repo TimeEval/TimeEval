@@ -88,7 +88,7 @@ def hotsax(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opt
     return Algorithm(
         name="HOT SAX",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/hotsax",
+            image_name="registry.gitlab.hpi.de/akita/i/hotsax",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -43,6 +43,12 @@ _stomp_parameters: Dict[str, Dict[str, Any]] = {
   "name": "random_state",
   "type": "Int"
  },
+ "use_column_index": {
+  "defaultValue": 0,
+  "description": "The column index to use as input for the univariate algorithm for multivariate datasets. The selected single channel of the multivariate time series is analyzed by the algorithms. The index is 0-based and does not include the index-column ('timestamp'). The single channel of an univariate dataset, therefore, has index 0.",
+  "name": "use_column_index",
+  "type": "int"
+ },
  "verbose": {
   "defaultValue": 1,
   "description": "Controls logging verbosity.",
@@ -56,7 +62,7 @@ def stomp(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opti
     return Algorithm(
         name="STOMP",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/stomp",
+            image_name="registry.gitlab.hpi.de/akita/i/stomp",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

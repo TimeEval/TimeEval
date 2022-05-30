@@ -80,7 +80,7 @@ def generic_rf(params: ParameterConfig = None, skip_pull: bool = False, timeout:
     return Algorithm(
         name="Random Forest Regressor (RR)",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/generic_rf",
+            image_name="registry.gitlab.hpi.de/akita/i/generic_rf",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

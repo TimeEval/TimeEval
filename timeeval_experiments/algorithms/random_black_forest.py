@@ -92,7 +92,7 @@ def random_black_forest(params: ParameterConfig = None, skip_pull: bool = False,
     return Algorithm(
         name="Random Black Forest (RR)",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/random_black_forest",
+            image_name="registry.gitlab.hpi.de/akita/i/random_black_forest",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

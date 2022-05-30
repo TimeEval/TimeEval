@@ -32,7 +32,7 @@ def s_h_esd(params: ParameterConfig = None, skip_pull: bool = False, timeout: Op
     return Algorithm(
         name="S-H-ESD (Twitter)",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/s_h_esd",
+            image_name="registry.gitlab.hpi.de/akita/i/s_h_esd",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

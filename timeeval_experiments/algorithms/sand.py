@@ -42,6 +42,12 @@ _sand_parameters: Dict[str, Dict[str, Any]] = {
   "description": "Seed for random number generation.",
   "name": "random_state",
   "type": "int"
+ },
+ "use_column_index": {
+  "defaultValue": 0,
+  "description": "The column index to use as input for the univariate algorithm for multivariate datasets. The selected single channel of the multivariate time series is analyzed by the algorithms. The index is 0-based and does not include the index-column ('timestamp'). The single channel of an univariate dataset, therefore, has index 0.",
+  "name": "use_column_index",
+  "type": "int"
  }
 }
 
@@ -50,7 +56,7 @@ def sand(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optio
     return Algorithm(
         name="SAND",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/sand",
+            image_name="registry.gitlab.hpi.de/akita/i/sand",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

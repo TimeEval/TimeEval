@@ -89,7 +89,7 @@ def omnianomaly(params: ParameterConfig = None, skip_pull: bool = False, timeout
     return Algorithm(
         name="OmniAnomaly",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/omnianomaly",
+            image_name="registry.gitlab.hpi.de/akita/i/omnianomaly",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

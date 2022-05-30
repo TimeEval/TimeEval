@@ -71,7 +71,7 @@ def subsequence_if(params: ParameterConfig = None, skip_pull: bool = False, time
     return Algorithm(
         name="Subsequence IF",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/subsequence_if",
+            image_name="registry.gitlab.hpi.de/akita/i/subsequence_if",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -104,7 +104,7 @@ def normalizing_flows(params: ParameterConfig = None, skip_pull: bool = False, t
     return Algorithm(
         name="Normalizing Flows",
         main=DockerAdapter(
-            image_name="sopedu:5000/akita/normalizing_flows",
+            image_name="registry.gitlab.hpi.de/akita/i/normalizing_flows",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
