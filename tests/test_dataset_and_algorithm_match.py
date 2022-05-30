@@ -92,7 +92,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             timeeval.run()
         results = timeeval.get_results(aggregated=False)
 
-        self.assertEqual(results.loc[0, "status"], Status.ERROR.name)
+        self.assertEqual(results.loc[0, "status"], Status.ERROR)
         self.assertIn("training type", results.loc[0, "error_message"])
         self.assertIn("incompatible", results.loc[0, "error_message"])
 
@@ -113,7 +113,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             timeeval.run()
         results = timeeval.get_results(aggregated=False)
 
-        self.assertEqual(results.loc[0, "status"], Status.ERROR.name)
+        self.assertEqual(results.loc[0, "status"], Status.ERROR)
         self.assertIn("input dimensionality", results.loc[0, "error_message"])
         self.assertIn("incompatible", results.loc[0, "error_message"])
 
@@ -126,7 +126,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             timeeval.run()
         results = timeeval.get_results(aggregated=False)
 
-        self.assertEqual(results.loc[0, "status"], Status.ERROR.name)
+        self.assertEqual(results.loc[0, "status"], Status.ERROR)
         self.assertIn("training dataset", results.loc[0, "error_message"])
         self.assertIn("not found", results.loc[0, "error_message"])
 

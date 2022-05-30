@@ -45,5 +45,5 @@ class TestTimeEvalExceptions(unittest.TestCase):
 
         r = timeeval.results
 
-        self.assertEqual(r[r.algorithm == "exception"].iloc[0].status, Status.ERROR.name)
+        self.assertEqual(r[r.algorithm == "exception"].iloc[0].status, Status.ERROR)
         self.assertIn(ERROR_MESSAGE, r[r.algorithm == "exception"].iloc[0].error_message)

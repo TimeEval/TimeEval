@@ -59,7 +59,7 @@ class TestRepetitions(unittest.TestCase):
         datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)
 
         algorithms = [
-            # two datasets with 3 repitions each: skip only one repetition of the second dataset: 5
+            # two datasets with 3 repititions each: skip only one repetition of the second dataset: 5
             Algorithm(name="deviating_from_mean", main=ErroneousAlgorithm(raise_after_n_calls=5)),
             Algorithm(name="deviating_from_median", main=DeviatingFromMedian())
         ]
@@ -68,7 +68,6 @@ class TestRepetitions(unittest.TestCase):
                                 repetitions=3, results_path=Path(tmp_path))
             timeeval.run()
         results = timeeval.get_results()
-        print(results)
 
         np.testing.assert_array_almost_equal(results["ROC_AUC_mean"].values, self.results["ROC_AUC"].values)
         # first algorithm performs 5 reps (misses one on the second dataset), second algorithm performs all 6 reps
