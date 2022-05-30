@@ -32,7 +32,7 @@ MIN_ANOMALIES = 1
 
 
 def multi_grammarviz_algorithms():
-    docker_image_name = "sopedu:5000/akita/grammarviz3-multi"
+    docker_image_name = "registry.gitlab.hpi.de/akita/i/grammarviz3-multi"
     docker_image_tag = "280553e5"
 
     default_params = {
@@ -171,7 +171,7 @@ def main():
     algorithms = [
         Algorithm(
             name="DPIE",
-            main=DockerAdapter(image_name="sopedu:5000/akita/dpie", tag="9e9abd94"),
+            main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/dpie", tag="9e9abd94"),
             data_as_file=True,
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=InputDimensionality.MULTIVARIATE,
@@ -179,7 +179,7 @@ def main():
         ),
         Algorithm(
             name="MultiNormA",
-            main=DockerAdapter(image_name="sopedu:5000/akita/multinorma", tag="3545a123"),
+            main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/multinorma", tag="3545a123"),
             data_as_file=True,
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=InputDimensionality.MULTIVARIATE,
