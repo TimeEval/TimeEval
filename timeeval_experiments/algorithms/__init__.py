@@ -22,6 +22,7 @@ from .fft import fft
 from .generic_rf import generic_rf
 from .generic_xgb import generic_xgb
 from .grammarviz3 import grammarviz3
+from .grammarviz3_multi import grammarviz3_multi
 from .hbos import hbos
 from .health_esn import health_esn
 from .hif import hif
