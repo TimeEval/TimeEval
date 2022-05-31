@@ -68,7 +68,7 @@ def grammarviz3_multi(params: ParameterConfig = None, skip_pull: bool = False, t
     return Algorithm(
         name="GrammarViz-Multivariate",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/grammarviz3-multi",
+            image_name="registry.gitlab.hpi.de/akita/i/grammarviz3_multi",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -43,6 +43,7 @@ from .mscred import mscred
 from .mstamp import mstamp
 from .mtad_gat import mtad_gat
 from .multi_hmm import multi_hmm
+from .multinorma import multinorma
 from .norma import norma
 from .normalizing_flows import normalizing_flows
 from .novelty_svr import novelty_svr
