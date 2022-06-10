@@ -43,6 +43,7 @@ from .mscred import mscred
 from .mstamp import mstamp
 from .mtad_gat import mtad_gat
 from .multi_hmm import multi_hmm
+from .multi_subsequence_lof import multi_subsequence_lof
 from .multinorma import multinorma
 from .norma import norma
 from .normalizing_flows import normalizing_flows
@@ -67,8 +68,8 @@ from .stamp import stamp
 from .stomp import stomp
 from .subsequence_fast_mcd import subsequence_fast_mcd
 from .subsequence_if import subsequence_if
+from .subsequence_knn import subsequence_knn
 from .subsequence_lof import subsequence_lof
-from .subsequence_lof_multi_sum import subsequence_lof_multi_sum
 from .tanogan import tanogan
 from .tarzan import tarzan
 from .telemanom import telemanom
