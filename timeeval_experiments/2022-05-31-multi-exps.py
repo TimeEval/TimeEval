@@ -9,12 +9,13 @@ from durations import Duration
 
 from timeeval import TimeEval, MultiDatasetManager, TrainingType, InputDimensionality
 from timeeval.constants import HPI_CLUSTER
-from timeeval.params import FixedParameters
+from timeeval.params import FixedParameters, IndependentParameterGrid
 from timeeval.remote import RemoteConfiguration
 from timeeval.resource_constraints import ResourceConstraints, GB
 from timeeval.utils.metrics import Metric
 # Setup logging
-from timeeval_experiments.algorithms import grammarviz3_multi, multinorma, kmeans
+from timeeval_experiments.algorithms import grammarviz3_multi, multinorma, kmeans, multi_subsequence_lof, torsk, \
+    subsequence_knn, mstamp
 
 
 logging.basicConfig(
@@ -33,52 +34,83 @@ MIN_ANOMALIES = 1
 
 def main():
     dm = MultiDatasetManager([
-        HPI_CLUSTER.akita_benchmark_path,
-        HPI_CLUSTER.akita_test_case_path,
+        HPI_CLUSTER.akita_multivariate_test_case_path,
         HPI_CLUSTER.akita_correlation_anomalies_path
     ])
-    # dm = MultiDatasetManager([
-    #     "../../data/benchmark-data/data-processed",
-    #     "../../data/test-cases",
-    #     "../../data/correlation-anomalies"
-    # ])
 
     # Select datasets and algorithms
-    datasets: List[Tuple[str, str]] = []
-    datasets += dm.select(
-        max_contamination=MAX_CONTAMINATION,
-        min_anomalies=MIN_ANOMALIES,
+    datasets: List[Tuple[str, str]] = dm.select(
         input_dimensionality=InputDimensionality.MULTIVARIATE,
+        training_type=TrainingType.UNSUPERVISED
     )
-    # exclude too large datasets
-    # and exclude GutenTAG dataset, because they contain semi-, supervised, and unsupervised datasets that are the same
-    datasets = [(c, d) for c, d in datasets if c not in ["Exathlon", "IOPS", "LTDB", "Kitsune", "GutenTAG"]]
-    # add the multivariate GutenTAG datasets, but just use the unsupervised ones
-    datasets += dm.select(
-        training_type=TrainingType.UNSUPERVISED,
-        input_dimensionality=InputDimensionality.MULTIVARIATE
-    )
-
     algorithms = [
-        kmeans(),
+        multi_subsequence_lof(IndependentParameterGrid({
+            "dim_aggregation_method": ["concat", "sum"]
+        }, {
+            "window_size": "heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)",
+            "distance_metric_order": 2,
+            "leaf_size": 20,
+            "n_jobs": 1,
+            "n_neighbors": 50,
+            "random_state": 42
+        })),  # sum and concat
         grammarviz3_multi(FixedParameters({
             "alphabet_size": 7,
             "paa_transform_size": 5,
             "n_discords": 100,
+            "numerosity_reduction": True,
+            "normalization_threshold": 0.01,
+            "random_state": 42,
             "anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=1.5, fb_value=150)",
             "multi_strategy": 1,
-            "numerosity_reduction": True,
-            "output_mode": 0
+            "output_mode": 0,
+        })),
+        mstamp(FixedParameters({
+            "anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_value=200)",
+            "random_state": 42,
         })),
         multinorma(FixedParameters({
-            "motif_detection": "mixed",
-            "sum_dims": False,
+            "anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_value=200)",
             "normalize_join": True,
-            "join_combine_method": 1,
-            "anomaly_window_size": "heuristic:AnomalyLengthHeuristic(agg_type='max')",
             "normal_model_percentage": 0.5,
             "max_motifs": 4096,
-            "random_state": 42
+            "random_state": 42,
+            "sum_dims": False,
+            "join_combine_method": 1,
+            "motif_detection": "mixed",
+        })),
+        subsequence_knn(FixedParameters({
+            "window_size": "heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)",
+            "distance_metric_order": 2,
+            "leaf_size": 20,
+            "method": "largest",
+            "n_neighbors": 50,
+            "radius": 1.0,
+            "n_jobs": 1,
+            "random_state": 42,
+        })),
+        kmeans(FixedParameters({
+            "anomaly_window_size": "heuristic:PeriodSizeHeuristic(factor=2.0, fb_value=200)",
+            "n_clusters": 50,
+            "stride": 1,
+            "n_jobs": 1,
+            "random_state": 42,
+        })),
+        torsk(FixedParameters({
+            "context_window_size": 10,
+            "density": 0.01,
+            "imed_loss": False,
+            "input_map_scale": 0.125,
+            "input_map_size": 100,
+            "prediction_window_size": 5,
+            "reservoir_representation": "sparse",
+            "scoring_large_window_size": 100,
+            "scoring_small_window_size": 10,
+            "spectral_radius": 2.0,
+            "tikhonov_beta": None,
+            "train_method": "pinv_svd",
+            "train_window_size": 100,
+            "transient_window_size": "heuristic:ParameterDependenceHeuristic(source_parameter='train_window_size', factor=0.2)"
         }))
     ]
 
@@ -109,10 +141,9 @@ def main():
     limits = ResourceConstraints(
         tasks_per_host=10,
         task_cpu_limit=1.,
-        task_memory_limit=3 * GB,
+        task_memory_limit=6 * GB,
         use_preliminary_scores_on_execute_timeout=True,
-        train_timeout=Duration("2 hours"),
-        execute_timeout=Duration("2 hours"),
+        execute_timeout=Duration("4 hours"),
     )
     timeeval = TimeEval(dm, datasets, algorithms,
                         repetitions=1,
