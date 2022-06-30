@@ -381,6 +381,36 @@ class RangeFScore(Metric):
         return f"RANGE_F{self._beta:.1f}_SCORE"
 
 
+class FScoreAtK(Metric):
+    def __init__(self) -> None:
+        pass
+
+    def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
+        threshold, y_pred = FScoreAtK._find_threshold(y_true, y_score)
+        return ts_fscore(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
+
+    def supports_continuous_scorings(self) -> bool:
+        return True
+
+    @property
+    def name(self) -> str:
+        return f"F_SCORE@K"
+
+    @staticmethod
+    def _find_threshold(y_true: np.ndarray, y_score: np.ndarray) -> Tuple[float, np.ndarray]:
+        n_anomalies = FScoreAtK._count_anomaly_ranges(y_true)
+        thresholds = np.unique(y_score)[::-1]
+        for t in thresholds:
+            y_pred = (y_score >= t).astype(np.int_)
+            detected_n = FScoreAtK._count_anomaly_ranges(y_pred)
+            if detected_n >= n_anomalies:
+                return t, y_pred
+
+    @staticmethod
+    def _count_anomaly_ranges(y_pred: np.ndarray) -> int:
+        return int(np.sum(np.diff(np.r_[0, y_pred, 0] == 1)))
+
+
 class DefaultMetrics:
     ROC_AUC = RocAUC()
     PR_AUC = PrAUC()
