@@ -9,7 +9,7 @@ from sklearn.utils import column_or_1d, assert_all_finite, check_consistent_leng
 
 
 class Metric(abc.ABC):
-    def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:  # type: ignore[no-untyped-def]
         y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
         return self.score(y_true, y_score)
 
@@ -77,14 +77,16 @@ class Metric(abc.ABC):
         ...
 
 
-def _auc_metric(y_true: np.ndarray, y_score: Iterable[float], _curve_function: Callable,
+def _auc_metric(y_true: np.ndarray,
+                y_score: Iterable[float],
+                _curve_function: Callable,
                 plot: bool = False,
                 plot_store: bool = False) -> float:
     x, y, thresholds = _curve_function(y_true, y_score)
     if "precision_recall" in _curve_function.__name__:
         # swap x and y
         x, y = y, x
-    area = auc(x, y)
+    area: float = auc(x, y)
     if plot:
         import matplotlib.pyplot as plt
 
@@ -99,7 +101,7 @@ def _auc_metric(y_true: np.ndarray, y_score: Iterable[float], _curve_function: C
 
 
 class RocAUC(Metric):
-    def __init__(self, plot: bool = False, plot_store: bool = False):
+    def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
         self._plot = plot
         self._plot_store = plot_store
 
@@ -118,7 +120,7 @@ class PrAUC(Metric):
     """Computes the area under the precision recall curve.
     """
 
-    def __init__(self, plot: bool = False, plot_store: bool = False):
+    def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
         self._plot = plot
         self._plot_store = plot_store
 
@@ -168,7 +170,7 @@ class RangePrAUC(Metric):
                  cardinality: str = "reciprocal",
                  bias: str = "flat",
                  plot: bool = False,
-                 plot_store: bool = False):
+                 plot_store: bool = False) -> None:
         self._plot = plot
         self._plot_store = plot_store
         self._max_samples = max_samples
@@ -238,11 +240,12 @@ class AveragePrecision(Metric):
     sklearn.metrics._ranking.average_precision_score : Implementation of the average precision metric.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
         self._kwargs = kwargs
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        return average_precision_score(y_true, y_score, pos_label=1, **self._kwargs)
+        score: float = average_precision_score(y_true, y_score, pos_label=1, **self._kwargs)
+        return score
 
     def supports_continuous_scorings(self) -> bool:
         return True
@@ -269,13 +272,14 @@ class RangePrecision(Metric):
        1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
-    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat"):
+    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat") -> None:
         self._alpha = alpha
         self._cardinality = cardinality
         self._bias = bias
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        return ts_precision(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        score: float = ts_precision(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        return score
 
     def supports_continuous_scorings(self) -> bool:
         return False
@@ -302,13 +306,14 @@ class RangeRecall(Metric):
        1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
-    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat"):
+    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat") -> None:
         self._alpha = alpha
         self._cardinality = cardinality
         self._bias = bias
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        return ts_recall(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        score: float = ts_recall(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        return score
 
     def supports_continuous_scorings(self) -> bool:
         return False
@@ -352,7 +357,7 @@ class RangeFScore(Metric):
                  r_alpha: float = 0.5,
                  cardinality: str = "reciprocal",
                  p_bias: str = "flat",
-                 r_bias: str = "flat"):
+                 r_bias: str = "flat") -> None:
         self._beta = beta
         self._p_alpha = p_alpha
         self._r_alpha = r_alpha
@@ -361,11 +366,12 @@ class RangeFScore(Metric):
         self._r_bias = r_bias
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        return ts_fscore(y_true, y_score,
-                         beta=self._beta,
-                         p_alpha=self._p_alpha, r_alpha=self._r_alpha,
-                         cardinality=self._cardinality,
-                         p_bias=self._p_bias, r_bias=self._p_bias)
+        score: float = ts_fscore(y_true, y_score,
+                                 beta=self._beta,
+                                 p_alpha=self._p_alpha, r_alpha=self._r_alpha,
+                                 cardinality=self._cardinality,
+                                 p_bias=self._p_bias, r_bias=self._p_bias)
+        return score
 
     def supports_continuous_scorings(self) -> bool:
         return False

@@ -15,7 +15,7 @@ class ParameterDependenceHeuristic(TimeEvalParameterHeuristic):
         self.fn = fn
         self.factor = factor
 
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Any:
+    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         try:
             original = kwargs["params"][self.source_parameter]
         except KeyError:

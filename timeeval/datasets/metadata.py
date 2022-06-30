@@ -129,7 +129,8 @@ class DatasetMetadata:
 
     @staticmethod
     def from_json(s: str) -> 'DatasetMetadata':
-        return json.loads(s, object_hook=DatasetMetadataEncoder.object_hook)
+        meta: DatasetMetadata = json.loads(s, object_hook=DatasetMetadataEncoder.object_hook)
+        return meta
 
 
 class DatasetMetadataEncoder(JSONEncoder):

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import Any
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
@@ -13,7 +13,7 @@ class DefaultExponentialFactorHeuristic(TimeEvalParameterHeuristic):
         self.exponent = exponent
         self.zero_fb = zero_fb
 
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Union[int, float]:
+    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         param_name = kwargs["param_name"]
         try:
             default = algorithm.param_schema[param_name]["defaultValue"]

@@ -16,7 +16,7 @@ class NoOpCustomDatasets(CustomDatasetsBase):
     :class:`timeeval.datasets.Datasets`-implementation by removing the need for None-checks.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def get_path(self, dataset_name: str, train: bool) -> Path:

@@ -34,7 +34,7 @@ def TimeEvalHeuristic(signature: str) -> TimeEvalParameterHeuristic:
     if not _check_signature(signature):
         raise ValueError(f"Heuristic '{signature}' is invalid! Only constructor calls to classes derived from "
                          "TimeEvalParameterHeuristic are allowed.")
-    return eval(signature)
+    return eval(signature)  # type: ignore
 
 
 def inject_heuristic_values(

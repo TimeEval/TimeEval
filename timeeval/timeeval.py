@@ -71,7 +71,7 @@ class TimeEval:
                  force_training_type_match: bool = False,
                  force_dimensionality_match: bool = False,
                  n_jobs: int = -1,
-                 experiment_combinations_file: Optional[Path] = None):
+                 experiment_combinations_file: Optional[Path] = None) -> None:
         assert len(datasets) > 0, "No datasets given for evaluation!"
         assert len(algorithms) > 0, "No algorithms given for evaluation!"
         assert repetitions > 0, "Negative or 0 repetitions are not supported!"
@@ -135,7 +135,7 @@ class TimeEval:
             self.log.info("... registering signal handlers ...")
             orig_handler: Callable[[int, Optional[FrameType]], Any] = signal.getsignal(signal.SIGINT)  # type: ignore
 
-            def sigint_handler(sig: int, frame: Optional[FrameType] = None):
+            def sigint_handler(sig: int, frame: Optional[FrameType] = None) -> Any:
                 self.log.warning(f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
                                  "containers on all worker nodes (we do not remove them when terminating "
                                  "ungracefully).")
@@ -145,7 +145,7 @@ class TimeEval:
 
             self.log.info("... remoting setup done.")
 
-    def _run(self):
+    def _run(self) -> None:
         desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
         for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.disable_progress_bar):
             try:
@@ -189,7 +189,7 @@ class TimeEval:
                         result: Optional[Dict] = None,
                         future_result: Optional[Future] = None,
                         status: Status = Status.OK,
-                        error_message: Optional[str] = None):
+                        error_message: Optional[str] = None) -> None:
         new_row = {
             "algorithm": exp.algorithm.name,
             "collection": exp.dataset_collection,
@@ -211,14 +211,14 @@ class TimeEval:
         self.results = self.results.append(new_row, ignore_index=True)
         self.results.replace(to_replace=[None], value=np.nan, inplace=True)
 
-    def _resolve_future_results(self):
+    def _resolve_future_results(self) -> None:
         self.remote.fetch_results()
 
         result_keys = self.metric_names + Times.result_keys()
         status_keys = ["status", "error_message"]
         keys = result_keys + status_keys
 
-        def get_future_result(f: Future) -> Tuple:
+        def get_future_result(f: Future) -> Tuple[Any, ...]:
             try:
                 r = f.result()
                 return tuple(r.get(k, None) for k in result_keys) + (Status.OK, None)
@@ -265,12 +265,12 @@ class TimeEval:
         results["repetitions"] = grouped_results["repetition"].count()
         return results
 
-    def save_results(self, results_path: Optional[Path] = None):
+    def save_results(self, results_path: Optional[Path] = None) -> None:
         path = results_path or (self.results_path / RESULTS_CSV)
         self.results.to_csv(path.resolve(), index=False)
 
     @staticmethod
-    def rsync_results_from(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1):
+    def rsync_results_from(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1) -> None:
         results_path = results_path.resolve()
         hostname = socket.gethostname()
         excluded_aliases = [
@@ -287,7 +287,7 @@ class TimeEval:
         with tqdm_joblib(tqdm.tqdm(hosts, desc="Collecting results", disable=disable_progress_bar, total=len(jobs))):
             Parallel(n_jobs)(jobs)
 
-    def rsync_results(self):
+    def rsync_results(self) -> None:
         TimeEval.rsync_results_from(
             self.results_path,
             self.remote_config.worker_hosts,
@@ -295,7 +295,7 @@ class TimeEval:
             self.n_jobs
         )
 
-    def _prepare(self):
+    def _prepare(self) -> None:
         n = len(self.exps)
         self.log.debug(f"Running {n} algorithm prepare steps")
         for algorithm in self.exps.algorithms:
@@ -304,12 +304,12 @@ class TimeEval:
         for exp in self.exps:
             exp.results_path.mkdir(parents=True, exist_ok=True)
 
-    def _finalize(self):
+    def _finalize(self) -> None:
         self.log.debug(f"Running {len(self.exps)} algorithm finalize steps")
         for algorithm in self.exps.algorithms:
             algorithm.finalize()
 
-    def _distributed_prepare(self):
+    def _distributed_prepare(self) -> None:
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.exps.algorithms:
             prepare_fn = algorithm.prepare_fn()
@@ -326,7 +326,7 @@ class TimeEval:
         self.log.debug(f"Collected {len(dir_list)} directories to create on remote nodes")
         self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
-    def _distributed_finalize(self):
+    def _distributed_finalize(self) -> None:
         tasks: List[Tuple[Callable, List, Dict]] = []
         for algorithm in self.exps.algorithms:
             finalize_fn = algorithm.finalize_fn()
@@ -340,7 +340,7 @@ class TimeEval:
         self.log.info("Syncing results")
         self.rsync_results()
 
-    def run(self):
+    def run(self) -> None:
         print("Running PREPARE phase")
         self.log.info("Running PREPARE phase")
         t0 = time()

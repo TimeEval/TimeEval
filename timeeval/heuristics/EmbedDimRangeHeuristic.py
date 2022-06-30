@@ -15,7 +15,7 @@ class EmbedDimRangeHeuristic(TimeEvalParameterHeuristic):
         self.base_fb_value = base_fb_value
         self.dim_factors: List[float] = dim_factors or [0.5, 1.0, 1.5]
 
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> List[int]:
+    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> List[int]:  # type: ignore[no-untyped-def]
         heuristic = PeriodSizeHeuristic(factor=self.base_factor, fb_value=self.base_fb_value)
         window_size = heuristic(algorithm, dataset_details, dataset_path)
         return [int(dim) for dim in np.array(self.dim_factors) * window_size]

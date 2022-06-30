@@ -27,7 +27,7 @@ class RemoteConfiguration:
         path = results_path / name
         self.dask_logging_filename = str(path.resolve())
 
-    def to_ssh_cluster_kwargs(self, limits: ResourceConstraints):
+    def to_ssh_cluster_kwargs(self, limits: ResourceConstraints) -> Dict[str, Any]:
         """
         Creates the kwargs for the Dask SSHCluster-constructor:
         https://docs.dask.org/en/latest/setup/ssh.html#distributed.deploy.ssh.SSHCluster
