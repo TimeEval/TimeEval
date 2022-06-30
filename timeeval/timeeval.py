@@ -25,7 +25,7 @@ from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
 from .times import Times
 from .utils.encode_params import dumps_params
-from .utils.metrics import Metric
+from .utils.metrics import Metric, DefaultMetrics
 from .utils.tqdm_joblib import tqdm_joblib
 
 
@@ -94,7 +94,7 @@ class TimeEval:
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         self.results_path = results_path.absolute() / start_date
         self.disable_progress_bar = disable_progress_bar
-        self.metrics = metrics or Metric.default_list()
+        self.metrics = metrics or DefaultMetrics.default_list()
         self.metric_names = [m.name for m in self.metrics]
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
         self.distributed = distributed

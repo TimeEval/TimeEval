@@ -1,6 +1,5 @@
 import abc
 import warnings
-from enum import Enum
 from typing import Iterable, Callable, List, Tuple
 
 import numpy as np
@@ -9,7 +8,7 @@ from sklearn.metrics import precision_recall_curve, roc_curve, auc, average_prec
 from sklearn.utils import column_or_1d, assert_all_finite, check_consistent_length
 
 
-class ABCMetric(abc.ABC):
+class Metric(abc.ABC):
     def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:
         y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
         return self.score(y_true, y_score)
@@ -64,6 +63,11 @@ class ABCMetric(abc.ABC):
         assert_all_finite(y_score)
         return y_true, y_score
 
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        ...
+
     @abc.abstractmethod
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         ...
@@ -94,7 +98,7 @@ def _auc_metric(y_true: np.ndarray, y_score: Iterable[float], _curve_function: C
     return area
 
 
-class RocAUC(ABCMetric):
+class RocAUC(Metric):
     def __init__(self, plot: bool = False, plot_store: bool = False):
         self._plot = plot
         self._plot_store = plot_store
@@ -105,8 +109,12 @@ class RocAUC(ABCMetric):
     def supports_continuous_scorings(self) -> bool:
         return True
 
+    @property
+    def name(self) -> str:
+        return "ROC_AUC"
 
-class PrAUC(ABCMetric):
+
+class PrAUC(Metric):
     """Computes the area under the precision recall curve.
     """
 
@@ -120,8 +128,12 @@ class PrAUC(ABCMetric):
     def supports_continuous_scorings(self) -> bool:
         return True
 
+    @property
+    def name(self) -> str:
+        return "PR_AUC"
 
-class RangePrAUC(ABCMetric):
+
+class RangePrAUC(Metric):
     """Computes the area under the precision recall curve when using the range-based precision and range-based
     recall metric introduced by Tatbul et al. at NeurIPS 2018 [1]_.
 
@@ -150,7 +162,7 @@ class RangePrAUC(ABCMetric):
     """
 
     def __init__(self,
-                 max_samples: int = 50,
+                 max_samples: int = 100,
                  r_alpha: float = 0.5,
                  p_alpha: float = 0,
                  cardinality: str = "reciprocal",
@@ -166,7 +178,9 @@ class RangePrAUC(ABCMetric):
         self._bias = bias
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        return _auc_metric(y_true, y_score, self._range_precision_recall_curve, plot=self._plot, plot_store=self._plot_store)
+        return _auc_metric(y_true, y_score, self._range_precision_recall_curve,
+                           plot=self._plot,
+                           plot_store=self._plot_store)
 
     def _range_precision_recall_curve(self, y_true: np.ndarray, y_score: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         thresholds = np.unique(y_score)
@@ -206,8 +220,12 @@ class RangePrAUC(ABCMetric):
     def supports_continuous_scorings(self) -> bool:
         return True
 
+    @property
+    def name(self) -> str:
+        return "RANGE_PR_AUC"
 
-class AveragePrecision(ABCMetric):
+
+class AveragePrecision(Metric):
     """Computes the average precision metric aver all possible thresholds.
 
     Parameters
@@ -229,8 +247,12 @@ class AveragePrecision(ABCMetric):
     def supports_continuous_scorings(self) -> bool:
         return True
 
+    @property
+    def name(self) -> str:
+        return "AVERAGE_PRECISION"
 
-class RangePrecision(ABCMetric):
+
+class RangePrecision(Metric):
     """Computes the range-based precision metric introduced by Tatbul et al. at NeurIPS 2018 [1]_.
 
     Parameters
@@ -258,8 +280,12 @@ class RangePrecision(ABCMetric):
     def supports_continuous_scorings(self) -> bool:
         return False
 
+    @property
+    def name(self) -> str:
+        return "RANGE_PRECISION"
 
-class RangeRecall(ABCMetric):
+
+class RangeRecall(Metric):
     """Computes the range-based recall metric introduced by Tatbul et al. at NeurIPS 2018 [1]_.
 
     Parameters
@@ -287,8 +313,12 @@ class RangeRecall(ABCMetric):
     def supports_continuous_scorings(self) -> bool:
         return False
 
+    @property
+    def name(self) -> str:
+        return "RANGE_RECALL"
 
-class RangeFScore(ABCMetric):
+
+class RangeFScore(Metric):
     """Computes the range-based F-score using the recall and precision metrics by Tatbul et al. at NeurIPS 2018 [1]_.
 
     The F-beta score is the weighted harmonic mean of precision and recall, reaching its optimal value at 1 and its
@@ -340,26 +370,25 @@ class RangeFScore(ABCMetric):
     def supports_continuous_scorings(self) -> bool:
         return False
 
+    @property
+    def name(self) -> str:
+        return f"RANGE_F{self._beta:.1f}_SCORE"
 
-class Metric(Enum):
+
+class DefaultMetrics:
     ROC_AUC = RocAUC()
     PR_AUC = PrAUC()
-    RANGE_PR_AUC = RangePrAUC(r_alpha=0, cardinality="one", bias="flat")
+    RANGE_PR_AUC = RangePrAUC(max_samples=50, r_alpha=0, cardinality="one", bias="flat")
     AVERAGE_PRECISION = AveragePrecision()
     RANGE_PRECISION = RangePrecision()
     RANGE_RECALL = RangeRecall()
     RANGE_F1 = RangeFScore(beta=1)
-
-    def __init__(self, m_repr: ABCMetric):
-        self._internal: ABCMetric = m_repr
-
-    def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:
-        return self._internal(y_true, y_score, **kwargs)
+    FIXED_RANGE_PR_AUC = RangePrAUC()
 
     @staticmethod
-    def default() -> 'Metric':
-        return Metric.ROC_AUC
+    def default() -> Metric:
+        return DefaultMetrics.ROC_AUC
 
     @staticmethod
-    def default_list() -> List['Metric']:
-        return [Metric.ROC_AUC]
+    def default_list() -> List[Metric]:
+        return [DefaultMetrics.ROC_AUC]
