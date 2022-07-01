@@ -22,6 +22,7 @@ from .fft import fft
 from .generic_rf import generic_rf
 from .generic_xgb import generic_xgb
 from .grammarviz3 import grammarviz3
+from .grammarviz3_multi import grammarviz3_multi
 from .hbos import hbos
 from .health_esn import health_esn
 from .hif import hif
@@ -42,6 +43,8 @@ from .mscred import mscred
 from .mstamp import mstamp
 from .mtad_gat import mtad_gat
 from .multi_hmm import multi_hmm
+from .multi_subsequence_lof import multi_subsequence_lof
+from .multinorma import multinorma
 from .norma import norma
 from .normalizing_flows import normalizing_flows
 from .novelty_svr import novelty_svr
@@ -65,8 +68,8 @@ from .stamp import stamp
 from .stomp import stomp
 from .subsequence_fast_mcd import subsequence_fast_mcd
 from .subsequence_if import subsequence_if
+from .subsequence_knn import subsequence_knn
 from .subsequence_lof import subsequence_lof
-from .subsequence_lof_multi_sum import subsequence_lof_multi_sum
 from .tanogan import tanogan
 from .tarzan import tarzan
 from .telemanom import telemanom
