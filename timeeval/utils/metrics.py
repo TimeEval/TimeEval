@@ -123,6 +123,12 @@ def _metric(y_true: np.ndarray, y_score: Iterable[float], _curve_function: Calla
 def range_precision_recall_curve(y_true: np.ndarray, y_score: np.ndarray, max_samples=50) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     thresholds = np.unique(y_score)
     thresholds.sort()
+    # The first precision and recall values are precision=class balance and recall=1.0, which corresponds to a
+    # classifier that always predicts the positive class, independently of the threshold. This means that we can
+    # skip the first threshold!
+    p0 = y_true.sum() / len(y_true)
+    r0 = 1.0
+    thresholds = thresholds[1:]
 
     # sample thresholds
     n_thresholds = thresholds.shape[0]
@@ -141,7 +147,7 @@ def range_precision_recall_curve(y_true: np.ndarray, y_score: np.ndarray, max_sa
         recalls[i] = ts_recall(y_true, y_pred)
         precisions[i] = ts_precision(y_true, y_pred)
     sorted_idx = recalls.argsort()[::-1]
-    return np.r_[precisions[sorted_idx], 1], np.r_[recalls[sorted_idx], 0], thresholds
+    return np.r_[p0, precisions[sorted_idx], 1], np.r_[r0, recalls[sorted_idx], 0], thresholds
 
 
 def auc_roc(y_true: np.ndarray, y_score: Iterable[float], **kwargs) -> float:
