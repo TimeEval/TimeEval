@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from timeeval.utils.metrics import Metric, DefaultMetrics
+from timeeval.utils.metrics import Metric, DefaultMetrics, PrecisionAtK, FScoreAtK
 
 
 class TestMetrics(unittest.TestCase):
@@ -71,7 +71,7 @@ class TestMetrics(unittest.TestCase):
         y_pred = np.array([0, 0, 0.5, 0.5, 0, 0])
         y_true = np.array([0, 0, 1, 1, 0, 0])
         result = DefaultMetrics.RANGE_PR_AUC(y_true, y_pred)
-        self.assertAlmostEqual(result, 1.0, places=4)
+        self.assertAlmostEqual(result, 1.0000, places=4)
 
     def test_pr_curve_auc(self):
         y_pred = np.array([0, 0.1, 1., .5, 0, 0])
@@ -90,3 +90,19 @@ class TestMetrics(unittest.TestCase):
         y_true = np.array([0, 1, 1, 1, 0, 0])
         result = DefaultMetrics.RANGE_PR_AUC(y_true, y_pred)
         self.assertAlmostEqual(result, 0.9583, places=4)
+
+    def test_precision_at_k(self):
+        y_pred = np.array([0, 0.1, 1., .5, 0.1, 0, 0.4, 0.5])
+        y_true = np.array([0, 1, 1, 1, 0, 0, 1, 0])
+        result = PrecisionAtK()(y_true, y_pred)
+        self.assertAlmostEqual(result, 0.5000, places=4)
+        result = PrecisionAtK(k=1)(y_true, y_pred)
+        self.assertAlmostEqual(result, 1.0000, places=4)
+
+    def test_fscore_at_k(self):
+        y_pred = np.array([0.4, 0.1, 1., .5, 0.1, 0, 0.4, 0.5])
+        y_true = np.array([0, 1, 1, 1, 0, 0, 1, 0])
+        result = FScoreAtK()(y_true, y_pred)
+        self.assertAlmostEqual(result, 0.500, places=4)
+        result = FScoreAtK(k=3)(y_true, y_pred)
+        self.assertAlmostEqual(result, 0.800, places=4)
