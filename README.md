@@ -2,7 +2,7 @@
 <img width="100px" src="https://github.com/HPI-Information-Systems/TimeEval/raw/main/timeeval-icon.png" alt="TimeEval logo"/>
 <h1 align="center">TimeEval</h1>
 <p>
-Evaluation Tool for Anomaly Detection Algorithms on time series.
+Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 </p>
 
 ![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)
@@ -15,6 +15,8 @@ Evaluation Tool for Anomaly Detection Algorithms on time series.
 
 See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) (use [this link](https://github.com/HPI-Information-Systems/TimeEval-algorithms) on Github) for algorithms that are compatible to this tool.
 The algorithms in this repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
+
+> If you use TimeEval, please consider [citing](#citation) our paper.
 
 ## Features
 
@@ -454,6 +456,53 @@ To run these tests, add the respective keys as parameters:
 pytest --[key] # e.g. --docker
 ```
 
-## Timeout Algorithms consuming too much time
+## Use a time limit to restrict runtime of long-running Algorithms
 
-Some algorithms are not suitable for very large datasets and, thus, can take a long time until they finish. Therefore, the `DockerAdapter` class can take in a `timeout` parameter that defines the maximum amount of time the algorithm is allowed to run. The parameter takes in a `durations.Duration` object. If the timeout is exceeded, a `DockerTimeoutError` is raised and the specific algorithm for the current dataset is canceled.
+Some algorithms are not suitable for very large datasets and, thus, can take a long time until they finish either training or testing.
+For this reason, TimeEval uses timeouts to restrict the runtime of all algorithms.
+You can change the timeout values for the training and testing phase globally using configuration options in the `ResourceConstraints` class:
+
+```python
+from durations import Duration
+from timeeval import TimeEval, ResourceConstraints
+
+limits = ResourceConstraints(
+    train_timeout=Duration("2 hours"),
+    execute_timeout=Duration("2 hours"),
+)
+timeeval = TimeEval(dm, datasets, algorithms, resource_constraints=limits)
+...
+```
+
+> **Attention!**
+> 
+> Currently, only the `DockerAdapter`-class can deal with resource constraints.
+> All other adapters ignore them.
+
+It's also possible to use different timeouts for specific algorithms if they run using the `DockerAdapter`.
+The `DockerAdapter` class can take in a `timeout` parameter that defines the maximum amount of time the algorithm is allowed to run.
+The parameter takes in a `durations.Duration` object as well and overwrites the globally set timeouts.
+If the timeout is exceeded, a `DockerTimeoutError` is raised and the specific algorithm for the current dataset is cancelled.
+
+## Citation
+
+If you use TimeEval in your project or research, please cite our demonstration paper:
+
+> Phillip Wenig, Sebastian Schmidl, and Thorsten Papenbrock.
+> TimeEval: A Benchmarking Toolkit for Time Series Anomaly Detection Algorithms. PVLDB, 15(12): XXXX - XXXX, 2022.
+> doi:[YYYY](https://doi.org/YYYY)
+>
+> _To appear in [PVLDB 2022 volume 15 issue 12](https://vldb.org/2022/)_.
+
+```bibtex
+@article{WenigEtAl2022TimeEval,
+  title = {TimeEval: {{A}} Benchmarking Toolkit for Time Series Anomaly Detection Algorithms},
+  author = {Wenig, Phillip and Schmidl, Sebastian and Papenbrock, Thorsten},
+  date = {2022},
+  journaltitle = {Proceedings of the {{VLDB Endowment}} ({{PVLDB}})},
+  volume = {15},
+  number = {12},
+  pages = {XXXX--XXXX},
+  doi = {YYYY}
+}
+```
