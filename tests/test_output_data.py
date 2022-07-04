@@ -92,5 +92,5 @@ class TestOutputData(unittest.TestCase):
             parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / self.hash / "custom" / "dataset.1" / "1"
             results = pd.read_csv(parent_path / METRICS_CSV)
 
-            self.assertAlmostEqual(0.8102250625173659, results.loc[0, "ROC_AUC"], places=4)
-            self.assertAlmostEqual(0.0002446183953033, results.loc[0, "RANGE_PR_AUC"], places=4)
+            self.assertAlmostEqual(0.8102, results.loc[0, "ROC_AUC"], places=4)
+            self.assertAlmostEqual(0.0004, results.loc[0, "RANGE_PR_AUC"], places=4)
