@@ -1,5 +1,5 @@
 import contextlib
-from typing import Generator
+from typing import Generator, Any
 
 import joblib
 from joblib.parallel import BatchCompletionCallBack
@@ -25,10 +25,10 @@ def tqdm_joblib(tqdm_object: tqdm) -> Generator[tqdm, None, None]:
     """
 
     class TqdmBatchCompletionCallback(BatchCompletionCallBack):
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
             super().__init__(*args, **kwargs)
 
-        def __call__(self, *args, **kwargs):
+        def __call__(self, *args, **kwargs) -> Any:  # type: ignore[no-untyped-def]
             tqdm_object.update(n=self.batch_size)
             return super().__call__(*args, **kwargs)
 

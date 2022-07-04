@@ -21,12 +21,13 @@ class AggregationMethod(Enum):
         else:  # if self == self.MAX:
             fn = np.max
 
-        return fn(np.stack(data, axis=1), axis=1).reshape(-1)
+        values: np.ndarray = fn(np.stack(data, axis=1), axis=1).reshape(-1)
+        return values
 
 
 class MultivarAdapter(Adapter):
     def __init__(self, fn: Callable[[np.ndarray, dict], np.ndarray], aggregation: AggregationMethod = AggregationMethod.MEAN,
-                 n_jobs: int = 1):
+                 n_jobs: int = 1) -> None:
         self.fn = fn
         self.aggregation = aggregation
         self.n_jobs = n_jobs

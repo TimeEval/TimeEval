@@ -65,8 +65,9 @@ class CustomDatasets(CustomDatasetsBase):
 
     def _extract_path(self, obj: dict, key: str) -> Path:
         path_string = obj[key]
-        path = self.root_path / path_string
-        return path.resolve()
+        path: Path = self.root_path / path_string
+        path = path.resolve()
+        return path
 
     def _validate_dataset(self, name: str, ds_obj: dict) -> None:
         if TEST_PATH_KEY not in ds_obj:

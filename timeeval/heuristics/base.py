@@ -1,7 +1,7 @@
 import abc
 import inspect
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
@@ -9,7 +9,7 @@ from timeeval.datasets import Dataset
 
 class TimeEvalParameterHeuristic(abc.ABC):
     @abc.abstractmethod
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Any:
+    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         """
         Calculate new parameter value based on information about algorithm, dataset metadata, and the dataset
         itself. If `None` is returned, the parameter is unset and the algorithm should use its default value.
@@ -27,7 +27,7 @@ class TimeEvalParameterHeuristic(abc.ABC):
         return out
 
     @classmethod
-    def get_param_names(cls):
+    def get_param_names(cls) -> List[str]:
         """
         Get parameter names for the heuristic
 

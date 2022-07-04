@@ -28,18 +28,18 @@ class Times:
     @staticmethod
     def from_execute_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> Tuple[np.ndarray, 'Times']:
         x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, np.nan)
-        x, main_time = timer(algorithm.execute, x, args)  # type: ignore # => https://github.com/python/mypy/issues/5485
+        x, main_time = timer(algorithm.execute, x, args)
         x, post_time = timer(algorithm.postprocess, x, args) if algorithm.postprocess else(x, np.nan)
         return x, Times(ExecutionType.EXECUTE, main_time, preprocess=pre_time, postprocess=post_time)
 
     @staticmethod
     def from_train_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: dict) -> 'Times':
         x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, np.nan)
-        x, main_time = timer(algorithm.train, x, args)  # type: ignore # => https://github.com/python/mypy/issues/5485
+        x, main_time = timer(algorithm.train, x, args)
         return Times(ExecutionType.TRAIN, main_time, preprocess=pre_time)
 
 
-def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, float]:
+def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, float]:  # type: ignore[no-untyped-def]
     start = time.time()
     fn_result = fn(*args, **kwargs)
     end = time.time()

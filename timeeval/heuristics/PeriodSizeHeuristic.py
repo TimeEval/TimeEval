@@ -10,7 +10,7 @@ from .AnomalyLengthHeuristic import AnomalyLengthHeuristic
 from .base import TimeEvalParameterHeuristic
 
 
-def _is_none(period) -> bool:
+def _is_none(period: Optional[int]) -> bool:
     return period is None or np.isnan(period)
 
 
@@ -23,7 +23,7 @@ class PeriodSizeHeuristic(TimeEvalParameterHeuristic):
         self.fb_anomaly_length_agg_type = fb_anomaly_length_agg_type
         self.fb_value = fb_value
 
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> int:
+    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> int:  # type: ignore[no-untyped-def]
         period = dataset_details.period_size
         if _is_none(period) and self.fb_anomaly_length_agg_type is not None:
             try:

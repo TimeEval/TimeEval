@@ -8,5 +8,5 @@ def id2labels(ids: np.ndarray, data_length: int) -> np.ndarray:
 
 
 def labels2id(labels: np.ndarray) -> np.ndarray:
-    ids = labels[labels == 1]
+    ids: np.ndarray = labels[labels == 1]
     return ids

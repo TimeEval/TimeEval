@@ -13,11 +13,11 @@ from timeeval.data_types import AlgorithmParameter, TrainingType, InputDimension
 from timeeval.datasets import Datasets, Dataset
 from timeeval.heuristics import inject_heuristic_values
 from timeeval.resource_constraints import ResourceConstraints
-from timeeval.times import Times, timer
+from timeeval.times import Times
 from timeeval.utils.datasets import extract_features, load_dataset, load_labels_only
 from timeeval.utils.encode_params import dump_params
 from timeeval.utils.hash_dict import hash_dict
-from timeeval.utils.metrics import Metric
+from timeeval.utils.metrics import Metric, DefaultMetrics
 from timeeval.utils.results_path import generate_experiment_path
 
 
@@ -183,7 +183,7 @@ class Experiments:
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
-        self.metrics = metrics or Metric.default_list()
+        self.metrics = metrics or DefaultMetrics.default_list()
         self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match or force_dimensionality_match
         self.force_training_type_match = force_training_type_match
         self.force_dimensionality_match = force_dimensionality_match

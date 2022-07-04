@@ -5,4 +5,4 @@ from .datasets import Datasets, DatasetManager, MultiDatasetManager
 from .remote_configuration import RemoteConfiguration
 from .resource_constraints import ResourceConstraints
 from .timeeval import TimeEval, Status
-from .utils.metrics import Metric
+from .utils.metrics import Metric, DefaultMetrics

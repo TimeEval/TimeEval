@@ -54,9 +54,9 @@ class AlgorithmInterface:
 
 
 class DockerAdapter(Adapter):
-    def __init__(self, image_name: str, tag: str = "latest", group_privileges="akita", skip_pull=False,
+    def __init__(self, image_name: str, tag: str = "latest", group_privileges: str = "akita", skip_pull: bool = False,
                  timeout: Optional[Duration] = None, memory_limit_overwrite: Optional[int] = None,
-                 cpu_limit_overwrite: Optional[float] = None):
+                 cpu_limit_overwrite: Optional[float] = None) -> None:
         self.image_name = image_name
         self.tag = tag
         self.group = group_privileges
@@ -79,10 +79,11 @@ class DockerAdapter(Adapter):
             return uid
 
     def _get_compute_limits(self, args: dict) -> Tuple[int, float]:
-        return args.get("resource_constraints", ResourceConstraints()).get_compute_resource_limits(
+        limits: Tuple[int, float] = args.get("resource_constraints", ResourceConstraints()).get_compute_resource_limits(
             memory_overwrite=self.memory_limit,
             cpu_overwrite=self.cpu_limit
         )
+        return limits
 
     def _get_timeout(self, args: dict) -> Duration:
         exec_type = args.get("executionType", "")
@@ -96,13 +97,15 @@ class DockerAdapter(Adapter):
     def _should_use_prelim_model(args: dict) -> bool:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
-        return (exec_type == ExecutionType.TRAIN or exec_type == ExecutionType.TRAIN.value) and constraints.use_preliminary_model_on_train_timeout
+        result: bool = (exec_type == ExecutionType.TRAIN or exec_type == ExecutionType.TRAIN.value) and constraints.use_preliminary_model_on_train_timeout
+        return result
 
     @staticmethod
     def _should_use_prelim_results(args: dict) -> bool:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
-        return (exec_type == ExecutionType.EXECUTE or exec_type == ExecutionType.EXECUTE.value) and constraints.use_preliminary_scores_on_execute_timeout
+        result: bool = (exec_type == ExecutionType.EXECUTE or exec_type == ExecutionType.EXECUTE.value) and constraints.use_preliminary_scores_on_execute_timeout
+        return result
 
     @staticmethod
     def _results_path(args: Dict[str, Any], absolute: bool = False) -> Path:
@@ -151,7 +154,7 @@ class DockerAdapter(Adapter):
             detach=True,
         )
 
-    def _run_until_timeout(self, container: Container, args: dict):
+    def _run_until_timeout(self, container: Container, args: dict) -> None:
         timeout = self._get_timeout(args)
         try:
             result = container.wait(timeout=timeout.to_seconds())
@@ -199,7 +202,8 @@ class DockerAdapter(Adapter):
             raise DockerAlgorithmFailedError(f"Please consider log files in {self._results_path(args, absolute=True)}!")
 
     def _read_results(self, args: dict) -> np.ndarray:
-        return np.genfromtxt(self._results_path(args) / SCORES_FILE_NAME, delimiter=",")
+        results: np.ndarray = np.genfromtxt(self._results_path(args) / SCORES_FILE_NAME, delimiter=",")
+        return results
 
     # Adapter overwrites
 
@@ -220,7 +224,7 @@ class DockerAdapter(Adapter):
             image: str = self.image_name
             tag: str = self.tag
 
-            def prepare():
+            def prepare() -> None:
                 client = docker.from_env(timeout=Duration("5 minutes").to_seconds())
                 client.images.pull(image, tag=tag)
 
@@ -229,7 +233,7 @@ class DockerAdapter(Adapter):
             return None
 
     def get_finalize_fn(self) -> Optional[Callable[[], None]]:
-        def finalize():
+        def finalize() -> None:
             client = docker.from_env(timeout=Duration("10 minutes").to_seconds())
             try:
                 containers = client.containers.list(all=True, filters={"ancestor": self.image_name})

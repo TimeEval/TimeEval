@@ -71,4 +71,5 @@ class MultiDatasetManager(Datasets):
         path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
         if not path or (isinstance(path, (np.float64, np.int64, float)) and np.isnan(path)):
             raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
-        return root_path.resolve() / path
+        resolved_path: Path = root_path.resolve() / path
+        return resolved_path

@@ -14,6 +14,7 @@ from timeeval import (
     InputDimensionality,
     Status,
     Metric,
+    DefaultMetrics,
     ResourceConstraints,
     DatasetManager
 )
@@ -151,7 +152,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             repetition=0,
             base_results_dir=Path("tmp_path"),
             resource_constraints=ResourceConstraints(),
-            metrics=Metric.default_list(),
+            metrics=DefaultMetrics.default_list(),
             resolved_test_dataset_path=self.dmgr.get_dataset_path(("test", "dataset-datetime")),
             resolved_train_dataset_path=None
         )
@@ -165,7 +166,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             dmgr=self.dmgr,
             datasets=datasets,
             algorithms=self.algorithms,
-            metrics=Metric.default_list(),
+            metrics=DefaultMetrics.default_list(),
             base_result_path=Path("tmp_path"),
             skip_invalid_combinations=False
         )
@@ -177,7 +178,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
             dmgr=self.dmgr,
             datasets=datasets,
             algorithms=self.algorithms,
-            metrics=Metric.default_list(),
+            metrics=DefaultMetrics.default_list(),
             base_result_path=Path("tmp_path"),
             skip_invalid_combinations=True
         )
@@ -204,7 +205,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 dmgr=dmgr,
                 datasets=datasets,
                 algorithms=self.algorithms + [algo],
-                metrics=Metric.default_list(),
+                metrics=DefaultMetrics.default_list(),
                 base_result_path=tmp_path,
                 force_training_type_match=True
             )
@@ -247,7 +248,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 dmgr=dmgr,
                 datasets=datasets,
                 algorithms=self.algorithms + [algo],
-                metrics=Metric.default_list(),
+                metrics=DefaultMetrics.default_list(),
                 base_result_path=tmp_path,
                 force_dimensionality_match=True
             )

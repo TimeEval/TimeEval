@@ -20,5 +20,5 @@ class DatasetIdHeuristic(TimeEvalParameterHeuristic):
     ...     param_config=FixedParameters({"dataset_id": "heuristic:DatasetIdHeuristic()"},
     ... )
     """
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Tuple[str, str]:
+    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Tuple[str, str]:  # type: ignore[no-untyped-def]
         return dataset_details.datasetId

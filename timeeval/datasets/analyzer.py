@@ -201,7 +201,7 @@ class DatasetAnalyzer:
             adftest = adfuller(series, autolag="AIC")
             adf_output = pd.Series(adftest[0:3], index=['Test Statistic', 'p-value', 'Lags Used'])
             self.log.debug(f"{self._log_prefix} Results of Augmented Dickey Fuller (ADF) test:\n{adf_output}")
-            return adf_output["p-value"] < sigma
+            return bool(adf_output["p-value"] < sigma)
         except Exception as e:
             self.log.error(f"{self._log_prefix} ADF stationarity test for {series.name} encountered an error: {e}")
             return False
@@ -212,7 +212,7 @@ class DatasetAnalyzer:
             kpss_output = pd.Series(kpsstest[0:3], index=['Test Statistic', 'p-value', 'Lags Used'])
             self.log.debug(f"{self._log_prefix} Results of Kwiatkowski-Phillips-Schmidt-Shin (KPSS) test:\n"
                            f"{kpss_output}")
-            return kpss_output["p-value"] < sigma
+            return bool(kpss_output["p-value"] < sigma)
         except Exception as e:
             self.log.error(
                 f"{self._log_prefix} KPSS trend stationarity test for {series.name} encountered an error: {e}")

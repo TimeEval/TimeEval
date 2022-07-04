@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 from freezegun import freeze_time
 
-from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, AlgorithmParameter, Metric
+from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, AlgorithmParameter, DefaultMetrics
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
-from timeeval.params import FullParameterGrid, FixedParameters
+from timeeval.params import FixedParameters
 from timeeval.utils.hash_dict import hash_dict
 
 
@@ -86,11 +86,11 @@ class TestOutputData(unittest.TestCase):
             tmp_path = Path(tmp_path)
             timeeval = TimeEval(self.datasets, [("custom", "dataset.1")], self.algorithms,
                                 results_path=tmp_path,
-                                metrics=[Metric.ROC_AUC, Metric.RANGE_PR_AUC])
+                                metrics=[DefaultMetrics.ROC_AUC, DefaultMetrics.RANGE_PR_AUC])
             timeeval.run()
 
             parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / self.hash / "custom" / "dataset.1" / "1"
             results = pd.read_csv(parent_path / METRICS_CSV)
 
-            self.assertAlmostEqual(0.8102250625173659, results.loc[0, "ROC_AUC"], places=4)
-            self.assertAlmostEqual(0.0002446183953033, results.loc[0, "RANGE_PR_AUC"], places=4)
+            self.assertAlmostEqual(0.8102, results.loc[0, "ROC_AUC"], places=4)
+            self.assertAlmostEqual(0.0004, results.loc[0, "RANGE_PR_AUC"], places=4)

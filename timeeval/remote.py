@@ -40,7 +40,7 @@ class Remote:
         self.log.info("... Dask SSH cluster successfully started!")
         self.disable_progress_bar = disable_progress_bar
 
-    def start_or_restart_cluster(self, n=0) -> SSHCluster:
+    def start_or_restart_cluster(self, n: int = 0) -> SSHCluster:
         if n >= 5:
             raise RuntimeError("Could not start an SSHCluster because there is already one running, "
                                "that cannot be stopped!")
@@ -62,16 +62,16 @@ class Remote:
                 return self.start_or_restart_cluster(n + 1)
             raise e
 
-    def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:
+    def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:  # type: ignore[no-untyped-def]
         config = config or {}
         self.log.debug(f"Submitting task {task} to cluster")
         future = self.client.submit(task, *args, **config, **kwargs)
         self.futures.append(future)
-        return future
+        return future  # type: ignore
 
     def run_on_all_hosts(self, tasks: List[Tuple[Callable, List, Dict]],
                          msg: str = "Executing remote tasks",
-                         progress: bool = True):
+                         progress: bool = True) -> None:
         self.log.debug(f"Running {len(tasks)} tasks on all cluster nodes and waiting for results")
         for task, args, kwargs in tqdm.tqdm(tasks, desc=msg, disable=self.disable_progress_bar or not progress):
             self.log.debug(f"({msg}) Running task '{task}' with args {args} and kwargs {kwargs}")
@@ -89,7 +89,7 @@ class Remote:
                 failed_on.append(host)
         return failed_on
 
-    def fetch_results(self):
+    def fetch_results(self) -> None:
         n_experiments = len(self.futures)
         self.log.debug(f"Waiting for the results of {n_experiments} tasks submitted previously to the cluster")
         coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
@@ -105,7 +105,7 @@ class Remote:
         progress_bar.update(n_experiments - progress_bar.n)
         progress_bar.close()
 
-    def close(self):
+    def close(self) -> None:
         self.log.debug("Shutting down Dask SSH cluster and Dask client")
         self.cluster.close()
         self.client.shutdown()

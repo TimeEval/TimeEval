@@ -17,8 +17,8 @@ class Algorithm:
     Moreover, it defines attributes that are necessary to help TimeEval know
     what kind of time series can be put into the algorithm.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     name : str
         The name of the Algorithm shown in the results.
     main : Adapter

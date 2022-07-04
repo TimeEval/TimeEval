@@ -2,7 +2,7 @@ import abc
 import logging
 from functools import reduce
 from pathlib import Path
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple, Any
 
 import numpy as np
 import pandas as pd
@@ -71,13 +71,13 @@ class Datasets(abc.ABC):
         df_temp.to_csv(filepath)
         return df_temp
 
-    def _get_value_internal(self, dataset_id: DatasetId, column_name: str):
+    def _get_value_internal(self, dataset_id: DatasetId, column_name: str) -> Any:
         try:
             return self._df.loc[dataset_id, column_name]
         except KeyError as e:
             raise KeyError(f"Dataset {dataset_id} was not found!") from e
 
-    def _build_custom_df(self):
+    def _build_custom_df(self) -> pd.DataFrame:
         def safe_extract_path(name: str, train: bool) -> Optional[str]:
             try:
                 return str(self._custom_datasets.get_path(name, train))
@@ -203,10 +203,10 @@ class Datasets(abc.ABC):
                 selectors.append(df["contamination"] <= max_contamination)
             default_mask = np.full(len(df), True)
             mask = reduce(lambda x, y: np.logical_and(x, y), selectors, default_mask)
-            bench_datasets = (df[mask]
-                              .loc[(slice(collection, collection), slice(dataset, dataset)), :]
-                              .index
-                              .to_list())
+            bench_datasets: List[Tuple[str, str]] = (
+                df[mask].loc[(slice(collection, collection), slice(dataset, dataset)), :]
+                .index
+                .to_list())
 
             return bench_datasets + custom_datasets
 
@@ -393,7 +393,8 @@ class Datasets(abc.ABC):
         values : ndarray
             The training or testing time series as a multi-dimensional array.
         """
-        return self.get_dataset_df(dataset_id, train).values
+        values: np.ndarray = self.get_dataset_df(dataset_id, train).values
+        return values
 
     def get_training_type(self, dataset_id: DatasetId) -> TrainingType:
         """Returns the training type of a specific dataset.

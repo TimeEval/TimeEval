@@ -3,7 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
-from timeeval import Algorithm, TrainingType, InputDimensionality, Metric, DatasetManager
+from timeeval import Algorithm, TrainingType, InputDimensionality, Metric, DefaultMetrics, DatasetManager
 from timeeval.experiments import Experiments
 from timeeval.params import FullParameterGrid
 
@@ -36,7 +36,7 @@ class TestExperiments(unittest.TestCase):
             datasets=datasets,
             algorithms=self.algorithms,
             repetitions=2,
-            metrics=Metric.default_list(),
+            metrics=DefaultMetrics.default_list(),
             base_result_path=Path("tmp_path"),
             skip_invalid_combinations=True
         )
@@ -56,7 +56,7 @@ class TestExperiments(unittest.TestCase):
             datasets=datasets,
             algorithms=algorithms,
             repetitions=1,
-            metrics=Metric.default_list(),
+            metrics=DefaultMetrics.default_list(),
             base_result_path=Path("tmp_path"),
             skip_invalid_combinations=False
         )

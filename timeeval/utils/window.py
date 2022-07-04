@@ -4,6 +4,7 @@ from itertools import cycle
 from typing import Optional, List
 
 import numpy as np
+import numpy.typing
 from sklearn.base import TransformerMixin
 
 
@@ -14,11 +15,11 @@ class Method(Enum):
 
     def fn(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if self == self.MEAN:
-            return np.nanmean(x, axis=axis)
+            return np.nanmean(x, axis=axis)  # type: ignore
         elif self == self.MEDIAN:
-            return np.nanmedian(x, axis=axis)
+            return np.nanmedian(x, axis=axis)  # type: ignore
         elif self == self.SUM:
-            return np.nansum(x, axis=axis)
+            return np.nansum(x, axis=axis)  # type: ignore
         else:
             raise ValueError("Reduction method isn't supported!")
 
@@ -28,7 +29,7 @@ class ReverseWindowing(TransformerMixin):
                  window_size: int,
                  reduction: Method = Method.MEAN,
                  n_jobs: int = 1,
-                 chunksize: Optional[int] = None):
+                 chunksize: Optional[int] = None) -> None:
         self.window_size = window_size
         self.reduction = reduction
         self.n_jobs = n_jobs
@@ -64,7 +65,7 @@ class ReverseWindowing(TransformerMixin):
         if is_chunk:
             scores = scores[:-(self.window_size - 1)]
 
-        return scores[~np.isnan(scores)]
+        return scores[~np.isnan(scores)]  # type: ignore
 
     def _reverse_windowing_parallel(self, scores: np.ndarray) -> np.ndarray:
         pool = mp.Pool(self.n_jobs)
@@ -76,7 +77,7 @@ class ReverseWindowing(TransformerMixin):
         else:
             windowed_scores_split = pool.starmap(self._chunk_and_vectorize, zip(scores_split, cycle([False]), cycle([False])))
 
-        return np.concatenate(windowed_scores_split)
+        return np.concatenate(windowed_scores_split)  # type: ignore
 
     def _chunk_array(self, X: np.ndarray, n_chunks: int, pad_start: bool = True, pad_end: bool = True) -> List[np.ndarray]:
         chunks = []
@@ -100,13 +101,13 @@ class ReverseWindowing(TransformerMixin):
             chunks.append(chunk)
         return chunks
 
-    def _vectorize_chunks(self, chunks: List[np.ndarray]):
-        chunked_scores = []
+    def _vectorize_chunks(self, chunks: List[np.ndarray]) -> np.ndarray:
+        chunked_scores: List[np.ndarray] = []
 
         for chunk in chunks:
             chunked_scores.append(self._reverse_windowing_vectorized_chunk(chunk))
 
-        return np.concatenate(chunked_scores)
+        return np.concatenate(chunked_scores)  # type: ignore
 
     def _chunk_and_vectorize(self, scores: np.ndarray, pad_start: bool = True, pad_end: bool = True) -> np.ndarray:
         if self.chunksize is None:
@@ -121,17 +122,17 @@ class ReverseWindowing(TransformerMixin):
         from pathlib import Path
 
         container_limit_file = Path("/sys/fs/cgroup/memory/memory.limit_in_bytes")
-        memory_limit = psutil.virtual_memory().available
+        memory_limit: int = psutil.virtual_memory().available
         if container_limit_file.exists():
             with container_limit_file.open("r") as fh:
                 container_limit = int(fh.read())
             if container_limit < 1 * 1024 ** 4:
                 memory_limit = container_limit
 
-        estimated_mem_usage = sys.getsizeof(float()) * (n + self.window_size - 1) * self.window_size
+        estimated_mem_usage: int = sys.getsizeof(float()) * (n + self.window_size - 1) * self.window_size
         return estimated_mem_usage <= memory_limit
 
-    def fit_transform(self, X, y=None, **fit_params) -> np.ndarray:
+    def fit_transform(self, X: np.ndarray, y=None, **fit_params) -> np.ndarray:  # type: ignore[no-untyped-def]
         if self.n_jobs > 1:
             return self._reverse_windowing_parallel(X)
         elif self.chunksize is not None:

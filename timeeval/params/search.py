@@ -32,8 +32,8 @@ class ParameterConfig(abc.ABC, Iterable, Sized):
         """Number of points on the grid."""
         return len(self.param_grid)
 
-    def __getitem__(self, i) -> Dict[str, Any]:
-        return self.param_grid[i]
+    def __getitem__(self, i: int) -> Dict[str, Any]:
+        return self.param_grid[i]  # type: ignore
 
     @staticmethod
     def defaults() -> "ParameterConfig":

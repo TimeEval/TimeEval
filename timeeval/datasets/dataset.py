@@ -28,7 +28,7 @@ class Dataset:
         return self.datasetId[1]
 
     @property
-    def collection_name(self):
+    def collection_name(self) -> str:
         return self.datasetId[0]
 
     @property
