@@ -88,8 +88,20 @@ class TestMetrics(unittest.TestCase):
     def test_fixed_range_based_pr_auc(self):
         y_pred = np.array([0, 0.1, 1., .5, 0.1, 0])
         y_true = np.array([0, 1, 1, 1, 0, 0])
+        result = DefaultMetrics.FIXED_RANGE_PR_AUC(y_true, y_pred)
+        self.assertAlmostEqual(result, 0.9792, places=4)
+
+    def test_range_based_pr_auc_discrete(self):
+        y_pred = np.array([0.05, 0.2, 1., 0.2, 0.1, 0.05, 0.1, 0.05, 0.1, 0.07])
+        y_true = np.array([0, 1, 1, 1, 0, 0, 0, 0, 0, 0])
         result = DefaultMetrics.RANGE_PR_AUC(y_true, y_pred)
-        self.assertAlmostEqual(result, 0.9583, places=4)
+        self.assertAlmostEqual(result, 1.000, places=4)
+
+    def test_fixed_range_based_pr_auc_discrete(self):
+        y_pred = np.array([0.05, 0.2, 1., 0.2, 0.1, 0.05, 0.1, 0.05, 0.1, 0.07])
+        y_true = np.array([0, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+        result = DefaultMetrics.FIXED_RANGE_PR_AUC(y_true, y_pred)
+        self.assertAlmostEqual(result, 1.000, places=4)
 
     def test_precision_at_k(self):
         y_pred = np.array([0, 0.1, 1., .5, 0.1, 0, 0.4, 0.5])

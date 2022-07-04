@@ -216,7 +216,8 @@ class RangePrAUC(Metric):
                                          alpha=self._p_alpha,
                                          cardinality=self._cardinality,
                                          bias=self._bias)
-        sorted_idx = recalls.argsort()[::-1]
+        # first sort by recall, then by precision to break ties (important for noisy scorings)
+        sorted_idx = np.lexsort((precisions * (-1), recalls))[::-1]
         return np.r_[p0, precisions[sorted_idx], 1], np.r_[r0, recalls[sorted_idx], 0], thresholds
 
     def supports_continuous_scorings(self) -> bool:
@@ -389,11 +390,14 @@ def _find_threshold(y_true: np.ndarray, y_score: np.ndarray, k: Optional[int] = 
     if k is None:
         k = _count_anomaly_ranges(y_true)
     thresholds = np.unique(y_score)[::-1]
+    t = y_score.max()
+    y_pred = (y_score >= t).astype(np.int_)
     for t in thresholds:
         y_pred = (y_score >= t).astype(np.int_)
         detected_n = _count_anomaly_ranges(y_pred)
         if detected_n >= k:
-            return t, y_pred
+            break
+    return t, y_pred
 
 
 class FScoreAtK(Metric):
@@ -414,7 +418,8 @@ class FScoreAtK(Metric):
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         threshold, y_pred = _find_threshold(y_true, y_score, k=self._k)
-        return ts_fscore(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
+        score: float = ts_fscore(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
+        return score
 
     def supports_continuous_scorings(self) -> bool:
         return True
@@ -442,7 +447,8 @@ class PrecisionAtK(Metric):
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         threshold, y_pred = _find_threshold(y_true, y_score, k=self._k)
-        return ts_precision(y_true, y_pred, alpha=1, cardinality="reciprocal")
+        score: float = ts_precision(y_true, y_pred, alpha=1, cardinality="reciprocal")
+        return score
 
     def supports_continuous_scorings(self) -> bool:
         return True
