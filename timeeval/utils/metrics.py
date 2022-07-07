@@ -170,7 +170,8 @@ class RangePrAUC(Metric):
                  cardinality: str = "reciprocal",
                  bias: str = "flat",
                  plot: bool = False,
-                 plot_store: bool = False) -> None:
+                 plot_store: bool = False,
+                 name: str = "RANGE_PR_AUC") -> None:
         self._plot = plot
         self._plot_store = plot_store
         self._max_samples = max_samples
@@ -178,6 +179,7 @@ class RangePrAUC(Metric):
         self._p_alpha = p_alpha
         self._cardinality = cardinality
         self._bias = bias
+        self._name = name
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         return _auc_metric(y_true, y_score, self._range_precision_recall_curve,
@@ -225,7 +227,7 @@ class RangePrAUC(Metric):
 
     @property
     def name(self) -> str:
-        return "RANGE_PR_AUC"
+        return self._name
 
 
 class AveragePrecision(Metric):
@@ -466,7 +468,7 @@ class DefaultMetrics:
     RANGE_PRECISION = RangePrecision()
     RANGE_RECALL = RangeRecall()
     RANGE_F1 = RangeFScore(beta=1)
-    FIXED_RANGE_PR_AUC = RangePrAUC()
+    FIXED_RANGE_PR_AUC = RangePrAUC(name="FIXED_RANGE_PR_AUC")
 
     @staticmethod
     def default() -> Metric:

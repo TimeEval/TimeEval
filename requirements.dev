@@ -1,5 +1,8 @@
 -r requirements.ci
 
+# for scripts
+multiprocessing_logging
+
 # for notebooks
 jupyterlab
 wfdb

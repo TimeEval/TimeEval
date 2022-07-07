@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 
 
@@ -49,8 +49,18 @@ class HPI_CLUSTER:
         odin11_ip, odin12_ip, odin13_ip, odin14_ip
     ]
 
-    akita_benchmark_path: Path = Path("/home/projects/akita/data/benchmark-data/data-processed")
-    akita_test_case_path: Path = Path("/home/projects/akita/data/test-cases")
-    akita_multivariate_test_case_path: Path = Path("/home/projects/akita/data/multivariate-test-cases")
-    akita_correlation_anomalies_path: Path = Path("/home/projects/akita/data/correlation-anomalies")
-    akita_test_case_variable_length_path: Path = Path("/home/projects/akita/data/variable-length")
+    BENCHMARK = "benchmark"
+    CORRELATION_ANOMALIES = "correlation-anomalies"
+    UNIVARIATE_ANOMALY_TEST_CASES = "univariate-anomaly-test-cases"
+    MULTIVARIATE_ANOMALY_TEST_CASES = "multivariate-anomaly-test-cases"
+    MULTIVARIATE_TEST_CASES = "multivariate-test-cases"
+    VARIABLE_LENGTH_TEST_CASES = "variable-length"
+
+    akita_dataset_paths: Dict[str, Path] = {
+        BENCHMARK: Path("/home/projects/akita/data/benchmark-data/data-processed"),
+        CORRELATION_ANOMALIES: Path("/home/projects/akita/data/correlation-anomalies"),
+        VARIABLE_LENGTH_TEST_CASES: Path("/home/projects/akita/data/variable-length"),
+        UNIVARIATE_ANOMALY_TEST_CASES: Path("/home/projects/akita/data/univariate-anomaly-test-cases"),
+        MULTIVARIATE_ANOMALY_TEST_CASES: Path("/home/projects/akita/data/multivariate-anomaly-test-cases"),
+        MULTIVARIATE_TEST_CASES: Path("/home/projects/akita/data/multivariate-test-cases")
+    }
