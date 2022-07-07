@@ -8,12 +8,13 @@ from typing import List, Dict, Optional
 import numpy as np
 import pandas as pd
 
-from timeeval import Algorithm, Status, Datasets, Metric
+from timeeval import Algorithm, Status, Metric, DefaultMetrics, MultiDatasetManager
 from timeeval.adapters.docker import SCORES_FILE_NAME as DOCKER_SCORES_FILE_NAME
 from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, ANOMALY_SCORES_TS
 from timeeval.data_types import ExecutionType
 from timeeval.experiments import Experiment as TimeEvalExperiment
 from timeeval.utils.datasets import load_labels_only
+from timeeval.utils.metrics import PrecisionAtK, FScoreAtK
 
 # required to build a lookup-table for algorithm implementations
 import timeeval_experiments.algorithms as algorithms
@@ -30,13 +31,13 @@ def path_is_empty(path: Path) -> bool:
 
 class Evaluator:
 
-    def __init__(self, results_path: Path, data_path: Path, metrics: List[Metric]):
+    def __init__(self, results_path: Path, data_paths: List[Path], metrics: List[Metric]):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.results_path = results_path
-        self.data_path = data_path
+        self.data_paths = data_paths
         self.metrics = metrics
         self.algos = self._build_algorithm_dict()
-        self.dmgr = Datasets(data_path, create_if_missing=False)
+        self.dmgr = MultiDatasetManager(data_paths)
         self.df: pd.DataFrame = pd.read_csv(results_path / RESULTS_CSV)
 
         self._logger.warning(f"The Evaluator changes the results folder ({self.results_path}) in-place! "
@@ -162,6 +163,16 @@ class Evaluator:
                 / str(exp.repetition))
 
 
+_metrics = {
+    DefaultMetrics.ROC_AUC.name: DefaultMetrics.ROC_AUC,
+    DefaultMetrics.PR_AUC.name: DefaultMetrics.PR_AUC,
+    DefaultMetrics.FIXED_RANGE_PR_AUC.name: DefaultMetrics.FIXED_RANGE_PR_AUC,
+    DefaultMetrics.AVERAGE_PRECISION.name: DefaultMetrics.AVERAGE_PRECISION,
+    PrecisionAtK().name: PrecisionAtK(),
+    FScoreAtK().name: FScoreAtK()
+}
+
+
 def _create_arg_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Takes an experiment result folder and re-evaluates (standardization and metric calculation) "
@@ -169,17 +180,16 @@ def _create_arg_parser() -> argparse.Namespace:
     )
     parser.add_argument("result_folder", type=Path,
                         help="Folder of the experiment")
-    parser.add_argument("data_folder", type=Path,
-                        help="Folder, where the datasets from the experiment are stored.")
+    parser.add_argument("data_folders", type=Path, nargs="*",
+                        help="Folders, where the datasets from the experiment are stored.")
     parser.add_argument("--select", type=Path,
                         help="Experiments to reevaluate (indices to results.csv; single column with header 'index').")
     parser.add_argument("--loglevel", default="INFO", choices=("ERROR", "WARNING", "INFO", "DEBUG"),
                         help="Set logging verbosity (default: %(default)s)")
     parser.add_argument("-f", "--force", action="store_true",
                         help="Set this flag if successful experiments (Status.OK) should be reevaluated as well")
-    all_metric_choices = [Metric.ROC_AUC.name, Metric.PR_AUC.name, Metric.RANGE_PR_AUC.name,
-                          Metric.AVERAGE_PRECISION.name]
-    parser.add_argument("--metrics", type=str, nargs="*", default=all_metric_choices, choices=all_metric_choices,
+    parser.add_argument("--metrics", type=str, nargs="*", default=["ROC_AUC", "PR_AUC", "RANGE_PR_AUC"],
+                        choices=list(_metrics.keys()),
                         help="Metrics to re-calculate. (default: %(default)s)")
     return parser.parse_args()
 
@@ -188,7 +198,7 @@ if __name__ == "__main__":
     args = _create_arg_parser()
     logging.basicConfig(level=args.loglevel)
     selected_metrics = args.metrics
-    selected_metrics = [Metric[m] for m in selected_metrics]
+    selected_metrics = [_metrics[m] for m in selected_metrics]
 
-    rs = Evaluator(args.result_folder, args.data_folder, selected_metrics)
+    rs = Evaluator(args.result_folder, args.data_folders, selected_metrics)
     rs.evaluate(args.select, args.force)
