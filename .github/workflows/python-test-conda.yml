@@ -1,6 +1,9 @@
 name: Python Test using Conda
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches: [main]
 
 jobs:
   test:
@@ -56,6 +59,7 @@ jobs:
         color: green
         namedLogo: pytest
     - name: Upload Coverage to Codecov
+      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
       uses: codecov/codecov-action@v3
       with:
         files: coverage.xml

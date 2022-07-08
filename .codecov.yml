@@ -1,0 +1,19 @@
+codecov:
+  bot: "codecov-io"
+coverage:
+  range: 70..90
+  round: down
+  precision: 2
+  status:
+    project:
+      default:
+        # basic
+        target: 80%
+        threshold: 2%
+        paths:
+          - "timeeval"
+        if_ci_failed: error #success, failure, error, ignore
+        only_pulls: false
+ignore:
+  - "tests/*"
+  - "timeeval_experiments/*"
