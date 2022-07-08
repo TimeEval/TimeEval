@@ -1,6 +1,6 @@
 name: Python Test using Conda
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   test:
@@ -55,3 +55,8 @@ jobs:
         message: ${{ env.COVERAGE }}
         color: green
         namedLogo: pytest
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: coverage.xml
+        flags: unittests
