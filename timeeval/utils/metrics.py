@@ -11,6 +11,9 @@ from sklearn.utils import column_or_1d, assert_all_finite, check_consistent_leng
 class Metric(abc.ABC):
     def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:  # type: ignore[no-untyped-def]
         y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
+        if np.unique(y_score).shape[0] == 1:
+            warnings.warn("Cannot compute metric for a constant value in y_score, returning 0.0!")
+            return 0.
         return self.score(y_true, y_score)
 
     def _validate_scores(self, y_true: np.ndarray, y_score: np.ndarray,
@@ -20,7 +23,7 @@ class Metric(abc.ABC):
         y_true = np.array(y_true).copy()
         y_score = np.array(y_score).copy()
         # check labels
-        if y_true.dtype == np.float_ and y_score.dtype == np.int_:
+        if self.supports_continuous_scorings() and y_true.dtype == np.float_ and y_score.dtype == np.int_:
             warnings.warn("Assuming that y_true and y_score where permuted, because their dtypes indicate so. "
                           "y_true should be an integer array and y_score a float array!")
             return self._validate_scores(y_score, y_true)
@@ -164,7 +167,7 @@ class RangePrAUC(Metric):
     """
 
     def __init__(self,
-                 max_samples: int = 100,
+                 max_samples: int = 50,
                  r_alpha: float = 0.5,
                  p_alpha: float = 0,
                  cardinality: str = "reciprocal",
@@ -275,10 +278,12 @@ class RangePrecision(Metric):
        1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
-    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat") -> None:
+    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat",
+                 name: str = "RANGE_PRECISION") -> None:
         self._alpha = alpha
         self._cardinality = cardinality
         self._bias = bias
+        self._name = name
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         score: float = ts_precision(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
@@ -289,7 +294,7 @@ class RangePrecision(Metric):
 
     @property
     def name(self) -> str:
-        return "RANGE_PRECISION"
+        return self._name
 
 
 class RangeRecall(Metric):
@@ -309,10 +314,12 @@ class RangeRecall(Metric):
        1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
-    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat") -> None:
+    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat",
+                 name: str = "RANGE_RECALL") -> None:
         self._alpha = alpha
         self._cardinality = cardinality
         self._bias = bias
+        self._name = name
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         score: float = ts_recall(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
@@ -323,7 +330,7 @@ class RangeRecall(Metric):
 
     @property
     def name(self) -> str:
-        return "RANGE_RECALL"
+        return self._name
 
 
 class RangeFScore(Metric):
@@ -360,13 +367,15 @@ class RangeFScore(Metric):
                  r_alpha: float = 0.5,
                  cardinality: str = "reciprocal",
                  p_bias: str = "flat",
-                 r_bias: str = "flat") -> None:
+                 r_bias: str = "flat",
+                 name: Optional[str] = None) -> None:
         self._beta = beta
         self._p_alpha = p_alpha
         self._r_alpha = r_alpha
         self._cardinality = cardinality
         self._p_bias = p_bias
         self._r_bias = r_bias
+        self._name = f"RANGE_F{self._beta:.2f}_SCORE" if name is None else name
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         score: float = ts_fscore(y_true, y_score,
@@ -381,7 +390,7 @@ class RangeFScore(Metric):
 
     @property
     def name(self) -> str:
-        return f"RANGE_F{self._beta:.1f}_SCORE"
+        return self._name
 
 
 def _count_anomaly_ranges(y_pred: np.ndarray) -> int:
@@ -392,9 +401,10 @@ def _find_threshold(y_true: np.ndarray, y_score: np.ndarray, k: Optional[int] = 
     if k is None:
         k = _count_anomaly_ranges(y_true)
     thresholds = np.unique(y_score)[::-1]
-    t = y_score.max()
+    t = thresholds[0]
     y_pred = (y_score >= t).astype(np.int_)
-    for t in thresholds:
+    # exclude minimum from thresholds, because all points are >= minimum!
+    for t in thresholds[1:-1]:
         y_pred = (y_score >= t).astype(np.int_)
         detected_n = _count_anomaly_ranges(y_pred)
         if detected_n >= k:

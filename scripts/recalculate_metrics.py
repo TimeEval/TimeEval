@@ -1,7 +1,6 @@
 import argparse
 import logging
 import multiprocessing
-import sys
 
 import multiprocessing_logging
 import time
@@ -11,11 +10,13 @@ from typing import List, Dict
 import numpy as np
 import pandas as pd
 from joblib import delayed, Parallel
+from tqdm import tqdm
 
 from timeeval import Algorithm, Metric, DefaultMetrics, MultiDatasetManager
 from timeeval.constants import RESULTS_CSV, METRICS_CSV, ANOMALY_SCORES_TS
 from timeeval.utils.datasets import load_labels_only
 from timeeval.utils.metrics import PrecisionAtK, FScoreAtK
+from timeeval.utils.tqdm_joblib import tqdm_joblib
 
 
 # required to build a lookup-table for algorithm implementations
@@ -33,8 +34,10 @@ def init_logging():
 
     if len(logging.root.handlers) == 0:
         logging.basicConfig(
-            stream=sys.stdout,
-            level="INFO"
+            filename="recalculate_metrics.log",
+            filemode="w",
+            level=logging.INFO,
+            format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
         )
         multiprocessing_logging.install_mp_handler()
 
@@ -88,9 +91,10 @@ class MetricComputor:
     def recompute(self, recompute_existing: bool = False):
         exp_indices = self.df.index.values
         self._logger.info(f"Re-computing the metrics of {len(exp_indices)} experiments from folder {self.results_path}")
-        updated_entries: List[pd.Series] = Parallel(n_jobs=self._n_jobs)(
-            delayed(self._process_entry)(self.df.iloc[i].copy(), i, recompute_existing) for i in exp_indices
-        )
+        with tqdm_joblib(tqdm(desc="Re-computing metrics", total=len(exp_indices))):
+            updated_entries: List[pd.Series] = Parallel(n_jobs=self._n_jobs)(
+                delayed(self._process_entry)(self.df.iloc[i].copy(), i, recompute_existing) for i in exp_indices
+            )
         self.df = pd.DataFrame(updated_entries)
         self._logger.info(f"Overwriting results file at {self.results_path / RESULTS_CSV}")
         self.df.to_csv(self.results_path / RESULTS_CSV, index=False)
