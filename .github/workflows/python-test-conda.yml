@@ -1,0 +1,57 @@
+name: Python Test using Conda
+
+on: [push]
+
+jobs:
+  test:
+    name: Build and test TimeEval on ${{ matrix.os }} with python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 3
+      matrix:
+        os: [ubuntu-latest]
+        python_version: ["3.7", "3.8", "3.9"]
+      fail-fast: false
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2.1.1
+      with:
+        auto-update-conda: true
+        environment-file: environment.yaml
+        python-version: ${{ matrix.python_version }}
+    - name: Install CI dependencies
+      run: |
+        pip install -r requirements.ci
+    - name: Typcheck with mypy
+      run: |
+        python setup.py typecheck
+    - name: Test with pytest
+      run: |
+        python setup.py test
+    - name: Extract test coverage
+      run: |
+        SUMMARY=$(sed -n "s/^<coverage.*line-rate=\"\([0-9.]*\)\".*>$/\1/p" coverage.xml)
+        echo "COVERAGE=$(echo ${SUMMARY})" >> $GITHUB_ENV
+        echo "Extracted coverage data: ${COVERAGE}"
+        REF=${{ github.ref }}
+        IFS='/' read -ra PATHS <<< "$REF"
+        BRANCH_NAME="${PATHS[1]}_${PATHS[2]}"
+        echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
+        echo "Extracted branch name: $BRANCH_NAME"
+    - name: Create coverage badge
+      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
+      uses: schneegans/dynamic-badges-action@v1.0.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: 6762bee806477c52e079f21d2f252688
+        filename: timeeval__${{ env.BRANCH }}.json
+        label: Test Coverage
+        message: ${{ env.COVERAGE }}
+        color: green
+        namedLogo: pytest
