@@ -2,7 +2,7 @@
 from pathlib import Path
 
 
-from timeeval import TimeEval, DatasetManager, Metric, Algorithm, TrainingType, InputDimensionality
+from timeeval import TimeEval, DatasetManager, DefaultMetrics, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 from timeeval.params import FixedParameters
 
@@ -23,7 +23,7 @@ def main():
         input_dimensionality=InputDimensionality("multivariate")
     )
 
-    timeeval = TimeEval(dm, datasets, [algorithm], metrics=[Metric.ROC_AUC, Metric.RANGE_PR_AUC])
+    timeeval = TimeEval(dm, datasets, [algorithm], metrics=[DefaultMetrics.ROC_AUC, DefaultMetrics.RANGE_PR_AUC])
 
     timeeval.run()
     print(timeeval.get_results(aggregated=False))

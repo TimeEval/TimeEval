@@ -6,7 +6,7 @@ from pathlib import Path
 
 from durations import Duration
 
-from timeeval import TimeEval, Datasets, RemoteConfiguration, ResourceConstraints, Metric
+from timeeval import TimeEval, DatasetManager, RemoteConfiguration, ResourceConstraints, DefaultMetrics
 from timeeval.constants import HPI_CLUSTER
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
@@ -26,8 +26,8 @@ random.seed(42)
 
 
 def main():
-    # dm = Datasets(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
-    dm = Datasets(Path("tests/example_data"))
+    # dm = DatasetManager(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
+    dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="timeeval_experiments/param-config.example.json")
 
     # Select datasets and algorithms
@@ -125,7 +125,7 @@ def main():
                         # remote_config=cluster_config,
                         resource_constraints=limits,
                         skip_invalid_combinations=True,
-                        metrics=[Metric.ROC_AUC, Metric.RANGE_PR_AUC]
+                        metrics=[DefaultMetrics.ROC_AUC, DefaultMetrics.RANGE_PR_AUC]
                         )
 
     timeeval.run()
