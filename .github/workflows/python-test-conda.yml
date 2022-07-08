@@ -23,7 +23,7 @@ jobs:
       uses: conda-incubator/setup-miniconda@v2.1.1
       with:
         auto-update-conda: true
-        environment-file: environment.yaml
+        environment-file: environment.yml
         python-version: ${{ matrix.python_version }}
     - name: Install CI dependencies
       run: |
