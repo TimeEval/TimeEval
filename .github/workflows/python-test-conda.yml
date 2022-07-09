@@ -12,7 +12,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         python_version: ["3.7", "3.8", "3.9"]
       fail-fast: false
 
@@ -38,6 +38,7 @@ jobs:
       run: |
         python setup.py test
     - name: Extract test coverage
+      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
       run: |
         SUMMARY=$(sed -n "s/^<coverage.*line-rate=\"\([0-9.]*\)\".*>$/\1/p" coverage.xml)
         echo "COVERAGE=$(echo ${SUMMARY})" >> $GITHUB_ENV
