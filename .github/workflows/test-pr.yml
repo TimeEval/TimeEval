@@ -1,0 +1,45 @@
+name: Python Test using Conda for pull requests
+
+on:
+  pull_request:
+
+# Required shell entrypoint to have properly activated conda environments
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  test:
+    name: Build and test TimeEval on ${{ matrix.os }} with python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 3
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        python_version: ["3.7"]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2.1.1
+      with:
+        use-mamba: true
+        auto-update-conda: true
+        environment-file: environment.yml
+        python-version: ${{ matrix.python_version }}
+    - name: Install CI dependencies
+      run: |
+        pip install -r requirements.ci
+    - name: Typcheck with mypy
+      run: |
+        python setup.py typecheck
+    - name: Test with pytest
+      run: |
+        python setup.py test
+    - name: Upload Coverage to Codecov
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      uses: codecov/codecov-action@v3
+      with:
+        files: coverage.xml
+        flags: unittests

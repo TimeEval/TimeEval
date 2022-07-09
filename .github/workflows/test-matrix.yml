@@ -1,7 +1,6 @@
 name: Python Test using Conda
 
 on:
-  pull_request:
   push:
     branches: [main]
 

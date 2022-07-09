@@ -6,6 +6,7 @@ Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 </p>
 
 ![pipeline status](https://gitlab.hpi.de/akita/timeeval/badges/main/pipeline.svg)
+![coverage report](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/CodeLionX/6762bee806477c52e079f21d2f252688/raw/timeeval__heads_main.json)
 [![codecov](https://codecov.io/gh/HPI-Information-Systems/TimeEval/branch/main/graph/badge.svg?token=esrQJQmMQe)](https://codecov.io/gh/HPI-Information-Systems/TimeEval)
 [![PyPI version](https://badge.fury.io/py/TimeEval.svg)](https://badge.fury.io/py/TimeEval)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
