@@ -25,9 +25,9 @@ class MockDockerContainer:
         self.volumes = volumes
         self.run_kwargs = kwargs
 
-        real_path = list(volumes.items())[1][0]
+        real_path = Path(list(volumes.items())[1][0]).resolve()
         if self._write_scores_file:
-            np.arange(10, dtype=np.float64).tofile(real_path.resolve() / Path(SCORES_FILE_NAME), sep="\n")
+            np.arange(10, dtype=np.float64).tofile(real_path / SCORES_FILE_NAME, sep="\n")
         return self
 
     def prune(self, *args, **kwargs) -> None:
