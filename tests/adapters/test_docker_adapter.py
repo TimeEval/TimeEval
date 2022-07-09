@@ -53,10 +53,10 @@ class TestDockerAdapter(unittest.TestCase):
         mock_client.return_value = mock_docker_client
         results_path = Path("./results/")
         input_string = 'execute-algorithm \'{' \
-                       f'"dataInput": "{DATASET_TARGET_PATH}/test.csv", ' \
-                       f'"dataOutput": "{RESULTS_TARGET_PATH}/{SCORES_FILE_NAME}", ' \
-                       f'"modelInput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
-                       f'"modelOutput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
+                       f'"dataInput": "{DATASET_TARGET_PATH / "test.csv"}", ' \
+                       f'"dataOutput": "{RESULTS_TARGET_PATH / SCORES_FILE_NAME}", ' \
+                       f'"modelInput": "{RESULTS_TARGET_PATH / MODEL_FILE_NAME}", ' \
+                       f'"modelOutput": "{RESULTS_TARGET_PATH / MODEL_FILE_NAME}", ' \
                        '"executionType": "train", ' \
                        '"customParameters": {"a": 0}' \
                        '}\''
@@ -72,8 +72,8 @@ class TestDockerAdapter(unittest.TestCase):
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_results_at_correct_location(self, mock_client):
-        mock_docker_client = MockDockerClient()
-        mock_client.return_value = mock_docker_client
+        docker_mock = MockDockerClient(write_scores_file=True)
+        mock_client.return_value = docker_mock
 
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter("test-image")
@@ -91,7 +91,7 @@ class TestDockerAdapter(unittest.TestCase):
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_sets_default_resource_constraints(self, mock_client):
-        docker_mock = MockDockerClient()
+        docker_mock = MockDockerClient(write_scores_file=True)
         mock_client.return_value = docker_mock
 
         with tempfile.TemporaryDirectory() as tmp_path:
@@ -115,7 +115,7 @@ class TestDockerAdapter(unittest.TestCase):
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_overwrite_resource_constraints(self, mock_client):
-        docker_mock = MockDockerClient()
+        docker_mock = MockDockerClient(write_scores_file=True)
         mock_client.return_value = docker_mock
         mem_overwrite = 500
         cpu_overwrite = 0.25

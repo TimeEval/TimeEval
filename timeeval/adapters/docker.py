@@ -202,7 +202,7 @@ class DockerAdapter(Adapter):
             raise DockerAlgorithmFailedError(f"Please consider log files in {self._results_path(args, absolute=True)}!")
 
     def _read_results(self, args: dict) -> np.ndarray:
-        results: np.ndarray = np.genfromtxt(self._results_path(args) / SCORES_FILE_NAME, delimiter=",")
+        results: np.ndarray = np.genfromtxt(self._results_path(args, absolute=True) / SCORES_FILE_NAME, delimiter=",")
         return results
 
     # Adapter overwrites

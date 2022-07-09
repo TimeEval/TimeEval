@@ -72,7 +72,7 @@ class TestDistributedTimeEval(unittest.TestCase):
     def test_distributed_phases(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
         mock_client.return_value = MockDaskClient()
         mock_cluster.return_value = MockDaskSSHCluster(workers=2)
-        mock_docker.return_value = MockDockerClient()
+        mock_docker.return_value = MockDockerClient(write_scores_file=True)
         rsync = MockRsync()
         mock_call.side_effect = rsync
         mock_popen.return_value = MockProcess()
@@ -100,7 +100,7 @@ class TestDistributedTimeEval(unittest.TestCase):
 
     @patch("timeeval.adapters.docker.docker.from_env")
     def test_phases(self, mock_docker):
-        mock_docker.return_value = MockDockerClient()
+        mock_docker.return_value = MockDockerClient(write_scores_file=True)
 
         datasets_config = Path("./tests/example_data/datasets.json")
         datasets = DatasetManager("./tests/example_data", custom_datasets_file=datasets_config)

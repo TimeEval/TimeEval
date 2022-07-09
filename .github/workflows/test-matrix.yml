@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
 
+# Required shell entrypoint to have properly activated conda environments
+defaults:
+  run:
+    shell: bash -l {0}
+
 jobs:
   test:
     name: Build and test TimeEval on ${{ matrix.os }} with python ${{ matrix.python_version }}
@@ -16,15 +21,13 @@ jobs:
         python_version: ["3.7", "3.8", "3.9"]
       fail-fast: false
 
-    defaults:
-      run:
-        shell: bash -l {0}
 
     steps:
     - uses: actions/checkout@v3
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.1.1
       with:
+        use-mamba: true
         auto-update-conda: true
         environment-file: environment.yml
         python-version: ${{ matrix.python_version }}
@@ -50,7 +53,7 @@ jobs:
         echo "Extracted branch name: $BRANCH_NAME"
     - name: Create coverage badge
       if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
-      uses: schneegans/dynamic-badges-action@v1.0.0
+      uses: schneegans/dynamic-badges-action@v1.4.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: 6762bee806477c52e079f21d2f252688
