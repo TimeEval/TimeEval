@@ -16,8 +16,8 @@ from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
 from ..resource_constraints import ResourceConstraints, GB
 
-DATASET_TARGET_PATH = "/data"
-RESULTS_TARGET_PATH = "/results"
+DATASET_TARGET_PATH = PosixPath("/data")
+RESULTS_TARGET_PATH = PosixPath("/results")
 SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
@@ -118,10 +118,10 @@ class DockerAdapter(Adapter):
         client = docker.from_env()
 
         algorithm_interface = AlgorithmInterface(
-            dataInput=(Path(DATASET_TARGET_PATH) / dataset_path.name).absolute(),
-            dataOutput=(Path(RESULTS_TARGET_PATH) / SCORES_FILE_NAME).absolute(),
-            modelInput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
-            modelOutput=(Path(RESULTS_TARGET_PATH) / MODEL_FILE_NAME).absolute(),
+            dataInput=(DATASET_TARGET_PATH / dataset_path.name).resolve(),
+            dataOutput=(RESULTS_TARGET_PATH / SCORES_FILE_NAME).resolve(),
+            modelInput=(RESULTS_TARGET_PATH / MODEL_FILE_NAME).resolve(),
+            modelOutput=(RESULTS_TARGET_PATH / MODEL_FILE_NAME).resolve(),
             executionType=args.get("executionType", ExecutionType.EXECUTE.value),
             customParameters=args.get("hyper_params", {}),
         )
@@ -140,8 +140,8 @@ class DockerAdapter(Adapter):
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
             volumes={
-                str(dataset_path.parent.absolute()): {'bind': DATASET_TARGET_PATH, 'mode': 'ro'},
-                str(self._results_path(args, absolute=True)): {'bind': RESULTS_TARGET_PATH, 'mode': 'rw'}
+                str(dataset_path.parent.resolve()): {"bind": DATASET_TARGET_PATH, "mode": "ro"},
+                str(self._results_path(args, absolute=True)): {"bind": RESULTS_TARGET_PATH, "mode": "rw"}
             },
             environment={
                 "LOCAL_GID": gid,

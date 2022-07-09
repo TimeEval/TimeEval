@@ -242,12 +242,12 @@ def test_get_dataset_df_datetime_parsing():
     df = dm.get_dataset_df(("test", "dataset-datetime"))
     assert df["timestamp"].dtype == np.dtype("<M8[ns]")
     df = dm.get_dataset_df(("test", "dataset-int"))
-    assert df["timestamp"].dtype == np.dtype("int")
+    assert df["timestamp"].dtype == np.dtype("int64")
     # custom datasets
     df = dm.get_dataset_df(("custom", "dataset.1.train"), train=False)
     assert df["timestamp"].dtype == np.dtype("<M8[ns]")
     df = dm.get_dataset_df(("custom", "dataset.1.train"), train=True)
-    assert df["timestamp"].dtype == np.dtype("int")
+    assert df["timestamp"].dtype == np.dtype("int64")
 
 
 def test_get_dataset_path_missing(tmp_path):

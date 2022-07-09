@@ -52,14 +52,13 @@ class TestDockerAdapter(unittest.TestCase):
         mock_docker_client = MockDockerClient()
         mock_client.return_value = mock_docker_client
         results_path = Path("./results/")
-        input_string = 'execute-algorithm \'{' \
-                       f'"dataInput": "{DATASET_TARGET_PATH}/test.csv", ' \
-                       f'"dataOutput": "{RESULTS_TARGET_PATH}/{SCORES_FILE_NAME}", ' \
-                       f'"modelInput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
-                       f'"modelOutput": "{RESULTS_TARGET_PATH}/{MODEL_FILE_NAME}", ' \
-                       '"executionType": "train", ' \
-                       '"customParameters": {"a": 0}' \
-                       '}\''
+        input_string = ('execute-algorithm \'{'
+                        f'"dataInput": "{(DATASET_TARGET_PATH / "test.csv").resolve()}", '
+                        f'"dataOutput": "{(RESULTS_TARGET_PATH / SCORES_FILE_NAME).resolve()}", '
+                        f'"modelInput": "{(RESULTS_TARGET_PATH / MODEL_FILE_NAME).resolve()}", '
+                        f'"modelOutput": "{(RESULTS_TARGET_PATH / MODEL_FILE_NAME).resolve()}", '
+                        '"executionType": "train", "customParameters": {"a": 0}'
+                        '}\'')
 
         adapter = DockerAdapter("test-image")
         adapter._run_container(Path("/tmp/test.csv"), {

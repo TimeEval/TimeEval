@@ -23,11 +23,11 @@ class TestCodeGen(unittest.TestCase):
                 sys.executable,
                 "-c",
                 "from algorithms import timeeval_test_algorithm; algo = timeeval_test_algorithm(skip_pull=True); "
-                "print(algo.name); print(algo.training_type.value); print(algo.input_dimensionality.value); "
-                "print(f\"{algo.main.image_name}:{algo.main.tag}\")"
+                "print(algo.name, algo.training_type.value, algo.input_dimensionality.value, "
+                "f'{algo.main.image_name}:{algo.main.tag}', end='')"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm\nunsupervised\nmultivariate\nregistry.gitlab.hpi.de/akita/i/timeeval_test_algorithm:latest\n",
+                "DEMO algorithm unsupervised multivariate registry.gitlab.hpi.de/akita/i/timeeval_test_algorithm:latest",
                 process.stdout.decode("utf-8"),
             )
 
@@ -36,11 +36,10 @@ class TestCodeGen(unittest.TestCase):
                 "-c",
                 "from algorithms import timeeval_test_algorithm_post; import numpy as np; "
                 "algo = timeeval_test_algorithm_post(skip_pull=True); "
-                "print(algo.name); "
-                "print(list(algo.postprocess(np.arange(3), {})));"
+                "print(algo.name, list(algo.postprocess(np.arange(3), {})), end='');"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm with post-processing\n[0.0, 0.0, 0.0]\n",
+                "DEMO algorithm with post-processing [0.0, 0.0, 0.0]",
                 process.stdout.decode("utf-8"),
             )
 
