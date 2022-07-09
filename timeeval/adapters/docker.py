@@ -16,8 +16,8 @@ from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
 from ..resource_constraints import ResourceConstraints, GB
 
-DATASET_TARGET_PATH = PosixPath("/data")
-RESULTS_TARGET_PATH = PosixPath("/results")
+DATASET_TARGET_PATH = Path("/data")
+RESULTS_TARGET_PATH = Path("/results")
 SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
