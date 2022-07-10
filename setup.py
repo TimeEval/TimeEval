@@ -9,10 +9,11 @@ from setuptools import setup, find_packages, Command
 
 README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 HERE = Path(os.path.dirname(__file__)).absolute()
-# get __version__ from timeeval/_version.py
-with open(Path("timeeval") / "_version.py") as f:
-    exec(f.read())
-VERSION: str = __version__  # noqa
+# # get __version__ from timeeval/_version.py
+# with open(Path("timeeval") / "_version.py") as f:
+#     exec(f.read())
+# VERSION: str = __version__  # noqa
+VERSION = None
 
 
 def load_dependencies():
