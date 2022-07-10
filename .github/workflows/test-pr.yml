@@ -2,6 +2,8 @@ name: Python Test using Conda for pull requests
 
 on:
   pull_request:
+    branches:
+      - main
 
 # Required shell entrypoint to have properly activated conda environments
 defaults:
@@ -15,7 +17,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
         python_version: ["3.7"]
       fail-fast: false
 
