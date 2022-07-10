@@ -1,9 +1,0 @@
-pytest
-pytest-cov
-mypy==0.920
-twine
-freezegun
-
-# typings
-types-requests
-types-freezegun
