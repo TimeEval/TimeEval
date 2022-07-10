@@ -11,8 +11,9 @@ TEST_DOCKER_IMAGE = "registry.gitlab.hpi.de/akita/i/timeeval-test-algorithm"
 
 
 class MockDockerContainer:
-    def __init__(self):
+    def __init__(self, write_scores_file: bool = False):
         self.stopped = True
+        self._write_scores_file = write_scores_file
 
     def wait(self, timeout=None) -> dict:
         return {"Error": None, "StatusCode": 0}
@@ -24,9 +25,9 @@ class MockDockerContainer:
         self.volumes = volumes
         self.run_kwargs = kwargs
 
-        real_path = list(volumes.items())[1][0]
-        if real_path.startswith("/tmp"):
-            np.arange(10, dtype=np.float64).tofile(real_path / Path(SCORES_FILE_NAME), sep="\n")
+        real_path = Path(list(volumes.items())[1][0]).resolve()
+        if self._write_scores_file:
+            np.arange(10, dtype=np.float64).tofile(real_path / SCORES_FILE_NAME, sep="\n")
         return self
 
     def prune(self, *args, **kwargs) -> None:
@@ -51,6 +52,6 @@ class MockImages:
 
 
 class MockDockerClient:
-    def __init__(self):
-        self.containers = MockDockerContainer()
+    def __init__(self, write_scores_file: bool = False):
+        self.containers = MockDockerContainer(write_scores_file)
         self.images = MockImages()

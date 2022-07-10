@@ -92,7 +92,7 @@ class TimeEval:
 
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-        self.results_path = results_path.absolute() / start_date
+        self.results_path = results_path.resolve() / start_date
         self.disable_progress_bar = disable_progress_bar
         self.metrics = metrics or DefaultMetrics.default_list()
         self.metric_names = [m.name for m in self.metrics]
