@@ -1,4 +1,4 @@
-name: Python Test using Conda
+name: Test, Build, and Publish
 
 on:
   push:
@@ -83,7 +83,7 @@ jobs:
         use-mamba: true
         auto-update-conda: true
         python-version: 3.7
-        environment-file: environment.yaml
+        environment-file: environment.yml
     - name: Build source distribution
       run: |
         python setup.py sdist
