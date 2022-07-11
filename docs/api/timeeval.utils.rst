@@ -1,9 +1,6 @@
 timeeval.utils package
 ======================
 
-Submodules
-----------
-
 timeeval.utils.datasets module
 ------------------------------
 
@@ -64,14 +61,6 @@ timeeval.utils.window module
 ----------------------------
 
 .. automodule:: timeeval.utils.window
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: timeeval.utils
    :members:
    :undoc-members:
    :show-inheritance:

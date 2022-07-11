@@ -1,11 +1,16 @@
 timeeval package
 ================
 
+.. automodule:: timeeval
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    timeeval.adapters
    timeeval.datasets
@@ -13,77 +18,19 @@ Subpackages
    timeeval.params
    timeeval.utils
 
-Submodules
-----------
 
-timeeval.algorithm module
--------------------------
-
-.. automodule:: timeeval.algorithm
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.constants module
--------------------------
+timeeval.constants
+------------------
 
 .. automodule:: timeeval.constants
    :members:
    :undoc-members:
    :show-inheritance:
 
-timeeval.data\_types module
----------------------------
+timeeval.data\_types
+--------------------
 
 .. automodule:: timeeval.data_types
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.experiments module
----------------------------
-
-.. automodule:: timeeval.experiments
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.remote module
-----------------------
-
-.. automodule:: timeeval.remote
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.remote\_configuration module
--------------------------------------
-
-.. automodule:: timeeval.remote_configuration
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.resource\_constraints module
--------------------------------------
-
-.. automodule:: timeeval.resource_constraints
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.timeeval module
-------------------------
-
-.. automodule:: timeeval.timeeval
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.times module
----------------------
-
-.. automodule:: timeeval.times
    :members:
    :undoc-members:
    :show-inheritance:
@@ -91,7 +38,74 @@ timeeval.times module
 Module contents
 ---------------
 
-.. automodule:: timeeval
+timeeval.algorithm.Algorithm
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.algorithm.Algorithm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.experiments.Experiment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.experiments.Experiment
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.experiments.Experiments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.experiments.Experiments
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.remote.Remote
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.remote.Remote
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.remote_configuration.RemoteConfiguration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.remote_configuration.RemoteConfiguration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.resource_constraints.ResourceConstraints
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.resource_constraints.ResourceConstraints
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.timeeval.Status
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.timeeval.Status
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.timeeval.TimeEval
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.timeeval.TimeEval
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.times.Times
+^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.times.Times
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,21 +1,37 @@
 timeeval.params package
 =======================
 
-Submodules
-----------
+Module contents
+---------------
 
-timeeval.params.search module
------------------------------
+timeeval.params.search.ParameterConfig
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: timeeval.params.search
+.. autoclass:: timeeval.params.search.ParameterConfig
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
+timeeval.params.search.FixedParameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: timeeval.params
+.. autoclass:: timeeval.params.search.FixedParameters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.params.search.FullParameterGrid
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.params.search.FullParameterGrid
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.params.search.IndependentParameterGrid
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: timeeval.params.search.IndependentParameterGrid
    :members:
    :undoc-members:
    :show-inheritance:

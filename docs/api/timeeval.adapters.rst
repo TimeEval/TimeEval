@@ -1,9 +1,6 @@
 timeeval.adapters package
 =========================
 
-Submodules
-----------
-
 timeeval.adapters.base module
 -----------------------------
 
@@ -48,14 +45,6 @@ timeeval.adapters.multivar module
 ---------------------------------
 
 .. automodule:: timeeval.adapters.multivar
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: timeeval.adapters
    :members:
    :undoc-members:
    :show-inheritance:
