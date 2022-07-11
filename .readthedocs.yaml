@@ -12,8 +12,8 @@ build:
     python: "3.9"
   jobs:
     pre_build:
-      - echo "$(pwd)"
-      - make api
+      - ls -alh
+      - cd docs && make api
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
