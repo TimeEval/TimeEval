@@ -32,7 +32,8 @@ author = 'Sebastian Schmidl and Phillip Wenig'
 extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
-    'myst_parser'
+    'myst_parser',
+    'sphinx_rtd_dark_mode'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -161,6 +161,8 @@ class RangePrAUC(Metric):
     plot : bool
     plot_store : bool
 
+    References
+    ----------
     .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin Gottschlich. "Precision and Recall for
        Time Series." In Proceedings of the International Conference on Neural Information Processing Systems (NeurIPS),
        1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
@@ -272,10 +274,6 @@ class RangePrecision(Metric):
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
         Positional bias type.
-
-    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin Gottschlich. "Precision and Recall for
-       Time Series." In Proceedings of the International Conference on Neural Information Processing Systems (NeurIPS),
-       1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
     def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat",
@@ -308,10 +306,6 @@ class RangeRecall(Metric):
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
         Positional bias type.
-
-    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin Gottschlich. "Precision and Recall for
-       Time Series." In Proceedings of the International Conference on Neural Information Processing Systems (NeurIPS),
-       1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
     def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat",
@@ -355,10 +349,6 @@ class RangeFScore(Metric):
         Positional bias type.
     r_bias : {'flat', 'front', 'middle', 'back'}
         Positional bias type.
-
-    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin Gottschlich. "Precision and Recall for
-       Time Series." In Proceedings of the International Conference on Neural Information Processing Systems (NeurIPS),
-       1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
     def __init__(self,

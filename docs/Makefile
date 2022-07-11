@@ -16,7 +16,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 clean:
-	-rm -rf "$(BUILDDIR)" "$(SOURCEDIR)/api"
+	-rm -rf "$(BUILDDIR)" "$(SOURCEDIR)/api/modules.rst" "$(SOURCEDIR)/api/timeeval*.rst"
 
 api:
 	@sphinx-apidoc -f -o "$(SOURCEDIR)/api" "$(MODULEDIR)"
