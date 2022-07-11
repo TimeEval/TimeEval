@@ -1,5 +1,1 @@
 _build
-
-# generated folders/files
-api
-!api/index.rst

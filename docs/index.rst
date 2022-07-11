@@ -14,29 +14,34 @@ TimeEval: Evaluation Tool for Anomaly Detection Algorithms on Time Series
    API Reference <api/index>
    Development <dev/index>
 
+
+Overview
+--------
+
 TimeEval short description tbd.
 
 Features
---------
+^^^^^^^^
 
 Installation
-------------
+^^^^^^^^^^^^
 
 License
--------
+^^^^^^^
 
 The project is licensed under the MIT license.
 
 
 User Guide
-^^^^^^^^^^
+----------
 
 New to TimeEval? Check out our :doc:`User Guides</user/index>`. They provide in-depth information on the
 key concepts of TimeEval with useful background information and explanations.
 
+:doc:`To the user guide</user/index>`
 
 API Reference
-^^^^^^^^^^^^^
+-------------
 
 The API reference guide contains a detailed description of the functions, modules, and objects included in TimeEval. The
 API reference describes how the methods work and which parameters can be used.
@@ -45,7 +50,7 @@ API reference describes how the methods work and which parameters can be used.
 
 
 Contributor's Guide
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 Want to add to the codebase? You can help with the documentation? The contributing guidelines will guide you through the
 process of improving TimeEval and its ecosystem.
