@@ -39,9 +39,9 @@ class Times:
         return Times(ExecutionType.TRAIN, main_time, preprocess=pre_time)
 
 
-def timer(fn: Callable, *args, **kwargs) -> Tuple[Any, float]:  # type: ignore[no-untyped-def]
+def timer(fn: Callable, X: AlgorithmParameter, args: dict) -> Tuple[Any, float]:
     start = time.time()
-    fn_result = fn(*args, **kwargs)
+    fn_result = fn(X, args)
     end = time.time()
     duration = end - start
     return fn_result, duration
