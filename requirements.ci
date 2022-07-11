@@ -7,3 +7,7 @@ freezegun
 # typings
 types-requests
 types-freezegun
+
+# docs
+sphinx==5.0.2
+myst-parser==0.18.0
