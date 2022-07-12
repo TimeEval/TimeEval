@@ -1,0 +1,83 @@
+# Time series datasets
+
+TimeEval uses a canonical file format for datasets.
+Existing datasets in another format must first be transformed into the canonical format before they can be used with TimeEval.
+
+## Canonical file format
+
+TimeEval's canonical file format is based on CSV.
+Each file requires a header, cells (values) are separated by commas (decimal seperator is `.`), and records are separated by newlines (unix-style LF: `\n`).
+The first column of the dataset is its index, either in integer- or datetime-format
+(multiple timestamp-formats are supported but [RFC 3339](https://tools.ietf.org/html/rfc3339) is preferred, e.g. `2017-03-22 15:16:45.433502912`).
+The index follows a single or multiple (if multivariate dataset) time series columns.
+The last column contains the annotations, `0` for normal points and `1` for anomalies.
+Usage of the `timestamp` and `is_anomaly` column headers is recommended.
+
+```csv
+timestamp,value,is_anomaly
+0,12751.0,1
+1,8767.0,0
+2,7005.0,0
+3,5257.0,0
+4,4189.0,0
+```
+
+## Registering datasets
+
+TimeEval comes with its own collection of benchmark datasets (**currently not included**, download them [from our website](https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html)).
+They can directly be used using the dataset manager `DatasetManager`:
+
+```python
+from pathlib import Path
+
+from timeeval import DatasetManager
+from timeeval.constants import HPI_CLUSTER
+
+datasets_folder: Path = HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK]  # or Path("./datasets-folder")
+dm = DatasetManager(datasets_folder)
+datasets = dm.select()
+```
+
+### Custom datasets
+
+TimeEval can also use **custom datasets** for the evaluation.
+The time series CSV-files must still follow our canonical file format!
+
+To tell the TimeEval tool where it can find those custom datasets, a configuration file is needed.
+The custom datasets config file contains all custom datasets organized by their identifier which is used later on.
+Each entry in the config file must contain the path to the test time series;
+optionally, one can add a path to the training time series, specify the dataset type, and supply the period size if known.
+The paths to the data files must be absolute or relative to the configuration file.
+Example file `custom_datasets.json`:
+
+```json
+{
+  "dataset_name": {
+    "test_path": "/absolute/path/to/data.csv"
+  },
+  "other_supervised_dataset": {
+    "test_path": "/absolute/path/to/test.csv",
+    "train_path": "./train.csv",
+    "type": "synthetic",
+    "period": 20
+  }
+}
+```
+
+You can add custom datasets to the dataset manager using two ways:
+
+```python
+from pathlib import Path
+
+from timeeval import DatasetManager
+from timeeval.constants import HPI_CLUSTER
+
+custom_datasets_path = Path("/absolute/path/to/custom_datasets.json")
+
+# Directly during initialization
+dm = DatasetManager(HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK], custom_datasets_file=custom_datasets_path)
+
+# Later on
+dm = DatasetManager(HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK])
+dm.load_custom_datasets(custom_datasets_path)
+```

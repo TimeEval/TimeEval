@@ -104,6 +104,12 @@ def _auc_metric(y_true: np.ndarray,
 
 
 class RocAUC(Metric):
+    """Computes the area under the receiver operating characteristic curve.
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Receiver_operating_characteristic
+    """
     def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
         self._plot = plot
         self._plot_store = plot_store
@@ -140,7 +146,7 @@ class PrAUC(Metric):
 
 class RangePrAUC(Metric):
     """Computes the area under the precision recall curve when using the range-based precision and range-based
-    recall metric introduced by Tatbul et al. at NeurIPS 2018 [1]_.
+    recall metric introduced by Tatbul et al. at NeurIPS 2018 [TatbulEtAl2018]_.
 
     Parameters
     ----------
@@ -161,9 +167,10 @@ class RangePrAUC(Metric):
     plot : bool
     plot_store : bool
 
-    References
-    ----------
-    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin Gottschlich. "Precision and Recall for
+
+    .. rubric:: References
+
+    .. [TatbulEtAl2018] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin Gottschlich. "Precision and Recall for
        Time Series." In Proceedings of the International Conference on Neural Information Processing Systems (NeurIPS),
        1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
@@ -264,7 +271,7 @@ class AveragePrecision(Metric):
 
 
 class RangePrecision(Metric):
-    """Computes the range-based precision metric introduced by Tatbul et al. at NeurIPS 2018 [1]_.
+    """Computes the range-based precision metric introduced by Tatbul et al. at NeurIPS 2018 [TatbulEtAl2018]_.
 
     Parameters
     ----------
@@ -296,7 +303,7 @@ class RangePrecision(Metric):
 
 
 class RangeRecall(Metric):
-    """Computes the range-based recall metric introduced by Tatbul et al. at NeurIPS 2018 [1]_.
+    """Computes the range-based recall metric introduced by Tatbul et al. at NeurIPS 2018 [TatbulEtAl2018]_.
 
     Parameters
     ----------
@@ -328,7 +335,8 @@ class RangeRecall(Metric):
 
 
 class RangeFScore(Metric):
-    """Computes the range-based F-score using the recall and precision metrics by Tatbul et al. at NeurIPS 2018 [1]_.
+    """Computes the range-based F-score using the recall and precision metrics by Tatbul et al. at NeurIPS 2018
+    [TatbulEtAl2018]_.
 
     The F-beta score is the weighted harmonic mean of precision and recall, reaching its optimal value at 1 and its
     worst value at 0. This implementation uses the range-based precision and range-based recall as basis.

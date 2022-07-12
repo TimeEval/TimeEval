@@ -67,3 +67,6 @@ html_css_files = [
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_preprocess_types = True
+
+# -- myst_parser settings ----------------------------------------------------
+myst_heading_anchors = 3
