@@ -19,7 +19,7 @@ The algorithms in this repository are containerized and can be executed using th
 
 > If you use TimeEval, please consider [citing](#citation) our paper.
 
-> 📖 TimeEval's documentation is at https://timeeval.readthedocs.io.
+📖 TimeEval's documentation is hosted at https://timeeval.readthedocs.io.
 
 ## Features
 
