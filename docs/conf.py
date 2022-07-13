@@ -15,6 +15,7 @@ import sphinx_rtd_theme
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+import timeeval
 
 
 # -- Project information -----------------------------------------------------
@@ -22,7 +23,8 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'TimeEval'
 copyright = '2022, Sebastian Schmidl and Phillip Wenig'
 author = 'Sebastian Schmidl and Phillip Wenig'
-
+version = timeeval.__version__
+release = timeeval.__version__
 
 # -- General configuration ---------------------------------------------------
 
