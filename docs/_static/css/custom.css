@@ -1,0 +1,15 @@
+/*.wy-side-nav-search, .wy-nav-top {*/
+/*    !* hpi-yellow #f6a800 *! */
+/*    !* hpi-orange #dd640c *! */
+/*    !* hpi-blue #007a9e *!*/
+/*    !* side-panel grey #343131 *!*/
+/*    background: #efefef; !*#c1c1c1;*!*/
+/*}*/
+
+.wy-side-nav-search {
+    background-color: #343131;
+}
+
+html[data-theme='dark'] .wy-side-nav-search {
+    background-color: #0d0d0d;
+}
