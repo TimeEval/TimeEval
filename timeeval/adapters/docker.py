@@ -140,8 +140,8 @@ class DockerAdapter(Adapter):
             f"{self.image_name}:{self.tag}",
             f"execute-algorithm '{algorithm_interface.to_json_string()}'",
             volumes={
-                str(dataset_path.parent.resolve()): {"bind": DATASET_TARGET_PATH, "mode": "ro"},
-                str(self._results_path(args, absolute=True)): {"bind": RESULTS_TARGET_PATH, "mode": "rw"}
+                str(dataset_path.parent.resolve()): {"bind": str(DATASET_TARGET_PATH), "mode": "ro"},
+                str(self._results_path(args, absolute=True)): {"bind": str(RESULTS_TARGET_PATH), "mode": "rw"}
             },
             environment={
                 "LOCAL_GID": gid,

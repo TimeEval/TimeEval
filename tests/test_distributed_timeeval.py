@@ -1,3 +1,4 @@
+import os
 import socket
 import tempfile
 import time
@@ -31,6 +32,14 @@ class TestDistributedTimeEval(unittest.TestCase):
             Algorithm(name="deviating_from_median", main=DeviatingFromMedian(),
                       param_config=FullParameterGrid({"test": [np.int64(2), np.int32(4)]}))
         ]
+        self.test_config = RemoteConfiguration(
+            scheduler_host="localhost",
+            worker_hosts=["localhost"],
+            kwargs_overwrites={
+                # add the project source files to the python paths of the Dask worker processes:
+                "worker_options": {"preload": f"\"import sys; sys.path.insert(0, '{os.getcwd()}')\""}
+            }
+        )
 
     @pytest.mark.dask
     def test_distributed_results_and_shutdown_cluster(self):
@@ -40,7 +49,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, list(zip(cycle(["custom"]), self.results.dataset.unique())), self.algorithms,
                                 distributed=True, results_path=Path(tmp_path),
-                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]))
+                                remote_config=self.test_config)
             timeeval.run()
 
             compare_columns = ["algorithm", "collection", "dataset", "ROC_AUC"]
@@ -203,7 +212,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
                                 distributed=True,
-                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
+                                remote_config=self.test_config,
                                 results_path=Path(tmp_path))
             timeeval.run()
         status = timeeval.results.loc[0, "status"]
@@ -223,7 +232,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
                                 distributed=True,
-                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
+                                remote_config=self.test_config,
                                 results_path=Path(tmp_path))
             timeeval.run()
 
@@ -244,7 +253,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
                                 distributed=True,
-                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=["localhost"]),
+                                remote_config=self.test_config,
                                 results_path=Path(tmp_path))
             timeeval.run()
 
