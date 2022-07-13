@@ -1,2 +1,0 @@
-Contributor's Guide
-===================

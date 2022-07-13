@@ -13,7 +13,7 @@ The index follows a single or multiple (if multivariate dataset) time series col
 The last column contains the annotations, `0` for normal points and `1` for anomalies.
 Usage of the `timestamp` and `is_anomaly` column headers is recommended.
 
-```csv
+```
 timestamp,value,is_anomaly
 0,12751.0,1
 1,8767.0,0
@@ -80,4 +80,51 @@ dm = DatasetManager(HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK], cust
 # Later on
 dm = DatasetManager(HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK])
 dm.load_custom_datasets(custom_datasets_path)
+```
+
+## Preparing datasets for TimeEval
+
+Datasets in different formats should be transformed in TimeEval's canonical file format.
+TimeEval provides a utility script to perform this transformation: `scripts/preprocess_dataset.py`.
+You can download this scrip from its [GitHub repository](https://github.com/HPI-Information-Systems/TimeEval).
+
+A single dataset can be provided in two Numpy-readable text files.
+The first text file contains the data.
+The labels must be in a separate text file.
+Hereby, the label file can either contain the actual labels for each point in the data file or only the line indices of the anomalies.
+Example source data files:
+
+Data file
+
+```
+12751.0
+8767.0
+7005.0
+5257.0
+4189.0
+```
+
+Labels file (actual labels)
+
+```
+1
+0
+0
+0
+0
+```
+
+Labels file (line indices)
+
+```
+3
+4
+```
+
+The script `scripts/preprocess_dataset.py` automatically generates the index column using an auto-incrementing integer value.
+The integer value can be substituted with a corresponding timestamp (auto-incrementing value is used as a time unit, such as seconds `s` or hours `h` from the unix epoch).
+See the tool documentation for further information:
+
+```bash
+python scripts/preprocess_dataset.py --help
 ```
