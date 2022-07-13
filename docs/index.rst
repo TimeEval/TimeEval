@@ -13,7 +13,7 @@ TimeEval: Evaluation Tool for Anomaly Detection Algorithms on Time Series
    User Guide <user/index>
    Concepts <concepts/index>
    API Reference <api/index>
-   Development <dev/index>
+   Contributor's Guide <dev/index>
 
 
 Overview
