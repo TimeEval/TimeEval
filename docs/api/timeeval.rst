@@ -17,6 +17,7 @@ Subpackages
    timeeval.heuristics
    timeeval.params
    timeeval.utils
+   timeeval.core
 
 
 timeeval.constants
@@ -42,30 +43,6 @@ timeeval.algorithm.Algorithm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: timeeval.algorithm.Algorithm
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.experiments.Experiment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: timeeval.experiments.Experiment
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.experiments.Experiments
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: timeeval.experiments.Experiments
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.remote.Remote
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: timeeval.remote.Remote
    :members:
    :undoc-members:
    :show-inheritance:
@@ -98,14 +75,6 @@ timeeval.timeeval.TimeEval
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: timeeval.timeeval.TimeEval
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-timeeval.times.Times
-^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: timeeval.times.Times
    :members:
    :undoc-members:
    :show-inheritance:

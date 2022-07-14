@@ -18,12 +18,12 @@ from joblib import Parallel, delayed
 from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
+from .core.experiments import Experiments, Experiment
+from .core.remote import Remote, RemoteConfiguration
+from .core.times import Times
 from .data_types import TrainingType, InputDimensionality
 from .datasets import Datasets
-from .experiments import Experiments, Experiment
-from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
-from .times import Times
 from .utils.encode_params import dumps_params
 from .utils.metrics import Metric, DefaultMetrics
 from .utils.tqdm_joblib import tqdm_joblib
