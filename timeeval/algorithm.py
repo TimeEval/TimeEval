@@ -103,6 +103,8 @@ class Algorithm:
 
             .. note::
                 Currently not used by TimeEval!
+
+        :meta private:
         """
         if self.training_type == TrainingType.UNSUPERVISED:
             raise ValueError("Calling 'train()' on an unsupervised algorithm is not supported! "
@@ -141,6 +143,8 @@ class Algorithm:
             Should return the anomaly scores for the test time series, but can also return something else.
             The implementation of the `postprocess`-function must take care of transforming the result to valid
             anomaly scores.
+
+        :meta private:
         """
         args = args or {}
         args["executionType"] = ExecutionType.EXECUTE
@@ -151,6 +155,8 @@ class Algorithm:
 
         .. warning::
             Internal API!
+
+        :meta private:
         """
         return self.main.get_prepare_fn()
 
@@ -159,6 +165,8 @@ class Algorithm:
 
         .. warning::
             Internal API!
+
+        :meta private:
         """
         fn = self.prepare_fn()
         if fn:
@@ -169,6 +177,8 @@ class Algorithm:
 
         .. warning::
             Internal API!
+
+        :meta private:
         """
         return self.main.get_finalize_fn()
 
@@ -177,6 +187,8 @@ class Algorithm:
 
         .. warning::
             Internal API!
+
+        :meta private:
         """
         fn = self.finalize_fn()
         if fn:

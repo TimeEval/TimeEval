@@ -63,6 +63,10 @@ timeeval.resource_constraints.ResourceConstraints
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: timeeval.resource_constraints
+   :members: MB, GB
+   :undoc-members:
+
 timeeval.timeeval.Status
 ^^^^^^^^^^^^^^^^^^^^^^^^
 

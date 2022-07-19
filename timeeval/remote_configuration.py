@@ -58,7 +58,7 @@ class RemoteConfiguration:
     scheduler_host: str = DEFAULT_SCHEDULER_HOST
     scheduler_port: int = DEFAULT_DASK_PORT
     worker_hosts: List[str] = field(default_factory=lambda: [])
-    remote_python: str = sys.executable
+    remote_python: str = field(default_factory=lambda: sys.executable)
     kwargs_overwrites: dict = field(default_factory=lambda: {})
     dask_logging_file_level: str = "INFO"
     dask_logging_console_level: str = "INFO"
@@ -73,6 +73,8 @@ class RemoteConfiguration:
         .. attention::
             Always call this function before calling
             :func:`~timeeval.remote_configuration.RemoteConfiguration.get_remote_logging_config`!
+
+        :meta private:
         """
         name = self.dask_logging_filename
         path = results_path / name
@@ -87,6 +89,8 @@ class RemoteConfiguration:
         See Also
         --------
         dask.distributed.SSHCluster : Object that receives these options.
+
+        :meta private:
         """
         mem_limit = limits.task_memory_limit or "auto"
         config = {
@@ -113,6 +117,8 @@ class RemoteConfiguration:
 
         .. warning::
             Internal API!
+
+        :meta private:
         """
         return {
             "version": 1,
