@@ -15,7 +15,7 @@ import tqdm
 from distributed.client import Future
 from joblib import Parallel, delayed
 
-from .adapters.docker import DockerTimeoutError
+from .adapters.docker import DockerTimeoutError, DockerAdapter
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
 from .core.experiments import Experiments, Experiment
@@ -148,15 +148,21 @@ class TimeEval:
                 dataset_details.append(dataset_mgr.get(d))
             except KeyError:
                 not_found_datasets.append(repr(d))
-        assert len(
-            not_found_datasets) == 0, "Some datasets could not be found in DatasetManager!\n  " \
-                                      f"{', '.join(not_found_datasets)}"
+        assert len(not_found_datasets) == 0, "Some datasets could not be found in DatasetManager!\n  " \
+                                             f"{', '.join(not_found_datasets)}"
+
+        limits = resource_constraints or ResourceConstraints.default_constraints()
+        if limits != ResourceConstraints.default_constraints():
+            incompatible_algos = [a.name for a in algorithms if not isinstance(a.main, DockerAdapter)]
+            assert len(incompatible_algos) == 0, "The following algorithms won't satisfy the specified resource " \
+                                                 f"constraints: {', '.join(incompatible_algos)}. Either drop the " \
+                                                 "resource constraints or use the DockerAdapter for all algorithms!"
 
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         self.results_path = results_path.resolve() / start_date
         self.disable_progress_bar = disable_progress_bar
-        self.metrics = metrics or DefaultMetrics.default_list()
+        self.metrics: List[Metric] = metrics or DefaultMetrics.default_list()
         self.metric_names = [m.name for m in self.metrics]
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
         self.distributed = distributed
@@ -165,18 +171,17 @@ class TimeEval:
         self.log.info(f"Results are recorded in the directory {self.results_path}")
         self.results_path.mkdir(parents=True, exist_ok=True)
 
-        resource_constraints = resource_constraints or ResourceConstraints()
-        if not distributed and resource_constraints.tasks_per_host > 1:
+        if not distributed and limits.tasks_per_host > 1:
             self.log.warning(
-                f"`tasks_per_host` was set to {resource_constraints.tasks_per_host}. However, non-distributed "
+                f"`tasks_per_host` was set to {limits.tasks_per_host}. However, non-distributed "
                 "execution of TimeEval does currently not support parallelism! Reducing `tasks_per_host` to 1. "
                 "The automatic resource limitation will reflect this by increasing the limits for the single task. "
                 "Explicitly set constraints to limit the resources for local executions of TimeEval."
             )
-            resource_constraints.tasks_per_host = 1
+            limits.tasks_per_host = 1
 
         self.exps = Experiments(dataset_mgr, dataset_details, algorithms, self.results_path,
-                                resource_constraints=resource_constraints,
+                                resource_constraints=limits,
                                 repetitions=repetitions,
                                 skip_invalid_combinations=skip_invalid_combinations,
                                 force_training_type_match=force_training_type_match,
@@ -184,14 +189,14 @@ class TimeEval:
                                 metrics=self.metrics,
                                 experiment_combinations_file=experiment_combinations_file)
 
-        self.remote_config = remote_config or RemoteConfiguration()
+        self.remote_config: RemoteConfiguration = remote_config or RemoteConfiguration()
         self.remote_config.update_logging_path(self.results_path)
         self.log.debug(f"Updated dask logging filepath to {self.remote_config.dask_logging_filename}")
 
         if self.distributed:
             self.log.info("TimeEval is running in distributed environment, setting up remoting ...")
             self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config,
-                                 resource_constraints=resource_constraints)
+                                 resource_constraints=limits)
             self.results["future_result"] = np.nan
 
             self.log.info("... registering signal handlers ...")
