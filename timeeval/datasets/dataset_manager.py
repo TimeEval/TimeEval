@@ -52,22 +52,22 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
     ----------
     data_folder : path
         Path to the folder, where the benchmark data is stored. This folder consists of the file *datasets.csv* and
-        the datasets in an hierarchical storage layout.
+        the datasets in a hierarchical storage layout.
     custom_datasets_file : path
         Path to a file listing additional custom datasets.
     create_if_missing : bool
-        Create an index-file in the `data_folder` if none could be found. Set this to ``False`` if an exception should
+        Create an index-file in the ``data_folder`` if none could be found. Set this to ``False`` if an exception should
         be raised if the folder is wrong or does not exist.
 
     Raises
     ------
     FileNotFoundError
-        If `create_if_missing` is set to ``False`` and no *datasets.csv*-file was found in the `data_folder`.
+        If ``create_if_missing`` is set to ``False`` and no *datasets.csv*-file was found in the ``data_folder``.
 
     See Also
     --------
-    :class:`timeeval.datasets.Datasets`
-    :class:`timeeval.datasets.MultiDatasetManager`
+    :class:`timeeval.datasets.datasets.Datasets`
+    :class:`timeeval.datasets.multi_dataset_manager.MultiDatasetManager`
     """
 
     def __init__(self, data_folder: Union[str, Path], custom_datasets_file: Optional[Union[str, Path]] = None,
@@ -169,7 +169,7 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
 
         See Also
         --------
-        :func:`timeeval.datasets.DatasetManager.add_dataset`
+        :func:`timeeval.datasets.dataset_manager.DatasetManager.add_dataset`
         """
         df_new = pd.DataFrame(datasets)
         df_new.set_index(["collection_name", "dataset_name"], inplace=True)
@@ -181,9 +181,10 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
     def save(self) -> None:
         """Saves the in-memory dataset index to disk.
 
-        Persists newly added benchmark datasets from memory to the benchmark dataset collection file `datasets.csv`.
+        Persists newly added benchmark datasets from memory to the benchmark dataset collection file ``datasets.csv``.
         Custom datasets are excluded from persistence and cannot be saved to disk; use
-        :func:`timeeval.datasets.DatasetManager.add_dataset` or :func:`timeeval.datasets.DatasetManager.add_datasets`
+        :func:`~timeeval.datasets.dataset_manager.DatasetManager.add_dataset` or
+        :func:`~timeeval.datasets.dataset_manager.DatasetManager.add_datasets`
         to add datasets to the benchmark dataset collection.
         """
         self._df.to_csv(self._filepath)

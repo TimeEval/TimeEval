@@ -40,11 +40,48 @@ class Status(Enum):
 
 
 class TimeEval:
-    """
+    """Main class of TimeEval.
 
-    TimeEval evaluates all algorithms on all datasets per default.
+    This class is the main utility to configure and execute evaluation experiments.
+    First select your algorithms and datasets and, then, pass them to TimeEval and use its constructor arguments to
+    configure your evaluation run.
+    Per default, TimeEval evaluates all algorithms on all datasets (cross product).
     You can use the parameters ``skip_invalid_combinations``, ``force_training_type_match``,
     ``force_dimensionality_match``, and ``experiment_combinations_file`` to control which algorithm runs on which dataset.
+    See the description of the other arguments for further configuration details.
+
+    After you have created your TimeEval object, holding the experiment run configuration, you can execute the
+    experiments by calling :func:`~timeeval.TimeEval.run`.
+    Afterwards, the evaluation summary results are accessible in the ``results_path`` and from
+    :func:`~timeeval.TimeEval.get_results`.
+
+    Examples
+    --------
+    Simple example experiment evaluating a single algorithm on the test datasets using the default metrics (just
+    :attr:`~timeeval.utils.metrics.DefaultMetrics.ROC_AUC`):
+
+    >>> from timeeval import TimeEval, DefaultMetrics, Algorithm, TrainingType, InputDimensionality, DatasetManager
+    >>> from timeeval.adapters import DockerAdapter
+    >>> from timeeval.params import FixedParameters
+    >>>
+    >>> dm = DatasetManager(Path("tests/example_data"))
+    >>> datasets = dm.select()
+    >>>
+    >>> algorithms = [
+    >>>     Algorithm(
+    >>>         name="COF",
+    >>>         main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/cof"),
+    >>>         param_config=FixedParameters({"n_neighbors": 20, "random_state": 42}),
+    >>>         data_as_file=True,
+    >>>         training_type=TrainingType.UNSUPERVISED,
+    >>>         input_dimensionality=InputDimensionality.MULTIVARIATE
+    >>>     ),
+    >>> ]
+    >>>
+    >>> timeeval = TimeEval(dm, datasets, algorithms, metrics=DefaultMetrics.default_list())
+    >>> timeeval.run()
+    >>> results = timeeval.get_results(aggregated=False)
+    >>> print(results)
 
     Parameters
     ----------
@@ -70,7 +107,17 @@ class TimeEval:
         Run TimeEval in distributed mode.
         In this case, you **should** also supply a ``remote_config``.
     remote_config : Optional[RemoteConfiguration]
+        Configuration of the Dask cluster used for distributed execution of TimeEval.
+        See :class:`~timeeval.RemoteConfiguration` for details.
     resource_constraints : Optional[ResourceConstraints]
+        You can supply a :class:`~timeeval.ResourceConstraints`-object to limit the amount of (CPU, memory, or runtime)
+        resources available to each experiment.
+        These options apply to each experiment to ensure a fair comparison.
+
+        .. warning::
+            Resource constraints are currently only implemented by the :class:`~timeeval.adapters.docker.DockerAdapter`.
+            If you rely on resource constraints, please make sure that all algorithms use the ``DockerAdapter``-implementation.
+
     disable_progress_bar : bool
         Don't show the `tqdm <https://tqdm.github.io>`_ progress bars.
     metrics : Optional[List[Metric]]
@@ -104,11 +151,11 @@ class TimeEval:
     For metrics, their :func:`~timeeval.utils.metrics.Metric.name` will be used as column header, and TimeEval will add
     the following runtime measurements depending on whether they are applicable to the algorithms in the run or not:
     
-    - train_preprocess_time: if :func:`~timeeval.algorithm.Algorithm.preprocess` is defined
+    - train_preprocess_time: if :func:`~timeeval.Algorithm.preprocess` is defined
     - train_main_time: if the algorithm is semi-supervised or supervised
-    - execute_preprocess_time: if :func:`~timeeval.algorithm.Algorithm.preprocess` is defined
+    - execute_preprocess_time: if :func:`~timeeval.Algorithm.preprocess` is defined
     - execute_main_time: always
-    - execute_postprocess_time: if :func:`~timeeval.algorithm.Algorithm.postprocess` is defined
+    - execute_postprocess_time: if :func:`~timeeval.Algorithm.postprocess` is defined
     """
 
     DEFAULT_RESULT_PATH = Path("./results")

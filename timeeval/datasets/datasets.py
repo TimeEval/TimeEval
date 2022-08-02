@@ -19,9 +19,9 @@ from ..data_types import TrainingType, InputDimensionality
 class Datasets(abc.ABC):
     """Provides read-only access to benchmark datasets and their metadata.
 
-    This is an abstract class (interface). Please use :class:`timeeval.datasets.DatasetManager` or
-    :class:`timeeval.datasets.MultiDatasetManager` instead. The constructor arguments are filled in by the
-    respective implementation.
+    This is an abstract class (interface). Please use :class:`timeeval.datasets.dataset_manager.DatasetManager` or
+    :class:`timeeval.datasets.multi_dataset_manager.MultiDatasetManager` instead. The constructor arguments are filled
+    in by the respective implementation.
 
     Parameters
     ----------
@@ -146,17 +146,17 @@ class Datasets(abc.ABC):
             restrict dataset type (e.g. *real* or *synthetic*)
         datetime_index : bool
             only select datasets for which a datetime index exists;
-            if ``true``: "timestamp"-column has datetime values;
-            if ``false``: "timestamp"-column has monotonically increasing integer values;
+            if ``True``: "timestamp"-column has datetime values;
+            if ``False``: "timestamp"-column has monotonically increasing integer values;
             this condition is ignored by custom datasets.
         training_type : timeeval.TrainingType
             select datasets for specific training needs:
-            * *supervised* (`TrainingType.SUPERVISED`),
-            * *semi-supervised* (`TrainingType.SEMI_SUPERVISED`), or
-            * *unsupervised* (`TrainingType.UNSUPERVISED`)
+            * :const:`~timeeval.TrainingType.SUPERVISED`,
+            * :const:`~timeeval.TrainingType.SEMI_SUPERVISED`, or
+            * :const:`~timeeval.TrainingType.UNSUPERVISED`
         train_is_normal : bool
-            if ``true``: only return datasets for which the training dataset does not contain anomalies;
-            if ``false``: only return datasets for which the training dataset contains anomalies
+            if ``True``: only return datasets for which the training dataset does not contain anomalies;
+            if ``False``: only return datasets for which the training dataset contains anomalies
         input_dimensionality : timeeval.InputDimensionality
             restrict dataset to input type, either univariate or multivariate
         min_anomalies : int
@@ -168,7 +168,7 @@ class Datasets(abc.ABC):
 
         Returns
         -------
-        dataset_names : list of str-str-tuples
+        dataset_names : List[Tuple[str,str]]
             A list of dataset identifiers (tuple of collection name and dataset name).
         """
         custom_datasets = self._custom_datasets.select(collection, dataset, dataset_type, datetime_index,

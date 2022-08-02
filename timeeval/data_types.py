@@ -65,9 +65,12 @@ class InputDimensionality(Enum):
 
 
 class ExecutionType(Enum):
-    """TimeEval calls each algorithm up to two times with different execution types.
+    """Enum used to indicate the execution type of algorithms.
 
-    Depending on the algorithm's :class:`timeeval.data_types.TrainingType`, it requires a training step.
+    TimeEval calls each algorithm up to two times with two different execution types and passes the current execution
+    type as an object of this class to the algorithm adapter implementation.
+
+    Depending on the algorithm's :class:`timeeval.TrainingType`, it requires a training step.
     TimeEval will call these algorithms first with the execution type set to ``TRAIN``.
     Then, for all algorithms, the algorithm is called with execution type ``EXECUTE``.
     """

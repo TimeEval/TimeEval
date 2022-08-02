@@ -4,6 +4,6 @@ API Reference
 This section documents the public API of TimeEval.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
    timeeval

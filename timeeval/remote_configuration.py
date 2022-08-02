@@ -72,7 +72,7 @@ class RemoteConfiguration:
 
         .. attention::
             Always call this function before calling
-            :func:`~timeeval.remote_configuration.RemoteConfiguration.get_remote_logging_config`!
+            :func:`~timeeval.RemoteConfiguration.get_remote_logging_config`!
 
         :meta private:
         """

@@ -44,8 +44,8 @@ class ResourceConstraints:
     ----------
     tasks_per_host : int
         Specify, how many evaluation tasks are executed on each host. This setting influences the default memory and
-        CPU limits if :attr:`~timeeval.resource_constraints.ResourceConstraints.task_memory_limit` and
-        :attr:`~timeeval.resource_constraints.ResourceConstraints.task_cpu_limit` are ``None``: the available
+        CPU limits if :attr:`~timeeval.ResourceConstraints.task_memory_limit` and
+        :attr:`~timeeval.ResourceConstraints.task_cpu_limit` are ``None``: the available
         resources of the node are shared equally between the tasks.
 
         Because each tasks, in effect, trains or executes a time series anomaly detection algorithm, the tasks are

@@ -78,7 +78,7 @@ class Algorithm:
         .. warning::
             Internal API!
 
-        This method sets the algorithms :class:`~timeeval.data_types.ExecutionType` to ``TRAIN`` and then calls the
+        This method sets the algorithms :class:`~timeeval.ExecutionType` to ``TRAIN`` and then calls the
         adapter implementation.
         Calling ``train()`` on an unsupervised algorithm is not supported and will raise a :class:`ValueError`.
 
@@ -87,7 +87,7 @@ class Algorithm:
         dataset : timeeval.data_types.AlgorithmParameter
             Either a numpy-array containing the training time series data or a path to the training time series file.
         args : dict
-            TimeEval arguments that get passed to the :class:`~timeeval.adapters.base.Adapter`-implementation. Example::
+            TimeEval arguments that get passed to the :class:`~timeeval.adapters.Adapter`-implementation. Example::
 
                 {
                     "hyper_params": {},
@@ -128,7 +128,7 @@ class Algorithm:
         dataset : timeeval.data_types.AlgorithmParameter
             Either a numpy-array containing the test time series data or a path to the test time series file.
         args : dict
-            TimeEval arguments that get passed to the :class:`~timeeval.adapters.base.Adapter`-implementation. Example::
+            TimeEval arguments that get passed to the :class:`~timeeval.adapters.Adapter`-implementation. Example::
 
                 {
                     "hyper_params": {},
