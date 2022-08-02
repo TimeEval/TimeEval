@@ -119,13 +119,50 @@ class TimeEval:
             If you rely on resource constraints, please make sure that all algorithms use the ``DockerAdapter``-implementation.
 
     disable_progress_bar : bool
-        Don't show the `tqdm <https://tqdm.github.io>`_ progress bars.
+        Enable / disable showing the `tqdm <https://tqdm.github.io>`_ progress bars.
     metrics : Optional[List[Metric]]
+        Supply a list of :class:`~timeeval.utils.metrics.Metric` to evaluate the algorithms with.
+        TimeEval computes all supplied metrics over all experiments.
+        If you don't specify any metric (``None``), the default metric list
+        :func:`~timeeval.utils.metrics.DefaultMetrics.default_list` is used instead.
     skip_invalid_combinations : bool
+        Not all algorithms can be executed on all datasets.
+        If this flag is set to ``True``, TimeEval will skip all invalid combinations of algorithms and datasets based on
+        their input dimensionality and training type.
+        It is automatically enabled if either ``force_training_type_match`` or ``force_dimensionality_match`` is set to
+        ``True``.
+        Per default (``force_training_type_match == force_dimensionality_match == False``), the following combinations
+        are not executed:
+
+        - supervised algorithms on semi-supervised or unsupervised datasets (datasets cannot be used to train the algorithm)
+        - semi-supervised algorithm on supervised or unsupervised datasets (datasets cannot be used to train the algorithm)
+        - univariate algorithms on multivariate datasets (algorithm cannot process the dataset)
+
     force_training_type_match : bool
+        Narrow down the algorithm-dataset combinations further by executing an algorithm only on datasets with **the same**
+        training type, e.g. unsupervised algorithms only on unsupervised datasets.
+        This flag implies ``skip_invalid_combinations==True``.
     force_dimensionality_match : bool
+        Narrow down the algorithm-dataset combinations furthter by executing an algorithm only on datasets with **the same**
+        input dimensionality, e.g. multivariate algorithms only on multivariate datasets.
+        This flag implies ``skip_invalid_combinations==True``.
     n_jobs : int
+        Set the number of jobs / processes used to fetch the results from the remote machine.
+        This setting is used only in distributed mode.
+        ``-1`` instructs TimeEval to use all locally available cores.
     experiment_combinations_file : Optional[Path]
+        Supply a path to an experiment combinations CSV-File.
+        Using this file, you can specify explicitly which combinations of algorithms, datasts, and hyperparameters
+        should be executed.
+        The file should contain CSV data with a single header line and four columns with the following names:
+
+        1. `algorithm` - name of the algorithm
+        2. `collection` - name of the dataset collection
+        3. `dataset` - name of the dataset
+        4. `hyper_params_id` - ID of the hyperparameter configuration
+
+        Only experiments that are present in the TimeEval configuration **and** this file are scheduled and executed.
+        This allows you to circumvent the cross-product that TimeEval will perform in its default configuration.
     """
 
     RESULT_KEYS = ["algorithm",
@@ -351,6 +388,31 @@ class TimeEval:
         self.results = self.results.drop(['future_result'], axis=1)
 
     def get_results(self, aggregated: bool = True, short: bool = True) -> pd.DataFrame:
+        """Return the (aggregated) evaluation results of a previous evaluation run.
+
+        The results are returned in a Pandas :obj:`~pandas.DataFrame` and contain the mean runtime and metrics of the
+        algorithms for each dataset.
+        You can tweak the output using the parameters.
+
+        .. note::
+            Must be called after :func:`~timeeval.TimeEval.run`, otherwise the returned DataFrame is empty.
+
+        Parameters
+        ----------
+        aggregated : bool
+            If ``True``, returns the aggregated results (controled by parameter ``short``), otherwise all collected
+            information is returned.
+        short : bool
+            This parameter is used only in aggregation mode and controls the aggregation level and functions.
+            If ``True``, the aggregation is over algorithms and datasets, and the mean of the metrics, training time, and
+            execution time is returned.
+            If ``False``, the aggregation is over algorithms, datasets, and parameter combinations, and the mean and
+            standard deviation of all runtime measurements and metrics are computed.
+
+        Returns
+        -------
+        :obj:`~pandas.DataFrame` containing the evaluation results.
+        """
         if not aggregated:
             return self.results
 
@@ -380,11 +442,38 @@ class TimeEval:
         return results
 
     def save_results(self, results_path: Optional[Path] = None) -> None:
+        """Store the evaluation results to a CSV-file in the provided `results_path`.
+        This method is automatically executed by TimeEval at the end of an evaluation run when calling
+        :func:`~timeeval.TimeEval.run`.
+
+        Parameters
+        ----------
+        results_path: Optional[Path]
+            Path, where the results should be stored at.
+            If it is not supplied, the results path of the current TimeEval run (:attr:`timeeval.TimeEval.results_path`)
+            is used.
+        """
         path = results_path or (self.results_path / RESULTS_CSV)
         self.results.to_csv(path.resolve(), index=False)
 
     @staticmethod
     def rsync_results_from(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1) -> None:
+        """Fetches evaluation results of an independent TimeEval run from remote machines merging the temporary data
+        and results together on the local host.
+
+        Parameters
+        ----------
+        results_path : Path
+            Path to the evaluation results.
+            Must be the same for all hosts.
+        hosts : List[str]
+            List of hostnames or IP addresses that took part in the evaluation run.
+        disable_progress_bar : bool
+            If a progress bar should be displayed or not.
+        n_jobs : int
+            Number of parallel processes used to fetch the results.
+            The parallelism is limited by the number of external hosts and the maximum number of available CPU cores.
+        """
         results_path = results_path.resolve()
         hostname = socket.gethostname()
         excluded_aliases = [
@@ -402,6 +491,15 @@ class TimeEval:
             Parallel(n_jobs)(jobs)
 
     def rsync_results(self) -> None:
+        """Fetches the evaluation results of the current evaluation run from all remote machines merging the temporary
+        data and results together on the local host.
+        This method is automatically executed by TimeEval at the end of an evaluation run started by calling
+        :func:`~timeeval.TimeEval.run`.
+
+        See Also
+        --------
+        timeeval.TimeEval.rsync_results_from
+        """
         TimeEval.rsync_results_from(
             self.results_path,
             self.remote_config.worker_hosts,
@@ -455,6 +553,24 @@ class TimeEval:
         self.rsync_results()
 
     def run(self) -> None:
+        """Starts the configured evaluation run.
+
+        Each TimeEval run consists of a number of experiments that are executed independently of each other.
+        There are three phases: PREPARE, EVALUATION, FINALIZE.
+
+        1. _PREPARE_ phase: In the first phase, the execution environment is prepared, the result folder is created, and
+           algorithm adapter-dependent preparation steps, such as pulling Docker images for the
+           :class:`~timeeval.adapters.docker.DockerAdapter`, are executed.
+        2. _EVALUATION_ phase: In the evaluation phase, the experiments are executed and the results are recorded and
+           stored to disk.
+        3. _FINALIZE_ phase: In the last phase, the execution environment is cleaned up, and algorithm adapter-dependent
+           finalization steps, such as removing the temporary Docker containers for the
+           :class:`~timeeval.adapters.docker.DockerAdapter`, are executed.
+
+        This method executes all three phases after each other and returns after they are finished.
+        You can access the evaluation results either using :func:`~timeeval.TimeEval.get_results` programmatically or
+        in the results folder from the file system.
+        """
         print("Running PREPARE phase")
         self.log.info("Running PREPARE phase")
         t0 = time()
