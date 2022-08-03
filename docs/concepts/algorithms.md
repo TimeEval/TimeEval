@@ -9,10 +9,10 @@ The `main` function of an algorithm must implement the {class}`timeeval.adapters
 TimeEval comes with four different adapter types described in section [Algorithm adapters](#algorithm-adapters).
 
 Each algorithm is associated with metadata including its learning type and input dimensionality.
-TimeEval distinguishes between the three learning types {attr}`timeeval.data_types.TrainingType.UNSUPERVISED` (default),
-{attr}`timeeval.data_types.TrainingType.SEMI_SUPERVISED`, and {attr}`timeeval.data_types.TrainingType.SUPERVISED`
-and the two input dimensionality definitions {attr}`timeeval.data_types.InputDimensionality.UNIVARIATE` (default) and
-{attr}`timeeval.data_types.InputDimensionality.MULTIVARIATE`.
+TimeEval distinguishes between the three learning types {attr}`timeeval.TrainingType.UNSUPERVISED` (default),
+{attr}`timeeval.TrainingType.SEMI_SUPERVISED`, and {attr}`timeeval.TrainingType.SUPERVISED`
+and the two input dimensionality definitions {attr}`timeeval.InputDimensionality.UNIVARIATE` (default) and
+{attr}`timeeval.InputDimensionality.MULTIVARIATE`.
 
 ## Registering algorithms
 
@@ -111,7 +111,7 @@ The adapter supplies the dataset to the algorithm via bind-mounting and does not
 ## Experimental algorithm adapters
 
 The algorithm adapters in this section are prototypical implementations and not fully tested with TimeEval.
-Some of the adapters were used in earlier versions of TimeEval and are not compatible to it anymore.
+Some adapters were used in earlier versions of TimeEval and are not compatible to it anymore.
 
 ```{warning}
 The following algorithm adapters should be used for educational purposes only.
@@ -132,7 +132,7 @@ It will use SSH to connect to the remote hosts and execute the `remote_command` 
 
 ### Jar adapter
 
-The {class}`timeeval.adapters.distributed.JarAdapter` lets you evaluate Java algorithms in TimeEval.
+The {class}`timeeval.adapters.jar.JarAdapter` lets you evaluate Java algorithms in TimeEval.
 You can supply the path to the Jar-File (executable) and any additional arguments to the Java-process call.
 
 ### Adapter to apply univariate methods to multivariate data
