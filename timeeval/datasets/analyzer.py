@@ -57,8 +57,8 @@ class DatasetAnalyzer:
 
     See Also
     --------
-    :class:`statsmodels.tsa.stattools.adfuller`
-    :class:`statsmodels.tsa.stattools.kpss`
+    :obj:`statsmodels.tsa.stattools.adfuller`
+    :obj:`statsmodels.tsa.stattools.kpss`
     """
 
     def __init__(self, dataset_id: DatasetId, is_train: bool,
@@ -157,7 +157,7 @@ class DatasetAnalyzer:
         ----------
         filename: path
             Path to the JSON-file containing the dataset metadata. Can be written using
-            :func:`timeeval.datasets.DatasetAnalyzer.save_to_json`.
+            :func:`timeeval.datasets.analyzer.DatasetAnalyzer.save_to_json`.
         train: bool
             Whether the training or testing time series' metadata should be loaded from the file.
 

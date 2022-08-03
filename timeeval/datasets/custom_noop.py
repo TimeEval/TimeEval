@@ -13,7 +13,7 @@ class NoOpCustomDatasets(CustomDatasetsBase):
     Internal API! You should **not need to use or modify** this class.
 
     This dummy implementation does nothing and improves readability of the
-    :class:`timeeval.datasets.Datasets`-implementation by removing the need for None-checks.
+    :class:`timeeval.datasets.datasets.Datasets`-implementation by removing the need for None-checks.
     """
 
     def __init__(self) -> None:

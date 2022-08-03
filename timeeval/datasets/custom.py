@@ -45,7 +45,7 @@ class CustomDatasets(CustomDatasetsBase):
 
     Internal API! You should **not need to use or modify** this class.
 
-    This class behaves similar to the :class:`timeeval.datasets.Datasets`-API while using a different internal
+    This class behaves similar to the :class:`timeeval.datasets.datasets.Datasets`-API while using a different internal
     representation for the dataset index.
     """
 

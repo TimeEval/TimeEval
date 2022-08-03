@@ -1,13 +1,10 @@
 """
 An Evaluation Tool for Anomaly Detection Algorithms on Time Series Data.
 
-Provides:
-  1. tbd
-
-How to use the documentation:
+**How to use the documentation:**
 
 Documentation is available in two forms: docstrings provided with the code, and a loose standing reference guide,
-available on `timeeval.readthedocs.io <timeeval.readthedocs.io>`_.
+available on `timeeval.readthedocs.io <https://timeeval.readthedocs.io>`_.
 
 Code snippets in the docstring examples are indicated by three greater-than signs::
 
