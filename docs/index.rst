@@ -10,10 +10,10 @@ TimeEval: Evaluation Tool for Anomaly Detection Algorithms on Time Series
    :maxdepth: 1
    :hidden:
 
-   User Guide <user/index>
-   Concepts <concepts/index>
-   API Reference <api/index>
-   Contributor's Guide <dev/index>
+   user/index
+   concepts/index
+   api/index
+   dev/index
 
 
 Overview
@@ -114,7 +114,7 @@ You can use the following BibTex entry:
 User Guide
 ----------
 
-New to TimeEval? Check out our :doc:`User Guides</user/index>` to get started with TimeEval.
+New to TimeEval? Check out our :doc:`/user/index` to get started with TimeEval.
 The user guides explain TimeEval's API and how to use it to achieve your goal.
 
 :doc:`To the user guide</user/index>`
