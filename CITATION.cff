@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Schmidl
+    given-names: Sebastian
+    orcid: https://orcid.org/0000-0002-6597-9809
+  - family-names: Wenig
+    given-names: Phillip
+    orcid: https://orcid.org/0000-0002-8942-4322
+title: "TimeEval: A Benchmarking Toolkit for Time Series Anomaly Detection Algorithms"
+date-released: 2022
+url: "https://github.com/HPI-Information-Systems/TimeEval"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Wenig
+      given-names: Phillip
+      orcid: https://orcid.org/0000-0002-8942-4322
+    - family-names: Schmidl
+      given-names: Sebastian
+      orcid: https://orcid.org/0000-0002-6597-9809
+    - family-names: Papenbrock
+      given-names: Thorsten
+      orcid: https://orcid.org/0000-0002-4019-8221
+  doi: 10.14778/3554821.3554873
+  journal: "Proceedings of the VLDB Endowment (PVLDB)"
+  title: "TimeEval: A Benchmarking Toolkit for Time Series Anomaly Detection Algorithms"
+  issue: 12
+  volume: 15
+  year: 2022
+  start: 3678
+  end: 3681
