@@ -257,6 +257,12 @@ if __name__ == "__main__":
 
 You can find more details about all exposed configuration options and methods in the [](../api/index.rst).
 
-```{warning}
-WIP
-```
+If you are able to successfully execute the previous example evaluation, you can find more information at the following locations:
+
+- [Add your own algorithm to TimeEval](integrate-algorithm.md)
+- [Add your own datasets to TimeEval](integrate-dataset.md)
+- [Configure TimeEval and resource constraints](../concepts/configuration.md)
+- [Configure algorithm hyperparameters](../concepts/params.md)
+- [Using custom metrics](custom-metrics.md)
+- [Measuring algorithm runtime](runtime.md)
+- [Executing TimeEval distributedly](usage-distributed-timeeval.md)
