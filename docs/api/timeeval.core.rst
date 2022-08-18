@@ -3,6 +3,7 @@ timeeval.core package
 
 .. warning::
     This package contains TimeEval-internal classes and functions.
+    Do not use or change!
 
 timeeval.core.experiments.Experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
