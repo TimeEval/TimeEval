@@ -7,3 +7,9 @@ This section documents the public API of TimeEval.
    :maxdepth: 4
 
    timeeval
+   timeeval.adapters
+   timeeval.datasets
+   timeeval.heuristics
+   timeeval.params
+   timeeval.utils
+   timeeval.core

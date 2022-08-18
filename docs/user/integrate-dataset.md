@@ -1,9 +1,5 @@
 # How to use your own datasets in TimeEval
 
-```{warning}
-WIP
-```
-
 You can use your own datasets with TimeEval.
 There are two ways to achieve this: using **custom datasets** or preparing your datasets as a TimeEval dataset collection.
 Either way, please familiarize yourself with the dataset format used by TimeEval described in the concept page [](../concepts/datasets.md).
@@ -54,3 +50,7 @@ dm.load_custom_datasets(custom_datasets_path)
 ```
 
 ## 2. Create a TimeEval dataset collection
+
+```{warning}
+WIP
+```

@@ -1,11 +1,8 @@
 timeeval.params package
 =======================
 
-Module contents
----------------
-
 timeeval.params.search.ParameterConfig
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 .. autoclass:: timeeval.params.search.ParameterConfig
    :members:
@@ -13,7 +10,7 @@ timeeval.params.search.ParameterConfig
    :show-inheritance:
 
 timeeval.params.search.FixedParameters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 .. autoclass:: timeeval.params.search.FixedParameters
    :members:
@@ -21,7 +18,7 @@ timeeval.params.search.FixedParameters
    :show-inheritance:
 
 timeeval.params.search.FullParameterGrid
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
 
 .. autoclass:: timeeval.params.search.FullParameterGrid
    :members:
@@ -29,7 +26,7 @@ timeeval.params.search.FullParameterGrid
    :show-inheritance:
 
 timeeval.params.search.IndependentParameterGrid
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------
 
 .. autoclass:: timeeval.params.search.IndependentParameterGrid
    :members:
