@@ -10,10 +10,10 @@ TimeEval: Evaluation Tool for Anomaly Detection Algorithms on Time Series
    :maxdepth: 1
    :hidden:
 
-   User Guide <user/index>
-   Concepts <concepts/index>
-   API Reference <api/index>
-   Contributor's Guide <dev/index>
+   user/index
+   concepts/index
+   api/index
+   dev/index
 
 
 Overview
@@ -91,7 +91,7 @@ If you use TimeEval in your project or research, please cite our demonstration p
 
    Phillip Wenig, Sebastian Schmidl, and Thorsten Papenbrock.
    TimeEval: A Benchmarking Toolkit for Time Series Anomaly Detection Algorithms. PVLDB, 15(12): 3678 - 3681, 2022.
-   doi:[10.14778/3554821.3554873](https://doi.org/10.14778/3554821.3554873)
+   doi:`10.14778/3554821.3554873 <https://doi.org/10.14778/3554821.3554873>`_
 
 You can use the following BibTex entry:
 
@@ -112,7 +112,7 @@ You can use the following BibTex entry:
 User Guide
 ----------
 
-New to TimeEval? Check out our :doc:`User Guides</user/index>` to get started with TimeEval.
+New to TimeEval? Check out our :doc:`/user/index` to get started with TimeEval.
 The user guides explain TimeEval's API and how to use it to achieve your goal.
 
 :doc:`To the user guide</user/index>`

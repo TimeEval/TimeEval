@@ -40,14 +40,10 @@ datasets = dm.select()
 
 ### Custom datasets
 
-TimeEval can also use **custom datasets** for the evaluation.
-The time series CSV-files must still follow our canonical file format!
+```{important}
+WIP!
+```
 
-To tell the TimeEval tool where it can find those custom datasets, a configuration file is needed.
-The custom datasets config file contains all custom datasets organized by their identifier which is used later on.
-Each entry in the config file must contain the path to the test time series;
-optionally, one can add a path to the training time series, specify the dataset type, and supply the period size if known.
-The paths to the data files must be absolute or relative to the configuration file.
 Example file `custom_datasets.json`:
 
 ```json
@@ -64,7 +60,7 @@ Example file `custom_datasets.json`:
 }
 ```
 
-You can add custom datasets to the dataset manager using two ways:
+You can register custom datasets at the dataset manager using two ways:
 
 ```python
 from pathlib import Path

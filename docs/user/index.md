@@ -1,15 +1,18 @@
-# User Guide
+# User Guides
 
-## Repetitive runs and measuring runtime
+This part of the TimeEval documentation includes a couple of usage guides to get you started on using TimeEval for your own projects.
+The guides teach you TimeEval's APIs and their usage, but they do not get into detail about how TimeEval works.
+You can find the detailed descriptions of TimeEval concepts [here](../concepts/index.md).
 
-TimeEval has the ability to run an experiment multiple times to improve runtime measurements.
-Therefore, {class}`timeeval.timeeval.TimeEval` has the parameter `repetitions: int = 1`, which tells TimeEval how many times to execute each experiment (algorithm, hyperparameters, and dataset combination).
-
-When measuring runtime, we highly recommend to use TimeEval's feature to limit each algorithm to a specific set of resources (meaning CPU and memory).
-This requires using the {class}`timeeval.adapters.docker.DockerAdapter` for the algorithms.
-
-
-To retrieve the aggregated results, you can call {meth}`timeeval.timeeval.TimeEval.get_results` with the parameter `aggregated: bool = True`.
-This aggregates the quality and runtime measurements  using mean and standard deviation.
-Erroneous experiments are excluded from an aggregate.
-For example, if you have `repetitions = 5` and one of five experiments failed, the average is built only over the 4 successful runs.
+```{toctree}
+---
+maxdepth: 1
+---
+usage-timeeval
+integrate-dataset
+integrate-algorithm
+custom-metrics
+runtime
+usage-distributed-timeeval
+heuristics
+```

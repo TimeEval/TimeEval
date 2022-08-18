@@ -81,16 +81,3 @@ timeeval.data\_types.ExecutionType
    :members:
    :undoc-members:
    :show-inheritance:
-
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   timeeval.adapters
-   timeeval.datasets
-   timeeval.heuristics
-   timeeval.params
-   timeeval.utils
-   timeeval.core
