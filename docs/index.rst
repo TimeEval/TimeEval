@@ -91,7 +91,7 @@ If you use TimeEval in your project or research, please cite our demonstration p
 
    Phillip Wenig, Sebastian Schmidl, and Thorsten Papenbrock.
    TimeEval: A Benchmarking Toolkit for Time Series Anomaly Detection Algorithms. PVLDB, 15(12): 3678 - 3681, 2022.
-   doi:[10.14778/3554821.3554873](https://doi.org/10.14778/3554821.3554873)
+   doi:`10.14778/3554821.3554873 <https://doi.org/10.14778/3554821.3554873>`_
 
 You can use the following BibTex entry:
 
