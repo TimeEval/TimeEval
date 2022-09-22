@@ -145,7 +145,7 @@ if __name__ == "__main__":
         packages=find_packages(exclude=("tests", "tests.*")),
         package_data={"timeeval": ["py.typed"], "timeeval_experiments": ["py.typed"]},
         install_requires=load_dependencies(),
-        python_requires=">=3.7",
+        python_requires=">=3.7, <3.10",
         test_suite="tests",
         cmdclass={
             "test": PyTestCommand,
