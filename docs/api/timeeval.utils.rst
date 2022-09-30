@@ -33,14 +33,6 @@ timeeval.utils.label\_formatting module
    :undoc-members:
    :show-inheritance:
 
-timeeval.utils.metrics module
------------------------------
-
-.. automodule:: timeeval.utils.metrics
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 timeeval.utils.results\_path module
 -----------------------------------
 

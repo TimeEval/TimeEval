@@ -5,6 +5,7 @@ from prts import ts_precision, ts_recall, ts_fscore
 
 from .auc_metrics import AucMetric
 from .metric import Metric
+from .thresholding import ThresholdingStrategy, NoThresholding
 
 
 class RangePrecision(Metric):
@@ -12,27 +13,34 @@ class RangePrecision(Metric):
 
     Parameters
     ----------
+    thresholding_strategy : ThresholdingStrategy
+        Strategy used to find a threshold over continuous anomaly scores to get binary labels.
+        Use :class:`timeeval.metrics.thresholding.NoThresholding` for results that already contain binary labels.
     alpha : float
         Weight of the existence reward. For most - when not all - cases, `p_alpha` should be set to 0.
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
         Positional bias type.
+    name : str
+        Custom name for this metric (e.g. including your parameter changes).
     """
 
-    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat",
-                 name: str = "RANGE_PRECISION") -> None:
+    def __init__(self, thresholding_strategy: ThresholdingStrategy = NoThresholding(), alpha: float = 0,
+                 cardinality: str = "reciprocal", bias: str = "flat", name: str = "RANGE_PRECISION") -> None:
+        self._thresholding_strategy = thresholding_strategy
         self._alpha = alpha
         self._cardinality = cardinality
         self._bias = bias
         self._name = name
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        score: float = ts_precision(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        y_pred = self._thresholding_strategy.fit_transform(y_true, y_score)
+        score: float = ts_precision(y_true, y_pred, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
         return score
 
     def supports_continuous_scorings(self) -> bool:
-        return False
+        return not isinstance(self._thresholding_strategy, NoThresholding)
 
     @property
     def name(self) -> str:
@@ -44,27 +52,34 @@ class RangeRecall(Metric):
 
     Parameters
     ----------
+    thresholding_strategy : ThresholdingStrategy
+        Strategy used to find a threshold over continuous anomaly scores to get binary labels.
+        Use :class:`timeeval.metrics.thresholding.NoThresholding` for results that already contain binary labels.
     alpha : float
         Weight of the existence reward. If 0: no existence reward, if 1: only existence reward.
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
         Positional bias type.
+    name : str
+        Custom name for this metric (e.g. including your parameter changes).
     """
 
-    def __init__(self, alpha: float = 0, cardinality: str = "reciprocal", bias: str = "flat",
-                 name: str = "RANGE_RECALL") -> None:
+    def __init__(self, thresholding_strategy: ThresholdingStrategy = NoThresholding(), alpha: float = 0,
+                 cardinality: str = "reciprocal", bias: str = "flat", name: str = "RANGE_RECALL") -> None:
+        self._thresholding_strategy = thresholding_strategy
         self._alpha = alpha
         self._cardinality = cardinality
         self._bias = bias
         self._name = name
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        score: float = ts_recall(y_true, y_score, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        y_pred = self._thresholding_strategy.fit_transform(y_true, y_score)
+        score: float = ts_recall(y_true, y_pred, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
         return score
 
     def supports_continuous_scorings(self) -> bool:
-        return False
+        return not isinstance(self._thresholding_strategy, NoThresholding)
 
     @property
     def name(self) -> str:
@@ -80,6 +95,9 @@ class RangeFScore(Metric):
 
     Parameters
     ----------
+    thresholding_strategy : ThresholdingStrategy
+        Strategy used to find a threshold over continuous anomaly scores to get binary labels.
+        Use :class:`timeeval.metrics.thresholding.NoThresholding` for results that already contain binary labels.
     beta : float
         F-score beta determines the weight of recall in the combined score.
         beta < 1 lends more weight to precision, while beta > 1 favors recall.
@@ -94,9 +112,13 @@ class RangeFScore(Metric):
         Positional bias type.
     r_bias : {'flat', 'front', 'middle', 'back'}
         Positional bias type.
+    name : str
+        Custom name for this metric (e.g. including your parameter changes). If `None`, will include the beta-value in
+        the name: "RANGE_F{beta}_SCORE".
     """
 
     def __init__(self,
+                 thresholding_strategy: ThresholdingStrategy = NoThresholding(),
                  beta: float = 1,
                  p_alpha: float = 0,
                  r_alpha: float = 0.5,
@@ -104,6 +126,7 @@ class RangeFScore(Metric):
                  p_bias: str = "flat",
                  r_bias: str = "flat",
                  name: Optional[str] = None) -> None:
+        self._thresholding_strategy = thresholding_strategy
         self._beta = beta
         self._p_alpha = p_alpha
         self._r_alpha = r_alpha
@@ -113,7 +136,8 @@ class RangeFScore(Metric):
         self._name = f"RANGE_F{self._beta:.2f}_SCORE" if name is None else name
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        score: float = ts_fscore(y_true, y_score,
+        y_pred = self._thresholding_strategy.fit_transform(y_true, y_score)
+        score: float = ts_fscore(y_true, y_pred,
                                  beta=self._beta,
                                  p_alpha=self._p_alpha, r_alpha=self._r_alpha,
                                  cardinality=self._cardinality,
@@ -121,7 +145,7 @@ class RangeFScore(Metric):
         return score
 
     def supports_continuous_scorings(self) -> bool:
-        return False
+        return not isinstance(self._thresholding_strategy, NoThresholding)
 
     @property
     def name(self) -> str:
@@ -150,6 +174,8 @@ class RangePrAUC(AucMetric):
         Positional bias type.
     plot : bool
     plot_store : bool
+    name : str
+        Custom name for this metric (e.g. including your parameter changes).
 
 
     .. rubric:: References
@@ -172,7 +198,8 @@ class RangePrAUC(AucMetric):
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         return self._auc(y_true, y_score, self._range_precision_recall_curve)
 
-    def _range_precision_recall_curve(self, y_true: np.ndarray, y_score: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _range_precision_recall_curve(self, y_true: np.ndarray, y_score: np.ndarray) -> Tuple[
+        np.ndarray, np.ndarray, np.ndarray]:
         thresholds = np.unique(y_score)
         thresholds.sort()
         # The first precision and recall values are precision=class balance and recall=1.0, which corresponds to a
