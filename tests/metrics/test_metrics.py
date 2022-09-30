@@ -3,7 +3,8 @@ import warnings
 
 import numpy as np
 
-from timeeval.utils.metrics import DefaultMetrics, PrecisionAtK, FScoreAtK
+from timeeval import DefaultMetrics
+from timeeval.metrics.other_metrics import FScoreAtK, PrecisionAtK
 
 
 class TestMetrics(unittest.TestCase):

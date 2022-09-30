@@ -14,8 +14,8 @@ from tqdm import tqdm
 
 from timeeval import Algorithm, Metric, DefaultMetrics, MultiDatasetManager
 from timeeval.constants import RESULTS_CSV, METRICS_CSV, ANOMALY_SCORES_TS
+from timeeval.metrics import FScoreAtK, PrecisionAtK
 from timeeval.utils.datasets import load_labels_only
-from timeeval.utils.metrics import PrecisionAtK, FScoreAtK
 from timeeval.utils.tqdm_joblib import tqdm_joblib
 
 

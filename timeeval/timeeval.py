@@ -25,7 +25,7 @@ from .data_types import TrainingType, InputDimensionality
 from .datasets import Datasets
 from .resource_constraints import ResourceConstraints
 from .utils.encode_params import dumps_params
-from .utils.metrics import Metric, DefaultMetrics
+from .metrics import Metric, DefaultMetrics
 from .utils.tqdm_joblib import tqdm_joblib
 
 
