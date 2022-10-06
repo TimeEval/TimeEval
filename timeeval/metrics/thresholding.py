@@ -1,5 +1,5 @@
 import abc
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -13,7 +13,7 @@ class ThresholdingStrategy(abc.ABC):
     already existing binary labels and keeps them untouched. This allows applying the metrics on existing binary
     classification results.
     """
-    def __int__(self):
+    def __int__(self) -> None:
         self.threshold: Optional[float] = None
 
     def fit(self, y_true: np.ndarray, y_score: np.ndarray) -> None:
@@ -127,6 +127,12 @@ class NoThresholding(ThresholdingStrategy):
         """
         pass
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"NoThresholding()"
+
 
 class FixedValueThresholding(ThresholdingStrategy):
     """Thresholding approach using a fixed threshold value.
@@ -143,7 +149,13 @@ class FixedValueThresholding(ThresholdingStrategy):
 
     def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """Returns the fixed threshold."""
-        return self.threshold
+        return self.threshold  # type: ignore
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"FixedValueThresholding(threshold={repr(self.threshold)})"
 
 
 class PercentileThresholding(ThresholdingStrategy):
@@ -174,7 +186,13 @@ class PercentileThresholding(ThresholdingStrategy):
         threshold : float
             The xth-percentile of the anomaly scoring as threshold.
         """
-        return np.nanpercentile(y_score, self._percentile)
+        return np.nanpercentile(y_score, self._percentile)  # type: ignore
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"PercentileThresholding(percentile={repr(self._percentile)})"
 
 
 class TopKPointsThresholding(ThresholdingStrategy):
@@ -187,9 +205,9 @@ class TopKPointsThresholding(ThresholdingStrategy):
         number of anomalous points.
     """
     def __init__(self, k: Optional[int] = None):
-        if k <= 0:
+        if k is not None and k <= 0:
             raise ValueError(f"K must be greater than 0, but was {k}!")
-        self._k = k
+        self._k: Optional[int] = k
 
     def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """Computes a threshold based on the number of expected anomalous points.
@@ -212,9 +230,15 @@ class TopKPointsThresholding(ThresholdingStrategy):
             Threshold that yields k anomalous points.
         """
         if self._k is None:
-            return np.nanpercentile(y_score, (1 - y_true.sum() / y_true.shape[0])*100)
+            return np.nanpercentile(y_score, (1 - y_true.sum() / y_true.shape[0])*100)  # type: ignore
         else:
-            return np.nanpercentile(y_score, (1 - self._k / y_true.shape[0]) * 100)
+            return np.nanpercentile(y_score, (1 - self._k / y_true.shape[0]) * 100)  # type: ignore
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"TopKPointsThresholding(k={repr(self._k)})"
 
 
 class TopKRangesThresholding(ThresholdingStrategy):
@@ -228,9 +252,9 @@ class TopKRangesThresholding(ThresholdingStrategy):
         anomalies.
     """
     def __init__(self, k: Optional[int] = None):
-        if k <= 0:
+        if k is not None and k <= 0:
             raise ValueError(f"K must be greater than 0, but was {k}!")
-        self._k = k
+        self._k: Optional[int] = k
 
     @staticmethod
     def _count_anomaly_ranges(y_pred: np.ndarray) -> int:
@@ -258,16 +282,22 @@ class TopKRangesThresholding(ThresholdingStrategy):
         """
         if self._k is None:
             self._k = self._count_anomaly_ranges(y_true)
-        thresholds = np.unique(y_score)[::-1]
+        thresholds: Tuple[float] = np.unique(y_score)[::-1]
         t = thresholds[0]
-        y_pred = (y_score >= t).astype(np.int_)
+        y_pred = np.array(y_score >= t, dtype=np.int_)
         # exclude minimum from thresholds, because all points are >= minimum!
         for t in thresholds[1:-1]:
-            y_pred = (y_score >= t).astype(np.int_)
+            y_pred = np.array(y_score >= t, dtype=np.int_)
             detected_n = self._count_anomaly_ranges(y_pred)
             if detected_n >= self._k:
                 break
         return t
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"TopKRangesThresholding(k={repr(self._k)})"
 
 
 class SigmaThresholding(ThresholdingStrategy):
@@ -303,4 +333,10 @@ class SigmaThresholding(ThresholdingStrategy):
         threshold : float
             Computed threshold based on mean and standard deviation.
         """
-        return np.nanmean(y_score) + self._factor * np.nanstd(y_score)
+        return np.nanmean(y_score) + self._factor * np.nanstd(y_score)  # type: ignore
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"SigmaThresholding(factor={repr(self._factor)})"
