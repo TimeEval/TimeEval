@@ -1,6 +1,6 @@
 from typing import List
 
-from .auc_metrics import RocAUC, PrAUC
+from .auc_metrics import AucMetric, RocAUC, PrAUC
 from .metric import Metric
 from .other_metrics import AveragePrecision, PrecisionAtK, FScoreAtK
 from .range_metrics import RangePrAUC, RangePrecision, RangeRecall, RangeFScore

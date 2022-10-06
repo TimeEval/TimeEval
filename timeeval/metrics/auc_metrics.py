@@ -1,14 +1,18 @@
 from abc import ABC
-from typing import Iterable, Callable, Tuple
+from typing import Iterable, Callable
 
 import numpy as np
-from prts import ts_recall, ts_precision
 from sklearn.metrics import auc, roc_curve, precision_recall_curve
 
 from .metric import Metric
 
 
 class AucMetric(Metric, ABC):
+    """Base class for area-under-curve-based metrics.
+
+    All AUC-Metrics support continuous scorings, calculate the area under a curve function, and allow plotting this
+    curve function. See the subclasses' documentation for a detailed explanation of the corresponding curve and metric.
+    """
     def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
         self._plot = plot
         self._plot_store = plot_store
@@ -38,10 +42,20 @@ class AucMetric(Metric, ABC):
 class RocAUC(AucMetric):
     """Computes the area under the receiver operating characteristic curve.
 
+    Parameters
+    ----------
+    plot : bool
+        Set this parameter to ``True`` to plot the curve.
+    plot_store : bool
+        If this parameter is ``True`` the curve plot will be saved in the current working directory under the name
+        template "fig-{metric-name}.pdf".
+
     See Also
     --------
-    https://en.wikipedia.org/wiki/Receiver_operating_characteristic
+    `https://en.wikipedia.org/wiki/Receiver_operating_characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ : Explanation of the ROC-curve.
     """
+    def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
+        super().__init__(plot, plot_store)
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         return self._auc(y_true, y_score, roc_curve)
@@ -53,7 +67,17 @@ class RocAUC(AucMetric):
 
 class PrAUC(AucMetric):
     """Computes the area under the precision recall curve.
+
+    Parameters
+    ----------
+    plot : bool
+        Set this parameter to ``True`` to plot the curve.
+    plot_store : bool
+        If this parameter is ``True`` the curve plot will be saved in the current working directory under the name
+        template "fig-{metric-name}.pdf".
     """
+    def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
+        super().__init__(plot, plot_store)
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         return self._auc(y_true, y_score, precision_recall_curve)

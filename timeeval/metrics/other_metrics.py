@@ -16,11 +16,11 @@ class AveragePrecision(Metric):
     Parameters
     ----------
     kwargs : dict
-        Keyword arguments that get passed down to :func:`sklearn.metrics._ranking.average_precision_score`
+        Keyword arguments that get passed down to :func:`sklearn.metrics.average_precision_score`
 
     See Also
     --------
-    sklearn.metrics._ranking.average_precision_score : Implementation of the average precision metric.
+    sklearn.metrics.average_precision_score : Implementation of the average precision metric.
     """
 
     def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
@@ -50,6 +50,10 @@ class FScoreAtK(Metric):
     k : int (optional)
         Number of top anomalies used to calculate precision. If `k` is not specified (`None`) the number of true
         anomalies (based on the ground truth values) is used.
+
+    See Also
+    --------
+    timeeval.metrics.thresholding.TopKRangesThresholding : Thresholding approach used.
     """
 
     def __init__(self, k: Optional[int] = None) -> None:
@@ -80,6 +84,10 @@ class PrecisionAtK(Metric):
     k : int (optional)
         Number of top anomalies used to calculate precision. If `k` is not specified (`None`) the number of true
         anomalies (based on the ground truth values) is used.
+
+    See Also
+    --------
+    timeeval.metrics.thresholding.TopKRangesThresholding : Thresholding approach used.
     """
 
     def __init__(self, k: Optional[int] = None) -> None:

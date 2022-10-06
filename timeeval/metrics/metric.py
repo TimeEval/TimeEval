@@ -7,6 +7,36 @@ from sklearn.utils import column_or_1d, assert_all_finite, check_consistent_leng
 
 
 class Metric(abc.ABC):
+    """Base class for metric implementations that score anomaly scorings against ground truth binary labels. Every
+    subclass must implement :func:`~timeeval.metrics.Metric.name`, :func:`~timeeval.metrics.Metric.score`, and
+    :func:`~timeeval.metrics.Metric.supports_continuous_scorings`.
+
+    Examples
+    --------
+    You can implement a new TimeEval metric easily by inheriting from this base class. A simple metric, for example,
+    uses a fixed threshold to get binary labels and computes the false positive rate:
+
+    >>> from timeeval.metrics import Metric
+    >>> class FPR(Metric):
+    >>>     def __init__(self, threshold: float = 0.8):
+    >>>         self._threshold = threshold
+    >>>     @property
+    >>>     def name(self) -> str:
+    >>>         return f"FPR@{self._threshold}"
+    >>>     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
+    >>>         y_pred = y_score >= self._threshold
+    >>>         fp = np.sum(y_pred & ~y_true)
+    >>>         return fp / (fp + np.sum(y_true))
+    >>>     def supports_continuous_scorings(self) -> bool:
+    >>>         return True
+
+    This metric can then be used in TimeEval:
+
+    >>> from timeeval import TimeEval
+    >>> from timeeval.metrics import DefaultMetrics
+    >>> timeeval = TimeEval(dmgr=..., datasets=[], algorithms=[],
+    >>>                     metrics=[FPR(threshold=0.8), DefaultMetrics.ROC_AUC])
+    """
     def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:  # type: ignore[no-untyped-def]
         y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
         if np.unique(y_score).shape[0] == 1:
@@ -67,12 +97,16 @@ class Metric(abc.ABC):
     @property
     @abc.abstractmethod
     def name(self) -> str:
+        """Returns the unique name of this metric."""
         ...
 
     @abc.abstractmethod
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
+        """Implementation of the metric's scoring function."""
         ...
 
     @abc.abstractmethod
     def supports_continuous_scorings(self) -> bool:
+        """Whether this metric accepts continous anomaly scorings as input (``True``) or binary classification
+        labels (``False``)."""
         ...
