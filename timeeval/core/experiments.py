@@ -9,15 +9,15 @@ from sklearn.preprocessing import MinMaxScaler
 
 from ..algorithm import Algorithm
 from ..constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
+from ..core.times import Times
 from ..data_types import AlgorithmParameter, TrainingType, InputDimensionality
 from ..datasets import Datasets, Dataset
 from ..heuristics import inject_heuristic_values
+from ..metrics import Metric, DefaultMetrics
 from ..resource_constraints import ResourceConstraints
-from ..core.times import Times
 from ..utils.datasets import extract_features, load_dataset, load_labels_only
 from ..utils.encode_params import dump_params
 from ..utils.hash_dict import hash_dict
-from ..utils.metrics import Metric, DefaultMetrics
 from ..utils.results_path import generate_experiment_path
 
 

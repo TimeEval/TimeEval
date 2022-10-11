@@ -3,7 +3,10 @@ import warnings
 
 import numpy as np
 
-from timeeval.utils.metrics import DefaultMetrics, PrecisionAtK, FScoreAtK
+from timeeval import DefaultMetrics
+from timeeval.metrics import RangeFScore, RangePrecision, RangeRecall, F1Score, Precision, Recall
+from timeeval.metrics.other_metrics import FScoreAtK, PrecisionAtK
+from timeeval.metrics.thresholding import FixedValueThresholding, NoThresholding
 
 
 class TestMetrics(unittest.TestCase):
@@ -44,11 +47,23 @@ class TestMetrics(unittest.TestCase):
         result = DefaultMetrics.RANGE_F1(y_true, y_pred)
         self.assertAlmostEqual(result, 0.66666, places=4)
 
+    def test_range_based_f_score_thresholding(self):
+        y_score = np.array([0.1, 0.9, 0.8, 0.2])
+        y_true = np.array([0, 1, 0, 0])
+        result = RangeFScore(thresholding_strategy=FixedValueThresholding(), beta=1)(y_true, y_score)
+        self.assertAlmostEqual(result, 0.66666, places=4)
+
     def test_range_based_precision(self):
         y_pred = np.array([0, 1, 1, 0])
         y_true = np.array([0, 1, 0, 0])
         result = DefaultMetrics.RANGE_PRECISION(y_true, y_pred)
         self.assertEqual(result, 0.5)
+
+    def test_range_based_precision_thresholding(self):
+        y_score = np.array([0.1, 0.9, 0.8, 0.2])
+        y_true = np.array([0, 1, 0, 0])
+        result = RangePrecision(thresholding_strategy=FixedValueThresholding())(y_true, y_score)
+        self.assertAlmostEqual(result, 0.5, places=4)
 
     def test_range_based_recall(self):
         y_pred = np.array([0, 1, 1, 0])
@@ -56,7 +71,13 @@ class TestMetrics(unittest.TestCase):
         result = DefaultMetrics.RANGE_RECALL(y_true, y_pred)
         self.assertEqual(result, 1)
 
-    def test_prf1_value_error(self):
+    def test_range_based_recall_thresholding(self):
+        y_score = np.array([0.1, 0.9, 0.8, 0.2])
+        y_true = np.array([0, 1, 0, 0])
+        result = RangeRecall(thresholding_strategy=FixedValueThresholding())(y_true, y_score)
+        self.assertEqual(result, 1)
+
+    def test_rf1_value_error(self):
         y_pred = np.array([0, .2, .7, 0])
         y_true = np.array([0, 1, 0, 0])
         with self.assertRaises(ValueError):
@@ -127,7 +148,7 @@ class TestMetrics(unittest.TestCase):
         y_zeros = np.zeros_like(y_true, dtype=np.float_)
         y_flat = np.full_like(y_true, fill_value=0.5, dtype=np.float_)
         y_ones = np.ones_like(y_true, dtype=np.float_)
-        y_inverted = (y_true*-1+1).astype(np.float_)
+        y_inverted = (y_true * -1 + 1).astype(np.float_)
 
         pr_metrics = [DefaultMetrics.PR_AUC, DefaultMetrics.RANGE_PR_AUC, DefaultMetrics.FIXED_RANGE_PR_AUC]
         other_metrics = [DefaultMetrics.ROC_AUC, PrecisionAtK(), FScoreAtK()]
@@ -146,3 +167,39 @@ class TestMetrics(unittest.TestCase):
             for m in other_metrics:
                 score = m(y_true, y_inverted)
                 self.assertAlmostEqual(score, 0, msg=m.name)
+
+    def test_f1(self):
+        y_pred = np.array([0, 1, 1, 0])
+        y_true = np.array([0, 1, 0, 0])
+        result = F1Score(NoThresholding())(y_true, y_pred)
+        self.assertAlmostEqual(result, 0.66666, places=4)
+
+    def test_f_score_thresholding(self):
+        y_score = np.array([0.1, 0.9, 0.8, 0.2])
+        y_true = np.array([0, 1, 0, 0])
+        result = F1Score(thresholding_strategy=FixedValueThresholding())(y_true, y_score)
+        self.assertAlmostEqual(result, 0.66666, places=4)
+
+    def test_precision(self):
+        y_pred = np.array([0, 1, 1, 0])
+        y_true = np.array([0, 1, 0, 0])
+        result = Precision(NoThresholding())(y_true, y_pred)
+        self.assertEqual(result, 0.5)
+
+    def test_precision_thresholding(self):
+        y_score = np.array([0.1, 0.9, 0.8, 0.2])
+        y_true = np.array([0, 1, 0, 0])
+        result = Precision(thresholding_strategy=FixedValueThresholding())(y_true, y_score)
+        self.assertAlmostEqual(result, 0.5, places=4)
+
+    def test_recall(self):
+        y_pred = np.array([0, 1, 1, 0])
+        y_true = np.array([0, 1, 0, 0])
+        result = Recall(NoThresholding())(y_true, y_pred)
+        self.assertEqual(result, 1)
+
+    def test_recall_thresholding(self):
+        y_score = np.array([0.1, 0.9, 0.8, 0.2])
+        y_true = np.array([0, 1, 0, 0])
+        result = Recall(thresholding_strategy=FixedValueThresholding())(y_true, y_score)
+        self.assertEqual(result, 1)
