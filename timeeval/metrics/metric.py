@@ -107,6 +107,6 @@ class Metric(abc.ABC):
 
     @abc.abstractmethod
     def supports_continuous_scorings(self) -> bool:
-        """Whether this metric accepts continous anomaly scorings as input (``True``) or binary classification
+        """Whether this metric accepts continuous anomaly scorings as input (``True``) or binary classification
         labels (``False``)."""
         ...
