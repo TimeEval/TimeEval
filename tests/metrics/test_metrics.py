@@ -7,6 +7,7 @@ from timeeval import DefaultMetrics
 from timeeval.metrics import RangeFScore, RangePrecision, RangeRecall, F1Score, Precision, Recall
 from timeeval.metrics.other_metrics import FScoreAtK, PrecisionAtK
 from timeeval.metrics.thresholding import FixedValueThresholding, NoThresholding
+from timeeval.metrics.vus_metrics import RangePrAuc, RangeRocAuc
 
 
 class TestMetrics(unittest.TestCase):
@@ -203,3 +204,27 @@ class TestMetrics(unittest.TestCase):
         y_true = np.array([0, 1, 0, 0])
         result = Recall(thresholding_strategy=FixedValueThresholding())(y_true, y_score)
         self.assertEqual(result, 1)
+
+
+class TestVUSMetrics(unittest.TestCase):
+    def setUp(self) -> None:
+        y_true = np.zeros(200)
+        y_true[10:20] = 1
+        y_true[28:33] = 1
+        y_true[110:120] = 1
+        y_score = np.random.default_rng(41).random(200) * 0.5
+        y_score[16:22] = 1
+        y_score[33:38] = 1
+        y_score[160:170] = 1
+        self.y_true = y_true
+        self.y_score = y_score
+        self.expected_range_pr_auc = 0.3737854660
+        self.expected_range_roc_auc = 0.7108527197
+
+    def test_range_pr_auc(self):
+        result = RangePrAuc(compatibility_mode=True)(self.y_true, self.y_score)
+        self.assertAlmostEqual(result, self.expected_range_pr_auc, places=10)
+
+    def test_range_roc_auc(self):
+        result = RangeRocAuc(compatibility_mode=True)(self.y_true, self.y_score)
+        self.assertAlmostEqual(result, self.expected_range_roc_auc, places=10)
