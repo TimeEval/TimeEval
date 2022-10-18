@@ -7,7 +7,12 @@ from sklearn.metrics import auc, roc_curve
 from .metric import Metric
 
 
-class RangeMetric(Metric, ABC):
+class RangeAucMetric(Metric, ABC):
+    """Base class for range-based area under the curve metrics.
+
+    All range-based metrics support continuous scorings and share a common implementation of the confusion matrix.
+    See the subclasses' documentation for an explanation of the corresponding metric.
+    """
 
     def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250):
         self._buffer_size = buffer_size
@@ -15,6 +20,7 @@ class RangeMetric(Metric, ABC):
         self._max_samples = max_samples
 
     def _extend_anomaly_labels(self, y_true: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Extends the anomaly labels with slopes on both ends. Makes the labels continuous instead of binary."""
         # -- corresponds to range_convers_new
         labels = np.diff(np.r_[0, y_true, 0])
         index = np.arange(0, labels.shape[0])
@@ -26,19 +32,22 @@ class RangeMetric(Metric, ABC):
             # per default: set buffer size as median anomaly length:
             self._buffer_size = int(np.median(ends - starts))
 
+        if self._buffer_size <= 1:
+            anomalies = np.array(list(zip(starts, ends - 1))) if self._compat_mode else np.array(list(zip(starts, ends)))
+            return y_true.astype(np.float_), anomalies
+
         y_true_cont = y_true.astype(np.float_)
         slope_length = self._buffer_size // 2
         anomalies = np.empty((starts.shape[0], 2), dtype=np.int_)
         if self._compat_mode:
-            slope = np.sqrt(np.linspace(1 / 2, 1, slope_length + 1))
+            length = y_true_cont.shape[0]
             for i, (s, e) in enumerate(zip(starts, ends)):
-                s0 = s - slope_length
-                s1 = s + 1
-                y_true_cont[s0:s1] = slope + y_true_cont[s0:s1]
-                e0 = e - 1
-                e1 = e + slope_length - 1
-                y_true_cont[e0:e1] = slope[1:][::-1] + y_true_cont[e0:e1]
-                anomalies[i] = [s0, e1 - 1]
+                e -= 1
+                x1 = np.arange(e, min(e + slope_length, length))
+                y_true_cont[x1] += np.sqrt(1 - (x1 - e) / self._buffer_size)
+                x2 = np.arange(max(s - slope_length, 0), s)
+                y_true_cont[x2] += np.sqrt(1 - (s - x2) / self._buffer_size)
+                anomalies[i] = [s - slope_length, e + slope_length - 1]
             y_true_cont = np.clip(y_true_cont, 0, 1)
             anomalies = self._combine_anomalies(anomalies)
         else:
@@ -67,12 +76,14 @@ class RangeMetric(Metric, ABC):
         return np.array(combined_anomalies)
 
     def _uniform_threshold_sampling(self, y_score: np.ndarray) -> np.ndarray:
-        n_samples = min(self._max_samples, y_score.shape[0])
+        if self._compat_mode:
+            n_samples = 250
+        else:
+            n_samples = min(self._max_samples, y_score.shape[0])
         thresholds = np.sort(y_score)[::-1]
         return thresholds[np.linspace(0, thresholds.shape[0] - 1, n_samples, dtype=np.int_)]
 
-    def _range_pr_roc_auc_support(self, y_true: np.ndarray, y_score: np.ndarray, with_plotting: bool = False) -> Tuple[
-        float, float, Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]]:
+    def _range_pr_roc_auc_support(self, y_true: np.ndarray, y_score: np.ndarray, with_plotting: bool = False) -> Tuple[float, float, Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]]:
         y_true_cont, anomalies = self._extend_anomaly_labels(y_true)
         thresholds = self._uniform_threshold_sampling(y_score)
         p = np.average([np.sum(y_true), np.sum(y_true_cont)])
@@ -83,12 +94,13 @@ class RangeMetric(Metric, ABC):
 
         for i, t in enumerate(thresholds):
             y_pred = y_score >= t
-            tp = np.dot(y_true_cont.T, y_pred)
-            fp = np.dot((np.ones_like(y_pred) - y_true_cont).T, y_pred)
+            product = y_true_cont * y_pred
+            tp = np.sum(product)
+            # fp = np.dot((np.ones_like(y_pred) - y_true_cont).T, y_pred)
+            fp = np.sum(y_pred) - tp
             n = len(y_pred) - p
 
-            masked_scores = y_true_cont * y_pred
-            existence_reward = [np.sum(masked_scores[s:e]) > 0 for s, e in anomalies]
+            existence_reward = [np.sum(product[s:e+1]) > 0 for s, e in anomalies]
             existence_reward = np.sum(existence_reward) / anomalies.shape[0]
 
             recall = min(tp / p, 1) * existence_reward  # = tpr
@@ -113,8 +125,7 @@ class RangeMetric(Metric, ABC):
         return True
 
 
-class RangePrAuc(RangeMetric):
-
+class RangePrAuc(RangeAucMetric):
     def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250,
                  plot: bool = False, plot_store: bool = False):
         super().__init__(buffer_size, compatibility_mode, max_samples)
@@ -147,7 +158,7 @@ class RangePrAuc(RangeMetric):
         return "RANGE_PR_AUC"
 
 
-class RangeRocAuc(RangeMetric):
+class RangeRocAuc(RangeAucMetric):
 
     def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250,
                  plot: bool = False, plot_store: bool = False):

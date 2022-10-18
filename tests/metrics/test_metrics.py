@@ -228,3 +228,9 @@ class TestVUSMetrics(unittest.TestCase):
     def test_range_roc_auc(self):
         result = RangeRocAuc(compatibility_mode=True)(self.y_true, self.y_score)
         self.assertAlmostEqual(result, self.expected_range_roc_auc, places=10)
+
+    def test_edge_case_existence_reward(self):
+        result = RangePrAuc(compatibility_mode=True, buffer_size=4)(self.y_true, self.y_score)
+        self.assertAlmostEqual(result, 0.2506464391, places=10)
+        result = RangeRocAuc(compatibility_mode=True, buffer_size=4)(self.y_true, self.y_score)
+        self.assertAlmostEqual(result, 0.6143220816, places=10)
