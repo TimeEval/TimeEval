@@ -6,7 +6,7 @@ from .metric import Metric
 from .other_metrics import AveragePrecision, PrecisionAtK, FScoreAtK
 from .range_metrics import RangePrecisionRangeRecallAUC, RangePrecision, RangeRecall, RangeFScore
 from .thresholding import PercentileThresholding
-from .vus_metrics import RangePrAuc, RangeRocAuc
+from .vus_metrics import RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS
 
 
 class DefaultMetrics:
