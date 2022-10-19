@@ -4,7 +4,6 @@ timeeval package
 .. automodule:: timeeval
    :members:
    :undoc-members:
-   :show-inheritance:
 
 timeeval.TimeEval
 -----------------
@@ -12,7 +11,6 @@ timeeval.TimeEval
 .. autoclass:: timeeval.TimeEval
    :members:
    :undoc-members:
-   :show-inheritance:
 
 timeeval.Status
 ---------------
@@ -28,7 +26,6 @@ timeeval.Algorithm
 .. autoclass:: timeeval.Algorithm
    :members:
    :undoc-members:
-   :show-inheritance:
 
 timeeval.InputDimensionality
 ----------------------------
@@ -52,7 +49,6 @@ timeeval.RemoteConfiguration
 .. autoclass:: timeeval.RemoteConfiguration
    :members:
    :undoc-members:
-   :show-inheritance:
 
 timeeval.ResourceConstraints
 ----------------------------
@@ -60,11 +56,9 @@ timeeval.ResourceConstraints
 .. autoclass:: timeeval.ResourceConstraints
    :members:
    :undoc-members:
-   :show-inheritance:
 
 .. automodule:: timeeval.resource_constraints
    :members: MB, GB
-   :undoc-members:
 
 timeeval.constants
 ------------------
@@ -72,7 +66,6 @@ timeeval.constants
 .. automodule:: timeeval.constants
    :members:
    :undoc-members:
-   :show-inheritance:
 
 timeeval.data\_types.ExecutionType
 ----------------------------------

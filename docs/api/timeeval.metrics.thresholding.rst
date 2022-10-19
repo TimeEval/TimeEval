@@ -24,6 +24,7 @@ timeeval.metrics.thresholding.FixedValueThresholding
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.thresholding.PercentileThresholding
 ----------------------------------------------------
@@ -32,6 +33,7 @@ timeeval.metrics.thresholding.PercentileThresholding
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.thresholding.TopKPointsThresholding
 ----------------------------------------------------
@@ -40,6 +42,7 @@ timeeval.metrics.thresholding.TopKPointsThresholding
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.thresholding.TopKRangesThresholding
 ----------------------------------------------------
@@ -48,6 +51,7 @@ timeeval.metrics.thresholding.TopKRangesThresholding
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.thresholding.SigmaThresholding
 ----------------------------------------------------
@@ -56,3 +60,4 @@ timeeval.metrics.thresholding.SigmaThresholding
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:

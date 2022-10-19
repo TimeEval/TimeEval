@@ -152,7 +152,7 @@ class RangeFScore(Metric):
         return self._name
 
 
-class RangePrAUC(AucMetric):
+class RangePrecisionRangeRecallAUC(AucMetric):
     """Computes the area under the precision recall curve when using the range-based precision and range-based
     recall metric introduced by Tatbul et al. at NeurIPS 2018 [TatbulEtAl2018]_.
 

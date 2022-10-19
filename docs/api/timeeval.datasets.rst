@@ -7,7 +7,6 @@ timeeval.datasets.analyzer
 .. automodule:: timeeval.datasets.analyzer
    :members:
    :undoc-members:
-   :show-inheritance:
 
 timeeval.datasets.custom
 ------------------------
@@ -48,6 +47,7 @@ timeeval.datasets.dataset\_manager
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.datasets.datasets
 --------------------------
@@ -72,3 +72,4 @@ timeeval.datasets.multi\_dataset\_manager
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
