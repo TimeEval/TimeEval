@@ -4,10 +4,9 @@ import warnings
 import numpy as np
 
 from timeeval import DefaultMetrics
-from timeeval.metrics import RangeFScore, RangePrecision, RangeRecall, F1Score, Precision, Recall
-from timeeval.metrics.other_metrics import FScoreAtK, PrecisionAtK
+from timeeval.metrics import (RangeFScore, RangePrecision, RangeRecall, F1Score, Precision, Recall, FScoreAtK,
+                              PrecisionAtK, RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS)
 from timeeval.metrics.thresholding import FixedValueThresholding, NoThresholding
-from timeeval.metrics.vus_metrics import RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS
 
 
 class TestMetrics(unittest.TestCase):
@@ -157,7 +156,8 @@ class TestMetrics(unittest.TestCase):
         metrics = [*pr_metrics, *range_metrics, *other_metrics]
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message="Cannot compute metric for a constant value in y_score, returning 0.0!")
+            warnings.filterwarnings("ignore",
+                                    message="Cannot compute metric for a constant value in y_score, returning 0.0!")
             for y_pred in [y_zeros, y_flat, y_ones]:
                 for m in metrics:
                     self.assertAlmostEqual(m(y_true, y_pred), 0, msg=m.name)

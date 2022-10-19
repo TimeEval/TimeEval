@@ -37,6 +37,7 @@ class Metric(abc.ABC):
     >>> timeeval = TimeEval(dmgr=..., datasets=[], algorithms=[],
     >>>                     metrics=[FPR(threshold=0.8), DefaultMetrics.ROC_AUC])
     """
+
     def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:  # type: ignore[no-untyped-def]
         y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
         if np.unique(y_score).shape[0] == 1:
