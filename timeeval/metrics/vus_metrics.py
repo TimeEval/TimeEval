@@ -120,14 +120,52 @@ class RangeAucMetric(Metric, ABC):
         range_roc_auc: float = np.sum((fprs[1:] - fprs[:-1]) * (recalls[1:] + recalls[:-1]) / 2)
 
         if with_plotting:
-            return range_pr_auc, range_roc_auc, (recalls, fprs, precisions)
+            return range_pr_auc, range_roc_auc, (recalls[:-1], fprs[:-1], precisions)
         return range_pr_auc, range_roc_auc, None
 
     def supports_continuous_scorings(self) -> bool:
         return True
 
 
-class RangePrAuc(RangeAucMetric):
+class RangePrAUC(RangeAucMetric):
+    """Computes the area under the precision-recall-curve using the range-based precision and range-based recall
+    definition from Paparrizos et al. published at VLDB 2022 [PaparrizosEtAl2022]_.
+
+    We first extend the anomaly labels by two slopes of ``buffer_size//2`` length on both sides of each anomaly,
+    uniformly sample thresholds from the anomaly score, and then compute the confusion matrix for all thresholds.
+    Using the resulting precision and recall values, we can plot a curve and compute its area.
+
+    We make some changes to the original implementation from [PaparrizosEtAl2022]_ because we do not agree with the
+    original assumptions. To reproduce the original results, you can set the parameter ``compatibility_mode=True``. This
+    will compute exactly the same values as the code by the authors of the paper.
+
+    The following things are different in TimeEval compared to the original version:
+
+    - For the recall (FPR) existence reward, we count anomalies as separate events, even if the added slopes overlap.
+    - Overlapping slopes don’t sum up in their anomaly weight, but we just take to maximum anomaly weight for each
+      point in the ground truth.
+    - The original slopes are asymmetric: The slopes at the end of anomalies are a single point shorter than the ones at
+      the beginning of anomalies. We use symmetric slopes of the same size for the beginning and end of anomalies.
+    - We use a linear approximation of the slopes instead of the convex slope shape presented in the paper.
+
+    Parameters
+    ----------
+    buffer_size : Optional[int]
+        Size of the buffer region around an anomaly. We add an increasing slope of size ``buffer_size//2`` to the
+        beginning of anomalies and a decreasing slope of size ``buffer_size//2`` to the end of anomalies. Per default
+        (when ``buffer_size==None``), ``buffer_size`` is the median length of the anomalies within the time series.
+        However, you can also set it to the period size of the dominant frequency or any other desired value.
+    compatibility_mode : bool
+        When set to ``True``, produces exactly the same output as the metric implementation by the original authors.
+        Otherwise, TimeEval uses a slightly improved implementation that fixes some bugs and uses linear slopes.
+    max_samples : int
+        Calculating precision and recall for many thresholds is quite slow. We, therefore, uniformly sample thresholds
+        from the available score space. This parameter controls the maximum number of thresholds; too low numbers
+        degrade the metrics' quality.
+    plot : bool
+    plot_store : bool
+    """
+
     def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250,
                  plot: bool = False, plot_store: bool = False):
         super().__init__(buffer_size, compatibility_mode, max_samples)
@@ -160,7 +198,48 @@ class RangePrAuc(RangeAucMetric):
         return "RANGE_PR_AUC"
 
 
-class RangeRocAuc(RangeAucMetric):
+class RangeRocAUC(RangeAucMetric):
+    """Computes the area under the receiver-operating-characteristic-curve using the range-based TPR and
+    range-based FPR definition from Paparrizos et al. published at VLDB 2022 [PaparrizosEtAl2022]_.
+
+    We first extend the anomaly labels by two slopes of ``buffer_size//2`` length on both sides of each anomaly,
+    uniformly sample thresholds from the anomaly score, and then compute the confusion matrix for all thresholds.
+    Using the resulting false positive (FPR) and false positive rates (FPR), we can plot a curve and compute its area.
+
+    We make some changes to the original implementation from [PaparrizosEtAl2022]_ because we do not agree with the
+    original assumptions. To reproduce the original results, you can set the parameter ``compatibility_mode=True``. This
+    will compute exactly the same values as the code by the authors of the paper.
+
+    The following things are different in TimeEval compared to the original version:
+
+    - For the recall (FPR) existence reward, we count anomalies as separate events, even if the added slopes overlap.
+    - Overlapping slopes don’t sum up in their anomaly weight, but we just take to maximum anomaly weight for each
+      point in the ground truth.
+    - The original slopes are asymmetric: The slopes at the end of anomalies are a single point shorter than the ones at
+      the beginning of anomalies. We use symmetric slopes of the same size for the beginning and end of anomalies.
+    - We use a linear approximation of the slopes instead of the convex slope shape presented in the paper.
+
+    Parameters
+    ----------
+    buffer_size : Optional[int]
+        Size of the buffer region around an anomaly. We add an increasing slope of size ``buffer_size//2`` to the
+        beginning of anomalies and a decreasing slope of size ``buffer_size//2`` to the end of anomalies. Per default
+        (when ``buffer_size==None``), ``buffer_size`` is the median length of the anomalies within the time series.
+        However, you can also set it to the period size of the dominant frequency or any other desired value.
+    compatibility_mode : bool
+        When set to ``True``, produces exactly the same output as the metric implementation by the original authors.
+        Otherwise, TimeEval uses a slightly improved implementation that fixes some bugs and uses linear slopes.
+    max_samples : int
+        Calculating precision and recall for many thresholds is quite slow. We, therefore, uniformly sample thresholds
+        from the available score space. This parameter controls the maximum number of thresholds; too low numbers
+        degrade the metrics' quality.
+    plot : bool
+    plot_store : bool
+
+    See Also
+    --------
+    `https://en.wikipedia.org/wiki/Receiver_operating_characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ : Explanation of the ROC-curve.
+    """
 
     def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250,
                  plot: bool = False, plot_store: bool = False):
@@ -194,12 +273,35 @@ class RangeRocAuc(RangeAucMetric):
         return "RANGE_ROC_AUC"
 
 
-class VusMetric(Metric, ABC):
-    """Base class for volume-under-surface-based metrics.
+class RangePrVUS(RangeAucMetric):
+    """Computes the volume under the precision-recall-buffer_size-surface using the range-based precision and
+    range-based recall definition from Paparrizos et al. published at VLDB 2022 [PaparrizosEtAl2022]_.
 
-    All VUS-Metrics support continuous scorings, calculate the volume under a surface curve function, and allow plotting
-    this curve function. See the subclasses' documentation for a detailed explanation of the corresponding curve and
-    metric.
+    For all buffer sizes from 0 to ``max_buffer_size``, we first extend the anomaly labels by two slopes of
+    ``buffer_size//2`` length on both sides of each anomaly, uniformly sample thresholds from the anomaly score, and
+    then compute the confusion matrix for all thresholds. Using the resulting precision and recall values, we can plot
+    a curve and compute its area.
+
+    This metric includes similar changes as :class:`~timeeval.metrics.RangePrAUC`, which can be disabled using the
+    ``compatibility_mode`` parameter.
+
+    Parameters
+    ----------
+    max_buffer_size : int
+        Maximum size of the buffer region around an anomaly. We iterate over all buffer sizes from 0 to
+        ``may_buffer_size`` to create the surface.
+    compatibility_mode : bool
+        When set to ``True``, produces exactly the same output as the metric implementation by the original authors.
+        Otherwise, TimeEval uses a slightly improved implementation that fixes some bugs and uses linear slopes.
+    max_samples : int
+        Calculating precision and recall for many thresholds is quite slow. We, therefore, uniformly sample thresholds
+        from the available score space. This parameter controls the maximum number of thresholds; too low numbers
+        degrade the metrics' quality.
+
+    See Also
+    --------
+    timeeval.metrics.RangePrAUC :
+        Area under the curve version using a single buffer size.
     """
 
     def __init__(self, max_buffer_size: int = 500, compatibility_mode: bool = False, max_samples: int = 250):
@@ -220,21 +322,44 @@ class VusMetric(Metric, ABC):
         return "RANGE_PR_VOLUME"
 
 
+class RangeRocVUS(RangeAucMetric):
+    """Computes the volume under the receiver-operating-characteristic-buffer_size-surface using the range-based TPR and
+    range-based FPR definition from Paparrizos et al. published at VLDB 2022 [PaparrizosEtAl2022]_.
 
-class RocVUS(VusMetric):
-    """Computes the volume under the receiver operating characteristic curve.
+    For all buffer sizes from 0 to ``max_buffer_size``, we first extend the anomaly labels by two slopes of
+    ``buffer_size//2`` length on both sides of each anomaly, uniformly sample thresholds from the anomaly score, and
+    then compute the confusion matrix for all thresholds. Using the resulting false positive (FPR) and false positive
+    rates (FPR), we can plot a curve and compute its area.
+
+    This metric includes similar changes as :class:`~timeeval.metrics.RangeRocAUC`, which can be disabled using the
+    ``compatibility_mode`` parameter.
 
     Parameters
     ----------
-    plot : bool
-        Set this parameter to ``True`` to plot the curve.
-    plot_store : bool
-        If this parameter is ``True`` the curve plot will be saved in the current working directory under the name
-        template "fig-{metric-name}.pdf".
+    max_buffer_size : int
+        Maximum size of the buffer region around an anomaly. We iterate over all buffer sizes from 0 to
+        ``may_buffer_size`` to create the surface.
+    compatibility_mode : bool
+        When set to ``True``, produces exactly the same output as the metric implementation by the original authors.
+        Otherwise, TimeEval uses a slightly improved implementation that fixes some bugs and uses linear slopes.
+    max_samples : int
+        Calculating precision and recall for many thresholds is quite slow. We, therefore, uniformly sample thresholds
+        from the available score space. This parameter controls the maximum number of thresholds; too low numbers
+        degrade the metrics' quality.
 
     See Also
     --------
-    `https://en.wikipedia.org/wiki/Receiver_operating_characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ : Explanation of the ROC-curve.
+    `https://en.wikipedia.org/wiki/Receiver_operating_characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ :
+        Explanation of the ROC-curve.
+    timeeval.metrics.RangeRocAUC :
+        Area under the curve version using a single buffer size.
+
+
+    .. rubric:: References
+
+    .. [PaparrizosEtAl2022] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay, Aaron Elmore, and Michael J.
+       Franklin. Volume Under the Surface: A New Accuracy Evaluation Measure for Time-Series Anomaly Detection. PVLDB,
+       15(11): 2774 - 2787, 2022. doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
 
     def __init__(self, max_buffer_size: int = 500, compatibility_mode: bool = False, max_samples: int = 250):

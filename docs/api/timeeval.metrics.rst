@@ -16,6 +16,7 @@ timeeval.metrics.RocAUC
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.PrAUC
 ----------------------
@@ -24,14 +25,16 @@ timeeval.metrics.PrAUC
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
-timeeval.metrics.RangePrAUC
----------------------------
+timeeval.metrics.RangePrecisionRangeRecallAUC
+---------------------------------------------
 
-.. autoclass:: timeeval.metrics.RangePrAUC
+.. autoclass:: timeeval.metrics.RangePrecisionRangeRecallAUC
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.AveragePrecision
 ---------------------------------
@@ -40,6 +43,7 @@ timeeval.metrics.AveragePrecision
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.Precision
 --------------------------
@@ -48,6 +52,7 @@ timeeval.metrics.Precision
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.Recall
 -----------------------
@@ -56,6 +61,7 @@ timeeval.metrics.Recall
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.F1Score
 ------------------------
@@ -64,6 +70,7 @@ timeeval.metrics.F1Score
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.RangePrecision
 -------------------------------
@@ -72,6 +79,7 @@ timeeval.metrics.RangePrecision
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.RangeRecall
 ----------------------------
@@ -80,6 +88,7 @@ timeeval.metrics.RangeRecall
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.RangeFScore
 ----------------------------
@@ -96,6 +105,7 @@ timeeval.metrics.FScoreAtK
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.PrecisionAtK
 -----------------------------
@@ -104,6 +114,43 @@ timeeval.metrics.PrecisionAtK
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
+
+timeeval.metrics.RangePrAUC
+---------------------------
+
+.. autoclass:: timeeval.metrics.RangePrAUC
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :inherited-members:
+
+timeeval.metrics.RangeRocAUC
+----------------------------
+
+.. autoclass:: timeeval.metrics.RangeRocAUC
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :inherited-members:
+
+timeeval.metrics.RangePrVUS
+---------------------------
+
+.. autoclass:: timeeval.metrics.RangePrVUS
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :inherited-members:
+
+timeeval.metrics.RangeRocVUS
+----------------------------
+
+.. autoclass:: timeeval.metrics.RangeRocVUS
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :inherited-members:
 
 timeeval.metrics.DefaultMetrics
 -------------------------------
