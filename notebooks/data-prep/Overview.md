@@ -1,40 +1,40 @@
 # Overview about the dataset preprocessing process
 
 | Dataset Collection (folder names)      |Status | Notebook       | Comments                                                                                     |
-| :------------------------------------- |:----:|:---------------|:---------------------------------------------------------------------------------------------|
-| ATLAS Higgs Boson Challenge            |  x   | [🗎][ATLAS]    | Classification dataset; time component arbitrary                                             |
-| Community-NAB                          |  ✓   | [🗎][NAB]      |                                                                                              |
-| IOPS AI Challenge                      |  ✓   | [🗎][IOPS]     |                                                                                              |
-| KDD Robot Execution Failures           |  x   |                | Only very short sequences and annotations are per sequence instead of per point!             |
-| MIT-BIH Arrhythmia DB                  |  ✓   | [🗎][mitdb]    | Complex generation of anomaly-windows to label datasets.                                     |
-| MIT-BIH Long-Term ECG Database         |  ✓   | [🗎][ltdb]     | See _MIT-BIH Arrhythmia DB_ for preprocessing explanation.                                   |
-| MIT-BIH Supraventricular Arrhythmia DB |  ✓   | [🗎][svdb]     | See _MIT-BIH Arrhythmia DB_ for preprocessing explanation.                                   |
-| NASA Spacecraft Telemetry Data         |  ✓   | [🗎][NASA]     | SMAP and MSL datasets                                                                        |
-| Series2Graph                           | tbd  |                | **No labels ATM!**                                                                           |
-| Server Machine Dataset                 |  ✓   | [🗎][SMD]      |                                                                                              |
-| TSBitmap                               |  x   |                | **No labels!**                                                                               |
-| UCI ML Repository / 3W                 |  x   | [🗎][3W]       | Hard to transform into TS AD task.                                                           |
-| UCI ML Repository / CalIt2             |  ✓   | [🗎][CalIt2]   |                                                                                              |
-| UCI ML Repository / Condition monitoring|  x   | [🗎][Cond]     | Whole-sequence annotations; multiple condition annotations per sequence!                    |
-| UCI ML Repository / Daphnet            |  ✓   | [🗎][Daph]     |                                                                                              |
-| UCI ML Repository / Dodgers            |  ✓   | [🗎][Dodgers]  | Missing values are marked as anomalies as well.                                              |
-| UCI ML Repository / HEPMASS            |  x   |                | Classification dataset; time component arbitrary                                             |
-| UCI ML Repository / Kitsune Network Attack|  ✓   | [🗎][Kitsune] | Very large datasets; distance between points (network packets) unclear                     |
-| UCI ML Repository / Metro              |  ✓   | [🗎][Metro]    |                                                                                              |
-| UCI ML Repository / OPPORTUNITY        |  ✓   | [🗎][OPP]      | To-Lie is regarded as anomaly. A lot of missing values!                                      |
-| UCI ML Repository / Occupancy Detection|  ✓   | [🗎][Occu]     |                                                                                              |
-| UCI ML Repository / URLReputation      |  x   |                | No real time series; labels are per item, but no way to follow an item over the time period. |
-| Webscope-S5                            |  ✓   | [🗎][Yahoo]    |                                                                                              |
-| credit-card-fraud                      |  x   |                | Timestamps are not equi-distant.                                                             |
-| genesis-demonstrator                   |  ✓   | [🗎][gen]      | A single dataset                                                                             |
-| GHL                                    |  ✓   | [🗎][ghl]      |                                                                                              |
-| SSA                                    |  ✓   | [🗎][ssa]      | Annotation source unclear, brittle datasets.                                                 |
-| Keogh                                  |  ✓   | [🗎][keogh]    | Collection of datasets from Eammon Keogh                                                     |
-| MGAB                                   |  ✓   | [🗎][mgab]     |                                                                                              |
-| KDD-TSAD-contest                       |  ✓   | [🗎][kdd-tsad] |                                                                                              |
-| SWaT                                   |   ✓  | [🗎][swat]     |                                                                                              |
-| WADI                                   |   ✓  | [🗎][wadi]     |                                                                                              |
-| TSB-UAD                                |      | [🗎][TSB-UDA]  | benchmark datasets are already included in our other collections                             |
+| :------------------------------------- |:-----:|:---------------|:---------------------------------------------------------------------------------------------|
+| ATLAS Higgs Boson Challenge            |   x   | [🗎][ATLAS]    | Classification dataset; time component arbitrary                                             |
+| Community-NAB                          |   ✓   | [🗎][NAB]      |                                                                                              |
+| IOPS AI Challenge                      |   ✓   | [🗎][IOPS]     |                                                                                              |
+| KDD Robot Execution Failures           |   x   |                | Only very short sequences and annotations are per sequence instead of per point!             |
+| MIT-BIH Arrhythmia DB                  |   ✓   | [🗎][mitdb]    | Complex generation of anomaly-windows to label datasets.                                     |
+| MIT-BIH Long-Term ECG Database         |   ✓   | [🗎][ltdb]     | See _MIT-BIH Arrhythmia DB_ for preprocessing explanation.                                   |
+| MIT-BIH Supraventricular Arrhythmia DB |   ✓   | [🗎][svdb]     | See _MIT-BIH Arrhythmia DB_ for preprocessing explanation.                                   |
+| NASA Spacecraft Telemetry Data         |   ✓   | [🗎][NASA]     | SMAP and MSL datasets                                                                        |
+| Series2Graph                           |  tbd  |                | **No labels ATM!**                                                                           |
+| Server Machine Dataset                 |   ✓   | [🗎][SMD]      |                                                                                              |
+| TSBitmap                               |   x   |                | **No labels!**                                                                               |
+| UCI ML Repository / 3W                 |   x   | [🗎][3W]       | Hard to transform into TS AD task.                                                           |
+| UCI ML Repository / CalIt2             |   ✓   | [🗎][CalIt2]   |                                                                                              |
+| UCI ML Repository / Condition monitoring|   x   | [🗎][Cond]     | Whole-sequence annotations; multiple condition annotations per sequence!                    |
+| UCI ML Repository / Daphnet            |   ✓   | [🗎][Daph]     |                                                                                              |
+| UCI ML Repository / Dodgers            |   ✓   | [🗎][Dodgers]  | Missing values are marked as anomalies as well.                                              |
+| UCI ML Repository / HEPMASS            |   x   |                | Classification dataset; time component arbitrary                                             |
+| UCI ML Repository / Kitsune Network Attack|   ✓   | [🗎][Kitsune] | Very large datasets; distance between points (network packets) unclear                     |
+| UCI ML Repository / Metro              |   ✓   | [🗎][Metro]    |                                                                                              |
+| UCI ML Repository / OPPORTUNITY        |   ✓   | [🗎][OPP]      | To-Lie is regarded as anomaly. A lot of missing values!                                      |
+| UCI ML Repository / Occupancy Detection|   ✓   | [🗎][Occu]     |                                                                                              |
+| UCI ML Repository / URLReputation      |   x   |                | No real time series; labels are per item, but no way to follow an item over the time period. |
+| Webscope-S5                            |   ✓   | [🗎][Yahoo]    |                                                                                              |
+| credit-card-fraud                      |   x   |                | Timestamps are not equi-distant.                                                             |
+| genesis-demonstrator                   |   ✓   | [🗎][gen]      | A single dataset                                                                             |
+| GHL                                    |   ✓   | [🗎][ghl]      |                                                                                              |
+| SSA                                    |   ✓   | [🗎][ssa]      | Annotation source unclear, brittle datasets.                                                 |
+| Keogh                                  |   ✓   | [🗎][keogh]    | Collection of datasets from Eammon Keogh                                                     |
+| MGAB                                   |   ✓   | [🗎][mgab]     |                                                                                              |
+| KDD-TSAD-contest                       |   ✓   | [🗎][kdd-tsad] |                                                                                              |
+| SWaT                                   |   ✓   | [🗎][swat]     |                                                                                              |
+| WADI                                   |   ✓   | [🗎][wadi]     |                                                                                              |
+| TSB-UAD                                |   ✓   | [🗎][TSB-UDA]  | benchmark datasets are already included in our other collections                             |
 
 ## TODO
 
