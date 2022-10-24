@@ -116,7 +116,7 @@ def main():
         triple_es(),
         ts_bitmap(),
         valmod(),
-        Baselines.normal(),
+        # Baselines.normal(),  # exclude because no additional value!
         # additional algorithms:
         subsequence_knn(),
     ]
