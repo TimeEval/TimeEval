@@ -13,7 +13,7 @@ If you want to use your own datasets with TimeEval, please read [](integrate-dat
 For the evaluation of time series anomaly detection algorithms, we collected univariate and multivariate time series datasets from various sources.
 We looked out for real-world as well as synthetically generated datasets with real-valued values and anomaly annotations.
 We included datasets with direct anomaly annotations (points or subsequences are labelled as either normal (0) or anomalous (1)) and indirect anomaly annotations.
-For the later, we included datasets with categorical labels, where a single class (or low number of classes) is clearly underrepresented and can be assigned to unwanted, erroneous, or anomalous behavior.
+For the latter, we included datasets with categorical labels, where a single class (or low number of classes) is clearly underrepresented and can be assigned to unwanted, erroneous, or anomalous behavior.
 One example for this is an ECG signal with beat annotations, where most beats are annotated as normal beats, but some beats are premature or superventricular heart beats.
 The premature or superventricular heart beats can then be labelled as anomalous while the rest of the time series is normal behavior.
 Overall, we collected 1354 datasets (as of May 2022).
@@ -37,7 +37,7 @@ It is compatible to TimeEval and generates TimeEval-compatible datasets and also
 The downloadable ZIP-archives contain the correct folder structure, but your extraction tool might place the contained files into a new folder that is named based on the ZIP-archive-name.
 The idea is that you download the index-File (`datasets.csv`) and just the dataset collections that you require, extract them all into the same folder, and then place the `datasets.csv` there.
 Please note or remember the name of your datasets folder.
-We will need it later and we will refer to it as `<datasets-folder>`
+We will need it later, and we will refer to it as `<datasets-folder>`
 
 **Example:**
 
@@ -85,9 +85,9 @@ datasets.append(dm.select(collection="Daphnet"))
 ### Dataset download links
 
 Please consider the repeatability page for a complete list of up-to-date download links.
-This section is just for your convenience and we don't update it very frequently!
+This section is just for your convenience, and we don't update it very frequently!
 
-- [index-File ⬇](https://owncloud.hpi.de/s/3Cp8Q5H9gn7EVK0/download) (`datasets.csv`, <1MB)
+- [index-File ⬇](https://owncloud.hpi.de/s/fMIXN7bIvuBMDv1/download) (`datasets.csv`, <1MB)
 - [CalIt2 ⬇](https://owncloud.hpi.de/s/JhYwxfWp5JX05uA/download) (<1MB)
 - [Daphnet ⬇](https://owncloud.hpi.de/s/ieohjdwJrg9WWAp/download) (15MB)
 - [Dodgers ⬇](https://owncloud.hpi.de/s/h5BTYIGX3FDb3RQ/download) (<1MB))
@@ -108,6 +108,8 @@ This section is just for your convenience and we don't update it very frequently
 - [Occupancy ⬇](https://owncloud.hpi.de/s/wrIxS1BiaX8AGyC/download) (<1MB)
 - [SMD ⬇](https://owncloud.hpi.de/s/Ea7rsjmDErZ3QCN/download) (99MB)
 - [SVDB ⬇](https://owncloud.hpi.de/s/qsyGjJb9UtDFfCa/download) (103MB)
+- [TSB-UAD synthetic ⬇](https://owncloud.hpi.de/s/bHFHI7eEKC6GVxN/download) (1.8GB)
+- [TSB-UAD artificial ⬇](https://owncloud.hpi.de/s/CxBDzfuXzfHQeWv/download) (178MB)
 - [GutenTAG ⬇](https://owncloud.hpi.de/s/pmI2A3Msa46cYnK/download) (own `datasets.csv`-File, 106MB)
 
 ## Prepare algorithms
@@ -117,7 +119,7 @@ If you want to integrate your own algorithm into TimeEval, please read [](integr
 
 We collected over 70 time series anomaly detection algorithms and integrated them into TimeEval (as of May 2022).
 All of our algorithm implementation make use of the {class}`~timeeval.adapters.docker.DockerAdapter` to allow you to use all features of TimeEval with them (such as resource restrictions, timeout, and fair runtime measurements).
-You can find the TimeEval algorithm implementations on Github: <https://github.com/HPI-Information-Systems/TimeEval-algorithms>.
+You can find the TimeEval algorithm implementations on GitHub: <https://github.com/HPI-Information-Systems/TimeEval-algorithms>.
 Using Docker images to bundle an algorithm for TimeEval also allows easy integration of new algorithms because there are no requirements regarding programming languages, frameworks, or tools.
 Besides the many benefits, using Docker images to bundle algorithms makes preparing them for use with TimeEval a bit more cumbursome.
 
@@ -155,7 +157,7 @@ pip install TimeEval
 ```
 
 We recommend to create a virtual environment with conda or virtualenv for TimeEval.
-The software requirements of TimeEval can found on [the home page](../index).
+The software requirements of TimeEval can be found on [the home page](../index).
 
 When TimeEval ist installed, we can use its Python API to configure an evaluation run.
 We recommend to create a single Python-script for each evaluation run.
@@ -178,14 +180,14 @@ def main():
     ####################
     dm = MultiDatasetManager([
         Path("<datasets-folder>")  # e.g. ./timeeval-datasets
-        # you can multiple folder with an index-File to the MultiDatasetManager
+        # you can add multiple folders with an index-File to the MultiDatasetManager
     ])
     # A DatasetManager reads the index-File and allows you to access dataset metadata,
     # the datasets itself, or provides utilities to filter datasets by their metadata.
     # - select ALL available datasets
     # datasets = dm.select()
     # - select datasets from Daphnet collection
-    dataset = dm.select(collection="Daphnet")
+    datasets = dm.select(collection="Daphnet")
     # - select datasets with at least 2 anomalies
     # datasets = dm.select(min_anomalies=2)
     # - select multivariate datasets with a maximum contamination of 10%
@@ -238,7 +240,7 @@ def main():
     timeeval = TimeEval(dm, datasets, algorithms,
         repetitions=repetitions,
         resource_constraints=rcs,
-        # you can chose from different metrics:
+        # you can choose from different metrics:
         metrics=[DefaultMetrics.ROC_AUC, DefaultMetrics.FIXED_RANGE_PR_AUC],
     )
 
