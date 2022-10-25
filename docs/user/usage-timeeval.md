@@ -96,7 +96,7 @@ This section is just for your convenience, and we don't update it very frequentl
 - [Genesis ⬇](https://nextcloud.hpi.de/s/Y3yq3CnnMarXzSJ/download) (<1MB)
 - [KDD-TSAD ⬇](https://nextcloud.hpi.de/s/3ZbWw478teRJLzB/download) (110MB)
 - [Kitsune ⬇](https://nextcloud.hpi.de/s/gLPAPbwj2TgAi3j/download) (13.5GB)
-- [LTDB ⬇](hhttps://nextcloud.hpi.de/s/z8Nt5NgBfDnJbzY/download) (405MB)
+- [LTDB ⬇](https://nextcloud.hpi.de/s/z8Nt5NgBfDnJbzY/download) (405MB)
 - [MGAB ⬇](https://nextcloud.hpi.de/s/4ByzxjWmAALb5Tn/download) (12MB)
 - [MITDB ⬇](https://nextcloud.hpi.de/s/8yoLBDC5ezMwe9R/download) (176MB)
 - [Metro ⬇](https://nextcloud.hpi.de/s/wSCxtM4Y6PHMmD7/download) (<1MB)
