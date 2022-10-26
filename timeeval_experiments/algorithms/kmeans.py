@@ -5,15 +5,6 @@ from timeeval import Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter
 from timeeval.params import ParameterConfig
 
-import numpy as np
-
-
-from timeeval.utils.window import ReverseWindowing
-# post-processing for k-means
-def post_kmeans(scores: np.ndarray, args: dict) -> np.ndarray:
-    window_size = args.get("hyper_params", {}).get("anomaly_window_size", 20)
-    return ReverseWindowing(window_size=window_size).fit_transform(scores)
-
 
 _kmeans_parameters: Dict[str, Dict[str, Any]] = {
  "anomaly_window_size": {
@@ -59,7 +50,7 @@ def kmeans(params: ParameterConfig = None, skip_pull: bool = False, timeout: Opt
             group_privileges="akita",
         ),
         preprocess=None,
-        postprocess=post_kmeans,
+        postprocess=None,
         param_schema=_kmeans_parameters,
         param_config=params or ParameterConfig.defaults(),
         data_as_file=True,

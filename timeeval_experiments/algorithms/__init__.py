@@ -8,6 +8,7 @@ from .cblof import cblof
 from .cof import cof
 from .copod import copod
 from .dae import dae
+from .damp import damp
 from .dbstream import dbstream
 from .deepant import deepant
 from .deepnap import deepnap
@@ -45,6 +46,7 @@ from .mtad_gat import mtad_gat
 from .multi_hmm import multi_hmm
 from .multi_subsequence_lof import multi_subsequence_lof
 from .multinorma import multinorma
+from .mvalmod import mvalmod
 from .norma import norma
 from .normalizing_flows import normalizing_flows
 from .novelty_svr import novelty_svr
