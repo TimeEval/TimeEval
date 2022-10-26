@@ -3,7 +3,26 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from timeeval import Metric
+from timeeval.metrics import DefaultMetrics, RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS, PrecisionAtK, FScoreAtK
+
+
+all_metrics = {
+    DefaultMetrics.PR_AUC.name: DefaultMetrics.PR_AUC,
+    DefaultMetrics.ROC_AUC.name: DefaultMetrics.ROC_AUC,
+    "RANGE_P_RANGE_R_AUC": DefaultMetrics.RANGE_PR_AUC,
+    DefaultMetrics.FIXED_RANGE_PR_AUC.name: DefaultMetrics.FIXED_RANGE_PR_AUC,
+    DefaultMetrics.AVERAGE_PRECISION.name: DefaultMetrics.AVERAGE_PRECISION,
+    "PRECISION_AT_K": PrecisionAtK(),
+    "F_SCORE_AT_K": FScoreAtK(),
+    "RANGE_PR_AUC": RangePrAUC(),
+    "RANGE_PR_AUC_COMP": RangePrAUC(compatibility_mode=True),
+    "RANGE_ROC_AUC": RangeRocAUC(),
+    "RANGE_ROC_AUC_COMP": RangeRocAUC(compatibility_mode=True),
+    "RANGE_PR_VUS": RangePrVUS(),
+    "RANGE_PR_VUS_COMP": RangePrVUS(compatibility_mode=True),
+    "RANGE_ROC_VUS": RangeRocVUS(),
+    "RANGE_ROC_VUS_COMP": RangeRocVUS(compatibility_mode=True),
+}
 
 
 def _create_arg_parser():
@@ -12,14 +31,9 @@ def _create_arg_parser():
     parser.add_argument("input_file", type=str, help="Path to input file with the anomaly scores (point-based)")
     parser.add_argument("label_file", type=str, help="Path to the label file (looks for 'is_anomaly' or "
                                                      "'AnomalyLabel' column, otherwise takes the last column)")
-    parser.add_argument("--metric", type=str, default=Metric.ROC_AUC.name,
-                        choices=[
-                            Metric.ROC_AUC.name, Metric.PR_AUC.name,
-                            Metric.RANGE_PR_AUC.name, Metric.AVERAGE_PRECISION.name
-                        ],
+    parser.add_argument("--metric", type=str, default=DefaultMetrics.ROC_AUC.name,
+                        choices=list(all_metrics.keys()),
                         help="Metric to compute")
-    parser.add_argument("-p", "--plot", action="store_true", help="Enable plotting the metric curve")
-    parser.add_argument("--save-plot", action="store_true", help="Save the metric plot as pdf")
 
     return parser
 
@@ -27,9 +41,7 @@ def _create_arg_parser():
 if __name__ == "__main__":
     parser = _create_arg_parser()
     args = parser.parse_args()
-    if args.metric == Metric.AVERAGE_PRECISION.name and args.plot is True:
-        print("Cannot create a curve plot for the average precision metric!")
-        args.plot = False
+    metric: str = args.metric.upper().replace("-", "_")
 
     anomaly_scores = pd.read_csv(args.input_file, header=None).iloc[:, 0].values
     df = pd.read_csv(args.label_file)
@@ -41,8 +53,8 @@ if __name__ == "__main__":
         anomaly_labels = df.iloc[:, -1].values
     anomaly_labels = anomaly_labels.astype(np.int_)
 
-    print(f"Anomaly labels: {anomaly_labels}")
-    print(f"Anomaly scores: {anomaly_scores}")
+    print(f"Anomaly labels: {anomaly_labels.shape}")
+    print(f"Anomaly scores: {anomaly_scores.shape}")
 
-    result = Metric[args.metric](anomaly_labels, anomaly_scores, plot=args.plot, plot_store=args.save_plot)
-    print(f"\n{args.metric} score = {result}")
+    result = all_metrics[metric](anomaly_labels, anomaly_scores)
+    print(f"\n{metric} score = {result}")
