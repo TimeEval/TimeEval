@@ -14,7 +14,6 @@ from tqdm import tqdm
 
 from timeeval import Algorithm, Metric, DefaultMetrics, MultiDatasetManager
 from timeeval.constants import RESULTS_CSV, METRICS_CSV, ANOMALY_SCORES_TS
-from timeeval.metrics import FScoreAtK, PrecisionAtK
 from timeeval.utils.datasets import load_labels_only
 from timeeval.utils.tqdm_joblib import tqdm_joblib
 
@@ -173,14 +172,12 @@ class MetricComputor:
                 / str(exp.repetition))
 
 
-_metrics = {
+_default_metrics = {
     DefaultMetrics.ROC_AUC.name: DefaultMetrics.ROC_AUC,
     DefaultMetrics.PR_AUC.name: DefaultMetrics.PR_AUC,
     DefaultMetrics.RANGE_PR_AUC.name: DefaultMetrics.RANGE_PR_AUC,
     DefaultMetrics.FIXED_RANGE_PR_AUC.name: DefaultMetrics.FIXED_RANGE_PR_AUC,
     DefaultMetrics.AVERAGE_PRECISION.name: DefaultMetrics.AVERAGE_PRECISION,
-    PrecisionAtK().name: PrecisionAtK(),
-    FScoreAtK().name: FScoreAtK()
 }
 
 
@@ -199,20 +196,50 @@ def _create_arg_parser() -> argparse.Namespace:
                              "script will remove metrics not present in the metric list anymore!")
     parser.add_argument("-s", "--save", action="store_true",
                         help="Save the metrics in the experiments' result folders in addition to the results.csv")
-    parser.add_argument("--metrics", type=str, nargs="*", default=["ROC_AUC", "PR_AUC", "RANGE_PR_AUC"],
-                        choices=list(_metrics.keys()),
-                        help="Metrics to re-calculate. (default: %(default)s)")
+    parser.add_argument("--metrics", type=str,
+                        default="ROC_AUC,PR_AUC,RangePrecisionRangeRecallAUC(name='FIXED_RANGE_PR_AUC')",
+                        help="Metrics to re-calculate. You can specify a list of default metrics names and metric"
+                             "signtures. (default: %(default)s)")
     parser.add_argument("--n_jobs", type=int, default=1,
                         help="Set the parallelism. -1 uses all available cores.")
     return parser.parse_args()
+
+
+def _parse_metrics(metric_definitions: str) -> List[Metric]:
+    # keep imports! They are needed for the eval() below.
+    from timeeval.metrics import (
+        AucMetric, RocAUC, PrAUC, Precision, Recall, F1Score, AveragePrecision, PrecisionAtK,
+        FScoreAtK, RangePrecisionRangeRecallAUC, RangePrecision, RangeRecall, RangeFScore,
+        RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS)
+    from timeeval.metrics.thresholding import (
+        NoThresholding, FixedValueThresholding, PercentileThresholding, TopKPointsThresholding,
+        TopKRangesThresholding, SigmaThresholding
+    )
+
+    metrics = []
+    for mdef in metric_definitions.split(","):
+        mdef = mdef.strip()
+        dm_name = mdef.upper().replace("-", "_")
+        if dm_name in _default_metrics:
+            metrics.append(_default_metrics[dm_name])
+        else:
+            try:
+                m = eval(mdef)
+            except Exception as ex:
+                raise ValueError(f"Could not instantiate metric '{mdef}'!") from ex
+            if not isinstance(m, Metric):
+                raise ValueError(f"Statement '{mdef}'(={m}) does not create a valid TimeEval metric!")
+            metrics.append(m)
+
+    return metrics
 
 
 if __name__ == "__main__":
     init_logging()
     args = _create_arg_parser()
     logging.basicConfig(level=args.loglevel)
-    selected_metrics = args.metrics
-    selected_metrics = [_metrics[m] for m in selected_metrics]
+    selected_metrics = _parse_metrics(args.metrics)
+    print("Selected metrics:", [m.name for m in selected_metrics])
 
     rs = MetricComputor(args.result_folder, args.data_folders, selected_metrics, args.save, args.n_jobs)
     rs.recompute(args.force)

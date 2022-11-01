@@ -195,7 +195,7 @@ class RangePrAUC(RangeAucMetric):
 
     @property
     def name(self) -> str:
-        return "RANGE_PR_AUC"
+        return f"RANGE_PR_AUC(l={self._buffer_size},compat={self._compat_mode},max_samples={self._max_samples})"
 
 
 class RangeRocAUC(RangeAucMetric):
@@ -270,7 +270,7 @@ class RangeRocAUC(RangeAucMetric):
 
     @property
     def name(self) -> str:
-        return "RANGE_ROC_AUC"
+        return f"RANGE_ROC_AUC(l={self._buffer_size},compat={self._compat_mode},max_samples={self._max_samples})"
 
 
 class RangePrVUS(RangeAucMetric):
@@ -319,7 +319,7 @@ class RangePrVUS(RangeAucMetric):
 
     @property
     def name(self) -> str:
-        return "RANGE_PR_VOLUME"
+        return f"RANGE_PR_VOLUME(max_l={self._max_buffer_size},compat={self._compat_mode},max_samples={self._max_samples})"
 
 
 class RangeRocVUS(RangeAucMetric):
@@ -377,4 +377,4 @@ class RangeRocVUS(RangeAucMetric):
 
     @property
     def name(self) -> str:
-        return "RANGE_ROC_VOLUME"
+        return f"RANGE_ROC_VOLUME(max_l={self._max_buffer_size},compat={self._compat_mode},max_samples={self._max_samples})"
