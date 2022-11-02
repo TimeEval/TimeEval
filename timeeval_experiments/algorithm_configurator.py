@@ -78,6 +78,10 @@ class AlgorithmConfigurator:
             if algo.name in self._algorithm_overwrites:
                 prio_params = self._algorithm_overwrites[algo.name]
 
+            if len(algo.param_schema) == 0:
+                warnings.warn(f"{algo.name}: No parameter schema given! Please specify the algorithms' parameters "
+                              "in the param_schema object if you want to use the AlgorithmConfigurator for it.")
+                continue
             for p in algo.param_schema:
                 if not ignore_overwrites and p in prio_params:
                     value = prio_params[p]
