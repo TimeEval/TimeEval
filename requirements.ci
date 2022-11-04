@@ -3,6 +3,8 @@ pytest-cov
 mypy==0.920
 twine
 freezegun
+# for the test of the PyThreshThresholding class:
+pythresh
 
 # typings
 types-requests

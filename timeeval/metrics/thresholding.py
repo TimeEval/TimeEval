@@ -1,5 +1,5 @@
 import abc
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 
 import numpy as np
 
@@ -301,11 +301,11 @@ class TopKRangesThresholding(ThresholdingStrategy):
 
 
 class SigmaThresholding(ThresholdingStrategy):
-    """Computes a threshold :math:`\\theta` based on the anomaly scoring's mean :math:`\mu_s` and the
-    standard deviation :math:`\sigma_s`:
+    """Computes a threshold :math:`\\theta` based on the anomaly scoring's mean :math:`\\mu_s` and the
+    standard deviation :math:`\\sigma_s`:
 
     .. math::
-       \\theta = \mu_{s} + x \cdot \sigma_{s}
+       \\theta = \\mu_{s} + x \\cdot \\sigma_{s}
 
     Parameters
     ----------
@@ -340,3 +340,107 @@ class SigmaThresholding(ThresholdingStrategy):
 
     def __repr__(self) -> str:
         return f"SigmaThresholding(factor={repr(self._factor)})"
+
+
+class PyThreshThresholding(ThresholdingStrategy):
+    """Uses a thresholder from the `PyThresh <https://github.com/KulikDM/pythresh>`_ package to find a scoring
+    threshold and to transform the continuous anomaly scoring into binary anomaly predictions.
+
+    .. warning::
+      You need to install PyThresh before you can use this thresholding strategy:
+
+      .. code-block:: bash
+
+        pip install pythresh
+
+      Please note the additional package requirements for some available thresholders of PyThresh.
+
+    Parameters
+    ----------
+    pythresh_thresholder : pythresh.thresholds.base.BaseThresholder
+        Initiated PyThresh thresholder.
+    random_state: Any
+        Seed used to seed the numpy random number generator used in some thresholders of PyThresh. Note that PyThresh
+        uses the legacy global RNG (``np.random``) and we try to reset the global RNG after calling PyThresh. Can be
+        left at its default value for most thresholders that don't use random numbers or provide their own way of
+        seeding. Please consult the `PyThresh Documentation <https://pythresh.readthedocs.io/en/latest/index.html>`_
+        for details about the individual thresholders.
+
+    Examples
+    --------
+    .. code-block:: python
+
+      from timeeval.metrics.thresholding import PyThreshThresholding
+      from pythresh.thresholds.regr import REGR
+      import numpy as np
+
+      thresholding = PyThreshThresholding(
+          REGR(method="theil")
+      )
+
+      y_scores = np.random.default_rng().random(1000)
+      y_labels = np.zeros(1000)
+      y_pred = thresholding.fit_transform(y_labels, y_scores)
+    """
+
+    def __init__(self, pythresh_thresholder: 'BaseThresholder', random_state: Any = None):  # type: ignore
+        self._thresholder = pythresh_thresholder
+        self._predictions: Optional[np.ndarray] = None
+        self._random_state: Any = random_state
+
+    @staticmethod
+    def _make_finite(y_score: np.ndarray) -> np.ndarray:
+        """Replaces NaNs with 0 and (Neg)Infs with 1."""
+        nan_mask = np.isnan(y_score)
+        inf_mask = np.isinf(y_score)
+        neginf_mask = np.isneginf(y_score)
+        tmp = y_score.copy()
+        tmp[nan_mask] = 0
+        tmp[inf_mask | neginf_mask] = 1
+        return tmp
+
+    def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
+        """Uses the passed thresholder from the `PyThresh <https://github.com/KulikDM/pythresh>`_ package to determine
+        the threshold. Beforehand, the scores are forced to be finite by replacing NaNs with 0 and (Neg)Infs with 1.
+
+        PyThresh thresholders directly compute the binary predictions. Thus, we cache the predictions in the member
+        ``_predictions`` and return them when calling
+        :func:`~timeeval.metrics.thresholding.PyThreshThresholding.transform`.
+
+        Parameters
+        ----------
+        y_true : np.ndarray
+            Ground truth binary labels.
+        y_score : np.ndarray
+            Anomaly scoring with continuous anomaly scores (same length as `y_true`).
+
+        Returns
+        -------
+        threshold : float
+            Threshold computed by the internal thresholder.
+        """
+        y_score = self._make_finite(y_score)
+
+        # seed legacy np.random for reproducibility
+        old_state = np.random.get_state()
+        np.random.seed(self._random_state)
+
+        # call PyThresh
+        self._predictions = self._thresholder.eval(y_score)
+        threshold: float = self._thresholder.thresh_
+
+        # reset np.random state
+        np.random.set_state(old_state)
+        return threshold
+
+    def transform(self, y_score: np.ndarray) -> np.ndarray:
+        if self._predictions is not None:
+            return self._predictions
+        else:
+            return (y_score >= self.threshold).astype(np.int_)
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"PyThreshThresholding(pythresh_thresholding={repr(self._thresholder)})"
