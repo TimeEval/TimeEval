@@ -54,9 +54,18 @@ timeeval.metrics.thresholding.TopKRangesThresholding
    :inherited-members:
 
 timeeval.metrics.thresholding.SigmaThresholding
-----------------------------------------------------
+-----------------------------------------------
 
 .. autoclass:: timeeval.metrics.thresholding.SigmaThresholding
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :inherited-members:
+
+timeeval.metrics.thresholding.PyThreshThresholding
+--------------------------------------------------
+
+.. autoclass:: timeeval.metrics.thresholding.PyThreshThresholding
    :members:
    :undoc-members:
    :show-inheritance:

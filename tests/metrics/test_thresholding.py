@@ -1,9 +1,17 @@
 import unittest
 
 import numpy as np
+import pytest
 
 from timeeval.metrics.thresholding import FixedValueThresholding, PercentileThresholding, TopKPointsThresholding, \
-    TopKRangesThresholding, SigmaThresholding, NoThresholding
+    TopKRangesThresholding, SigmaThresholding, NoThresholding, PyThreshThresholding
+
+
+try:
+    import pythresh
+    _skip_pythresh_test = False
+except ImportError:
+    _skip_pythresh_test = True
 
 
 class TestThresholding(unittest.TestCase):
@@ -50,3 +58,9 @@ class TestThresholding(unittest.TestCase):
     def test_sigma_thresholding(self):
         strategy = SigmaThresholding(factor=1)
         self._test_strategy(strategy, 0.70, [0, 0, 1, 0, 0, 0, 0, 0, 0])
+
+    @pytest.mark.skipif(_skip_pythresh_test == True, reason="PyThresh is not installed!")
+    def test_pythresh_thresholding(self):
+        from pythresh.thresholds.regr import REGR
+        strategy = PyThreshThresholding(pythresh_thresholder=REGR(method="theil"), random_state=42)
+        self._test_strategy(strategy, 0.44, [0, 0, 1, 1, 1, 1, 0, 0, 0])
