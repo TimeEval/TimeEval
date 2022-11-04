@@ -53,7 +53,7 @@ jobs:
         echo "Extracted branch name: $BRANCH_NAME"
     - name: Create coverage badge
       if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
-      uses: schneegans/dynamic-badges-action@v1.4.0
+      uses: schneegans/dynamic-badges-action@v1.6.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: 6762bee806477c52e079f21d2f252688
