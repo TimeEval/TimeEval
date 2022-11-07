@@ -26,6 +26,7 @@ jobs:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: 6762bee806477c52e079f21d2f252688
         filename: timeeval__${{ env.BRANCH }}.json
+        forceUpdate: true
         label: Test Coverage
         message: ${{ env.COVERAGE }}
         color: green
