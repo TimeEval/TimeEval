@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Extract test coverage
       run: |
-        SUMMARY=0.9999
+        SUMMARY="0.9999"
         echo "COVERAGE=$(echo ${SUMMARY})" >> $GITHUB_ENV
         echo "Extracted coverage data: ${COVERAGE}"
         REF=${{ github.ref }}
@@ -21,7 +21,6 @@ jobs:
         echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
         echo "Extracted branch name: $BRANCH_NAME"
     - name: Create coverage badge
-      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
       uses: schneegans/dynamic-badges-action@v1.6.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
