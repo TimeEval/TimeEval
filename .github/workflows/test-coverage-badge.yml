@@ -1,0 +1,33 @@
+name: Test Coverage Badge Creation
+
+on:
+  push:
+    branches: [fix/coverage-badge]
+
+jobs:
+  test:
+    name: Test coverage badge creation
+    steps:
+    - uses: actions/checkout@v3
+    - name: Extract test coverage
+      run: |
+        SUMMARY=0.9999
+        echo "COVERAGE=$(echo ${SUMMARY})" >> $GITHUB_ENV
+        echo "Extracted coverage data: ${COVERAGE}"
+        REF=${{ github.ref }}
+        IFS='/' read -ra PATHS <<< "$REF"
+        BRANCH_NAME="${PATHS[1]}_${PATHS[2]}"
+        echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
+        echo "Extracted branch name: $BRANCH_NAME"
+    - name: Create coverage badge
+      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
+      uses: schneegans/dynamic-badges-action@v1.6.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: 6762bee806477c52e079f21d2f252688
+        filename: timeeval__${{ env.BRANCH }}.json
+        label: Test Coverage
+        message: ${{ env.COVERAGE }}
+        color: green
+        namedLogo: pytest
+
