@@ -1,5 +1,7 @@
 import abc
-from typing import Optional, Tuple, Any
+import contextlib
+import warnings
+from typing import Optional, Tuple, Any, Generator
 
 import numpy as np
 
@@ -351,7 +353,7 @@ class PyThreshThresholding(ThresholdingStrategy):
 
       .. code-block:: bash
 
-        pip install pythresh
+        pip install pythresh>=0.2.8
 
       Please note the additional package requirements for some available thresholders of PyThresh.
 
@@ -365,6 +367,11 @@ class PyThreshThresholding(ThresholdingStrategy):
         left at its default value for most thresholders that don't use random numbers or provide their own way of
         seeding. Please consult the `PyThresh Documentation <https://pythresh.readthedocs.io/en/latest/index.html>`_
         for details about the individual thresholders.
+
+        .. deprecated:: 1.2.8
+            Since pythresh version 0.2.8, thresholders provide a way to set their RNG state correctly. So the parameter
+            ``random_state`` is not needed anymore. Please use the pythresh thresholder's parameter to seed it. This
+            function's parameter is kept for compatibility with pythresh<0.2.8.
 
     Examples
     --------
@@ -387,6 +394,10 @@ class PyThreshThresholding(ThresholdingStrategy):
         self._thresholder = pythresh_thresholder
         self._predictions: Optional[np.ndarray] = None
         self._random_state: Any = random_state
+        if random_state is not None:
+            warnings.warn("'random_state' parameter is deprecated. Use pythresh thresholder's parameter instead.",
+                          DeprecationWarning,
+                          stacklevel=2)
 
     @staticmethod
     def _make_finite(y_score: np.ndarray) -> np.ndarray:
@@ -421,16 +432,12 @@ class PyThreshThresholding(ThresholdingStrategy):
         """
         y_score = self._make_finite(y_score)
 
-        # seed legacy np.random for reproducibility
-        old_state = np.random.get_state()
-        np.random.seed(self._random_state)
+        # fix seeding (depending on pythresh version) and if random_state is supplied
+        with tmp_np_random_seed_pythresh(self._thresholder, self._random_state):
+            # call PyThresh
+            self._predictions = self._thresholder.eval(y_score)
+            threshold: float = self._thresholder.thresh_
 
-        # call PyThresh
-        self._predictions = self._thresholder.eval(y_score)
-        threshold: float = self._thresholder.thresh_
-
-        # reset np.random state
-        np.random.set_state(old_state)
         return threshold
 
     def transform(self, y_score: np.ndarray) -> np.ndarray:
@@ -444,3 +451,23 @@ class PyThreshThresholding(ThresholdingStrategy):
 
     def __repr__(self) -> str:
         return f"PyThreshThresholding(pythresh_thresholding={repr(self._thresholder)})"
+
+
+@contextlib.contextmanager
+def tmp_np_random_seed_pythresh(thresholder: 'BaseThresholder', random_state: Any) -> Generator[None, None, None]:
+    import pythresh.version
+
+    pythresh_version = list(map(int, pythresh.version.__version__.split(".")))
+    if pythresh_version < [0, 2, 8]:
+        # seed legacy np.random for reproducibility
+        old_state = np.random.get_state()
+        np.random.seed(random_state)
+        try:
+            yield
+        finally:
+            # reset np.random state
+            np.random.set_state(old_state)
+    else:
+        if random_state is not None and hasattr(thresholder, "random_state"):
+            setattr(thresholder, "random_state", random_state)
+        yield

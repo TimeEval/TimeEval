@@ -61,6 +61,27 @@ class TestThresholding(unittest.TestCase):
 
     @pytest.mark.skipif(_skip_pythresh_test == True, reason="PyThresh is not installed!")
     def test_pythresh_thresholding(self):
+        import pythresh.version
         from pythresh.thresholds.regr import REGR
-        strategy = PyThreshThresholding(pythresh_thresholder=REGR(method="theil"), random_state=42)
-        self._test_strategy(strategy, 0.44, [0, 0, 1, 1, 1, 1, 0, 0, 0])
+
+        with self.assertWarnsRegex(DeprecationWarning, "parameter is deprecated"):
+            strategy = PyThreshThresholding(pythresh_thresholder=REGR(method="theil"), random_state=42)
+
+        pythresh_version = list(map(int, pythresh.version.__version__.split(".")))
+        if pythresh_version >= [0, 2, 8]:
+            exp_threshold = 0.72
+            exp_res = [0, 0, 1, 0, 0, 0, 0, 0, 0]
+        else:
+            exp_threshold = 0.44
+            exp_res = [0, 0, 1, 1, 1, 1, 0, 0, 0]
+        self._test_strategy(strategy, exp_threshold, exp_res)
+
+    @pytest.mark.skipif(_skip_pythresh_test == True, reason="PyThresh is not installed!")
+    def test_pythresh_thresholding_new(self):
+        import pythresh.version
+        from pythresh.thresholds.regr import REGR
+
+        pythresh_version = list(map(int, pythresh.version.__version__.split(".")))
+        if pythresh_version >= [0, 2, 8]:
+            strategy = PyThreshThresholding(pythresh_thresholder=REGR(method="theil", random_state=42))
+            self._test_strategy(strategy, 0.72, [0, 0, 1, 0, 0, 0, 0, 0, 0])
