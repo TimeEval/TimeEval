@@ -454,7 +454,7 @@ class PyThreshThresholding(ThresholdingStrategy):
 
 
 @contextlib.contextmanager
-def tmp_np_random_seed_pythresh(thresholder: 'BaseThresholder', random_state: Any) -> Generator[None, None, None]:
+def tmp_np_random_seed_pythresh(thresholder: 'BaseThresholder', random_state: Any) -> Generator[None, None, None]:   # type: ignore
     import pythresh.version
 
     pythresh_version = list(map(int, pythresh.version.__version__.split(".")))
