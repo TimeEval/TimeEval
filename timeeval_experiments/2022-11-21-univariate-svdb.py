@@ -33,7 +33,11 @@ np.random.rand(42)
 
 
 def main():
-    dm = MultiDatasetManager([], custom_datasets_file=Path("../../data/custom/univariate-SVDB/custom_datasets.json"))
+    dm = MultiDatasetManager(
+        [],
+        # custom_datasets_file=Path("../../data/custom/univariate-SVDB/custom_datasets.json")
+        custom_datasets_file=Path("/home/projects/akita/data/custom/univariate-SVDB/custom_datasets.json")
+    )
     configurator = AlgorithmConfigurator(config_path="param-config.json")
 
     # Select datasets and algorithms
