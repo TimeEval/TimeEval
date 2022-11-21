@@ -56,6 +56,7 @@ class CustomDatasets(CustomDatasetsBase):
             config = json.load(f)
         self.root_path: Path = dataset_config_path.parent
 
+        print("Analyzing custom datasets to validate them and extract their metadata.")
         store = {}
         for dataset in config:
             self._validate_dataset(dataset, config[dataset])
@@ -91,7 +92,8 @@ class CustomDatasets(CustomDatasetsBase):
         training_type = _training_type(train_path)
 
         # analyze test time series
-        dm = DatasetAnalyzer(dataset_id, is_train=False, dataset_path=test_path)
+        dm = DatasetAnalyzer(dataset_id, is_train=False, dataset_path=test_path, ignore_trend=True,
+                             ignore_stationarity=True)
 
         return CDEntry(test_path, train_path, Dataset(
             datasetId=dataset_id,
