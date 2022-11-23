@@ -65,7 +65,7 @@ class ReverseWindowing(TransformerMixin):
         if is_chunk:
             scores = scores[:-(self.window_size - 1)]
 
-        return scores[~np.isnan(scores)]
+        return scores[~np.isnan(scores)]  # type: ignore
 
     def _reverse_windowing_parallel(self, scores: np.ndarray) -> np.ndarray:
         pool = mp.Pool(self.n_jobs)
@@ -77,7 +77,7 @@ class ReverseWindowing(TransformerMixin):
         else:
             windowed_scores_split = pool.starmap(self._chunk_and_vectorize, zip(scores_split, cycle([False]), cycle([False])))
 
-        return np.concatenate(windowed_scores_split)
+        return np.concatenate(windowed_scores_split)  # type: ignore
 
     def _chunk_array(self, X: np.ndarray, n_chunks: int, pad_start: bool = True, pad_end: bool = True) -> List[np.ndarray]:
         chunks = []
