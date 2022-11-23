@@ -4,7 +4,7 @@ mypy==0.920
 twine
 freezegun
 # for the test of the PyThreshThresholding class:
-pythresh
+pythresh==0.2.7
 
 # typings
 types-requests
