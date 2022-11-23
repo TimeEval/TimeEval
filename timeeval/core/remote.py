@@ -36,23 +36,23 @@ class Remote:
 
         self.log.info("Starting Dask SSH cluster ...")
         self.cluster = self.start_or_restart_cluster()
-        self.client = Client(self.cluster.scheduler_address)
+        self.client = Client(self.cluster)
         self.log.info("... Dask SSH cluster successfully started!")
         self.disable_progress_bar = disable_progress_bar
 
     def start_or_restart_cluster(self, n: int = 0) -> SSHCluster:
+        scheduler_host = self.config.scheduler_host
+        port = self.config.scheduler_port
+        scheduler_address = f"{scheduler_host}:{port}"
         if n >= 5:
             raise RuntimeError("Could not start an SSHCluster because there is already one running, "
                                "that cannot be stopped!")
+
         try:
             return SSHCluster(**self.config.to_ssh_cluster_kwargs(self.limits))
         except Exception as e:
             if "Worker failed to start" in str(e):
                 self.log.debug(f"Received SSHCluster error message: {e}")
-                scheduler_host = self.config.scheduler_host
-                port = self.config.scheduler_port
-                scheduler_address = f"{scheduler_host}:{port}"
-
                 self.log.warning(f"Failed to start cluster, because address already in use! "
                                  f"Trying to restart cluster at {scheduler_address}!")
 
@@ -113,7 +113,7 @@ class Remote:
 
         self.log.debug("Renaming dask logfile based on the hostname to allow syncing it!")
         logfile = Path(self.config.dask_logging_filename).resolve()
-        command = f"mv {logfile} {logfile.parent}/{logfile.stem}-$(hostname){logfile.suffix}"
+        command = f"if [ -f {logfile} ]; then mv {logfile} {logfile.parent}/{logfile.stem}-$(hostname){logfile.suffix}; fi"
         failed_on = self.run_on_all_hosts_ssh(command)
         if len(failed_on) == 0:
             self.log.debug(f"... logfile renaming successful!")
