@@ -12,8 +12,26 @@ defaults:
     shell: bash -l {0}
 
 jobs:
+  typecheck:
+    name: Typecheck TimeEval on ubuntu with python 3.7
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
+        with:
+          use-mamba: true
+          auto-update-conda: true
+          environment-file: environment.yml
+          python-version: "3.7"
+      - name: Install CI dependencies
+        run: |
+          pip install -r requirements.ci
+      - name: Typcheck with mypy
+        run: |
+          python setup.py typecheck
   test:
-    name: Build and test TimeEval on ${{ matrix.os }} with python ${{ matrix.python_version }}
+    name: Test TimeEval on ${{ matrix.os }} with python ${{ matrix.python_version }}
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 3
@@ -34,9 +52,6 @@ jobs:
     - name: Install CI dependencies
       run: |
         pip install -r requirements.ci
-    - name: Typcheck with mypy
-      run: |
-        python setup.py typecheck
     - name: Test with pytest
       run: |
         python setup.py test
@@ -72,7 +87,9 @@ jobs:
   build-source-distribution:
     name: Build source distribution
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: test
+    needs:
+      - test
+      - typecheck
     runs-on: ubuntu-latest
 
     steps:
@@ -96,7 +113,9 @@ jobs:
   build-manylinux-wheels:
     name: Build manylinux wheels
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: test
+    needs:
+      - test
+      - typecheck
     runs-on: ubuntu-latest
 
     steps:
