@@ -11,6 +11,7 @@ Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 [![PyPI version](https://badge.fury.io/py/TimeEval.svg)](https://badge.fury.io/py/TimeEval)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![python version 3.7|3.8|3.9](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
+[![Downloads](https://pepy.tech/badge/timeeval)](https://pepy.tech/project/timeeval)
 
 </div>
 
