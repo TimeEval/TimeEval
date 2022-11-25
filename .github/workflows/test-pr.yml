@@ -30,7 +30,7 @@ jobs:
         run: |
           python setup.py typecheck
   test:
-    name: Build and test TimeEval on ${{ matrix.os }} with python ${{ matrix.python_version }}
+    name: Test TimeEval on ${{ matrix.os }} with python ${{ matrix.python_version }}
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 3

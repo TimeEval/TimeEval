@@ -15,8 +15,8 @@ Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 
 </div>
 
-See [TimeEval Algorithms](https://gitlab.hpi.de/akita/timeeval-algorithms) (use [this link](https://github.com/HPI-Information-Systems/TimeEval-algorithms) on Github) for algorithms that are compatible to this tool.
-The algorithms in this repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
+See [TimeEval Algorithms](https://github.com/HPI-Information-Systems/TimeEval-algorithms) for algorithms that are compatible to this tool.
+The algorithms in that repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
 
 > If you use TimeEval, please consider [citing](#citation) our paper.
 
@@ -27,12 +27,14 @@ The algorithms in this repository are containerized and can be executed using th
 - Large integrated benchmark dataset collection with more than 700 datasets
 - Benchmark dataset interface to select datasets easily
 - Adapter architecture for algorithm integration
+  - **DockerAdapter**
   - JarAdapter
   - DistributedAdapter
   - MultivarAdapter
-  - DockerAdapter
   - ... (add your own adapter)
-- Automatic algorithm detection quality scoring using [AUC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve) (Area under the ROC curve, also _c-statistic_) metric
+- Large collection of existing algorithm implementations (in [TimeEval Algorithms](https://github.com/HPI-Information-Systems/TimeEval-algorithms) repository)
+- Automatic algorithm detection quality scoring using [AUC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve)
+  (Area under the ROC curve, also _c-statistic_) or range-based metrics
 - Automatic timing of the algorithm execution (differentiates pre-, main-, and post-processing)
 - Distributed experiment execution
 - Output and logfile tracking for subsequent inspection
@@ -43,14 +45,13 @@ TimeEval can be installed as a package or from source.
 
 ### Installation using `pip`
 
-Builds of `TimeEval` are published to the [internal package registry](https://gitlab.hpi.de/akita/timeeval/-/packages) of the Gitlab instance running at [gitlab.hpi.de](https://gitlab.hpi.de/) and to [PyPI](https://pypi.org/project/TimeEval/).
+Builds of `TimeEval` are published to [PyPI](https://pypi.org/project/TimeEval/):
 
 #### Prerequisites
 
-- python >= 3.7, <=3.9
+- python >= 3.7, <= 3.9
 - pip >= 20
 - Docker
-- (optional) A [personal access token](https://gitlab.hpi.de/help/user/profile/personal_access_tokens.md) with the scope set to `api` (read) or another type of access token able to read the package registry of TimeEval hosted at [gitlab.hpi.de](https://gitlab.hpi.de/).
 - (optional) `rsync` for distributed TimeEval
 
 #### Steps
@@ -66,7 +67,7 @@ pip install TimeEval
 **tl;dr**
 
 ```bash
-git clone git@gitlab.hpi.de:akita/bp2020fn1/timeeval.git
+git clone git@github.com:HPI-Information-Systems/TimeEval.git
 cd timeeval/
 conda env create --file environment.yml
 conda activate timeeval
