@@ -108,7 +108,7 @@ class Experiment:
             errors = 0
             last_exception = None
             for metric in self.metrics:
-                print(f"Calculating {metric}", file=logs_file)
+                print(f"Calculating {metric.name}", file=logs_file)
                 try:
                     score = metric(y_true, y_scores)
                     result[metric.name] = score

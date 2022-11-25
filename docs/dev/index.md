@@ -41,7 +41,19 @@ python setup.py test
 or
 
 ```bash
-pytest
+pytest tests
+```
+
+If you want to run the tests that include docker and dask, you need to fulfill some prerequesites:
+
+- Docker is installed and running
+- Your SSH-server is running, and you can SSH to `localhost` with your users without supplying a password.
+- You have installed all TimeEval dev dependencies.
+
+You can then run:
+
+```bash
+pytest tests --docker --dask
 ```
 
 ### Default Tests

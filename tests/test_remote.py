@@ -14,17 +14,24 @@ from timeeval.core.remote import Remote, RemoteConfiguration
 class TestRemote(unittest.TestCase):
     @pytest.mark.dask
     def test_restart_already_running(self):
-        already_running_cluster = SSHCluster(hosts=["localhost"])
-        with self.assertLogs("Remote", level="WARNING") as logger:
-            new_remote = Remote(remote_config=RemoteConfiguration(scheduler_host="localhost"))
-            self.assertTrue("restart cluster" in logger.output[0])
-            already_running_cluster.close()
-            new_remote.close()
+        config = RemoteConfiguration(scheduler_host="localhost")
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            config.update_logging_path(Path(tmp_path))
+
+            already_running_cluster = SSHCluster(hosts=["localhost"], scheduler_options={"port": config.scheduler_port})
+            print("Running cluster scheduler:", already_running_cluster.scheduler_address)
+            with self.assertLogs("Remote", level="WARNING") as logger:
+                new_remote = Remote(remote_config=config)
+                print(logger.output)
+                self.assertTrue("restart cluster" in logger.output[0])
+        already_running_cluster.close()
+        new_remote.close()
 
     @pytest.mark.dask
     def test_other_than_already_running_exception(self):
         with self.assertRaises(Exception):
-            Remote(remote_config=RemoteConfiguration(scheduler_host=None))
+            Remote(remote_config=RemoteConfiguration(scheduler_host=None)).close()
 
     @pytest.mark.dask
     def test_run_on_all_hosts(self):
@@ -38,7 +45,7 @@ class TestRemote(unittest.TestCase):
                     scheduler_host="localhost",
                     worker_hosts=["localhost", "localhost"]
                 ))
-            remote.run_on_all_hosts([(_test_func, [Path(tmp_path)], {})])
+            remote.run_on_all_hosts([(_test_func, [Path(tmp_path).absolute()], {})])
             remote.close()
             self.assertEqual(len(os.listdir(tmp_path)), 2)
 

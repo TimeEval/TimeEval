@@ -100,12 +100,16 @@ class RemoteConfiguration:
             # },
             # https://distributed.dask.org/en/latest/worker.html?highlight=worker_options#distributed.worker.Worker
             "worker_options": {
-                "nprocs": limits.tasks_per_host,
+                "nprocs": limits.tasks_per_host,  # should be replaced by n_workers in future Dask version
+                # "n_workers": limits.tasks_per_host,
                 "nthreads": 1,
                 "memory_limit": mem_limit,
             },
             # defaults are fine: https://distributed.dask.org/en/latest/scheduling-state.html?highlight=dask.distributed.Scheduler#distributed.scheduler.Scheduler
-            # "scheduler_options": {},
+            "scheduler_options": {
+                "host": self.scheduler_host,
+                "port": self.scheduler_port,
+            },
             # "worker_module": "distributed.cli.dask_worker",  # default
             "remote_python": self.remote_python
         }
