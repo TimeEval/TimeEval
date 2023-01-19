@@ -43,6 +43,11 @@ The algorithms in that repository are containerized and can be executed using th
 
 TimeEval can be installed as a package or from source.
 
+> :warning: **Attention!**
+>
+> Currently TimeEval is tested **only on Linux and MacOS** and relies on unixoid capabilities.
+> On Windows, you can use TimeEval within [WSL](https://learn.microsoft.com/windows/wsl/install).
+
 ### Installation using `pip`
 
 Builds of `TimeEval` are published to [PyPI](https://pypi.org/project/TimeEval/):
