@@ -162,8 +162,7 @@ class DockerAdapter(Adapter):
             if "timed out" in str(e):
                 if self._should_use_prelim_results(args):
                     # check whether results file is stored
-                    target_path = args.get("results_path", Path("./results"))
-                    if (target_path / SCORES_FILE_NAME).is_file():
+                    if (self._results_path(args) / SCORES_FILE_NAME).is_file():
                         print(f"Container timeout after {timeout}, but TimeEval disregards this because "
                               f"'ResourceConstraints.preliminary_results_on_timeout' is set to True."
                               f"\nWill be using preliminary results for evaluation.")
@@ -175,8 +174,7 @@ class DockerAdapter(Adapter):
                         raise DockerTimeoutError(f"{self.image_name} could not create results after {timeout}") from e
                 elif self._should_use_prelim_model(args):
                     # check if model was stored
-                    target_path = args.get("results_path", Path("./results"))
-                    if (target_path / MODEL_FILE_NAME).is_file():
+                    if (self._results_path(args) / MODEL_FILE_NAME).is_file():
                         print(f"Container timeout after {timeout}, but TimeEval disregards this because "
                               "'ResourceConstraints.use_preliminary_model_on_train_timeout' is set to True.")
                         result = {"StatusCode": 0}
