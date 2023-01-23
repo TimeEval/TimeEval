@@ -42,7 +42,7 @@ class Algorithm:
                 },
             ]
 
-    param_config : timeeval.params.search.ParameterConfig
+    param_config : timeeval.params.ParameterConfig
         Optional object of type ParameterConfig to define a search grid or fixed parameters.
     training_type : timeeval.data_types.TrainingType
         Definition of training type to receive the correct dataset formats (needed if TimeEval is run with

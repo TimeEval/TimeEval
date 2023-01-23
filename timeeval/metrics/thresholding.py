@@ -73,7 +73,7 @@ class ThresholdingStrategy(abc.ABC):
     @abc.abstractmethod
     def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """Abstract method containing the actual code to determine the threshold. Must be overwritten by subclasses!"""
-        pass
+        ...
 
 
 class NoThresholding(ThresholdingStrategy):

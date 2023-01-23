@@ -51,11 +51,11 @@ class Datasets(abc.ABC):
     @property
     @abc.abstractmethod
     def _log(self) -> logging.Logger:
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def _get_dataset_path_internal(self, dataset_id: DatasetId, train: bool = False) -> Path:
-        raise NotImplementedError()
+        ...
 
     def _create_index_file(self, filepath: Path) -> pd.DataFrame:
         df_temp = pd.DataFrame(
@@ -110,7 +110,7 @@ class Datasets(abc.ABC):
     @abc.abstractmethod
     def refresh(self, force: bool = False) -> None:
         """Re-read the benchmark dataset collection information from disk."""
-        raise NotImplementedError()
+        ...
 
     def get_collection_names(self) -> List[str]:
         """Returns the unique dataset collection names (includes custom datasets if present)."""

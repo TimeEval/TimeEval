@@ -8,7 +8,7 @@ class Adapter(ABC):
 
     @abstractmethod
     def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:  # pragma: no cover
-        raise NotImplementedError("A subclass of Adapter must implement _call()!")
+        ...
 
     def __call__(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
         args = args or {}

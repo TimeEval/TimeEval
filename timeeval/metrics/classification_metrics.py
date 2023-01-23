@@ -28,7 +28,7 @@ class ClassificationMetric(Metric, abc.ABC):
     @abc.abstractmethod
     def _internal_score(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Classification metrics should implement this method to compute the metric score."""
-        pass
+        ...
 
 
 class Precision(ClassificationMetric):
