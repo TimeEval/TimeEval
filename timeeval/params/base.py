@@ -1,12 +1,13 @@
 import abc
-from typing import Iterable, Sized, Iterator, Any, Mapping
+from typing import Sized, Iterator, Any, Mapping
 
 from .params import Params, FixedParams
+from ..datasets import Dataset
 
 
-class ParameterConfig(abc.ABC, Iterable, Sized):
+class ParameterConfig(abc.ABC, Sized):
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[Params]:
+    def iter(self, algorithm: "Algorithm", dataset: Dataset) -> Iterator[Params]:
         """Iterate over the points in the grid.
 
         Returns
@@ -59,6 +60,9 @@ class FixedParameters(ParameterConfig):
                 raise TypeError(f"Parameters are not provided as a dict ({params})")
         self._params = [FixedParams(params)]
 
+    def iter(self, algorithm: "Algorithm", dataset: Dataset) -> Iterator[Params]:
+        return self.__iter__()
+
     def __iter__(self) -> Iterator[Params]:
         return iter(self._params)
 
@@ -67,4 +71,4 @@ class FixedParameters(ParameterConfig):
 
     def __getitem__(self, i: int) -> Params:
         assert i == 0, "FixedParameters only has one element"
-        return self._params[0]
+        return self._params[i]

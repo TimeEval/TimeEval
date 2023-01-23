@@ -1,7 +1,7 @@
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Mapping, TypeVar
+from typing import Any, TypeVar, MutableMapping, Mapping
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
@@ -16,10 +16,10 @@ from .ParameterDependenceHeuristic import ParameterDependenceHeuristic
 from .PeriodSizeHeuristic import PeriodSizeHeuristic
 from .RelativeDatasetSizeHeuristic import RelativeDatasetSizeHeuristic
 from .base import TimeEvalParameterHeuristic
-from ..params.params import FixedParams, Params
+from ..params.params import Params
 
 
-T = TypeVar("T", Mapping[str, Any], Params)
+T = TypeVar("T")
 
 
 def _check_signature(signature: str) -> bool:
@@ -47,8 +47,8 @@ def inject_heuristic_values(
         dataset_details: Dataset,
         dataset_path: Path,
 ) -> T:
-    if not (isinstance(params, FixedParams) or isinstance(params, dict)):
-        # ignore all dynamic parameter search spaces
+    if not hasattr(params, "__setitem__") or not hasattr(params, "__delitem__"):
+        # ignore all dynamic parameter search spaces that cannot be altered
         return params
 
     updated_params = deepcopy(params)

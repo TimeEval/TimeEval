@@ -352,9 +352,12 @@ class TimeEval:
             "status": status,
             "error_message": error_message,
             "repetition": exp.repetition,
-            "hyper_params": dumps_params(exp.params),
             "hyper_params_id": exp.params_id
         }
+        try:
+            new_row["hyper_params"]: dumps_params(exp.params)
+        except ValueError:
+            pass
         if result is not None and future_result is None:
             new_row.update(result)
         elif result is None and future_result is not None:

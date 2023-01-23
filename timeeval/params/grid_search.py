@@ -1,13 +1,14 @@
 import abc
-from typing import Iterator, Any, Mapping, Optional
+from typing import Iterator, Any, Mapping, Optional, Iterable
 
 from sklearn.model_selection import ParameterGrid
 
 from .base import ParameterConfig
 from .params import Params, FixedParams
+from ..datasets import Dataset
 
 
-class ParameterGridConfig(ParameterConfig, metaclass=abc.ABCMeta):
+class ParameterGridConfig(ParameterConfig, Iterable, metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def param_grid(self) -> ParameterGrid:
@@ -20,17 +21,17 @@ class ParameterGridConfig(ParameterConfig, metaclass=abc.ABCMeta):
         """
         ...
 
-    def __iter__(self) -> Iterator[Params]:
+    def iter(self, algorithm: "Algorithm", dataset: Dataset) -> Iterator[Params]:
+        return self.__iter__()
+
+    def __iter__(self):
         return iter(FixedParams(p) for p in self.param_grid)
 
     def __len__(self) -> int:
-        """Number of points on the grid."""
         return len(self.param_grid)
 
-    def __getitem__(self, i: int) -> Params:
-        # return self.param_grid[i]  # type: ignore
-        d = self.param_grid[i]
-        return d
+    def __getitem__(self, index: int) -> Params:
+        return FixedParams(self.param_grid[index])
 
 
 class FullParameterGrid(ParameterGridConfig):
