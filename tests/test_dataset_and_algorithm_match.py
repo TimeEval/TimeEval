@@ -19,6 +19,7 @@ from timeeval import (
 )
 from timeeval.datasets import Dataset, DatasetRecord
 from timeeval.core.experiments import Experiment, Experiments
+from timeeval.params.params import FixedParams
 from timeeval.utils.hash_dict import hash_dict
 
 
@@ -146,7 +147,7 @@ class TestDatasetAndAlgorithmMatch(unittest.TestCase):
                 period_size=None
             ),
             algorithm=self.algorithms[0],
-            params={},
+            params=FixedParams({}),
             params_id=hash_dict({}),
             repetition=0,
             base_results_dir=Path("tmp_path"),

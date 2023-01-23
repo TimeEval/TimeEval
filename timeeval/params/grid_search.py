@@ -4,6 +4,7 @@ from typing import Iterator, Any, Mapping, Optional
 from sklearn.model_selection import ParameterGrid
 
 from .base import ParameterConfig
+from .params import Params, FixedParams
 
 
 class ParameterGridConfig(ParameterConfig, metaclass=abc.ABCMeta):
@@ -19,15 +20,17 @@ class ParameterGridConfig(ParameterConfig, metaclass=abc.ABCMeta):
         """
         ...
 
-    def __iter__(self) -> Iterator[Mapping[str, Any]]:
-        return iter(self.param_grid)
+    def __iter__(self) -> Iterator[Params]:
+        return iter(FixedParams(p) for p in self.param_grid)
 
     def __len__(self) -> int:
         """Number of points on the grid."""
         return len(self.param_grid)
 
-    def __getitem__(self, i: int) -> Mapping[str, Any]:
-        return self.param_grid[i]  # type: ignore
+    def __getitem__(self, i: int) -> Params:
+        # return self.param_grid[i]  # type: ignore
+        d = self.param_grid[i]
+        return d
 
 
 class FullParameterGrid(ParameterGridConfig):

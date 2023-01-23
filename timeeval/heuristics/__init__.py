@@ -1,7 +1,7 @@
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Mapping, TypeVar
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
@@ -16,6 +16,10 @@ from .ParameterDependenceHeuristic import ParameterDependenceHeuristic
 from .PeriodSizeHeuristic import PeriodSizeHeuristic
 from .RelativeDatasetSizeHeuristic import RelativeDatasetSizeHeuristic
 from .base import TimeEvalParameterHeuristic
+from ..params.params import FixedParams, Params
+
+
+T = TypeVar("T", Mapping[str, Any], Params)
 
 
 def _check_signature(signature: str) -> bool:
@@ -38,11 +42,15 @@ def TimeEvalHeuristic(signature: str) -> TimeEvalParameterHeuristic:
 
 
 def inject_heuristic_values(
-        params: Dict[str, Any],
+        params: T,
         algorithm: Algorithm,
         dataset_details: Dataset,
         dataset_path: Path,
-) -> Dict[str, Any]:
+) -> T:
+    if not (isinstance(params, FixedParams) or isinstance(params, dict)):
+        # ignore all dynamic parameter search spaces
+        return params
+
     updated_params = deepcopy(params)
     # defer dependence heuristics after all other heuristics
     heuristic_params = {(k, v) for k, v in params.items() if isinstance(v, str) and v.startswith("heuristic:")}

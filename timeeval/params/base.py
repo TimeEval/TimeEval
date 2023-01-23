@@ -1,16 +1,18 @@
 import abc
 from typing import Iterable, Sized, Iterator, Any, Mapping
 
+from .params import Params, FixedParams
+
 
 class ParameterConfig(abc.ABC, Iterable, Sized):
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[Mapping[str, Any]]:
+    def __iter__(self) -> Iterator[Params]:
         """Iterate over the points in the grid.
 
         Returns
         -------
-        params : iterator over dict of str to any
-            Yields dictionaries mapping each parameter to one of its allowed values.
+        params : iterator over Params
+            Yields a params object that maps each parameter to a single value.
         """
         ...
 
@@ -55,14 +57,14 @@ class FixedParameters(ParameterConfig):
                                 "`timeeval.search.IndependentParameterGrid` for this!")
             else:
                 raise TypeError(f"Parameters are not provided as a dict ({params})")
-        self._params = [params]
+        self._params = [FixedParams(params)]
 
-    def __iter__(self) -> Iterator[Mapping[str, Any]]:
-        return self._params
+    def __iter__(self) -> Iterator[Params]:
+        return iter(self._params)
 
     def __len__(self) -> int:
         return 1
 
-    def __getitem__(self, i: int) -> Mapping[str, Any]:
+    def __getitem__(self, i: int) -> Params:
         assert i == 0, "FixedParameters only has one element"
         return self._params[0]
