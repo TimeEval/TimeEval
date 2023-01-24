@@ -134,7 +134,8 @@ class OptunaLazyParams(Params):
         return self.build_uid(self.study_name, self.index)
 
     def to_dict(self) -> Dict[str, Any]:
-        return self.trial().params
+        params: Dict[str, Any] = self.trial().params
+        return params
 
     @staticmethod
     def build_uid(study_name: str, i: int) -> str:

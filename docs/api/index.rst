@@ -14,4 +14,4 @@ This section documents the public API of TimeEval.
    timeeval.metrics.thresholding
    timeeval.params
    timeeval.utils
-   timeeval.core
+   timeeval._core
