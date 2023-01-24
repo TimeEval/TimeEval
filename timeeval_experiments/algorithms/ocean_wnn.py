@@ -106,7 +106,7 @@ _ocean_wnn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def ocean_wnn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def ocean_wnn(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="OceanWNN",
         main=DockerAdapter(

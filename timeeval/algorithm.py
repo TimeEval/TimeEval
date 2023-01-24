@@ -1,11 +1,17 @@
-from dataclasses import dataclass, field
-from typing import Optional, Callable, Dict, Any
+from __future__ import annotations
 
-from timeeval.adapters.base import Adapter
-from timeeval.data_types import (
-    TSFunction, TSFunctionPost, ExecutionType, AlgorithmParameter, TrainingType, InputDimensionality
-)
-from timeeval.params import ParameterConfig
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+from .data_types import ExecutionType, TrainingType, InputDimensionality
+from .params import ParameterConfig
+
+
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    from typing import Optional, Callable, Dict, Any
+    from .adapters.base import Adapter
+    from .data_types import TSFunction, TSFunctionPost, AlgorithmParameter
 
 
 @dataclass
@@ -72,7 +78,7 @@ class Algorithm:
     training_type: TrainingType = TrainingType.UNSUPERVISED
     input_dimensionality: InputDimensionality = InputDimensionality.UNIVARIATE
 
-    def train(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+    def train(self, dataset: AlgorithmParameter, args: Optional[Dict[str, Any]] = None) -> AlgorithmParameter:
         """Execute this algorithm's training procedure.
 
         .. warning::
@@ -114,7 +120,7 @@ class Algorithm:
         args["executionType"] = ExecutionType.TRAIN
         return self.main(dataset, args)
 
-    def execute(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+    def execute(self, dataset: AlgorithmParameter, args: Optional[Dict[str, Any]] = None) -> AlgorithmParameter:
         """Execute this algorithm's test/execute procedure.
 
         .. warning::

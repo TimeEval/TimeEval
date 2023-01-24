@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import logging
 import time
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
 from pathlib import Path
 from subprocess import Popen
-from typing import List, Callable, Optional, Tuple, Dict
+from typing import List, Callable, Optional, Tuple, Dict, Any
 
 import tqdm
 from dask import config as dask_config
@@ -22,7 +24,7 @@ class Remote:
         self.limits = resource_constraints
         self.log.debug(f"Remoting configuration: {self.config}\n"
                        f"with {self.limits.tasks_per_host} tasks per host")
-        self.futures: List[Future] = []
+        self.futures: List[Future[Dict[str, Any]]] = []
 
         # setup logging of Dask:
         self.log.info("Configuring dask logging")
@@ -62,14 +64,15 @@ class Remote:
                 return self.start_or_restart_cluster(n + 1)
             raise e
 
-    def add_task(self, task: Callable, *args, config: Optional[dict] = None, **kwargs) -> Future:  # type: ignore[no-untyped-def]
+    def add_task(self, task: Callable, *args,  # type: ignore[no-untyped-def]
+                 config: Optional[Dict[str, Any]] = None, **kwargs) -> Future[Dict[str, Any]]:
         config = config or {}
         self.log.debug(f"Submitting task {task} to cluster")
         future = self.client.submit(task, *args, **config, **kwargs)
         self.futures.append(future)
         return future  # type: ignore
 
-    def run_on_all_hosts(self, tasks: List[Tuple[Callable, List, Dict]],
+    def run_on_all_hosts(self, tasks: List[Tuple[Callable, List[Any], Dict[str, Any]]],
                          msg: str = "Executing remote tasks",
                          progress: bool = True) -> None:
         self.log.debug(f"Running {len(tasks)} tasks on all cluster nodes and waiting for results")

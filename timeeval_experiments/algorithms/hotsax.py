@@ -41,7 +41,7 @@ def post_hotsax(algorithm_parameter: AlgorithmParameter, args: dict) -> np.ndarr
     scores = np.zeros_like(sums)
     np.divide(sums, counts, out=scores, where=counts != 0)
     # returns the completely flattened array (from `[[1.2], [2.3]]` to `[1.2, 2.3]`)
-    return scores.A1
+    return scores.A1  # type: ignore
 
 
 _hotsax_parameters: Dict[str, Dict[str, Any]] = {
@@ -84,7 +84,7 @@ _hotsax_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def hotsax(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def hotsax(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="HOT SAX",
         main=DockerAdapter(

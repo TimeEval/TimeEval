@@ -16,6 +16,7 @@ from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
 from ..resource_constraints import ResourceConstraints, GB
 
+
 DATASET_TARGET_PATH = Path("/data")
 RESULTS_TARGET_PATH = Path("/results")
 SCORES_FILE_NAME = "docker-algorithm-scores.csv"
@@ -78,14 +79,14 @@ class DockerAdapter(Adapter):
         else:
             return uid
 
-    def _get_compute_limits(self, args: dict) -> Tuple[int, float]:
+    def _get_compute_limits(self, args: Dict[str, Any]) -> Tuple[int, float]:
         limits: Tuple[int, float] = args.get("resource_constraints", ResourceConstraints()).get_compute_resource_limits(
             memory_overwrite=self.memory_limit,
             cpu_overwrite=self.cpu_limit
         )
         return limits
 
-    def _get_timeout(self, args: dict) -> Duration:
+    def _get_timeout(self, args: Dict[str, Any]) -> Duration:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
         if exec_type == ExecutionType.TRAIN or exec_type == ExecutionType.TRAIN.value:
@@ -94,14 +95,14 @@ class DockerAdapter(Adapter):
             return constraints.get_execute_timeout(self.timeout)
 
     @staticmethod
-    def _should_use_prelim_model(args: dict) -> bool:
+    def _should_use_prelim_model(args: Dict[str, Any]) -> bool:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
         result: bool = (exec_type == ExecutionType.TRAIN or exec_type == ExecutionType.TRAIN.value) and constraints.use_preliminary_model_on_train_timeout
         return result
 
     @staticmethod
-    def _should_use_prelim_results(args: dict) -> bool:
+    def _should_use_prelim_results(args: Dict[str, Any]) -> bool:
         exec_type = args.get("executionType", "")
         constraints = args.get("resource_constraints", ResourceConstraints())
         result: bool = (exec_type == ExecutionType.EXECUTE or exec_type == ExecutionType.EXECUTE.value) and constraints.use_preliminary_scores_on_execute_timeout
@@ -114,7 +115,7 @@ class DockerAdapter(Adapter):
             path = path.resolve()
         return path
 
-    def _run_container(self, dataset_path: Path, args: dict) -> Container:
+    def _run_container(self, dataset_path: Path, args: Dict[str, Any]) -> Container:
         client = docker.from_env()
 
         algorithm_interface = AlgorithmInterface(
@@ -154,7 +155,7 @@ class DockerAdapter(Adapter):
             detach=True,
         )
 
-    def _run_until_timeout(self, container: Container, args: dict) -> None:
+    def _run_until_timeout(self, container: Container, args: Dict[str, Any]) -> None:
         timeout = self._get_timeout(args)
         try:
             result = container.wait(timeout=timeout.to_seconds())
@@ -199,13 +200,13 @@ class DockerAdapter(Adapter):
             print(f"Docker algorithm failed with status code '{result['StatusCode']}', consider container logs below.")
             raise DockerAlgorithmFailedError(f"Please consider log files in {self._results_path(args, absolute=True)}!")
 
-    def _read_results(self, args: dict) -> np.ndarray:
+    def _read_results(self, args: Dict[str, Any]) -> np.ndarray:
         results: np.ndarray = np.genfromtxt(self._results_path(args, absolute=True) / SCORES_FILE_NAME, delimiter=",")
         return results
 
     # Adapter overwrites
 
-    def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:
+    def _call(self, dataset: AlgorithmParameter, args: Dict[str, Any]) -> AlgorithmParameter:
         assert isinstance(dataset, (WindowsPath, PosixPath)), \
             "Docker adapters cannot handle NumPy arrays! Please put in the path to the dataset."
         container = self._run_container(dataset, args)

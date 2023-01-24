@@ -49,7 +49,7 @@ _damp_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def damp(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def damp(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="DAMP",
         main=DockerAdapter(

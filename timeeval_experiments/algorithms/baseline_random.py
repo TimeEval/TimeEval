@@ -16,7 +16,7 @@ _baseline_random_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def baseline_random(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def baseline_random(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Random Baseline",
         main=DockerAdapter(

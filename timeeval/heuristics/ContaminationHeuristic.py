@@ -1,11 +1,18 @@
-from pathlib import Path
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from timeeval import Algorithm
-from timeeval.datasets import Dataset
 from .base import TimeEvalParameterHeuristic
 from ..utils.datasets import load_labels_only
+
+
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    from pathlib import Path
+    from ..algorithm import Algorithm
+    from ..datasets import Dataset
 
 
 class ContaminationHeuristic(TimeEvalParameterHeuristic):

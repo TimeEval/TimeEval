@@ -52,7 +52,7 @@ _ts_bitmap_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def ts_bitmap(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def ts_bitmap(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="TSBitmap",
         main=DockerAdapter(

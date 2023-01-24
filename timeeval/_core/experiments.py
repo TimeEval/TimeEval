@@ -1,15 +1,15 @@
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple, List, Generator, Optional, Iterator
+from typing import Tuple, List, Optional, Iterator, Any, Dict
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
+from .times import Times
 from ..algorithm import Algorithm
 from ..constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
-from ..core.times import Times
 from ..data_types import AlgorithmParameter, TrainingType, InputDimensionality
 from ..datasets import Datasets, Dataset
 from ..heuristics import inject_heuristic_values
@@ -51,7 +51,7 @@ class Experiment:
         return generate_experiment_path(self.base_results_dir, self.algorithm.name, self.params_id,
                                         self.dataset_collection, self.dataset_name, self.repetition)
 
-    def build_args(self) -> dict:
+    def build_args(self) -> Dict[str, Any]:
         return {
             "results_path": self.results_path,
             "resource_constraints": self.resource_constraints,
@@ -75,7 +75,7 @@ class Experiment:
             y_scores[~mask] = MinMaxScaler().fit_transform(scores).ravel()
         return y_true, y_scores
 
-    def evaluate(self) -> dict:
+    def evaluate(self) -> Dict[str, Any]:
         """
         Using TimeEval distributed, this method is executed on the remote node.
         """
@@ -143,7 +143,7 @@ class Experiment:
 
         return result
 
-    def _perform_training(self) -> dict:
+    def _perform_training(self) -> Dict[str, Any]:
         if self.algorithm.training_type == TrainingType.UNSUPERVISED:
             return {}
 
@@ -160,7 +160,7 @@ class Experiment:
             times = Times.from_train_algorithm(self.algorithm, X, self.build_args())
         return times.to_dict()
 
-    def _perform_execution(self) -> Tuple[np.ndarray, dict]:
+    def _perform_execution(self) -> Tuple[np.ndarray, Dict[str, Any]]:
         if self.algorithm.data_as_file:
             X: AlgorithmParameter = self.resolved_test_dataset_path
         else:

@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from time import time
 from types import FrameType
-from typing import Callable, List, Tuple, Dict, Optional, Any
+from typing import Callable, List, Tuple, Dict, Optional, Any, Union
 
 import numpy as np
 import pandas as pd
@@ -301,7 +301,7 @@ class TimeEval:
         for exp in tqdm.tqdm(self.exps, desc=desc, disable=self.disable_progress_bar):
             try:
                 future_result: Optional[Future] = None
-                result: Optional[Dict] = None
+                result: Optional[Dict[str, Any]] = None
 
                 if exp.algorithm.training_type in [TrainingType.SUPERVISED, TrainingType.SEMI_SUPERVISED]:
                     if exp.resolved_train_dataset_path is None:
@@ -337,7 +337,7 @@ class TimeEval:
 
     def _record_results(self,
                         exp: Experiment,
-                        result: Optional[Dict] = None,
+                        result: Optional[Dict[str, Any]] = None,
                         future_result: Optional[Future] = None,
                         status: Status = Status.OK,
                         error_message: Optional[str] = None) -> None:
@@ -355,7 +355,7 @@ class TimeEval:
             "hyper_params_id": exp.params_id
         }
         try:
-            new_row["hyper_params"]: dumps_params(exp.params)
+            new_row["hyper_params"] = dumps_params(exp.params)
         except ValueError:
             pass
         if result is not None and future_result is None:
@@ -525,7 +525,7 @@ class TimeEval:
             algorithm.finalize()
 
     def _distributed_prepare(self) -> None:
-        tasks: List[Tuple[Callable, List, Dict]] = []
+        tasks: List[Tuple[Union[Callable[[List[Path]], None], Callable[[], None]], List[Any], Dict[str, Any]]] = []
         for algorithm in self.exps.algorithms:
             prepare_fn = algorithm.prepare_fn()
             if prepare_fn:
@@ -542,7 +542,7 @@ class TimeEval:
         self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
     def _distributed_finalize(self) -> None:
-        tasks: List[Tuple[Callable, List, Dict]] = []
+        tasks: List[Tuple[Callable[[], None], List[Any], Dict[str, Any]]] = []
         for algorithm in self.exps.algorithms:
             finalize_fn = algorithm.finalize_fn()
             if finalize_fn:

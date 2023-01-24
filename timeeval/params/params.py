@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Mapping
-
-import numpy as np
+from typing import TYPE_CHECKING, Any, Mapping, Dict
 
 from timeeval.utils.hash_dict import hash_dict
+
+
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class Params(Mapping[str, Any], ABC):
@@ -31,7 +34,7 @@ class Params(Mapping[str, Any], ABC):
         ...
 
 
-class FixedParams(dict, Params):
+class FixedParams(Dict[str, Any], Params):
     def materialize(self) -> FixedParams:
         return self
 

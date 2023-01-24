@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Any
 
 import numpy as np
 from sklearn.metrics import auc, roc_curve, precision_recall_curve
@@ -17,16 +17,19 @@ class AucMetric(Metric, ABC):
         self._plot = plot
         self._plot_store = plot_store
 
-    def _auc(self, y_true: np.ndarray, y_score: Iterable[float], _curve_function: Callable) -> float:
-        x, y, thresholds = _curve_function(y_true, y_score)
-        if "precision_recall" in _curve_function.__name__:
+    def _auc(self,
+             y_true: np.ndarray,
+             y_score: Iterable[float],
+             curve_function: Callable[[np.ndarray, np.ndarray], Any]) -> float:
+        x, y, thresholds = curve_function(y_true, np.array(y_score))
+        if "precision_recall" in curve_function.__name__:
             # swap x and y
             x, y = y, x
         area: float = auc(x, y)
         if self._plot:
             import matplotlib.pyplot as plt
 
-            name = _curve_function.__name__
+            name = curve_function.__name__
             plt.plot(x, y, label=name, drawstyle="steps-post")
             # plt.plot([0, 1], [0, 1], linestyle="--", label="Random")
             plt.title(f"{name} | area = {area:.4f}")

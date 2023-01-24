@@ -1,7 +1,7 @@
 import json
 import warnings
 from pathlib import Path
-from typing import List, Union, Tuple, Optional, Dict, NamedTuple
+from typing import List, Union, Tuple, Optional, Dict, NamedTuple, Any
 
 import numpy as np
 import pandas as pd
@@ -64,13 +64,13 @@ class CustomDatasets(CustomDatasetsBase):
 
         self._dataset_store: Dict[str, CDEntry] = store
 
-    def _extract_path(self, obj: dict, key: str) -> Path:
+    def _extract_path(self, obj: Dict[str, Any], key: str) -> Path:
         path_string = obj[key]
         path: Path = self.root_path / path_string
         path = path.resolve()
         return path
 
-    def _validate_dataset(self, name: str, ds_obj: dict) -> None:
+    def _validate_dataset(self, name: str, ds_obj: Dict[str, Any]) -> None:
         if TEST_PATH_KEY not in ds_obj:
             raise ValueError(f"The dataset {name} misses the required '{TEST_PATH_KEY}' property.")
         elif not self._extract_path(ds_obj, TEST_PATH_KEY).exists():
@@ -78,7 +78,7 @@ class CustomDatasets(CustomDatasetsBase):
         if TRAIN_PATH_KEY in ds_obj and not self._extract_path(ds_obj, TRAIN_PATH_KEY).exists():
             raise ValueError(f"The train file for dataset {name} was not found (property '{TRAIN_PATH_KEY}')!")
 
-    def _analyze_dataset(self, name: str, ds_obj: dict) -> CDEntry:
+    def _analyze_dataset(self, name: str, ds_obj: Dict[str, Any]) -> CDEntry:
         dataset_id = _dataset_id(name)
         dataset_type = ds_obj.get(TYPE_KEY, "unknown")
         period = ds_obj.get(PERIOD_KEY, None)

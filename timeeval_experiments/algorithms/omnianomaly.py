@@ -85,7 +85,7 @@ _omnianomaly_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def omnianomaly(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def omnianomaly(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="OmniAnomaly",
         main=DockerAdapter(

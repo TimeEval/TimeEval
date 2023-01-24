@@ -79,7 +79,7 @@ _bagel_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def bagel(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def bagel(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Bagel",
         main=DockerAdapter(

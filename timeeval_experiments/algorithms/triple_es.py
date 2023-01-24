@@ -40,7 +40,7 @@ _triple_es_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def triple_es(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def triple_es(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Triple ES (Holt-Winter's)",
         main=DockerAdapter(

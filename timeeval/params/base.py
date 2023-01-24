@@ -1,13 +1,22 @@
-import abc
-from typing import Sized, Iterator, Any, Mapping
+from __future__ import annotations
 
-from .params import Params, FixedParams
-from ..datasets import Dataset
+import abc
+from typing import TYPE_CHECKING, Sized, Mapping, Iterator
+
+from .params import FixedParams
+
+
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    from typing import Any
+    from ..algorithm import Algorithm
+    from ..datasets import Dataset
+    from .params import Params
 
 
 class ParameterConfig(abc.ABC, Sized):
     @abc.abstractmethod
-    def iter(self, algorithm: "Algorithm", dataset: Dataset) -> Iterator[Params]:
+    def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:
         """Iterate over the points in the grid.
 
         Returns
@@ -18,7 +27,7 @@ class ParameterConfig(abc.ABC, Sized):
         ...
 
     @staticmethod
-    def defaults() -> "ParameterConfig":
+    def defaults() -> ParameterConfig:
         return FixedParameters({})
 
 
@@ -60,7 +69,7 @@ class FixedParameters(ParameterConfig):
                 raise TypeError(f"Parameters are not provided as a dict ({params})")
         self._params = [FixedParams(params)]
 
-    def iter(self, algorithm: "Algorithm", dataset: Dataset) -> Iterator[Params]:
+    def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:
         return self.__iter__()
 
     def __iter__(self) -> Iterator[Params]:

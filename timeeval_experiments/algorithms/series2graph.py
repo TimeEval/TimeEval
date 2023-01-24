@@ -46,7 +46,7 @@ _series2graph_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def series2graph(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def series2graph(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Series2Graph",
         main=DockerAdapter(

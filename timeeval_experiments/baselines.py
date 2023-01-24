@@ -48,7 +48,8 @@ class Baselines:
             if isinstance(X, Path):
                 raise ValueError("Increasing baseline requires an np.ndarray as input!")
             indices = np.arange(X.shape[0])
-            return MinMaxScaler().fit_transform(indices.reshape(-1, 1)).reshape(-1)
+            scores: np.ndarray = MinMaxScaler().fit_transform(indices.reshape(-1, 1)).reshape(-1)
+            return scores
 
         return Algorithm(
             name="increasing",
@@ -103,9 +104,9 @@ class Baselines:
         # univariate
         if len(data.shape) == 1:
             diffs = np.abs(data - fn(data))
-            return diffs / diffs.max()
+            return diffs / diffs.max()  # type: ignore
         # multivariate
         else:
             diffs = np.abs(data - fn(data, axis=0))
             diffs = diffs / diffs.max(axis=0)
-            return diffs.mean(axis=1)
+            return diffs.mean(axis=1)  # type: ignore

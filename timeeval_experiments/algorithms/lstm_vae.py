@@ -64,7 +64,7 @@ _lstm_vae_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def lstm_vae(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def lstm_vae(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="LSTM-VAE",
         main=DockerAdapter(

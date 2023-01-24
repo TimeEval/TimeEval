@@ -19,7 +19,7 @@ _{{ image_name }}_parameters: Dict[str, Dict[str, Any]] = {% if parameters is de
 {% endif %}
 
 
-def {{ image_name }}(params: ParameterConfig = None, skip_pull: bool = {{ skip_pull }}, timeout: Optional[Duration] = None) -> Algorithm:
+def {{ image_name }}(params: Optional[ParameterConfig] = None, skip_pull: bool = {{ skip_pull }}, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="{{ name }}",
         main=DockerAdapter(

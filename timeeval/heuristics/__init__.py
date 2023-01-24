@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import re
 from copy import deepcopy
-from pathlib import Path
-from typing import Any, TypeVar, MutableMapping, Mapping
+from typing import TYPE_CHECKING, MutableMapping
 
-from timeeval import Algorithm
-from timeeval.datasets import Dataset
+from .base import TimeEvalParameterHeuristic
 from .AnomalyLengthHeuristic import AnomalyLengthHeuristic
 from .CleanStartSequenceSizeHeuristic import CleanStartSequenceSizeHeuristic
 from .ContaminationHeuristic import ContaminationHeuristic
@@ -15,11 +15,17 @@ from .EmbedDimRangeHeuristic import EmbedDimRangeHeuristic
 from .ParameterDependenceHeuristic import ParameterDependenceHeuristic
 from .PeriodSizeHeuristic import PeriodSizeHeuristic
 from .RelativeDatasetSizeHeuristic import RelativeDatasetSizeHeuristic
-from .base import TimeEvalParameterHeuristic
-from ..params.params import Params
 
 
-T = TypeVar("T")
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any, TypeVar, Mapping
+    from ..algorithm import Algorithm
+    from ..datasets import Dataset
+    from ..params import Params
+
+    T = TypeVar("T", Params, Mapping[str, Any], MutableMapping[str, Any])
 
 
 def _check_signature(signature: str) -> bool:
@@ -47,7 +53,8 @@ def inject_heuristic_values(
         dataset_details: Dataset,
         dataset_path: Path,
 ) -> T:
-    if not hasattr(params, "__setitem__") or not hasattr(params, "__delitem__"):
+    # if not hasattr(params, "__setitem__") or not hasattr(params, "__delitem__"):
+    if not isinstance(params, MutableMapping):
         # ignore all dynamic parameter search spaces that cannot be altered
         return params
 

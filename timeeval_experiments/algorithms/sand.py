@@ -52,7 +52,7 @@ _sand_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def sand(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def sand(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="SAND",
         main=DockerAdapter(

@@ -46,7 +46,7 @@ _fft_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def fft(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def fft(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="FFT",
         main=DockerAdapter(

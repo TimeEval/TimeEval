@@ -149,7 +149,7 @@ class DatasetMetadataEncoder(JSONEncoder):
             return super(DatasetMetadataEncoder, self).default(o)
 
     @staticmethod
-    def object_hook(dct: dict) -> Any:
+    def object_hook(dct: Dict[str, Any]) -> Any:
         if "anomaly_length" in dct and "dataset_id" in dct and "is_train" in dct and "contamination" in dct:
             anomaly_length_dict = dct["anomaly_length"]
             anomaly_length = AnomalyLength(

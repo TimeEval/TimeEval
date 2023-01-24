@@ -106,7 +106,7 @@ _novelty_svr_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def novelty_svr(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def novelty_svr(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="NoveltySVR",
         main=DockerAdapter(

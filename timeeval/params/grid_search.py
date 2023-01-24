@@ -1,16 +1,24 @@
-import abc
-from typing import Iterator, Any, Mapping, Optional, Iterable
+from __future__ import annotations
+
+from abc import abstractmethod, ABCMeta
+from typing import TYPE_CHECKING, Mapping, Iterator, Iterable
 
 from sklearn.model_selection import ParameterGrid
 
 from .base import ParameterConfig
-from .params import Params, FixedParams
-from ..datasets import Dataset
+from .params import FixedParams, Params
 
 
-class ParameterGridConfig(ParameterConfig, Iterable, metaclass=abc.ABCMeta):
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    from typing import Any, Optional
+    from ..algorithm import Algorithm
+    from ..datasets import Dataset
+
+
+class ParameterGridConfig(ParameterConfig, Iterable[Params], metaclass=ABCMeta):
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def param_grid(self) -> ParameterGrid:
         """The parameter search grid.
 
@@ -21,10 +29,10 @@ class ParameterGridConfig(ParameterConfig, Iterable, metaclass=abc.ABCMeta):
         """
         ...
 
-    def iter(self, algorithm: "Algorithm", dataset: Dataset) -> Iterator[Params]:
+    def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:
         return self.__iter__()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Params]:
         return iter(FixedParams(p) for p in self.param_grid)
 
     def __len__(self) -> int:

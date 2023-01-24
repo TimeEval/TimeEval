@@ -1,7 +1,7 @@
 import getpass
 import logging
 import subprocess
-from typing import List
+from typing import List, Any, Dict
 
 from .base import Adapter
 from ..data_types import TSFunction, AlgorithmParameter
@@ -34,7 +34,7 @@ class DistributedAdapter(Adapter):
             stdin.write(f"screen -dm bash -c \"{self.remote_command}\"")
             stdin.close()
 
-    def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:
+    def _call(self, dataset: AlgorithmParameter, args: Dict[str, Any]) -> AlgorithmParameter:
         # remote call
         for remote_host in self.remote_hosts:
             self._remote_command(remote_host)

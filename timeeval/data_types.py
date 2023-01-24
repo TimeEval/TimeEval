@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from pathlib import Path
 from typing import Union, Callable
@@ -28,7 +30,7 @@ class TrainingType(Enum):
     """
 
     @staticmethod
-    def from_text(name: str) -> 'TrainingType':
+    def from_text(name: str) -> TrainingType:
         """Converts the string-representation to an Enum-object."""
         if name.lower() == TrainingType.SUPERVISED.value:
             return TrainingType.SUPERVISED
@@ -54,7 +56,7 @@ class InputDimensionality(Enum):
     """
 
     @staticmethod
-    def from_dimensions(n: int) -> 'InputDimensionality':
+    def from_dimensions(n: int) -> InputDimensionality:
         """Converts the feature/dimension/channel count to an Enum-object."""
         if n < 1:
             raise ValueError(f"Zero dimensional dataset is not supported!")

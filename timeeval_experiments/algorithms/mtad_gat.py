@@ -119,7 +119,7 @@ _mtad_gat_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def mtad_gat(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def mtad_gat(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MTAD-GAT",
         main=DockerAdapter(

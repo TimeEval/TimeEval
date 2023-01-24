@@ -52,7 +52,7 @@ _iforest_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def iforest(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def iforest(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Isolation Forest (iForest)",
         main=DockerAdapter(

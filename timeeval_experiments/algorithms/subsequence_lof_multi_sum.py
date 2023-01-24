@@ -55,7 +55,7 @@ _subsequence_lof_multi_sum_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def subsequence_lof_multi_sum(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def subsequence_lof_multi_sum(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Subsequence LOF Multivariate Sum",
         main=DockerAdapter(

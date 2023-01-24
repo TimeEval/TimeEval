@@ -75,7 +75,7 @@ _deepant_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def deepant(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def deepant(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="DeepAnT",
         main=DockerAdapter(

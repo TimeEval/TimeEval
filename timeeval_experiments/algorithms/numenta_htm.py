@@ -154,7 +154,7 @@ _numenta_htm_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def numenta_htm(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def numenta_htm(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="NumentaHTM",
         main=DockerAdapter(

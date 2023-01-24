@@ -34,7 +34,7 @@ _hbos_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def hbos(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def hbos(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="HBOS",
         main=DockerAdapter(

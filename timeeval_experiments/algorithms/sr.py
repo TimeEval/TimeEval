@@ -34,7 +34,7 @@ _sr_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def sr(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def sr(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Spectral Residual (SR)",
         main=DockerAdapter(

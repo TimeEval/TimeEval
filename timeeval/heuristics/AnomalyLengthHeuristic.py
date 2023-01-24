@@ -1,8 +1,15 @@
-from pathlib import Path
+from __future__ import annotations
 
-from timeeval import Algorithm
-from timeeval.datasets import Dataset
+from typing import TYPE_CHECKING
+
 from .base import TimeEvalParameterHeuristic
+
+
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    from pathlib import Path
+    from ..algorithm import Algorithm
+    from ..datasets import Dataset
 
 
 class AnomalyLengthHeuristic(TimeEvalParameterHeuristic):

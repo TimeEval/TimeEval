@@ -40,7 +40,7 @@ def post_grammarviz(algorithm_parameter: AlgorithmParameter, args: dict) -> np.n
     scores = np.zeros_like(sums)
     np.divide(sums, counts, out=scores, where=counts != 0)
     # returns the completely flattened array (from `[[1.2], [2.3]]` to `[1.2, 2.3]`)
-    return scores.A1
+    return scores.A1  # type: ignore
 
 
 _grammarviz3_parameters: Dict[str, Dict[str, Any]] = {
@@ -83,7 +83,7 @@ _grammarviz3_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def grammarviz3(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def grammarviz3(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="GrammarViz",
         main=DockerAdapter(
