@@ -6,7 +6,7 @@ import numpy as np
 from timeeval import Algorithm, AlgorithmParameter, TrainingType
 from timeeval.adapters import FunctionAdapter
 from timeeval.data_types import ExecutionType
-from timeeval.core.times import Times
+from timeeval._core.times import Times
 
 
 def pre(x: AlgorithmParameter, args) -> AlgorithmParameter:

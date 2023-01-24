@@ -15,17 +15,17 @@ import tqdm
 from distributed.client import Future
 from joblib import Parallel, delayed
 
+from ._core.experiments import Experiments, Experiment
+from ._core.remote import Remote, RemoteConfiguration
+from ._core.times import Times
 from .adapters.docker import DockerTimeoutError, DockerAdapter
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
-from .core.experiments import Experiments, Experiment
-from .core.remote import Remote, RemoteConfiguration
-from .core.times import Times
 from .data_types import TrainingType, InputDimensionality
 from .datasets import Datasets
+from .metrics import Metric, DefaultMetrics
 from .resource_constraints import ResourceConstraints
 from .utils.encode_params import dumps_params
-from .metrics import Metric, DefaultMetrics
 from .utils.tqdm_joblib import tqdm_joblib
 
 

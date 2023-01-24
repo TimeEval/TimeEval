@@ -18,7 +18,7 @@ from timeeval import (
     DatasetManager
 )
 from timeeval.datasets import Dataset, DatasetRecord
-from timeeval.core.experiments import Experiment, Experiments
+from timeeval._core.experiments import Experiment, Experiments
 from timeeval.params.params import FixedParams
 from timeeval.utils.hash_dict import hash_dict
 

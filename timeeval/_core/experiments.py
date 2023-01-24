@@ -254,7 +254,7 @@ class Experiments:
         elif self._N is None:
             self._experiments = list(self.materialize_experiments())
             self._N = len(self._experiments)
-        return self._N  # type: ignore
+        return self._N
 
     def _resolve_dataset_paths(self, dataset: Dataset, algorithm: Algorithm) -> Tuple[Path, Optional[Path]]:
         test_dataset_path = self.dmgr.get_dataset_path(dataset.datasetId, train=False)
