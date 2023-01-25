@@ -174,7 +174,7 @@ class OptunaModule(TimeEvalModule):
     def load_studies(self) -> List[StudySummary]:
         """Load all studies from the default storage. This does not include studies which were stored in a different
         storage backend (i.a. where the storage backend was changed using the
-        :class:`timeeval.params.baysian.OptunaStudyConfiguration`).
+        :class:`timeeval.integration.optuna.OptunaStudyConfiguration`).
 
         Returns
         -------

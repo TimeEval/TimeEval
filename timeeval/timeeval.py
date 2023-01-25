@@ -167,8 +167,8 @@ class TimeEval:
         This allows you to circumvent the cross-product that TimeEval will perform in its default configuration.
     module_configs : Mapping[str, Any], optional
         Use this parameter to pass additional configuration options for automatically loaded TimeEval modules. This is
-        currently used only for the implementation of the Baysian hyperparameter optimization prozedure using Optuna.
-        See :class:`timeeval.integration.optuna.OptunaModule` and :class:`timeeval.params.baysian.OptunaParameterSearch`
+        currently used only for the implementation of the Bayesian hyperparameter optimization prozedure using Optuna.
+        See :class:`timeeval.integration.optuna.OptunaModule` and :class:`timeeval.params.bayesian.OptunaParameterSearch`
         for details.
 
         You can access loaded modules via the ``modules`` attribute (``Dict[str, TimeEvalModule``) of the TimeEval

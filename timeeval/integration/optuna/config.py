@@ -14,7 +14,7 @@ from timeeval import Metric
 @dataclass(init=True, repr=True)
 class OptunaConfiguration:
     """Configuration options for the Optuna module, which is automatically loaded when at least one
-    algorithm uses :class:`timeeval.params.baysian.OptunaSearchParameters` as parameter config.
+    algorithm uses :class:`timeeval.params.BayesianParameterSearch` as parameter config.
 
     Parameters
     ----------
