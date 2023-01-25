@@ -72,6 +72,14 @@ class Remote:
         self.futures.append(future)
         return future  # type: ignore
 
+    def run_on_scheduler(self, tasks: List[Tuple[Callable, List[Any], Dict[str, Any]]],
+                         msg: str = "Executing tasks on scheduler",
+                         progress: bool = True) -> None:
+        self.log.debug(f"Running {len(tasks)} tasks on scheduler")
+        for task, args, kwargs in tqdm.tqdm(tasks, desc=msg, disable=self.disable_progress_bar or not progress):
+            self.log.debug(f"({msg})Running task '{task}' with args {args} and kwargs {kwargs}")
+            self.client.run_on_scheduler(task, *args, **kwargs)
+
     def run_on_all_hosts(self, tasks: List[Tuple[Callable, List[Any], Dict[str, Any]]],
                          msg: str = "Executing remote tasks",
                          progress: bool = True) -> None:
