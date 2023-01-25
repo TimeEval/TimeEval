@@ -10,8 +10,7 @@ import optuna.storages
 from docker.errors import DockerException, NotFound
 from optuna.storages import JournalStorage, JournalFileStorage, JournalFileOpenLock
 
-from .. import TimeEvalModule
-from ...params.baysian import OptunaParameterSearch
+from timeeval.integration import TimeEvalModule
 
 
 if TYPE_CHECKING:
@@ -156,8 +155,8 @@ class OptunaModule(TimeEvalModule):
         # update optuna study configurations:
         log.debug("updating optuna study configurations ...")
         for algo in timeeval.exps.algorithms:
-            if isinstance(algo.param_config, OptunaParameterSearch):
-                algo.param_config.update_config(self.config)
+            if hasattr(algo.param_config, "update_config"):
+                algo.param_config.update_config(self.config)  # type: ignore
         log.info("Optuna module: preparing done.")
 
     def finalize(self, timeeval: TimeEval) -> None:

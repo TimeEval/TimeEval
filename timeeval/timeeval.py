@@ -24,9 +24,8 @@ from .constants import RESULTS_CSV
 from .data_types import TrainingType, InputDimensionality
 from .datasets import Datasets
 from .integration import TimeEvalModule
-from .integration.optuna import OptunaModule, OptunaConfiguration
 from .metrics import Metric, DefaultMetrics
-from .params.baysian import OptunaParameterSearch
+from .params import BayesianParameterSearch
 from .resource_constraints import ResourceConstraints
 from .utils.encode_params import dumps_params
 from .utils.tqdm_joblib import tqdm_joblib
@@ -279,13 +278,14 @@ class TimeEval:
         # load necessary modules:
         self.modules: Dict[str, TimeEvalModule] = {}
         # Optuna
-        if any(isinstance(a.param_config, OptunaParameterSearch) for a in algorithms):
+        if any(isinstance(a.param_config, BayesianParameterSearch) for a in algorithms):
             if repetitions > 1:
                 self.log.warning(
                     f"`repetitions` was set to {repetitions}. However, some algorithms require Optuna for parameter "
                     "search, which does not support repetitions. Reducing `repetitions` for all experiments to 1."
                 )
                 repetitions = 1
+            from .integration.optuna import OptunaModule, OptunaConfiguration
             optuna_config = module_configs.get("optuna", OptunaConfiguration.default(self.distributed))
             self.modules["optuna"] = OptunaModule(optuna_config)
 

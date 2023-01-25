@@ -2,7 +2,7 @@ timeeval.params package
 =======================
 
 timeeval.params.ParameterConfig
---------------------------------------
+-------------------------------
 
 .. autoclass:: timeeval.params.ParameterConfig
    :members:
@@ -10,7 +10,7 @@ timeeval.params.ParameterConfig
    :show-inheritance:
 
 timeeval.params.FixedParameters
---------------------------------------
+-------------------------------
 
 .. autoclass:: timeeval.params.FixedParameters
    :members:
@@ -18,7 +18,7 @@ timeeval.params.FixedParameters
    :show-inheritance:
 
 timeeval.params.FullParameterGrid
-----------------------------------------
+---------------------------------
 
 .. autoclass:: timeeval.params.FullParameterGrid
    :members:
@@ -26,9 +26,17 @@ timeeval.params.FullParameterGrid
    :show-inheritance:
 
 timeeval.params.IndependentParameterGrid
------------------------------------------------
+----------------------------------------
 
 .. autoclass:: timeeval.params.IndependentParameterGrid
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.params.BayesianParameterSearch
+---------------------------------------
+
+.. autoclass:: timeeval.params.BayesianParameterSearch
    :members:
    :undoc-members:
    :show-inheritance:

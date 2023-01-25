@@ -8,71 +8,17 @@ import numpy as np
 import optuna
 from optuna.trial import TrialState
 
-from .base import ParameterConfig
-from .params import Params
+from timeeval.params import ParameterConfig, Params
 
 
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
-    from typing import Iterator, Any, Mapping, Dict, Union, Optional
+    from typing import Iterator, Any, Mapping, Dict, Optional
     from optuna import Study, Trial
     from optuna.distributions import BaseDistribution
-    from optuna.pruners import BasePruner
-    from optuna.samplers import BaseSampler
-    from optuna.storages import BaseStorage
-    from optuna.study import StudyDirection
-    from ..algorithm import Algorithm
-    from ..datasets import Dataset
-    from ..metrics import Metric
-    from ..integration.optuna import OptunaConfiguration
-
-
-@dataclass(init=True, repr=True, frozen=True)
-class OptunaStudyConfiguration:
-    """Configuration for :class:`OptunaParameterSearch`.
-
-    Parameters
-    ----------
-    n_trials : int
-        Number of trials to perform.
-    metric : Metric
-        TimeEval metric to use as the studies objective function.
-    storage : str or optuna.storages.BaseStorage, optional
-        Storage to store the results of the study.
-    sampler : optuna.samplers.BaseSampler, optional
-        Sampler to use for the study. If not provided, the default sampler is used.
-    pruner : optuna.pruners.BasePruner, optional
-        Pruner to use for the study. If not provided, the default pruner is used.
-    direction : str or optuna.study.StudyDirection, optional
-        Direction of the optimization (minimize or maximize). If not provided, the default direction is used.
-    continue_existing : bool, optional
-        If True, continue a study with the given name if it already exists in the storage backend. If False, raise an
-        error if a study with the same name already exists.
-
-    See Also
-    --------
-    :meth:`optuna.create_study`:
-        Used to create the Optuna study object; includes detailed explanation of the parameters.
-    """
-
-    n_trials: int
-    metric: Metric
-    storage: Optional[Union[str, BaseStorage]] = None
-    sampler: Optional[BaseSampler] = None
-    pruner: Optional[BasePruner] = None
-    direction: Optional[Union[str, StudyDirection]] = "maximize"
-    continue_existing_study: bool = False
-
-    def update_unset_options(self, global_config: OptunaConfiguration) -> OptunaStudyConfiguration:
-        return OptunaStudyConfiguration(
-            n_trials=self.n_trials,
-            metric=self.metric,
-            storage=self.storage or global_config.default_storage,
-            sampler=self.sampler or global_config.default_sampler,
-            pruner=self.pruner or global_config.default_pruner,
-            direction=self.direction,
-            continue_existing_study=self.continue_existing_study or global_config.continue_existing_studies,
-        )
+    from timeeval import Algorithm
+    from timeeval.datasets import Dataset
+    from .config import OptunaConfiguration, OptunaStudyConfiguration
 
 
 @dataclass(init=False, repr=True)
@@ -155,18 +101,7 @@ class OptunaLazyParams(Params):
 
 
 class OptunaParameterSearch(ParameterConfig):
-    """Performs Bayesian optimization using Optuna library.
-
-    .. warning::
-        Please install the `optuna` package to use this class.
-        We also recommend to install the `optuna-dashboard` package to visualize the optimization process.
-        If you use the recommended PostgreSQL storage backend, you also need to install the `psycopg2` package.
-
-    See also
-    --------
-    `https://optuna.readthedocs.io/en/stable/index.html`_:
-        Optuna documentation.
-    """
+    """Implementation of the Bayesian optimization using Optuna library."""
 
     def __init__(self, config: OptunaStudyConfiguration, params: Mapping[str, BaseDistribution]):
         self._config = config
@@ -196,9 +131,4 @@ class OptunaParameterSearch(ParameterConfig):
         return self._config.n_trials
 
     def update_config(self, global_config: OptunaConfiguration) -> None:
-        print("Updating Optuna Study configuration ...")
         self._config = self._config.update_unset_options(global_config)
-
-
-# docker run --name postgres -e POSTGRES_PASSWORD=hairy_bumblebee -p 5432:5432 -d postgres
-# optuna-dashboard postgresql://postgres:hairy_bumblebee@localhost:5432/postgres
