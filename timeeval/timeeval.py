@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from time import time
 from types import FrameType
-from typing import Callable, List, Tuple, Dict, Optional, Any, Union
+from typing import Callable, List, Tuple, Dict, Optional, Any, Union, Mapping
 
 import numpy as np
 import pandas as pd
@@ -23,7 +23,10 @@ from .algorithm import Algorithm
 from .constants import RESULTS_CSV
 from .data_types import TrainingType, InputDimensionality
 from .datasets import Datasets
+from .integration import TimeEvalModule
+from .integration.optuna import OptunaModule, OptunaConfiguration
 from .metrics import Metric, DefaultMetrics
+from .params.baysian import OptunaParameterSearch
 from .resource_constraints import ResourceConstraints
 from .utils.encode_params import dumps_params
 from .utils.tqdm_joblib import tqdm_joblib
@@ -139,13 +142,13 @@ class TimeEval:
         - univariate algorithms on multivariate datasets (algorithm cannot process the dataset)
 
     force_training_type_match : bool
-        Narrow down the algorithm-dataset combinations further by executing an algorithm only on datasets with **the same**
-        training type, e.g. unsupervised algorithms only on unsupervised datasets.
-        This flag implies ``skip_invalid_combinations==True``.
+        Narrow down the algorithm-dataset combinations further by executing an algorithm only on datasets with
+        **the same** training type, e.g. unsupervised algorithms only on unsupervised datasets. This flag implies
+        ``skip_invalid_combinations==True``.
     force_dimensionality_match : bool
-        Narrow down the algorithm-dataset combinations furthter by executing an algorithm only on datasets with **the same**
-        input dimensionality, e.g. multivariate algorithms only on multivariate datasets.
-        This flag implies ``skip_invalid_combinations==True``.
+        Narrow down the algorithm-dataset combinations furthter by executing an algorithm only on datasets with
+        **the same** input dimensionality, e.g. multivariate algorithms only on multivariate datasets. This flag implies
+        ``skip_invalid_combinations==True``.
     n_jobs : int
         Set the number of jobs / processes used to fetch the results from the remote machine.
         This setting is used only in distributed mode.
@@ -163,6 +166,14 @@ class TimeEval:
 
         Only experiments that are present in the TimeEval configuration **and** this file are scheduled and executed.
         This allows you to circumvent the cross-product that TimeEval will perform in its default configuration.
+    module_configs : Mapping[str, Any], optional
+        Use this parameter to pass additional configuration options for automatically loaded TimeEval modules. This is
+        currently used only for the implementation of the Baysian hyperparameter optimization prozedure using Optuna.
+        See :class:`timeeval.integration.optuna.OptunaModule` and :class:`timeeval.params.baysian.OptunaParameterSearch`
+        for details.
+
+        You can access loaded modules via the ``modules`` attribute (``Dict[str, TimeEvalModule``) of the TimeEval
+        instance, e.g. ``timeeval.modules["optuna"]``.
     """
 
     RESULT_KEYS = ["algorithm",
@@ -217,7 +228,8 @@ class TimeEval:
                  force_training_type_match: bool = False,
                  force_dimensionality_match: bool = False,
                  n_jobs: int = -1,
-                 experiment_combinations_file: Optional[Path] = None) -> None:
+                 experiment_combinations_file: Optional[Path] = None,
+                 module_configs: Mapping[str, Any] = {}) -> None:
         assert len(datasets) > 0, "No datasets given for evaluation!"
         assert len(algorithms) > 0, "No algorithms given for evaluation!"
         assert repetitions > 0, "Negative or 0 repetitions are not supported!"
@@ -263,6 +275,19 @@ class TimeEval:
                 "Explicitly set constraints to limit the resources for local executions of TimeEval."
             )
             limits.tasks_per_host = 1
+
+        # load necessary modules:
+        self.modules: Dict[str, TimeEvalModule] = {}
+        # Optuna
+        if any(isinstance(a.param_config, OptunaParameterSearch) for a in algorithms):
+            if repetitions > 1:
+                self.log.warning(
+                    f"`repetitions` was set to {repetitions}. However, some algorithms require Optuna for parameter "
+                    "search, which does not support repetitions. Reducing `repetitions` for all experiments to 1."
+                )
+                repetitions = 1
+            optuna_config = module_configs.get("optuna", OptunaConfiguration.default(self.distributed))
+            self.modules["optuna"] = OptunaModule(optuna_config)
 
         self.exps = Experiments(dataset_mgr, dataset_details, algorithms, self.results_path,
                                 resource_constraints=limits,
@@ -550,10 +575,6 @@ class TimeEval:
         self.log.debug(f"Collected {len(tasks)} algorithm finalize steps")
         self.log.info("Running finalize steps on remote hosts")
         self.remote.run_on_all_hosts(tasks, msg="Finalizing")
-        self.log.info("Closing remote")
-        self.remote.close()
-        self.log.info("Syncing results")
-        self.rsync_results()
 
     def run(self) -> None:
         """Starts the configured evaluation run.
@@ -577,6 +598,8 @@ class TimeEval:
         print("Running PREPARE phase")
         self.log.info("Running PREPARE phase")
         t0 = time()
+        for module in self.modules.values():
+            module.prepare(self)
         if self.distributed:
             self._distributed_prepare()
         else:
@@ -584,9 +607,13 @@ class TimeEval:
 
         print("Running EVALUATION phase")
         self.log.info("Running EVALUATION phase")
+        for module in self.modules.values():
+            module.pre_run(self)
         self._run()
         if self.distributed:
             self._resolve_future_results()
+        for module in self.modules.values():
+            module.post_run(self)
         self.save_results()
 
         print("Running FINALIZE phase")
@@ -595,6 +622,14 @@ class TimeEval:
             self._distributed_finalize()
         else:
             self._finalize()
+        for module in self.modules.values():
+            module.finalize(self)
+
+        if self.distributed:
+            self.log.info("Closing remote")
+            self.remote.close()
+            self.log.info("Syncing results")
+            self.rsync_results()
         t1 = time()
 
         msg = f"""FINALIZE phase done.

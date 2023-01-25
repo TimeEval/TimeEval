@@ -24,10 +24,11 @@ if TYPE_CHECKING:
     from ..algorithm import Algorithm
     from ..datasets import Dataset
     from ..metrics import Metric
+    from ..integration.optuna import OptunaConfiguration
 
 
 @dataclass(init=True, repr=True, frozen=True)
-class OptunaConfiguration:
+class OptunaStudyConfiguration:
     """Configuration for :class:`OptunaParameterSearch`.
 
     Parameters
@@ -36,8 +37,8 @@ class OptunaConfiguration:
         Number of trials to perform.
     metric : Metric
         TimeEval metric to use as the studies objective function.
-    storage : str or optuna.storages.BaseStorage
-        Storage to store the results of the study. This is required for TimeEval.
+    storage : str or optuna.storages.BaseStorage, optional
+        Storage to store the results of the study.
     sampler : optuna.samplers.BaseSampler, optional
         Sampler to use for the study. If not provided, the default sampler is used.
     pruner : optuna.pruners.BasePruner, optional
@@ -56,11 +57,22 @@ class OptunaConfiguration:
 
     n_trials: int
     metric: Metric
-    storage: Union[str, BaseStorage]
+    storage: Optional[Union[str, BaseStorage]] = None
     sampler: Optional[BaseSampler] = None
     pruner: Optional[BasePruner] = None
     direction: Optional[Union[str, StudyDirection]] = "maximize"
     continue_existing_study: bool = False
+
+    def update_unset_options(self, global_config: OptunaConfiguration) -> OptunaStudyConfiguration:
+        return OptunaStudyConfiguration(
+            n_trials=self.n_trials,
+            metric=self.metric,
+            storage=self.storage or global_config.default_storage,
+            sampler=self.sampler or global_config.default_sampler,
+            pruner=self.pruner or global_config.default_pruner,
+            direction=self.direction,
+            continue_existing_study=self.continue_existing_study or global_config.continue_existing_studies,
+        )
 
 
 @dataclass(init=False, repr=True)
@@ -68,13 +80,13 @@ class OptunaLazyParams(Params):
     study_name: str
     index: int
     distributions: Dict[str, BaseDistribution]
-    config: OptunaConfiguration
+    config: OptunaStudyConfiguration
 
     def __init__(self,
                  study_name: str,
                  index: int,
                  distributions: Mapping[str, BaseDistribution],
-                 config: OptunaConfiguration,
+                 config: OptunaStudyConfiguration,
                  ):
         super().__init__()
         self.study_name = study_name
@@ -156,7 +168,7 @@ class OptunaParameterSearch(ParameterConfig):
         Optuna documentation.
     """
 
-    def __init__(self, config: OptunaConfiguration, params: Mapping[str, BaseDistribution]):
+    def __init__(self, config: OptunaStudyConfiguration, params: Mapping[str, BaseDistribution]):
         self._config = config
         self._distributions = params
 
@@ -182,6 +194,11 @@ class OptunaParameterSearch(ParameterConfig):
 
     def __len__(self) -> int:
         return self._config.n_trials
+
+    def update_config(self, global_config: OptunaConfiguration) -> None:
+        print("Updating Optuna Study configuration ...")
+        self._config = self._config.update_unset_options(global_config)
+
 
 # docker run --name postgres -e POSTGRES_PASSWORD=hairy_bumblebee -p 5432:5432 -d postgres
 # optuna-dashboard postgresql://postgres:hairy_bumblebee@localhost:5432/postgres
