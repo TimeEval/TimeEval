@@ -16,6 +16,18 @@ if TYPE_CHECKING:
 
 
 class ParameterConfig(abc.ABC, Sized):
+    """Base class for algorithm hyperparameter configurations.
+
+    Currently, TimeEval supports three kinds of parameter configurations:
+
+    1. :class:`~timeeval.params.FixedParameters`: A single parameter setting with one value for each parameter.
+    2. :class:`~timeeval.params.IndependentParameterGrid` and :class:`~timeeval.params.FullParameterGrid`: Parameter
+       search using the specification of a parameter grid, where each parameter can have multiple values. Depending on
+       the parameter grid, TimeEval will build a parameter search space and test all combinations of parameters.
+    3. :class:`~timeeval.params.BayesianParameterSearch`: Parameter search using Bayesian optimization.
+
+    """
+
     @abc.abstractmethod
     def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:
         """Iterate over the points in the grid.
@@ -36,8 +48,7 @@ class ParameterConfig(abc.ABC, Sized):
 class FixedParameters(ParameterConfig):
     """Single parameters setting with one value for each.
 
-    Iterating over this grid yields the input setting as the first and only element. Uses the
-    sklearn.model_selection.ParameterGrid internally.
+    Iterating over this grid yields the input setting as the first and only element.
 
     Parameters
     ----------
@@ -54,11 +65,6 @@ class FixedParameters(ParameterConfig):
     True
     >>> FixedParameters(params)[0] == {"a": 2, "b": True}
     True
-
-    See also
-    --------
-    :class:`sklearn.model_selection.ParameterGrid`:
-        Used internally to represent the parameter grids.
     """
 
     def __init__(self, params: Mapping[str, Any]):

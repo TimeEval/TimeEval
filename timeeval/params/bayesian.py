@@ -30,10 +30,12 @@ class BayesianParameterSearch(ParameterConfig):
     Parameters
     ----------
     config : OptunaStudyConfiguration
-        Configuration for the Optuna study. Optional parameters are filled in with the default values from the glabal
+        Configuration for the Optuna study. Optional parameters are filled in with the default values from the global
         Optuna configuration.
     params : Mapping[str, BaseDistribution]
-        Mapping from parameter names to the corresponding Optuna distributions.
+        Mapping from parameter names to the corresponding Optuna distributions, such as
+        :class:`~optuna.distributions.IntDistribution`, :class:`~optuna.distributions.FloatDistribution`, or
+        :class:`~optuna.distributions.CategoricalDistribution`.
 
     Examples
     --------
