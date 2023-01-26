@@ -29,7 +29,7 @@ class TimeEvalModule(ABC):
     """
     def prepare(self, timeeval: TimeEval) -> None:
         """Called during the PREPARE-phase of TimeEval and before the individual algorithms' prepare-functions are
-         executed.
+        executed.
 
         Parameters
         ----------
@@ -60,7 +60,7 @@ class TimeEvalModule(ABC):
 
     def finalize(self, timeeval: TimeEval) -> None:
         """Called during the FINALIZE-phase of TimeEval and after the individual algorithms' finalize-functions were
-         executed.
+        executed.
 
         Parameters
         ----------

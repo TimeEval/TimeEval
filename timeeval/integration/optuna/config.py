@@ -13,8 +13,7 @@ from timeeval import Metric
 
 @dataclass(init=True, repr=True)
 class OptunaConfiguration:
-    """Configuration options for the Optuna module, which is automatically loaded when at least one
-    algorithm uses :class:`timeeval.params.BayesianParameterSearch` as parameter config.
+    """Configuration options for the Optuna module. This includes default options for all Optuna studies.
 
     Parameters
     ----------
@@ -39,8 +38,10 @@ class OptunaConfiguration:
 
     See Also
     --------
-    :meth:`optuna.create_study`:
+    :func:`optuna.create_study`:
         Used to create the Optuna study object; includes detailed explanation of the parameters.
+    :class:`timeeval.integration.optuna.OptunaModule`:
+        Optuna integration module for TimeEval.
     """
 
     default_storage: Union[str, BaseStorage]
@@ -60,7 +61,10 @@ class OptunaConfiguration:
 
 @dataclass(init=True, repr=True, frozen=True)
 class OptunaStudyConfiguration:
-    """Configuration for :class:`OptunaParameterSearch`.
+    """Configuration for :class:`~timeeval.params.BayesianParameterSearch`.
+
+    The parameters ``n_trials`` and ``metric`` are required. All other parameters are optional and will be filled with
+    the default values from the global Optuna configuration if not provided.
 
     Parameters
     ----------
@@ -76,14 +80,16 @@ class OptunaStudyConfiguration:
         Pruner to use for the study. If not provided, the default pruner is used.
     direction : str or optuna.study.StudyDirection, optional
         Direction of the optimization (minimize or maximize). If not provided, the default direction is used.
-    continue_existing : bool, optional
+    continue_existing_study : bool, optional
         If True, continue a study with the given name if it already exists in the storage backend. If False, raise an
         error if a study with the same name already exists.
 
     See Also
     --------
-    :meth:`optuna.create_study`:
+    :func:`optuna.create_study`:
         Used to create the Optuna study object; includes detailed explanation of the parameters.
+    :class:`timeeval.integration.optuna.OptunaModule`:
+        Optuna integration module for TimeEval.
     """
 
     n_trials: int

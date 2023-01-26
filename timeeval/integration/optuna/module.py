@@ -27,8 +27,8 @@ log = logging.getLogger("OptunaModule")
 
 
 # use an async function to not block the scheduler while waiting for the database to start up
-async def start_postgres_container(scheduler: Optional[Scheduler] = None, password: str = "postgres",
-                                   port: int = 5432) -> None:
+async def _start_postgres_container(scheduler: Optional[Scheduler] = None, password: str = "postgres",
+                                    port: int = 5432) -> None:
     import docker
     client = docker.from_env()
     log.debug(f"Starting postgres container on port {port}")
@@ -83,6 +83,21 @@ def _stop_containers(scheduler: Optional[Scheduler] = None, remove: bool = False
 
 
 class OptunaModule(TimeEvalModule):
+    """This module is automatically loaded when at least one algorithm uses
+    :class:`timeeval.params.BayesianParameterSearch` as parameter config.
+
+    TimeEval provides the option to use an automatically managed PostgreSQL database as the storage backend for the
+    Optuna studies. The database is started as an additional Docker container either on the local machine or on the
+    scheduler node in distributed execution mode. The database is automatically stopped when TimeEval is finished. The
+    database storage backend allows you to monitor the studies using the Optuna dashboard (that can also be started
+    automatically using another Docker container) and the distributed execution of the studies. This is the default
+    behavior if no storage backend is specified in the configuration.
+
+    Parameters
+    ----------
+    config : OptunaConfiguration
+        The configuration for the Optuna module.
+    """
     def __init__(self, config: OptunaConfiguration):
         self.config = config
         # check configuration:
@@ -118,7 +133,7 @@ class OptunaModule(TimeEvalModule):
             self.config.default_storage = f"postgresql://postgres:{password}@{host}:{port}/postgres"
             log.debug(f"starting managed postgresql storage backend ({self.config.default_storage})...")
 
-            tasks.append((start_postgres_container, [], {"password": password, "port": port}))
+            tasks.append((_start_postgres_container, [], {"password": password, "port": port}))
 
         elif isinstance(self.config.default_storage, str) and self.config.default_storage == "journal-file":
             journal_file_path = str(timeeval.results_path / "optuna-journal.log")
@@ -172,7 +187,7 @@ class OptunaModule(TimeEvalModule):
         log.info("Optuna module: finalizing done.")
 
     def load_studies(self) -> List[StudySummary]:
-        """Load all studies from the default storage. This does not include studies which were stored in a different
+        """Load all studies from the default storage. This does not include studies, which were stored in a different
         storage backend (i.a. where the storage backend was changed using the
         :class:`timeeval.integration.optuna.OptunaStudyConfiguration`).
 

@@ -15,3 +15,4 @@ This section documents the public API of TimeEval.
    timeeval.params
    timeeval.utils
    timeeval._core
+   integration/index
