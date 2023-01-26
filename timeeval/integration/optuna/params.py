@@ -62,7 +62,7 @@ class OptunaLazyParams(Params):
         return self._study
 
     def items(self) -> ItemsView[str, Any]:
-        return dict((k, self.uid) for k in self.distributions).items()
+        return dict((k, self.uid()) for k in self.distributions).items()
 
     def materialize(self) -> Params:
         # only materialize once:

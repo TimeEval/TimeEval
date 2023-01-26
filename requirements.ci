@@ -5,6 +5,8 @@ twine
 freezegun
 # for the test of the PyThreshThresholding class:
 pythresh>=0.2.8
+# for the test of the Optuna integration
+optuna>=3.1.0
 
 # typings
 types-requests

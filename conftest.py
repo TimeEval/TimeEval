@@ -1,8 +1,11 @@
 import pytest
 
 
-options = {"docker": "mark test to run with docker installed",
-           "dask": "mark test to run with dask installed and being able to SSH itself."}
+options = {
+    "docker": "mark test to run with docker installed",
+    "dask": "mark test to run with dask installed and being able to SSH itself.",
+    "optuna": "mark test to run with optuna installed",
+}
 
 
 def pytest_addoption(parser):
