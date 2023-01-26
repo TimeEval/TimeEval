@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import logging
+
+import optuna.logging
 from dataclasses import dataclass
-from typing import Union, Optional
+from typing import Union, Optional, Any
 
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler
@@ -35,6 +38,11 @@ class OptunaConfiguration:
         execution mode, the dashboard is started on the scheduler node.
     remove_managed_containers : bool, optional
         If True, remove the containers managed by TimeEval (e.g., the PostgreSQL database) when TimeEval is finished.
+    use_default_logging : bool, optional
+        If True, use the default logging configuration of the Optuna library. This will log the progress of the studies
+        to `stderr`. If False, use the logging configuration of TimeEval and propagates the Optuna log messages.
+    log_level : int or str, optional
+        The log level to use for the Optuna logger. The default is ``info`` = :attr:`logging.INFO` = ``20``.
 
     See Also
     --------
@@ -50,6 +58,34 @@ class OptunaConfiguration:
     continue_existing_studies: bool = False
     dashboard: bool = False
     remove_managed_containers: bool = False
+    use_default_logging: bool = False
+    log_level: Union[int, str] = logging.INFO
+
+    def __post_init__(self) -> None:
+        self._update_optuna_logging()
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        super().__setattr__(key, value)
+        if key == "log_level" or key == "use_default_logging":
+            # update the Optuna logging configuration when changed
+            self._update_optuna_logging()
+
+    def _update_optuna_logging(self) -> None:
+        if self.use_default_logging:
+            optuna.logging.enable_default_handler()
+            optuna.logging.disable_propagation()
+        else:
+            optuna.logging.disable_default_handler()
+            optuna.logging.enable_propagation()
+        switcher = {
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
+            "critical": logging.CRITICAL,
+        }
+        level = switcher[self.log_level] if isinstance(self.log_level, str) else self.log_level
+        optuna.logging.set_verbosity(level)
 
     @staticmethod
     def default(distributed: bool) -> OptunaConfiguration:
@@ -79,7 +115,7 @@ class OptunaStudyConfiguration:
     pruner : optuna.pruners.BasePruner, optional
         Pruner to use for the study. If not provided, the default pruner is used.
     direction : str or optuna.study.StudyDirection, optional
-        Direction of the optimization (minimize or maximize). If not provided, the default direction is used.
+        Direction of the optimization (minimize or `maximize`). If ``None``, the Optuna default direction is used.
     continue_existing_study : bool, optional
         If True, continue a study with the given name if it already exists in the storage backend. If False, raise an
         error if a study with the same name already exists.

@@ -9,7 +9,7 @@ install `psycopg2` to use the PostgreSQL storage backend):
 
 .. code-block:: bash
 
-   pip install optuna psycopg2
+   pip install 'optuna>=3.1.0' psycopg2
 
 The following Optuna features are supported:
 
