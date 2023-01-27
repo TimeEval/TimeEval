@@ -73,6 +73,8 @@ class OptunaLazyParams(Params):
                 sampler=self.config.sampler,
                 pruner=self.config.pruner,
             )
+            # we need to manually reseed the sampler because we are not in an optimize()-call:
+            self._study.sampler.reseed_rng()
         if self._trial is None:
             self._trial = self._study.ask(self.distributions)
             self._trial.set_user_attr("uid", self.uid())
@@ -103,9 +105,12 @@ class OptunaLazyParams(Params):
 class OptunaParameterSearch(ParameterConfig):
     """Implementation of the Bayesian optimization using Optuna library."""
 
-    def __init__(self, config: OptunaStudyConfiguration, params: Mapping[str, BaseDistribution]):
+    def __init__(self, config: OptunaStudyConfiguration,
+                 params: Mapping[str, BaseDistribution],
+                 include_default_params: bool = False):
         self._config = config
         self._distributions = params
+        self._include_default_params = include_default_params
 
     def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:
         # create the study and enforce a common name for all trials of the study (this will create the study in the
@@ -122,13 +127,50 @@ class OptunaParameterSearch(ParameterConfig):
         study.set_user_attr("dataset", dataset.name)
         study.set_user_attr("metric", self._config.metric.name)
         study.set_user_attr("direction", str(self._config.direction).lower())
+        study.set_user_attr("includes_default_params", self._include_default_params)
         study_name = study.study_name
+
+        if self._include_default_params:
+            try:
+                study.enqueue_trial(self._default_params(algorithm))
+                yield OptunaLazyParams(study_name, 0, self._distributions, self._config)
+            except ValueError as e:
+                from .module import log
+                log.warning(f"Could not create default parameters for {algorithm.name}, skipping!", exc_info=e)
         del study
+
         for i in range(self._config.n_trials):
-            yield OptunaLazyParams(study_name, i, self._distributions, self._config)
+            yield OptunaLazyParams(study_name, i + self._include_default_params, self._distributions, self._config)
 
     def __len__(self) -> int:
         return self._config.n_trials
 
     def update_config(self, global_config: OptunaConfiguration) -> None:
         self._config = self._config.update_unset_options(global_config)
+
+    def _default_params(self, algorithm: Algorithm) -> Dict[str, Any]:
+        params = {}
+        for param_name in self._distributions:
+            if param_name not in algorithm.param_schema:
+                continue
+            schema = algorithm.param_schema[param_name]
+            value = schema["defaultValue"]
+            tpe = schema["type"]
+
+            if value is None or "enum" in tpe:
+                params[param_name] = value
+            elif tpe == "int":
+                params[param_name] = int(value)
+            elif tpe == "float":
+                params[param_name] = float(value)
+            elif tpe == "boolean":
+                params[param_name] = bool(value)
+            elif tpe == "str":
+                params[param_name] = str(value)
+            else:
+                raise ValueError(f"Unsupported parameter type {tpe} for param {param_name} in {algorithm.name}!")
+
+        if len(params) == 0:
+            raise ValueError(f"No default parameters found for {algorithm.name}!")
+
+        return params

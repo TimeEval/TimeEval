@@ -393,7 +393,7 @@ class TimeEval:
     def _resolve_future_results(self) -> None:
         self.remote.fetch_results()
 
-        result_keys = self.metric_names + Times.result_keys()
+        result_keys = ["hyper_params"] + self.metric_names + Times.result_keys()
         status_keys = ["status", "error_message"]
         keys = result_keys + status_keys
 

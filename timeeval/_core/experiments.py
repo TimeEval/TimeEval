@@ -91,9 +91,6 @@ class Experiment:
             # perform training if necessary
             result = self._perform_training()
 
-            # add hyper parameter values
-            result["hyper_params"] = dumps_params(self.params)
-
             # perform execution
             y_scores, execution_times = self._perform_execution()
             result.update(execution_times)
@@ -141,6 +138,8 @@ class Experiment:
             self.params.fail()
             raise e
 
+        # add hyper parameter values to result
+        result["hyper_params"] = dumps_params(self.params)
         return result
 
     def _perform_training(self) -> Dict[str, Any]:

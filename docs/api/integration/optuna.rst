@@ -22,6 +22,13 @@ The following Optuna features are supported:
   storage backend).
 - Parallel and distributed parameter search of a single or multiple studies (synchronized via RDB storage backend).
 
+
+.. warning::
+    Parameter search using the Optuna integration is **non-deterministic**. The results may vary between different runs,
+    even if the same seed is used (e.g., for the Optuna sampler or pruner). This is because TimeEval needs to re-seed
+    the Optuna samplers for every trial in distributed mode. This is necessary to ensure that initial random samples are
+    different over all workers.
+
 TimeEval will automatically manage an RDB storage backend if you use the default configuration. This allows you to start
 TimeEval in distributed mode and perform the parameter search in parallel and distributed.
 
