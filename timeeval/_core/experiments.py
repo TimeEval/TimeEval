@@ -79,14 +79,14 @@ class Experiment:
         """
         Using TimeEval distributed, this method is executed on the remote node.
         """
+        # materialize and persist hyper parameters to disk
+        self.params = self.params.materialize()
+        dump_params(self.params, self.results_path / HYPER_PARAMETERS)
+
         try:
             with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
                 print(f"Starting evaluation of experiment {self.name}\n=============================================\n",
                       file=logs_file)
-
-            # persist hyper parameters to disk
-            self.params = self.params.materialize()
-            dump_params(self.params, self.results_path / HYPER_PARAMETERS)
 
             # perform training if necessary
             result = self._perform_training()

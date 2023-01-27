@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from optuna.study import StudySummary
 
 
+POSTGRESQL_IMAGE_NAME = "postgres:latest"
+OPTUNA_DASHBOARD_IMAGE_NAME = "ghcr.io/optuna/optuna-dashboard:v0.8.1"
 DB_CONTAINER_NAME = "timeeval-optuna-db"
 DASHBOARD_CONTAINER_NAME = "timeeval-optuna-dashboard"
 STARTUP_DELAY = 5
@@ -33,7 +35,7 @@ async def _start_postgres_container(scheduler: Optional[Scheduler] = None, passw
     client = docker.from_env()
     log.debug(f"Starting postgres container on port {port}")
     client.containers.run(
-        "postgres:latest",
+        POSTGRESQL_IMAGE_NAME,
         name=DB_CONTAINER_NAME,
         environment={
             "POSTGRES_PASSWORD": password,
@@ -51,7 +53,7 @@ def _start_dashboard_container(scheduler: Optional[Scheduler] = None,
     client = docker.from_env()
     log.debug("Starting dashboard container")
     client.containers.run(
-        "ghcr.io/optuna/optuna-dashboard:latest",
+        OPTUNA_DASHBOARD_IMAGE_NAME,
         storage,
         name=DASHBOARD_CONTAINER_NAME,
         network_mode="host",

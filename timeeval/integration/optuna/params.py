@@ -75,6 +75,7 @@ class OptunaLazyParams(Params):
             )
             # we need to manually reseed the sampler because we are not in an optimize()-call:
             self._study.sampler.reseed_rng()
+
         if self._trial is None:
             self._trial = self._study.ask(self.distributions)
             self._trial.set_user_attr("uid", self.uid())
