@@ -135,12 +135,14 @@ class TestBayesianParameterSearch(unittest.TestCase):
                 self.assertEqual(param.trial().user_attrs["node"], socket.gethostname())
 
                 self.assertIsInstance(param["method"], str)
-                self.assertEqual(param["method"], p_suggested["method"])
                 self.assertIsInstance(param["max_features"], float)
-                self.assertEqual(param["max_features"], p_suggested["max_features"])
                 self.assertIsInstance(param["window_size"], int)
-                self.assertEqual(param["window_size"], p_suggested["window_size"])
-                self.assertDictEqual(param.to_dict(), p_suggested)
+                self.assertListEqual(list(param), list(p_suggested))
+                # TimeEval ignores seeding on purpose, so we can't check for the actual values
+                # self.assertEqual(param["method"], p_suggested["method"])
+                # self.assertEqual(param["max_features"], p_suggested["max_features"])
+                # self.assertEqual(param["window_size"], p_suggested["window_size"])
+                # self.assertDictEqual(param.to_dict(), p_suggested)
 
     def test_empty_params(self):
         from timeeval.integration.optuna import OptunaStudyConfiguration
