@@ -82,6 +82,7 @@ class Experiment:
         # materialize and persist hyper parameters to disk
         self.params = self.params.materialize()
         dump_params(self.params, self.results_path / HYPER_PARAMETERS)
+        hyper_params = dumps_params(self.params)  # must be loaded before assess() or fail() will be called!
 
         try:
             with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
@@ -138,8 +139,8 @@ class Experiment:
             self.params.fail()
             raise e
 
-        # add hyper parameter values to result
-        result["hyper_params"] = dumps_params(self.params)
+        # add hyperparameters to result
+        result["hyper_params"] = hyper_params
         return result
 
     def _perform_training(self) -> Dict[str, Any]:

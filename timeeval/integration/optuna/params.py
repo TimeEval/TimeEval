@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import socket
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ItemsView, Callable, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 import optuna
-from optuna.storages import BaseStorage
+from optuna.storages import BaseStorage, RDBStorage
 from optuna.trial import TrialState
 
 from timeeval.params import ParameterConfig, Params
@@ -14,7 +14,7 @@ from timeeval.params import ParameterConfig, Params
 
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
-    from typing import Iterator, Any, Mapping, Dict, Optional
+    from typing import Iterator, Any, Mapping, Dict, Optional, ItemsView, Union
     from optuna import Study, Trial
     from optuna.distributions import BaseDistribution
     from timeeval import Algorithm
@@ -91,10 +91,12 @@ class OptunaLazyParams(Params):
         t = self.trial()
         score = self.config.metric(y_true, y_score)
         self.study().tell(t, score)
+        self.close()
         return score
 
     def fail(self) -> None:
         self.study().tell(self.trial(), state=TrialState.FAIL)
+        self.close()
 
     def uid(self) -> str:
         return self.build_uid(self.study_name, self.index)
@@ -102,6 +104,15 @@ class OptunaLazyParams(Params):
     def to_dict(self) -> Dict[str, Any]:
         params: Dict[str, Any] = self.trial().params
         return params
+
+    def close(self) -> None:
+        if self._trial is not None:
+            del self._trial
+        if self._study is not None:
+            storage = self._study._storage
+            if isinstance(storage, RDBStorage):
+                storage.remove_session()
+            del self._study
 
     @staticmethod
     def build_uid(study_name: str, i: int) -> str:
@@ -147,7 +158,11 @@ class OptunaParameterSearch(ParameterConfig):
             except ValueError as e:
                 from .module import log
                 log.warning(f"Could not create default parameters for {algorithm.name}, skipping!", exc_info=e)
+
+        # cleanup (each trial manages their own DB connection)
         del study
+        if isinstance(storage, RDBStorage):
+            storage.remove_session()
 
         for i in range(self._config.n_trials):
             yield OptunaLazyParams(study_name, i + self._include_default_params, self._distributions, self._config)

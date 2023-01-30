@@ -23,8 +23,9 @@ if TYPE_CHECKING:
 POSTGRESQL_IMAGE_NAME = "postgres:latest"
 OPTUNA_DASHBOARD_IMAGE_NAME = "ghcr.io/optuna/optuna-dashboard:v0.8.1"
 DB_CONTAINER_NAME = "timeeval-optuna-db"
+DB_MAX_CONNECTIONS = 1000
+DB_STARTUP_DELAY = 5  # in seconds
 DASHBOARD_CONTAINER_NAME = "timeeval-optuna-dashboard"
-STARTUP_DELAY = 5
 log = logging.getLogger("OptunaModule")
 
 
@@ -36,7 +37,7 @@ async def _start_postgres_container(scheduler: Optional[Scheduler] = None, passw
     log.debug(f"Starting postgres container on port {port}")
     client.containers.run(
         POSTGRESQL_IMAGE_NAME,
-        "-c max_connections=1000",
+        f"-c max_connections={DB_MAX_CONNECTIONS}",
         name=DB_CONTAINER_NAME,
         environment={
             "POSTGRES_PASSWORD": password,
@@ -44,8 +45,8 @@ async def _start_postgres_container(scheduler: Optional[Scheduler] = None, passw
         ports={"5432/tcp": port},
         detach=True,
     )
-    log.debug(f"Waiting {STARTUP_DELAY} seconds for database to start up")
-    await asyncio.sleep(STARTUP_DELAY)
+    log.debug(f"Waiting {DB_STARTUP_DELAY} seconds for database to start up")
+    await asyncio.sleep(DB_STARTUP_DELAY)
 
 
 def _start_dashboard_container(scheduler: Optional[Scheduler] = None,
