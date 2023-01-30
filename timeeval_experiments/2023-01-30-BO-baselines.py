@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import logging
-import random
 import sys
 from typing import List, Tuple
 
@@ -14,8 +13,8 @@ from timeeval.integration.optuna import OptunaConfiguration, OptunaStudyConfigur
 from timeeval.metrics import RangePrAUC, RangeRocAUC
 from timeeval.params import BayesianParameterSearch
 from timeeval.resource_constraints import ResourceConstraints, GB
-from timeeval_experiments.algorithms import subsequence_knn, subsequence_lof, subsequence_if, stomp, kmeans, dwt_mlead, \
-    torsk
+from timeeval_experiments.algorithms import subsequence_knn, subsequence_lof, subsequence_if, stomp, kmeans, \
+    dwt_mlead, torsk
 
 
 # Setup logging
@@ -27,9 +26,6 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
 )
 
-random.seed(42)
-np.random.rand(42)
-
 
 def main():
     dm = MultiDatasetManager([
@@ -38,7 +34,8 @@ def main():
     ])
 
     # Select datasets and algorithms
-    datasets: List[Tuple[str, str]] = np.random.sample(dm.select(
+    rng = np.random.default_rng(42)
+    datasets: List[Tuple[str, str]] = rng.choice(dm.select(
         input_dimensionality=InputDimensionality.UNIVARIATE,
         training_type=TrainingType.UNSUPERVISED,
         collection="univariate-anomaly-test-cases",
@@ -46,9 +43,8 @@ def main():
     datasets.extend(dm.select(collection="Dodgers"))
     datasets.extend(dm.select(dataset="sine-difflen-3-frequency"))
     datasets.extend(dm.select(dataset="sine-difflen-3-variance"))
-    datasets.extend(np.random.sample(dm.select(collection="KDD-TSAD", max_contamination=0.1), 2))
-    datasets.extend(np.random.sample(dm.select(collection="NASA-MSL", max_contamination=0.1), 2))
-
+    datasets.extend(rng.choice(dm.select(collection="KDD-TSAD", max_contamination=0.1), 2))
+    datasets.extend(rng.choice(dm.select(collection="NASA-MSL", max_contamination=0.1), 2))
 
     study_config = OptunaStudyConfiguration(n_trials=300, metric=RangePrAUC(buffer_size=100))
     algorithms = [
