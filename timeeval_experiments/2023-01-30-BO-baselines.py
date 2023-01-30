@@ -35,16 +35,16 @@ def main():
 
     # Select datasets and algorithms
     rng = np.random.default_rng(42)
-    datasets: List[Tuple[str, str]] = rng.choice(dm.select(
+    datasets: List[Tuple[str, str]] = dm.select(collection="Dodgers")
+    datasets += rng.choice(dm.select(
         input_dimensionality=InputDimensionality.UNIVARIATE,
         training_type=TrainingType.UNSUPERVISED,
         collection="univariate-anomaly-test-cases",
     ), 3)
-    datasets.extend(dm.select(collection="Dodgers"))
-    datasets.extend(dm.select(dataset="sine-difflen-3-frequency"))
-    datasets.extend(dm.select(dataset="sine-difflen-3-variance"))
-    datasets.extend(rng.choice(dm.select(collection="KDD-TSAD", max_contamination=0.1), 2))
-    datasets.extend(rng.choice(dm.select(collection="NASA-MSL", max_contamination=0.1), 2))
+    datasets += dm.select(dataset="sine-difflen-3-frequency")
+    datasets += dm.select(dataset="sine-difflen-3-variance")
+    datasets += rng.choice(dm.select(collection="KDD-TSAD", max_contamination=0.1), 2)
+    datasets += rng.choice(dm.select(collection="NASA-MSL", max_contamination=0.1), 2)
 
     study_config = OptunaStudyConfiguration(n_trials=300, metric=RangePrAUC(buffer_size=100))
     algorithms = [
