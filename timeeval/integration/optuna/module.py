@@ -36,7 +36,7 @@ async def _start_postgres_container(scheduler: Optional[Scheduler] = None, passw
     log.debug(f"Starting postgres container on port {port}")
     client.containers.run(
         POSTGRESQL_IMAGE_NAME,
-        # "-c max_connections=1000",
+        "-c max_connections=1000",
         name=DB_CONTAINER_NAME,
         environment={
             "POSTGRES_PASSWORD": password,
@@ -136,7 +136,7 @@ class OptunaModule(TimeEvalModule):
             storage_url = f"postgresql://postgres:{password}@{host}:{port}/postgres"
             self.config.default_storage = lambda: RDBStorage(
                 storage_url,
-                engine_kwargs={"pool_size": 1, "max_overflow": 1, "pool_timeout": 60}
+                engine_kwargs={"pool_size": 1, "max_overflow": 2, "pool_timeout": 60}
             )
             log.debug(f"starting managed postgresql storage backend at ({storage_url})...")
             self.storage_url = storage_url
