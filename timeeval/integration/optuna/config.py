@@ -146,3 +146,23 @@ class OptunaStudyConfiguration:
             direction=self.direction,
             continue_existing_study=self.continue_existing_study or global_config.continue_existing_studies,
         )
+
+    def copy(self,
+             n_trials: Optional[int] = None,
+             metric: Optional[Metric] = None,
+             storage: Optional[Union[str, Callable[[], BaseStorage]]] = None,
+             sampler: Optional[BaseSampler] = None,
+             pruner: Optional[BasePruner] = None,
+             direction: Optional[Union[str, StudyDirection]] = None,
+             continue_existing_study: Optional[bool] = None) -> OptunaStudyConfiguration:
+        """Create a copy of this configuration with the given parameters replaced."""
+
+        return OptunaStudyConfiguration(
+            n_trials=n_trials or self.n_trials,
+            metric=metric or self.metric,
+            storage=storage or self.storage,
+            sampler=sampler or self.sampler,
+            pruner=pruner or self.pruner,
+            direction=direction or self.direction,
+            continue_existing_study=continue_existing_study or self.continue_existing_study,
+        )
