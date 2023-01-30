@@ -100,7 +100,7 @@ class TestOptunaModule(unittest.TestCase):
 
         module.prepare(self.mock_timeeval)
 
-        self.assertEqual(module.config.default_storage, self.full_storage_url)
+        self.assertEqual(module.storage_url, self.full_storage_url)
         mock_check.assert_called_once()
         mock_start_postgres.assert_called_with(password="hairy_bumblebee", port=5432)
 
@@ -120,7 +120,7 @@ class TestOptunaModule(unittest.TestCase):
             self.assertRegex("\n".join(logs.output), "[C|c]ould not find dashboard connection URL")
 
         mock_check.assert_called_once()
-        self.assertIsNone(module.dashboard_storage_url)
+        self.assertIsNone(module.storage_url)
         # mock_start_dashboard.assert_called_with(storage="http://localhost:8080")
 
     @patch("socket.gethostname")
@@ -136,8 +136,8 @@ class TestOptunaModule(unittest.TestCase):
 
         module.prepare(self.mock_timeeval)
 
-        self.assertEqual(module.config.default_storage, self.full_storage_url)
-        self.assertEqual(module.dashboard_storage_url, self.full_storage_url)
+        self.assertTrue(callable(module.config.default_storage))
+        self.assertEqual(module.storage_url, self.full_storage_url)
         mock_check.assert_called_once()
         mock_start_postgres.assert_called_with(password="hairy_bumblebee", port=5432)
         mock_start_dashboard.assert_called_with(storage=self.full_storage_url)

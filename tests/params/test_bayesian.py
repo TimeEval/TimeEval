@@ -112,12 +112,17 @@ class TestBayesianParameterSearch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             journal_file_path = str(tmp_path / "test_materialization.optuna-journal.log")
-            optuna_study_config = OptunaStudyConfiguration(n_trials=4, metric=RangePrAUC(), storage=JournalStorage(
-                JournalFileStorage(journal_file_path, lock_obj=JournalFileOpenLock(journal_file_path))
-            ), sampler=TPESampler(seed=42))
+            optuna_study_config = OptunaStudyConfiguration(
+                n_trials=4,
+                metric=RangePrAUC(),
+                storage=lambda: JournalStorage(
+                    JournalFileStorage(journal_file_path, lock_obj=JournalFileOpenLock(journal_file_path))
+                ),
+                sampler=TPESampler(seed=42)
+            )
             param_search = BayesianParameterSearch(config=optuna_study_config, params=self.param_distributions)
             params = list(param_search.iter(self.algorithm, self.dataset))
-            loaded_study = optuna.load_study(study_name, storage=optuna_study_config.storage)
+            loaded_study = optuna.load_study(study_name, storage=optuna_study_config.storage())
             self.assertEqual(loaded_study.study_name, study_name)
             self.assertEqual(loaded_study.user_attrs["algorithm"], self.algorithm.name)
             self.assertEqual(loaded_study.user_attrs["dataset"], self.dataset.name)
@@ -150,9 +155,14 @@ class TestBayesianParameterSearch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             journal_file_path = str(tmp_path / "test_empty_params.optuna-journal.log")
-            optuna_study_config = OptunaStudyConfiguration(n_trials=4, metric=RangePrAUC(), storage=JournalStorage(
-                JournalFileStorage(journal_file_path, lock_obj=JournalFileOpenLock(journal_file_path))
-            ), sampler=TPESampler(seed=42))
+            optuna_study_config = OptunaStudyConfiguration(
+                n_trials=4,
+                metric=RangePrAUC(),
+                storage=lambda: JournalStorage(
+                    JournalFileStorage(journal_file_path, lock_obj=JournalFileOpenLock(journal_file_path))
+                ),
+                sampler=TPESampler(seed=42)
+            )
             param_search = BayesianParameterSearch(config=optuna_study_config, params={})
             params = list(param_search.iter(self.algorithm, self.dataset))
             for p in params:

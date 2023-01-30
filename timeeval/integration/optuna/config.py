@@ -4,7 +4,7 @@ import logging
 
 import optuna.logging
 from dataclasses import dataclass
-from typing import Union, Optional, Any
+from typing import Union, Optional, Any, Callable
 
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler
@@ -20,7 +20,7 @@ class OptunaConfiguration:
 
     Parameters
     ----------
-    default_storage : str or optuna.storages.BaseStorage
+    default_storage : str or Lambda returning instance of optuna.storages.BaseStorage
         Storage to store and synchronize the results of the studies. Per default, TimeEval will use a journal file in
         local execution mode and a PostgreSQL database in distributed execution mode. The database is automatically
         started and stopped by TimeEval using the latest postgres-Docker image. Use ``"postgresql"`` to let TimeEval
@@ -52,7 +52,7 @@ class OptunaConfiguration:
         Optuna integration module for TimeEval.
     """
 
-    default_storage: Union[str, BaseStorage]
+    default_storage: Union[str, Callable[[], BaseStorage]]
     default_sampler: Optional[BaseSampler] = None
     default_pruner: Optional[BasePruner] = None
     continue_existing_studies: bool = False
@@ -108,7 +108,7 @@ class OptunaStudyConfiguration:
         Number of trials to perform.
     metric : Metric
         TimeEval metric to use as the studies objective function.
-    storage : str or optuna.storages.BaseStorage, optional
+    storage : str or Lambda returning instance of optuna.storages.BaseStorage, optional
         Storage to store the results of the study.
     sampler : optuna.samplers.BaseSampler, optional
         Sampler to use for the study. If not provided, the default sampler is used.
@@ -130,7 +130,7 @@ class OptunaStudyConfiguration:
 
     n_trials: int
     metric: Metric
-    storage: Optional[Union[str, BaseStorage]] = None
+    storage: Optional[Union[str, Callable[[], BaseStorage]]] = None
     sampler: Optional[BaseSampler] = None
     pruner: Optional[BasePruner] = None
     direction: Optional[Union[str, StudyDirection]] = "maximize"

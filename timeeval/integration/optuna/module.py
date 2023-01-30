@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Optional, List, Tuple, Callable, Any, Dict
 import docker
 import optuna.storages
 from docker.errors import DockerException, NotFound
-from optuna.storages import JournalStorage, JournalFileStorage, JournalFileOpenLock
+from optuna.storages import JournalStorage, JournalFileStorage, JournalFileOpenLock, RDBStorage
 
 from timeeval.integration import TimeEvalModule
 
@@ -36,6 +36,7 @@ async def _start_postgres_container(scheduler: Optional[Scheduler] = None, passw
     log.debug(f"Starting postgres container on port {port}")
     client.containers.run(
         POSTGRESQL_IMAGE_NAME,
+        # "-c max_connections=1000",
         name=DB_CONTAINER_NAME,
         environment={
             "POSTGRES_PASSWORD": password,
@@ -113,7 +114,7 @@ class OptunaModule(TimeEvalModule):
             check_docker += and_required + f"start the Optuna storage {self.config.default_storage}"
         self._check_docker_available(check_docker)
 
-        self.dashboard_storage_url: Optional[str] = None
+        self.storage_url: Optional[str] = None
 
     @staticmethod
     def _check_docker_available(reason: str) -> None:
@@ -132,35 +133,42 @@ class OptunaModule(TimeEvalModule):
             port = 5432
             password = "hairy_bumblebee"
             # set actual connection string:
-            self.config.default_storage = f"postgresql://postgres:{password}@{host}:{port}/postgres"
-            log.debug(f"starting managed postgresql storage backend ({self.config.default_storage})...")
+            storage_url = f"postgresql://postgres:{password}@{host}:{port}/postgres"
+            self.config.default_storage = lambda: RDBStorage(
+                storage_url,
+                engine_kwargs={"pool_size": 1, "max_overflow": 1, "pool_timeout": 60}
+            )
+            log.debug(f"starting managed postgresql storage backend at ({storage_url})...")
+            self.storage_url = storage_url
 
             tasks.append((_start_postgres_container, [], {"password": password, "port": port}))
 
         elif isinstance(self.config.default_storage, str) and self.config.default_storage == "journal-file":
             journal_file_path = str(timeeval.results_path / "optuna-journal.log")
-            self.config.default_storage = JournalStorage(
+            self.config.default_storage = lambda: JournalStorage(
                 JournalFileStorage(journal_file_path, lock_obj=JournalFileOpenLock(journal_file_path))
             )
 
         if self.config.dashboard:
-            if isinstance(self.config.default_storage, str):
-                self.dashboard_storage_url = self.config.default_storage
-            else:
-                storage = optuna.storages.get_storage(self.config.default_storage)
-                if hasattr(storage, "url"):
-                    self.dashboard_storage_url = storage.url  # type: ignore
-                else:
-                    self.dashboard_storage_url = None
-                    log.warning(f"Could not find dashboard connection URL for storage {self.config.default_storage}, "
-                                "not starting dashboard!")
+            if self.storage_url is None and not isinstance(self.config.default_storage, str):
+                # user provided a custom storage backend, try to get the URL:
+                from sqlalchemy.exc import OperationalError
+                try:
+                    storage = optuna.storages.get_storage(self.config.default_storage())
+                    if hasattr(storage, "url"):
+                        self.storage_url = storage.url  # type: ignore
+                    else:
+                        log.warning(f"Could not find dashboard connection URL for storage {self.config.default_storage}, "
+                                    "not starting dashboard!")
+                except OperationalError as e:
+                    log.warning("Could not find connection URL for storage, not starting dashboard!", exc_info=e)
 
-            if self.dashboard_storage_url is not None:
+            if self.storage_url is not None:
                 storage_host = timeeval.remote.config.scheduler_host if timeeval.distributed else "localhost"
                 dashboard_url = f"http://{storage_host}:8080"
                 log.debug(f"starting managed Optuna dashboard ({dashboard_url})...")
                 print(f"\n\tOpen Optuna dashboard at {dashboard_url}\n")
-                tasks.append((_start_dashboard_container, [], {"storage": self.dashboard_storage_url}))
+                tasks.append((_start_dashboard_container, [], {"storage": self.storage_url}))
 
         if timeeval.distributed:
             log.debug(f"distributed mode: starting {len(tasks)} containers on scheduler")
@@ -203,4 +211,6 @@ class OptunaModule(TimeEvalModule):
         :func:`optuna.study.get_all_study_summaries` : Optuna function which is used to load the studies.
         :class:`optuna.study.StudySummary` : Optuna class which is used to represent the study summaries.
         """
-        return optuna.get_all_study_summaries(self.config.default_storage)
+        return optuna.get_all_study_summaries(
+            self.config.default_storage if isinstance(self.config.default_storage, str) else self.config.default_storage()
+        )

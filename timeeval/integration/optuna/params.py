@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import socket
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ItemsView
+from typing import TYPE_CHECKING, ItemsView, Callable, Union
 
 import numpy as np
 import optuna
+from optuna.storages import BaseStorage
 from optuna.trial import TrialState
 
 from timeeval.params import ParameterConfig, Params
@@ -67,9 +68,13 @@ class OptunaLazyParams(Params):
     def materialize(self) -> Params:
         # only materialize once:
         if self._study is None:
+            if self.config.storage is None or isinstance(self.config.storage, str):
+                storage: Union[None, str, BaseStorage] = self.config.storage
+            else:
+                storage = self.config.storage()
             self._study = optuna.load_study(
                 study_name=self.study_name,
-                storage=self.config.storage,
+                storage=storage,
                 sampler=self.config.sampler,
                 pruner=self.config.pruner,
             )
@@ -116,9 +121,13 @@ class OptunaParameterSearch(ParameterConfig):
     def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:
         # create the study and enforce a common name for all trials of the study (this will create the study in the
         # storage backend so that it can be accessed by all workers):
+        if self._config.storage is None or isinstance(self._config.storage, str):
+            storage: Union[None, str, BaseStorage] = self._config.storage
+        else:
+            storage = self._config.storage()
         study = optuna.create_study(
             study_name=f"{algorithm.name}-{dataset.name}",
-            storage=self._config.storage,
+            storage=storage,
             sampler=self._config.sampler,
             pruner=self._config.pruner,
             direction=self._config.direction,
