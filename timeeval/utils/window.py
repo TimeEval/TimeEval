@@ -139,7 +139,7 @@ class ReverseWindowing(TransformerMixin):
             dask_memory_limit = dask.distributed.get_worker().memory_limit
             if dask_memory_limit is not None and dask_memory_limit < memory_limit:
                 memory_limit = dask_memory_limit - memory_buffer
-        except ImportError:
+        except (ImportError, ValueError):
             pass
 
         estimated_mem_usage: int = sys.getsizeof(float()) * (n + self.window_size - 1) * self.window_size
