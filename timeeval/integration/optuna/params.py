@@ -168,7 +168,7 @@ class OptunaParameterSearch(ParameterConfig):
             yield OptunaLazyParams(study_name, i + self._include_default_params, self._distributions, self._config)
 
     def __len__(self) -> int:
-        return self._config.n_trials
+        return self._config.n_trials + int(self._include_default_params)
 
     def update_config(self, global_config: OptunaConfiguration) -> None:
         self._config = self._config.update_unset_options(global_config)
@@ -180,7 +180,7 @@ class OptunaParameterSearch(ParameterConfig):
                 continue
             schema = algorithm.param_schema[param_name]
             value = schema["defaultValue"]
-            tpe = schema["type"]
+            tpe = schema["type"].lower()
 
             if value is None or "enum" in tpe:
                 params[param_name] = value
