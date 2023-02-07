@@ -4,7 +4,6 @@ from itertools import cycle
 from typing import Optional, List
 
 import numpy as np
-import numpy.typing
 from sklearn.base import TransformerMixin
 
 
@@ -29,11 +28,13 @@ class ReverseWindowing(TransformerMixin):
                  window_size: int,
                  reduction: Method = Method.MEAN,
                  n_jobs: int = 1,
-                 chunksize: Optional[int] = None) -> None:
+                 chunksize: Optional[int] = None,
+                 force_iterative: bool = False) -> None:
         self.window_size = window_size
         self.reduction = reduction
         self.n_jobs = n_jobs
         self.chunksize = chunksize
+        self.force_iterative = force_iterative
 
     def _reverse_windowing_vectorized_entire(self, scores: np.ndarray) -> np.ndarray:
         unwindowed_length = (self.window_size - 1) + len(scores)
@@ -121,23 +122,41 @@ class ReverseWindowing(TransformerMixin):
         import psutil
         from pathlib import Path
 
-        container_limit_file = Path("/sys/fs/cgroup/memory/memory.limit_in_bytes")
         memory_limit: int = psutil.virtual_memory().available
+        memory_buffer = 128 * 1024**2 + sys.getsizeof(float()) * n  # 128 MB (for other objs) + size of scores array
+
+        # if we are running within a container
+        container_limit_file = Path("/sys/fs/cgroup/memory/memory.limit_in_bytes")
         if container_limit_file.exists():
             with container_limit_file.open("r") as fh:
                 container_limit = int(fh.read())
             if container_limit < 1 * 1024 ** 4:
-                memory_limit = container_limit
+                memory_limit = container_limit - memory_buffer
+
+        # if we are running within a dask worker
+        try:
+            import dask.distributed
+            dask_memory_limit = dask.distributed.get_worker().memory_limit
+            if dask_memory_limit is not None and dask_memory_limit < memory_limit:
+                memory_limit = dask_memory_limit - memory_buffer
+        except (ImportError, ValueError):
+            pass
 
         estimated_mem_usage: int = sys.getsizeof(float()) * (n + self.window_size - 1) * self.window_size
         return estimated_mem_usage <= memory_limit
 
     def fit_transform(self, X: np.ndarray, y=None, **fit_params) -> np.ndarray:  # type: ignore[no-untyped-def]
+        if self.force_iterative:
+            print("Forcing iterative reverse windowing function!")
+            return self._reverse_windowing_iterative(X)
+
         if self.n_jobs > 1:
             return self._reverse_windowing_parallel(X)
-        elif self.chunksize is not None:
+
+        if self.chunksize is not None:
             return self._chunk_and_vectorize(X)
-        elif self._has_enough_memory_for_vectorized_entire(len(X)):
+
+        if self._has_enough_memory_for_vectorized_entire(len(X)):
             return self._reverse_windowing_vectorized_entire(X)
         else:
             print("Falling back to iterative reverse windowing function to limit memory usage!")
