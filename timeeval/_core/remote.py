@@ -5,7 +5,7 @@ import time
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
 from pathlib import Path
 from subprocess import Popen
-from typing import List, Callable, Optional, Tuple, Dict, Any
+from typing import Any, List, Callable, Tuple, Dict
 
 import tqdm
 from dask import config as dask_config
@@ -64,11 +64,9 @@ class Remote:
                 return self.start_or_restart_cluster(n + 1)
             raise e
 
-    def add_task(self, task: Callable, *args,  # type: ignore[no-untyped-def]
-                 config: Optional[Dict[str, Any]] = None, **kwargs) -> Future[Dict[str, Any]]:
-        config = config or {}
+    def add_task(self, task: Callable, *args, **kwargs) -> Future:  # type: ignore[no-untyped-def]
         self.log.debug(f"Submitting task {task} to cluster")
-        future = self.client.submit(task, *args, **config, **kwargs)
+        future = self.client.submit(task, *args, pure=False, **kwargs)
         self.futures.append(future)
         return future  # type: ignore
 
