@@ -1,7 +1,7 @@
 codecov:
   bot: "codecov-io"
 coverage:
-  range: 70..90
+  range: 70..100
   round: down
   precision: 2
   status:
@@ -14,6 +14,13 @@ coverage:
           - "timeeval"
         if_ci_failed: error #success, failure, error, ignore
         only_pulls: false
+    patch:
+      default:
+        informational: true
+comment:
+  require_changes: true
+  require_base: true
+  require_head: true
 ignore:
   - "tests/*"
   - "timeeval_experiments/*"
