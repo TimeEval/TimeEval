@@ -20,6 +20,7 @@ from timeeval.adapters.docker import (
     SCORES_FILE_NAME,
     MODEL_FILE_NAME,
     DockerTimeoutError,
+    DockerMemoryError,
     DockerAlgorithmFailedError,
     AlgorithmInterface
 )
@@ -160,6 +161,21 @@ class TestDockerAdapterDocker(unittest.TestCase):
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds"))
             res = adapter(self.input_data_path, args)
         np.testing.assert_array_equal(np.zeros(3600), res)
+        containers = self._list_test_containers()
+        self.assertEqual(len(containers), 1)
+        self.assertEqual(containers[0].status, "exited")
+
+    @pytest.mark.docker
+    def test_execute_oom(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_path = Path(tmp_path)
+            args = {
+                "results_path": tmp_path,
+                "resource_constraints": ResourceConstraints(task_memory_limit=6 * 1024 * 1024)
+            }
+            adapter = DockerAdapter(TEST_DOCKER_IMAGE)
+            with self.assertRaises(DockerMemoryError):
+                adapter(self.input_data_path, args)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 1)
         self.assertEqual(containers[0].status, "exited")

@@ -1,7 +1,7 @@
 from asyncio import Future
 from typing import Optional, List, Union, Generator
 
-from timeeval.adapters.docker import DockerTimeoutError
+from timeeval.adapters.docker import DockerTimeoutError, DockerMemoryError
 
 
 class ExceptionForTest(Exception):
@@ -69,4 +69,11 @@ class MockDaskDockerTimeoutExceptionClient(MockDaskClient):
     def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
         f = Future()  # type: ignore
         f.set_exception(DockerTimeoutError("test-exception-timeout"))
+        return f
+
+
+class MockDaskDockerMemoryExceptionClient(MockDaskClient):
+    def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
+        f = Future()  # type: ignore
+        f.set_exception(DockerMemoryError("test-exception-memory"))
         return f

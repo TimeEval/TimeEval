@@ -35,6 +35,10 @@ class DockerTimeoutError(Exception):
     pass
 
 
+class DockerMemoryError(Exception):
+    pass
+
+
 class DockerAlgorithmFailedError(Exception):
     pass
 
@@ -195,9 +199,13 @@ class DockerAdapter(Adapter):
             print("###############################\n")
             container.stop()
 
-        if result["StatusCode"] != 0:
-            print(f"Docker algorithm failed with status code '{result['StatusCode']}', consider container logs below.")
-            raise DockerAlgorithmFailedError(f"Please consider log files in {self._results_path(args, absolute=True)}!")
+        if result["StatusCode"] == 137:
+            print(f"Docker algorithm ran out of memory (status {result['StatusCode']})!")
+            raise DockerMemoryError(f"Docker algorithm exceeded memory limit of {self._get_compute_limits(args)[0]} Bytes!")
+
+        elif result["StatusCode"] != 0:
+            print(f"Docker algorithm failed with status code '{result['StatusCode']}', consider container logs above.")
+            raise DockerAlgorithmFailedError(f"Status '{result['StatusCode']}', please consider log files in {self._results_path(args, absolute=True)}!")
 
     def _read_results(self, args: dict) -> np.ndarray:
         results: np.ndarray = np.genfromtxt(self._results_path(args, absolute=True) / SCORES_FILE_NAME, delimiter=",")
