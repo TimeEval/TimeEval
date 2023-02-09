@@ -16,9 +16,9 @@ from durations import Duration
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from tests.fixtures.call_mocks import MockProcess, MockRsync
 from tests.fixtures.dask_mocks import MockDaskClient, MockDaskSSHCluster, MockDaskExceptionClient, \
-    MockDaskDockerTimeoutExceptionClient
+    MockDaskDockerTimeoutExceptionClient, MockDaskDockerMemoryExceptionClient
 from tests.fixtures.docker_mocks import MockDockerClient, TEST_DOCKER_IMAGE
-from timeeval import TimeEval, Algorithm, DatasetManager, RemoteConfiguration, Status
+from timeeval import TimeEval, Algorithm, DatasetManager, RemoteConfiguration, Status, ResourceConstraints
 from timeeval.adapters import DockerAdapter
 from timeeval.params import FullParameterGrid
 from timeeval.utils.hash_dict import hash_dict
@@ -200,6 +200,31 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(),
                                  [Status.TIMEOUT, "DockerTimeoutError('test-exception-timeout')"])
 
+    @patch("timeeval.core.remote.Popen")
+    @patch("timeeval.timeeval.subprocess.call")
+    @patch("timeeval.adapters.docker.docker.from_env")
+    @patch("timeeval.core.remote.Client")
+    @patch("timeeval.core.remote.SSHCluster")
+    def test_catches_future_memory_exception(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
+        mock_client.return_value = MockDaskDockerMemoryExceptionClient()
+        mock_cluster.return_value = MockDaskSSHCluster(workers=2)
+        mock_docker.return_value = MockDockerClient()
+        mock_call.side_effect = MockRsync()
+        mock_popen.return_value = MockProcess()
+
+        datasets = DatasetManager("./tests/example_data")
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            hosts = [
+                socket.gethostname(), "127.0.0.1", socket.gethostbyname(socket.gethostname()), "test-host"
+            ]
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [self.algorithms[0]], distributed=True,
+                                remote_config=RemoteConfiguration(scheduler_host="localhost", worker_hosts=hosts),
+                                results_path=Path(tmp_path))
+            timeeval.run()
+            self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(),
+                                 [Status.OOM, "DockerMemoryError('test-exception-memory')"])
+
     @pytest.mark.dask
     @pytest.mark.docker
     def test_catches_future_exception_dask(self):
@@ -219,7 +244,7 @@ class TestDistributedTimeEval(unittest.TestCase):
         error_message = timeeval.results.loc[0, "error_message"]
 
         self.assertEqual(status, Status.ERROR)
-        self.assertTrue("Please consider log files" in error_message)
+        self.assertTrue("please consider log files" in error_message)
 
     @pytest.mark.dask
     @pytest.mark.docker
@@ -240,6 +265,27 @@ class TestDistributedTimeEval(unittest.TestCase):
         error_message = timeeval.results.loc[0, "error_message"]
         self.assertEqual(status, Status.TIMEOUT)
         self.assertIn("could not create results after", error_message)
+
+    @pytest.mark.dask
+    @pytest.mark.docker
+    def test_catches_future_memory_exception_dask(self):
+        datasets = DatasetManager("./tests/example_data")
+        algo = Algorithm(name="docker-test-memory",
+                         main=DockerAdapter(TEST_DOCKER_IMAGE, skip_pull=True),
+                         data_as_file=True)
+
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(datasets, [("test", "dataset-int")], [algo],
+                                distributed=True,
+                                remote_config=self.test_config,
+                                results_path=Path(tmp_path),
+                                resource_constraints=ResourceConstraints(task_memory_limit=8*1024*1024))
+            timeeval.run()
+
+        status = timeeval.results.loc[0, "status"]
+        error_message = timeeval.results.loc[0, "error_message"]
+        self.assertEqual(status, Status.OOM)
+        self.assertIn("exceeded memory limit", error_message)
 
     @pytest.mark.dask
     @pytest.mark.docker
