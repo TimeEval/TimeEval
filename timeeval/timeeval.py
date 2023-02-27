@@ -18,7 +18,7 @@ from joblib import Parallel, delayed
 from ._core.experiments import Experiments, Experiment
 from ._core.remote import Remote, RemoteConfiguration
 from ._core.times import Times
-from .adapters.docker import DockerTimeoutError, DockerAdapter
+from .adapters.docker import DockerTimeoutError, DockerMemoryError, DockerAdapter
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
 from .data_types import TrainingType, InputDimensionality
@@ -34,11 +34,12 @@ from .utils.tqdm_joblib import tqdm_joblib
 class Status(Enum):
     """Status of an experiment.
 
-    The status of each evaluation experiment can have one of three states: ok, error, or timeout.
+    The status of each evaluation experiment can have one of four states: ok, error, timeout, or out-of-memory (oom).
     """
     OK = 0
     ERROR = 1
     TIMEOUT = 2
+    OOM = 3
 
 
 class TimeEval:
@@ -355,6 +356,10 @@ class TimeEval:
                 self.log.exception(f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} timed out.")
                 result = {m: np.nan for m in self.metric_names}
                 self._record_results(exp, result=result, status=Status.TIMEOUT, error_message=repr(e))
+            except DockerMemoryError as e:
+                self.log.exception(f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} exceeded its memory limit (OOM).")
+                result = {m: np.nan for m in self.metric_names}
+                self._record_results(exp, result=result, status=Status.OOM, error_message=repr(e))
             except Exception as e:
                 self.log.exception(f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
                 result = {m: np.nan for m in self.metric_names}
@@ -405,6 +410,10 @@ class TimeEval:
                 self.log.exception(f"Exception {repr(e)} occurred remotely.")
                 status = Status.TIMEOUT
                 error_message = repr(e)
+            except DockerMemoryError as e:
+                self.log.exception(f"Exception {repr(e)} occurred remotely.")
+                status = Status.OOM
+                error_message = repr(e)
             except Exception as e:
                 self.log.exception(f"Exception {repr(e)} occurred remotely.")
                 status = Status.ERROR
@@ -446,7 +455,7 @@ class TimeEval:
 
         df = self.results
 
-        if Status.ERROR in df.status.unique() or Status.TIMEOUT in df.status.unique():
+        if np.any(np.isin(df.status.unique(), [Status.ERROR, Status.TIMEOUT, Status.OOM])):
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
                              "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK]
