@@ -200,11 +200,11 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(),
                                  [Status.TIMEOUT, "DockerTimeoutError('test-exception-timeout')"])
 
-    @patch("timeeval.core.remote.Popen")
+    @patch("timeeval._core.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
-    @patch("timeeval.core.remote.Client")
-    @patch("timeeval.core.remote.SSHCluster")
+    @patch("timeeval._core.remote.Client")
+    @patch("timeeval._core.remote.SSHCluster")
     def test_catches_future_memory_exception(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
         mock_client.return_value = MockDaskDockerMemoryExceptionClient()
         mock_cluster.return_value = MockDaskSSHCluster(workers=2)
