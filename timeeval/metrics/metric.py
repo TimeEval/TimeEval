@@ -103,7 +103,22 @@ class Metric(abc.ABC):
 
     @abc.abstractmethod
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        """Implementation of the metric's scoring function."""
+        """Implementation of the metric's scoring function.
+
+        Please use :func:`~timeeval.metrics.Metric.__call__` instead of calling this function directly!
+
+        Examples
+        --------
+
+        Instantiate a metric and call it using the ``__call__`` method:
+
+        >>> import numpy as np
+        >>> from timeeval.metrics import RocAUC
+        >>> metric = RocAUC(plot=False)
+        >>> metric(np.array([0, 1, 1, 0]), np.array([0.1, 0.4, 0.35, 0.8]))
+        0.5
+
+        """
         ...
 
     @abc.abstractmethod

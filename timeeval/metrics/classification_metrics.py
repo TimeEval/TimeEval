@@ -12,7 +12,7 @@ class ClassificationMetric(Metric, abc.ABC):
 
     All classification metrics are defined over binary classification predictions (zeros or ones), thus all of them
     require a thresholding strategy to convert anomaly scorings to binary classification results. The thresholding
-    strategy can be set using the
+    strategy can be set using the ``thresholding_strategy`` parameter.
     """
 
     def __init__(self, thresholding_strategy: ThresholdingStrategy):
