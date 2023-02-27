@@ -1,6 +1,9 @@
 timeeval.metrics package
 ========================
 
+.. automodule:: timeeval.metrics
+   :undoc-members:
+
 timeeval.metrics.Metric
 -----------------------
 
