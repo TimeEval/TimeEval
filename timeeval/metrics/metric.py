@@ -1,12 +1,12 @@
-import abc
 import warnings
+from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
 from sklearn.utils import column_or_1d, assert_all_finite, check_consistent_length
 
 
-class Metric(abc.ABC):
+class Metric(ABC):
     """Base class for metric implementations that score anomaly scorings against ground truth binary labels. Every
     subclass must implement :func:`~timeeval.metrics.Metric.name`, :func:`~timeeval.metrics.Metric.score`, and
     :func:`~timeeval.metrics.Metric.supports_continuous_scorings`.
@@ -96,12 +96,12 @@ class Metric(abc.ABC):
         return y_true, y_score
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def name(self) -> str:
         """Returns the unique name of this metric."""
         ...
 
-    @abc.abstractmethod
+    @abstractmethod
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """Implementation of the metric's scoring function.
 
@@ -121,7 +121,7 @@ class Metric(abc.ABC):
         """
         ...
 
-    @abc.abstractmethod
+    @abstractmethod
     def supports_continuous_scorings(self) -> bool:
         """Whether this metric accepts continuous anomaly scorings as input (``True``) or binary classification
         labels (``False``)."""

@@ -94,7 +94,7 @@ _hybrid_knn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def hybrid_knn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def hybrid_knn(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Hybrid KNN",
         main=DockerAdapter(

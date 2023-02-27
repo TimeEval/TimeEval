@@ -38,7 +38,7 @@ _norma_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def norma(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def norma(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="NormA",
         main=DockerAdapter(

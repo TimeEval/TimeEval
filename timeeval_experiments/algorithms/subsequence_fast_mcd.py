@@ -37,7 +37,7 @@ _subsequence_fast_mcd_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def subsequence_fast_mcd(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def subsequence_fast_mcd(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Subsequence Fast-MCD",
         main=DockerAdapter(

@@ -61,7 +61,7 @@ _donut_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def donut(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def donut(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Donut",
         main=DockerAdapter(

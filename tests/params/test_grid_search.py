@@ -1,6 +1,7 @@
 import unittest
 
 from timeeval.params import FullParameterGrid, IndependentParameterGrid
+from timeeval.params.params import FixedParams
 
 
 class TestParameterSearch(unittest.TestCase):
@@ -20,7 +21,7 @@ class TestParameterSearch(unittest.TestCase):
             {"a": 2, "b": False, "c": "auto"},
             {"a": 2, "b": False, "c": "tanh"}
         ])
-        self.assertEqual(grid[1], {"a": 1, "b": True, "c": "tanh"})
+        self.assertEqual(grid[1], FixedParams({"a": 1, "b": True, "c": "tanh"}))
 
     def test_full_parameter_grid_wrong_input(self):
         with self.assertRaises(TypeError) as ex:

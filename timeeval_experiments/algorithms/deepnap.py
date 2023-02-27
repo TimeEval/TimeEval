@@ -103,7 +103,7 @@ _deepnap_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def deepnap(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def deepnap(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="DeepNAP",
         main=DockerAdapter(

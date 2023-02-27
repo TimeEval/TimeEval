@@ -64,7 +64,7 @@ _grammarviz3_multi_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def grammarviz3_multi(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def grammarviz3_multi(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="GrammarViz-Multivariate",
         main=DockerAdapter(

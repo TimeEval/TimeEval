@@ -58,7 +58,7 @@ _stomp_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def stomp(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def stomp(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="STOMP",
         main=DockerAdapter(

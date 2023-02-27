@@ -100,7 +100,7 @@ _normalizing_flows_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def normalizing_flows(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def normalizing_flows(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Normalizing Flows",
         main=DockerAdapter(

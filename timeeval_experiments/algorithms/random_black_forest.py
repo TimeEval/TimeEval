@@ -88,7 +88,7 @@ _random_black_forest_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def random_black_forest(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def random_black_forest(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Random Black Forest (RR)",
         main=DockerAdapter(

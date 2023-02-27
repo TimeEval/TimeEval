@@ -28,7 +28,7 @@ _s_h_esd_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def s_h_esd(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def s_h_esd(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="S-H-ESD (Twitter)",
         main=DockerAdapter(

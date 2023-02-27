@@ -61,7 +61,7 @@ _subsequence_lof_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def subsequence_lof(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def subsequence_lof(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Subsequence LOF",
         main=DockerAdapter(

@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import logging
 import time
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
 from pathlib import Path
 from subprocess import Popen
-from typing import List, Callable, Tuple, Dict
+from typing import Any, List, Callable, Tuple, Dict
 
 import tqdm
 from dask import config as dask_config
@@ -22,7 +24,7 @@ class Remote:
         self.limits = resource_constraints
         self.log.debug(f"Remoting configuration: {self.config}\n"
                        f"with {self.limits.tasks_per_host} tasks per host")
-        self.futures: List[Future] = []
+        self.futures: List[Future[Dict[str, Any]]] = []
 
         # setup logging of Dask:
         self.log.info("Configuring dask logging")
@@ -68,7 +70,15 @@ class Remote:
         self.futures.append(future)
         return future  # type: ignore
 
-    def run_on_all_hosts(self, tasks: List[Tuple[Callable, List, Dict]],
+    def run_on_scheduler(self, tasks: List[Tuple[Callable, List[Any], Dict[str, Any]]],
+                         msg: str = "Executing tasks on scheduler",
+                         progress: bool = True) -> None:
+        self.log.debug(f"Running {len(tasks)} tasks on scheduler")
+        for task, args, kwargs in tqdm.tqdm(tasks, desc=msg, disable=self.disable_progress_bar or not progress):
+            self.log.debug(f"({msg})Running task '{task}' with args {args} and kwargs {kwargs}")
+            self.client.run_on_scheduler(task, *args, **kwargs)
+
+    def run_on_all_hosts(self, tasks: List[Tuple[Callable, List[Any], Dict[str, Any]]],
                          msg: str = "Executing remote tasks",
                          progress: bool = True) -> None:
         self.log.debug(f"Running {len(tasks)} tasks on all cluster nodes and waiting for results")

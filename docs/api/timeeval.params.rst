@@ -1,34 +1,42 @@
 timeeval.params package
 =======================
 
-timeeval.params.search.ParameterConfig
---------------------------------------
+timeeval.params.ParameterConfig
+-------------------------------
 
-.. autoclass:: timeeval.params.search.ParameterConfig
+.. autoclass:: timeeval.params.ParameterConfig
    :members:
    :undoc-members:
    :show-inheritance:
 
-timeeval.params.search.FixedParameters
---------------------------------------
+timeeval.params.FixedParameters
+-------------------------------
 
-.. autoclass:: timeeval.params.search.FixedParameters
+.. autoclass:: timeeval.params.FixedParameters
    :members:
    :undoc-members:
    :show-inheritance:
 
-timeeval.params.search.FullParameterGrid
+timeeval.params.FullParameterGrid
+---------------------------------
+
+.. autoclass:: timeeval.params.FullParameterGrid
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+timeeval.params.IndependentParameterGrid
 ----------------------------------------
 
-.. autoclass:: timeeval.params.search.FullParameterGrid
+.. autoclass:: timeeval.params.IndependentParameterGrid
    :members:
    :undoc-members:
    :show-inheritance:
 
-timeeval.params.search.IndependentParameterGrid
------------------------------------------------
+timeeval.params.BayesianParameterSearch
+---------------------------------------
 
-.. autoclass:: timeeval.params.search.IndependentParameterGrid
+.. autoclass:: timeeval.params.BayesianParameterSearch
    :members:
    :undoc-members:
    :show-inheritance:

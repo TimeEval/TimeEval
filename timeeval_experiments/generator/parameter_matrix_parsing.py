@@ -43,7 +43,7 @@ class ParameterMatrixProxy:
         df_params = df.iloc[0:6].T
         headers = df_params.iloc[0]
         df_params = df_params.iloc[1:]
-        df_params.columns = list(map(lambda x: x.lower(), headers))
+        df_params.columns = list(map(lambda x: x.lower(), headers))  # type: ignore
         return df_params
 
     @staticmethod

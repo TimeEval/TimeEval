@@ -22,7 +22,7 @@ _median_method_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def median_method(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def median_method(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MedianMethod",
         main=DockerAdapter(

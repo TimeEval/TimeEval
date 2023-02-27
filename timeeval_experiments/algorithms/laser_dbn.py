@@ -28,7 +28,7 @@ _laser_dbn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def laser_dbn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def laser_dbn(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="LaserDBN",
         main=DockerAdapter(

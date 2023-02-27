@@ -1,23 +1,23 @@
 from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple, List, Generator, Optional
+from typing import Tuple, List, Optional, Iterator, Any, Dict
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
+from .times import Times
 from ..algorithm import Algorithm
 from ..constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
-from ..core.times import Times
 from ..data_types import AlgorithmParameter, TrainingType, InputDimensionality
 from ..datasets import Datasets, Dataset
 from ..heuristics import inject_heuristic_values
 from ..metrics import Metric, DefaultMetrics
+from ..params import Params
 from ..resource_constraints import ResourceConstraints
 from ..utils.datasets import extract_features, load_dataset, load_labels_only
-from ..utils.encode_params import dump_params
-from ..utils.hash_dict import hash_dict
+from ..utils.encode_params import dump_params, dumps_params
 from ..utils.results_path import generate_experiment_path
 
 
@@ -25,7 +25,7 @@ from ..utils.results_path import generate_experiment_path
 class Experiment:
     dataset: Dataset
     algorithm: Algorithm
-    params: dict
+    params: Params
     params_id: str
     repetition: int
     base_results_dir: Path
@@ -51,11 +51,11 @@ class Experiment:
         return generate_experiment_path(self.base_results_dir, self.algorithm.name, self.params_id,
                                         self.dataset_collection, self.dataset_name, self.repetition)
 
-    def build_args(self) -> dict:
+    def build_args(self) -> Dict[str, Any]:
         return {
             "results_path": self.results_path,
             "resource_constraints": self.resource_constraints,
-            "hyper_params": self.params,
+            "hyper_params": self.params.to_dict(),
             "dataset_details": self.dataset
         }
 
@@ -75,62 +75,75 @@ class Experiment:
             y_scores[~mask] = MinMaxScaler().fit_transform(scores).ravel()
         return y_true, y_scores
 
-    def evaluate(self) -> dict:
+    def evaluate(self) -> Dict[str, Any]:
         """
         Using TimeEval distributed, this method is executed on the remote node.
         """
-        with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
-            print(f"Starting evaluation of experiment {self.name}\n=============================================\n",
-                  file=logs_file)
-
-        # persist hyper parameters to disk
+        # materialize and persist hyper parameters to disk
+        self.params = self.params.materialize()
         dump_params(self.params, self.results_path / HYPER_PARAMETERS)
+        hyper_params = dumps_params(self.params)  # must be loaded before assess() or fail() will be called!
 
-        # perform training if necessary
-        result = self._perform_training()
+        try:
+            with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
+                print(f"Starting evaluation of experiment {self.name}\n=============================================\n",
+                      file=logs_file)
 
-        # perform execution
-        y_scores, execution_times = self._perform_execution()
-        result.update(execution_times)
-        # backup results to disk
-        pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
+            # perform training if necessary
+            result = self._perform_training()
 
-        y_true = load_labels_only(self.resolved_test_dataset_path)
-        y_true, y_scores = self.scale_scores(y_true, y_scores)
-        # persist scores to disk
-        y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
+            # perform execution
+            y_scores, execution_times = self._perform_execution()
+            result.update(execution_times)
+            # backup results to disk
+            pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
 
-        with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
-            print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
-                  file=logs_file)
+            y_true = load_labels_only(self.resolved_test_dataset_path)
+            y_true, y_scores = self.scale_scores(y_true, y_scores)
+            # persist scores to disk
+            y_scores.tofile(str(self.results_path / ANOMALY_SCORES_TS), sep="\n")
 
-            # calculate quality metrics
-            errors = 0
-            last_exception = None
-            for metric in self.metrics:
-                print(f"Calculating {metric.name}", file=logs_file)
-                try:
-                    score = metric(y_true, y_scores)
-                    result[metric.name] = score
-                    print(f"  = {score}", file=logs_file)
-                    logs_file.flush()
-                except Exception as e:
-                    print(f"Exception while computing metric {metric}: {e}", file=logs_file)
-                    errors += 1
-                    if str(e):
-                        last_exception = e
-                    continue
+            with (self.results_path / EXECUTION_LOG).open("a") as logs_file:
+                print(f"Scoring algorithm {self.algorithm.name} with {','.join([m.name for m in self.metrics])} metrics",
+                      file=logs_file)
 
-        # write all results to disk (overwriting backup)
-        pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
+                # calculate quality metrics
+                errors = 0
+                last_exception = None
+                for metric in self.metrics:
+                    print(f"Calculating {metric.name}", file=logs_file)
+                    try:
+                        score = metric(y_true, y_scores)
+                        result[metric.name] = score
+                        print(f"  = {score}", file=logs_file)
+                        logs_file.flush()
+                    except Exception as e:
+                        print(f"Exception while computing metric {metric}: {e}", file=logs_file)
+                        errors += 1
+                        if str(e):
+                            last_exception = e
+                        continue
 
-        # rethrow exception if no metric could be calculated
-        if errors == len(self.metrics) and last_exception is not None:
-            raise last_exception
+            # write all results to disk (overwriting backup)
+            pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
 
+            # potentially update parameter search space
+            self.params.assess(y_true, y_scores)
+
+            # rethrow exception if no metric could be calculated
+            if errors == len(self.metrics) and last_exception is not None:
+                raise last_exception
+
+        except Exception as e:
+            # on any exception, tell the parameter search process that this trial failed
+            self.params.fail()
+            raise e
+
+        # add hyperparameters to result
+        result["hyper_params"] = hyper_params
         return result
 
-    def _perform_training(self) -> dict:
+    def _perform_training(self) -> Dict[str, Any]:
         if self.algorithm.training_type == TrainingType.UNSUPERVISED:
             return {}
 
@@ -147,7 +160,7 @@ class Experiment:
             times = Times.from_train_algorithm(self.algorithm, X, self.build_args())
         return times.to_dict()
 
-    def _perform_execution(self) -> Tuple[np.ndarray, dict]:
+    def _perform_execution(self) -> Tuple[np.ndarray, Dict[str, Any]]:
         if self.algorithm.data_as_file:
             X: AlgorithmParameter = self.resolved_test_dataset_path
         else:
@@ -188,12 +201,13 @@ class Experiments:
         self.force_training_type_match = force_training_type_match
         self.force_dimensionality_match = force_dimensionality_match
         self.experiment_combinations: Optional[pd.DataFrame] = pd.read_csv(experiment_combinations_file) if experiment_combinations_file else None
-        if self.skip_invalid_combinations:
+        if self.skip_invalid_combinations or self.experiment_combinations is not None:
             self._N: Optional[int] = None
         else:
             self._N = sum(
                 [len(algo.param_config) for algo in self.algorithms]
             ) * len(self.datasets) * self.repetitions
+        self._experiments: Optional[List[Experiment]] = None
 
     def _should_be_run(self, algorithm: Algorithm, dataset: Dataset, params_id: str) -> bool:
         return self.experiment_combinations is None or \
@@ -204,15 +218,15 @@ class Experiments:
                     (self.experiment_combinations.hyper_params_id == params_id)
                 ].empty
 
-    def __iter__(self) -> Generator[Experiment, None, None]:
+    def materialize_experiments(self) -> Iterator[Experiment]:
         for algorithm in self.algorithms:
-            for algorithm_config in algorithm.param_config:
-                for dataset in self.datasets:
-                    if self._check_compatible(dataset, algorithm):
+            for dataset in self.datasets:
+                if self._check_compatible(dataset, algorithm):
+                    for algorithm_config in algorithm.param_config.iter(algorithm, dataset):
                         test_path, train_path = self._resolve_dataset_paths(dataset, algorithm)
                         # create parameter hash before executing heuristics
                         # (they replace the parameter values, but we want to be able to group by original configuration)
-                        params_id = hash_dict(algorithm_config)
+                        params_id = algorithm_config.uid()
                         params = inject_heuristic_values(algorithm_config, algorithm, dataset, test_path)
                         if self._should_be_run(algorithm, dataset, params_id):
                             for repetition in range(1, self.repetitions + 1):
@@ -229,17 +243,18 @@ class Experiments:
                                     resolved_train_dataset_path=train_path
                                 )
 
+    def __iter__(self) -> Iterator[Experiment]:
+        if self._experiments is None:
+            self._experiments = list(self.materialize_experiments())
+        return iter(self._experiments)
+
     def __len__(self) -> int:
-        if self._N is None:
-            self._N = sum([
-                int(self._should_be_run(algorithm, dataset, hash_dict(algorithm_config)))
-                for algorithm in self.algorithms
-                for algorithm_config in algorithm.param_config
-                for dataset in self.datasets
-                if self._check_compatible(dataset, algorithm)
-                for _repetition in range(1, self.repetitions + 1)
-            ])
-        return self._N  # type: ignore
+        if self._N is None and self._experiments is not None:
+            self._N = len(self._experiments)
+        elif self._N is None:
+            self._experiments = list(self.materialize_experiments())
+            self._N = len(self._experiments)
+        return self._N
 
     def _resolve_dataset_paths(self, dataset: Dataset, algorithm: Algorithm) -> Tuple[Path, Optional[Path]]:
         test_dataset_path = self.dmgr.get_dataset_path(dataset.datasetId, train=False)

@@ -52,7 +52,7 @@ _pcc_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def pcc(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def pcc(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="PCC",
         main=DockerAdapter(

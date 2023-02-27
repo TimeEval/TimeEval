@@ -11,9 +11,11 @@ PARAM_CONFIG_COMMAND = "param-config"
 
 
 def _create_generate_algorithm_stubs_parser(subparsers: Any) -> argparse.ArgumentParser:
-    parser = subparsers.add_parser(ALGO_STUBS_COMMAND,
-                                   help="Generate python stubs for algorithms of the timeeval-algorithms "
-                                        "repository that are implemented as Docker images.")
+    parser: argparse.ArgumentParser = subparsers.add_parser(
+        ALGO_STUBS_COMMAND,
+        help="Generate python stubs for algorithms of the timeeval-algorithms repository that are implemented as "
+             "Docker images."
+    )
     parser.add_argument("repository_path", type=Path,
                         help="Folder containing the timeeval-algorithms repository (source for the Docker images; "
                              "required structure: each algorithm in its own folder, the folder contains a "
@@ -26,8 +28,9 @@ def _create_generate_algorithm_stubs_parser(subparsers: Any) -> argparse.Argumen
 
 
 def _create_generate_param_config_parser(subparsers: Any) -> argparse.ArgumentParser:
-    parser = subparsers.add_parser(PARAM_CONFIG_COMMAND,
-                                   help="Generate parameter configuration (JSON) based on parameter matrix.")
+    parser: argparse.ArgumentParser = subparsers.add_parser(PARAM_CONFIG_COMMAND,
+                                                            help="Generate parameter configuration (JSON) based on "
+                                                                 "parameter matrix.")
     parser.add_argument("parameter_matrix_path", type=Path,
                         help="Path to the file that contains the parameter matrix (direct CSV export of the Google "
                              "Spreadsheet document).")
@@ -80,10 +83,9 @@ def _run_config_gen(args: argparse.Namespace) -> None:
         target=args.output,
         overwrite=args.force
     )
-    pass
 
 
-def main(argv: List[str]):
+def main(argv: List[str]) -> None:
     parser = _create_arg_parser()
     args = parser.parse_args(argv[1:])
     if not args.command:

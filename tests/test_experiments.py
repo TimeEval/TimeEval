@@ -4,7 +4,7 @@ from pathlib import Path
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
 from timeeval import Algorithm, TrainingType, InputDimensionality, DefaultMetrics, DatasetManager
-from timeeval.core.experiments import Experiments
+from timeeval._core.experiments import Experiments
 from timeeval.params import FullParameterGrid
 
 
@@ -64,13 +64,13 @@ class TestExperiments(unittest.TestCase):
         tasks = [(exp.dataset_name, exp.params) for exp in exps]
         self.assertListEqual(tasks, [
             ("dataset-datetime", {"param1": 0, "param2":  12}),
-            ("dataset-int",      {"param1": 0, "param2": 100}),
             ("dataset-datetime", {"param1": 1, "param2":  12}),
+            ("dataset-int",      {"param1": 0, "param2": 100}),
             ("dataset-int",      {"param1": 1, "param2": 100})
         ])
 
         # the parameter IDs for both datasets must be the same despite having different values in param2, because
         # param2 is set by a heuristic depending on the dataset's metadata
         params_ids = [exp.params_id for exp in exps]
-        self.assertEqual(params_ids[0], params_ids[1])
-        self.assertEqual(params_ids[2], params_ids[3])
+        self.assertEqual(params_ids[0], params_ids[2])
+        self.assertEqual(params_ids[1], params_ids[3])

@@ -58,7 +58,7 @@ _sarima_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def sarima(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def sarima(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="SARIMA",
         main=DockerAdapter(

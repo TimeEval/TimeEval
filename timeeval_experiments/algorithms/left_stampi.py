@@ -50,7 +50,7 @@ _left_stampi_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def left_stampi(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def left_stampi(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="Left STAMPi",
         main=DockerAdapter(

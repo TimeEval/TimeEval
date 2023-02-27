@@ -18,7 +18,7 @@ def post_mscred(scores: np.ndarray, args: dict) -> np.ndarray:
     max_window_size = max(args.get("hyper_params", {}).get("windows", [10, 30, 60]))
     offset = (ds_length - (max_window_size - 1)) % gap_time
     image_scores = ReverseWindowing(window_size=window_size).fit_transform(scores)
-    return np.concatenate([np.repeat(image_scores[:-offset], gap_time), image_scores[-offset:]])
+    return np.concatenate([np.repeat(image_scores[:-offset], gap_time), image_scores[-offset:]])  # type: ignore
 
 
 _mscred_parameters: Dict[str, Dict[str, Any]] = {
@@ -95,7 +95,7 @@ _mscred_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def mscred(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def mscred(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MSCRED",
         main=DockerAdapter(

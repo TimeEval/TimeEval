@@ -28,7 +28,7 @@ _multi_hmm_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def multi_hmm(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def multi_hmm(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MultiHMM",
         main=DockerAdapter(

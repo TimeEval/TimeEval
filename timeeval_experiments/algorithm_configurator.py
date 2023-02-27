@@ -26,7 +26,7 @@ class AlgorithmConfigurator:
         if check and self._heuristic_mapping:
             self._check_heuristics()
 
-    def _check_heuristics(self):
+    def _check_heuristics(self) -> None:
         broken_heuristics = []
         for key in self._heuristic_mapping:
             signature = self._heuristic_mapping[key]
@@ -41,8 +41,8 @@ class AlgorithmConfigurator:
         else:
             print("Heuristics are valid.")
 
-    def _substitute_heuristics(self, search_space: List[Any], checked: bool = False) -> Any:
-        def substitute(v):
+    def _substitute_heuristics(self, search_space: List[Any], checked: bool = False) -> List[Any]:
+        def substitute(v: Any) -> Any:
             try:
                 return f"heuristic:{self._heuristic_mapping[v]}"
             except (KeyError, TypeError) as e:

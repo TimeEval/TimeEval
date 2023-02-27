@@ -198,8 +198,9 @@ class RangePrecisionRangeRecallAUC(AucMetric):
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         return self._auc(y_true, y_score, self._range_precision_recall_curve)
 
-    def _range_precision_recall_curve(self, y_true: np.ndarray, y_score: np.ndarray) -> Tuple[
-        np.ndarray, np.ndarray, np.ndarray]:
+    def _range_precision_recall_curve(self,
+                                      y_true: np.ndarray,
+                                      y_score: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         thresholds = np.unique(y_score)
         thresholds.sort()
         # The first precision and recall values are precision=class balance and recall=1.0, which corresponds to a

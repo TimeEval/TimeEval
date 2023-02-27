@@ -1,4 +1,4 @@
-import abc
+from abc import ABC, abstractmethod
 
 import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score
@@ -7,7 +7,7 @@ from .metric import Metric
 from .thresholding import ThresholdingStrategy, NoThresholding
 
 
-class ClassificationMetric(Metric, abc.ABC):
+class ClassificationMetric(Metric, ABC):
     """Base class for standard classification metrics.
 
     All classification metrics are defined over binary classification predictions (zeros or ones), thus all of them
@@ -25,10 +25,10 @@ class ClassificationMetric(Metric, abc.ABC):
     def supports_continuous_scorings(self) -> bool:
         return not isinstance(self._thresholding_strategy, NoThresholding)
 
-    @abc.abstractmethod
+    @abstractmethod
     def _internal_score(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Classification metrics should implement this method to compute the metric score."""
-        pass
+        ...
 
 
 class Precision(ClassificationMetric):

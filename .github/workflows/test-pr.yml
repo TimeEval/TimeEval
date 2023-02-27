@@ -26,7 +26,7 @@ jobs:
       - name: Install CI dependencies
         run: |
           pip install -r requirements.ci
-      - name: Typcheck with mypy
+      - name: Typecheck with mypy
         run: |
           python setup.py typecheck
   test:
@@ -51,9 +51,6 @@ jobs:
     - name: Install CI dependencies
       run: |
         pip install -r requirements.ci
-    - name: Typcheck with mypy
-      run: |
-        python setup.py typecheck
     - name: Test with pytest
       run: |
         python setup.py test

@@ -46,7 +46,7 @@ _health_esn_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def health_esn(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def health_esn(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="HealthESN",
         main=DockerAdapter(

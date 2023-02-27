@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import psutil
 from durations import Duration
+
 
 MB = 1024 ** 2
 """:math:`1 MB = 2^{20} \\text{Bytes}`
@@ -175,6 +178,6 @@ class ResourceConstraints:
         return timeout
 
     @staticmethod
-    def default_constraints() -> 'ResourceConstraints':
+    def default_constraints() -> ResourceConstraints:
         """Creates a configuration object with the default resource constraints."""
         return ResourceConstraints()

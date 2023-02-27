@@ -1,12 +1,12 @@
-import abc
 import contextlib
 import warnings
+from abc import ABC, abstractmethod
 from typing import Optional, Tuple, Any, Generator
 
 import numpy as np
 
 
-class ThresholdingStrategy(abc.ABC):
+class ThresholdingStrategy(ABC):
     """Takes an anomaly scoring and ground truth labels to compute and apply a threshold to the scoring.
 
     Subclasses of this abstract base class define different strategies to put a threshold over the anomaly scorings.
@@ -15,7 +15,7 @@ class ThresholdingStrategy(abc.ABC):
     already existing binary labels and keeps them untouched. This allows applying the metrics on existing binary
     classification results.
     """
-    def __int__(self) -> None:
+    def __init__(self) -> None:
         self.threshold: Optional[float] = None
 
     def fit(self, y_true: np.ndarray, y_score: np.ndarray) -> None:
@@ -70,10 +70,10 @@ class ThresholdingStrategy(abc.ABC):
         self.fit(y_true, y_score)
         return self.transform(y_score)
 
-    @abc.abstractmethod
+    @abstractmethod
     def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """Abstract method containing the actual code to determine the threshold. Must be overwritten by subclasses!"""
-        pass
+        ...
 
 
 class NoThresholding(ThresholdingStrategy):
@@ -145,6 +145,7 @@ class FixedValueThresholding(ThresholdingStrategy):
         Fixed threshold to use. All anomaly scorings are scaled to the interval [0, 1]
     """
     def __init__(self, threshold: float = 0.8):
+        super().__init__()
         if threshold > 1 or threshold < 0:
             raise ValueError(f"Threshold must be in the interval [0, 1], but was {threshold}!")
         self.threshold = threshold
@@ -169,6 +170,7 @@ class PercentileThresholding(ThresholdingStrategy):
         The percentile of the anomaly scoring to use. Must be between 0 and 100.
     """
     def __init__(self, percentile: int = 90):
+        super().__init__()
         if percentile < 0 or percentile > 100:
             raise ValueError(f"Percentile must be within [0, 100], but was {percentile}!")
         self._percentile = percentile
@@ -207,6 +209,7 @@ class TopKPointsThresholding(ThresholdingStrategy):
         number of anomalous points.
     """
     def __init__(self, k: Optional[int] = None):
+        super().__init__()
         if k is not None and k <= 0:
             raise ValueError(f"K must be greater than 0, but was {k}!")
         self._k: Optional[int] = k
@@ -254,6 +257,7 @@ class TopKRangesThresholding(ThresholdingStrategy):
         anomalies.
     """
     def __init__(self, k: Optional[int] = None):
+        super().__init__()
         if k is not None and k <= 0:
             raise ValueError(f"K must be greater than 0, but was {k}!")
         self._k: Optional[int] = k
@@ -315,6 +319,7 @@ class SigmaThresholding(ThresholdingStrategy):
         Multiples of the standard deviation to be added to the mean to compute the threshold (:math:`x`).
     """
     def __init__(self, factor: float = 3.0):
+        super().__init__()
         if factor <= 0:
             raise ValueError(f"factor must be greater than 0, but was {factor}!")
         self._factor = factor
@@ -391,6 +396,7 @@ class PyThreshThresholding(ThresholdingStrategy):
     """
 
     def __init__(self, pythresh_thresholder: 'BaseThresholder', random_state: Any = None):  # type: ignore
+        super().__init__()
         self._thresholder = pythresh_thresholder
         self._predictions: Optional[np.ndarray] = None
         self._random_state: Any = random_state

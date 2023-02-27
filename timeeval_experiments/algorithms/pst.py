@@ -52,7 +52,7 @@ _pst_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def pst(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def pst(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="PST",
         main=DockerAdapter(

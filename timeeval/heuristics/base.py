@@ -14,7 +14,7 @@ class TimeEvalParameterHeuristic(abc.ABC):
         Calculate new parameter value based on information about algorithm, dataset metadata, and the dataset
         itself. If `None` is returned, the parameter is unset and the algorithm should use its default value.
         """
-        raise NotImplementedError
+        ...
 
     @property
     def name(self) -> str:

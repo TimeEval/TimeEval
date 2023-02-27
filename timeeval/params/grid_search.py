@@ -1,13 +1,24 @@
-import abc
-from collections.abc import Iterable, Sized
-from typing import Iterator, Any, Dict, Mapping, Optional
+from __future__ import annotations
+
+from abc import abstractmethod, ABCMeta
+from typing import TYPE_CHECKING, Mapping, Iterator, Iterable
 
 from sklearn.model_selection import ParameterGrid
 
+from .base import ParameterConfig
+from .params import FixedParams, Params
 
-class ParameterConfig(abc.ABC, Iterable, Sized):
+
+# only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
+if TYPE_CHECKING:
+    from typing import Any, Optional
+    from ..algorithm import Algorithm
+    from ..datasets import Dataset
+
+
+class ParameterGridConfig(ParameterConfig, Iterable[Params], metaclass=ABCMeta):
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def param_grid(self) -> ParameterGrid:
         """The parameter search grid.
 
@@ -16,31 +27,22 @@ class ParameterConfig(abc.ABC, Iterable, Sized):
         param_grid: sklearn parameter grid object
             A parameter search grid compatible with sklearn: :class:`sklearn.model_selection.ParameterGrid`
         """
-        pass
+        ...
 
-    def __iter__(self) -> Iterator[Dict[str, Any]]:
-        """Iterate over the points in the grid.
+    def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:
+        return self.__iter__()
 
-        Returns
-        -------
-        params : iterator over dict of str to any
-            Yields dictionaries mapping each parameter to one of its allowed values.
-        """
-        return iter(self.param_grid)
+    def __iter__(self) -> Iterator[Params]:
+        return iter(FixedParams(p) for p in self.param_grid)
 
     def __len__(self) -> int:
-        """Number of points on the grid."""
         return len(self.param_grid)
 
-    def __getitem__(self, i: int) -> Dict[str, Any]:
-        return self.param_grid[i]  # type: ignore
-
-    @staticmethod
-    def defaults() -> "ParameterConfig":
-        return FixedParameters({})
+    def __getitem__(self, index: int) -> Params:
+        return FixedParams(self.param_grid[index])
 
 
-class FullParameterGrid(ParameterConfig):
+class FullParameterGrid(ParameterGridConfig):
     """Grid of parameters with a discrete number of values for each.
 
     Iterating over this grid yields the full cartesian product of all available parameter combinations. Uses the
@@ -54,7 +56,7 @@ class FullParameterGrid(ParameterConfig):
 
     Examples
     --------
-    >>> from timeeval.params.search import FullParameterGrid
+    >>> from timeeval.params import FullParameterGrid
     >>> params = {"a": [1, 2], "b": [True, False]}
     >>> list(FullParameterGrid(params)) == (
     ...    [{"a": 1, "b": True}, {"a": 1, "b": False},
@@ -84,7 +86,7 @@ class FullParameterGrid(ParameterConfig):
         return self._param_grid
 
 
-class IndependentParameterGrid(ParameterConfig):
+class IndependentParameterGrid(ParameterGridConfig):
     """Grid of parameters with a discrete number of values for each.
 
     The parameters in the dict are considered independent and explored one after the other (no cartesian product).
@@ -146,49 +148,6 @@ class IndependentParameterGrid(ParameterConfig):
         if len(grids) == 0:
             grids.append(self.default_params)
         self._param_grid = ParameterGrid(grids)
-
-    @property
-    def param_grid(self) -> ParameterGrid:
-        return self._param_grid
-
-
-class FixedParameters(ParameterConfig):
-    """Single parameters setting with one value for each.
-
-    Iterating over this grid yields the input setting as the first and only element. Uses the
-    sklearn.model_selection.ParameterGrid internally.
-
-    Parameters
-    ----------
-    params : dict of str to Any
-        The parameter setting to be evaluated, as a dictionary mapping parameters to allowed values.
-        An empty dict signifies default parameters.
-
-    Examples
-    --------
-    >>> from timeeval.params.search import FixedParameters
-    >>> params = {"a": 2, "b": True}
-    >>> list(FixedParameters(params)) == (
-    ...    [{"a": 2, "b": True}])
-    True
-    >>> FixedParameters(params)[0] == {"a": 2, "b": True}
-    True
-
-    See also
-    --------
-    :class:`sklearn.model_selection.ParameterGrid`:
-        Used internally to represent the parameter grids.
-    """
-
-    def __init__(self, params: Mapping[str, Any]):
-        if not isinstance(params, Mapping):
-            if isinstance(params, (list, Iterator)):
-                raise TypeError("A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
-                                f"ParameterConfig ({params}). Please use a "
-                                "`timeeval.search.IndependentParameterGrid` for this!")
-            else:
-                raise TypeError(f"Parameters are not provided as a dict ({params})")
-        self._param_grid = ParameterGrid({k: [v] for k, v in params.items()})
 
     @property
     def param_grid(self) -> ParameterGrid:

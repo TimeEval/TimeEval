@@ -63,8 +63,8 @@ class PyTestCommand(Command):
         import pytest
         from pytest import ExitCode
 
-        exit_code = pytest.main(["--cov-report=term", "--cov-report=xml:coverage.xml",
-                                 "--cov=timeeval", "--cov=timeeval_experiments.generator", "tests"])
+        exit_code = pytest.main(["--cov-report=term", "--cov-report=xml:coverage.xml", "--cov=timeeval",
+                                 "--cov=timeeval_experiments.generator", "--optuna", "tests"])
         if exit_code == ExitCode.TESTS_FAILED:
             raise ValueError("Tests failed!")
         elif exit_code == ExitCode.INTERRUPTED:
@@ -91,7 +91,7 @@ class MyPyCheckCommand(Command):
     def run(self) -> None:
         from mypy.main import main as mypy
 
-        args = ["--pretty", "timeeval", "timeeval_experiments", "tests"]
+        args = ["--pretty", "timeeval", "timeeval_experiments"]
         mypy(None, stdout=sys.stdout, stderr=sys.stderr, args=args)
 
 

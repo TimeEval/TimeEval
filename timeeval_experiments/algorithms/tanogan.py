@@ -89,7 +89,7 @@ _tanogan_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def tanogan(params: ParameterConfig = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def tanogan(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="TAnoGan",
         main=DockerAdapter(
