@@ -17,7 +17,7 @@ from numpyencoder import NumpyEncoder
 from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
 from ..resource_constraints import ResourceConstraints, GB
-from ..utils.excpetions import exc_causes
+from ..utils.exceptions import exc_causes
 
 DATASET_TARGET_PATH = Path("/data")
 RESULTS_TARGET_PATH = Path("/results")
