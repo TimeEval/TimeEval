@@ -102,26 +102,27 @@ The following tools are required to install TimeEval from source:
 **tl;dr**
 
 ```python
+from pathlib import Path
 from typing import Dict, Any
 
 import numpy as np
 
 from timeeval import TimeEval, DatasetManager, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import FunctionAdapter
-from timeeval.constants import HPI_CLUSTER
 from timeeval.params import FixedParameters
 
-
 # Load dataset metadata
-dm = DatasetManager(HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK], create_if_missing=False)
+dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
+
 
 # Define algorithm
 def my_algorithm(data: np.ndarray, args: Dict[str, Any]) -> np.ndarray:
     score_value = args.get("score_value", 0)
     return np.full_like(data, fill_value=score_value)
 
+
 # Select datasets and algorithms
-datasets = dm.select(collection="NAB")
+datasets = dm.select()
 datasets = datasets[-1:]
 # Add algorithms to evaluate...
 algorithms = [

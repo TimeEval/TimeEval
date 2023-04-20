@@ -6,18 +6,16 @@ from pathlib import Path
 
 from durations import Duration
 
-from timeeval import TimeEval, DatasetManager, RemoteConfiguration, ResourceConstraints, DefaultMetrics
-from timeeval.constants import HPI_CLUSTER
+from timeeval import TimeEval, DatasetManager, RemoteConfiguration, ResourceConstraints
+from timeeval.metrics import RocAUC, RangeRocAUC, RangePrVUS
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 from timeeval_experiments.algorithms import *
-
 
 # Setup logging
 logging.basicConfig(
     filename="timeeval.log",
     filemode="a",
-    level=logging.INFO,
-    force=True,
+    level=logging.WARNING,
     format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
 )
 
@@ -26,108 +24,120 @@ random.seed(42)
 
 
 def main():
-    # dm = DatasetManager(HPI_CLUSTER.akita_benchmark_path, create_if_missing=False)
     dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
     configurator = AlgorithmConfigurator(config_path="timeeval_experiments/param-config.example.json")
 
     # Select datasets and algorithms
     datasets = dm.select()
     datasets = random.sample(datasets, 1)
-    print(f"Selected datasets: {len(datasets)}")
+    print(f"\nSelected datasets: {len(datasets)}")
 
     algorithms = [
-        # generic_rf(),
-        norma(),
-        # sr_cnn(),
-        # knn(),
-        # cblof(),
-        # hif(),
-        # fft(),
-        # dbstream(),
-        # img_embedding_cae(),
-        # telemanom(),
-        # dwt_mlead(),
-        # stamp(),
-        # grammarviz3(),
-        # hybrid_knn(),
-        # normalizing_flows(),
-        # ts_bitmap(),
-        # lof(),
-        # deepnap(),
-        # multi_hmm(),
-        # iforest(),
-        # valmod(),
-        # sarima(),
-        # dspot(),
-        # ssa(),
-        # kmeans(),
-        # hbos(),
-        # encdec_ad(),
-        # numenta_htm(),
-        # pcc(),
-        # novelty_svr(),
-        # ensemble_gi(),
-        # series2graph(),
-        # mscred(),
-        # copod(),
-        # median_method(),
         # arima(),
-        # torsk(),
-        # tarzan(),
-        # if_lof(),
-        # cof(),
-        # random_black_forest(),
-        # fast_mcd(),
-        # phasespace_svm(),
-        # eif(),
-        # tanogan(),
-        stomp(),
-        # hotsax(),
-        # pci(),
-        # robust_pca(),
-        # dae(),
-        # ocean_wnn(),
-        # health_esn(),
-        # lstm_ad(),
-        # laser_dbn(),
-        # deepant(),
-        # bagel(),
-        # generic_xgb(),
-        # mtad_gat(),
-        # omnianomaly(),
-        # pst(),
-        # donut(),
-        # sr(),
         # autoencoder(),
+        # bagel(),
+        # cblof(),
+        # cof(),
+        # copod(),
+        # dae(),
+        # damp(),
+        # dbstream(),
+        # deepant(),
+        # deepnap(),
+        # donut(),
+        # dspot(),
+        dwt_mlead(),
+        # eif(),
+        # encdec_ad(),
+        # ensemble_gi(),
+        # fast_mcd(),
+        # fft(),
+        # generic_rf(),
+        # generic_xgb(),
+        # grammarviz3(),
+        # grammarviz3_multi(),
+        # hbos(),
+        # health_esn(),
+        # hif(),
+        # hotsax(),
+        # hybrid_knn(),
+        # if_lof(),
+        # iforest(),
+        # img_embedding_cae(),
+        # kmeans(),
+        # knn(),
+        # laser_dbn(),
+        # left_stampi(),
+        lof(),
+        # lstm_ad(),
+        # lstm_vae(),
+        # median_method(),
+        # mscred(),
+        # mstamp(),
+        # mtad_gat(),
+        # multi_hmm(),
+        # multi_subsequence_lof(),
+        # multinorma(),
+        # mvalmod(),
+        # norma(),
+        # normalizing_flows(),
+        # novelty_svr(),
+        # numenta_htm(),
+        # ocean_wnn(),
+        # omnianomaly(),
+        # pcc(),
+        # pci(),
+        # phasespace_svm(),
+        # pst(),
+        # random_black_forest(),
+        # robust_pca(),
+        # s_h_esd(),
+        # sand(),
+        # sarima(),
+        # series2graph(),
+        # sr(),
+        # sr_cnn(),
+        # ssa(),
+        # stamp(),
+        stomp(),
+        # subsequence_fast_mcd(),
+        # subsequence_if(),
+        # subsequence_knn(),
+        # subsequence_lof(),
+        # tanogan(),
+        # tarzan(),
+        # telemanom(),
+        # torsk(),
+        # triple_es(),
+        # ts_bitmap(),
+        # valmod(),
     ]
     print(f"Selected algorithms: {len(algorithms)}")
-    sys.stdout.flush()
-
     configurator.configure(algorithms, ignore_dependent=False, perform_search=False)
+
+    print()
     for algo in algorithms:
         print(f"Algorithm {algo.name} param_grid:")
-        for config in algo.param_config:
+        for config in algo.param_config.iter(algo, dataset=datasets[0]):
             print(f"  {config}")
+    sys.stdout.flush()
 
     cluster_config = RemoteConfiguration(
-        scheduler_host=HPI_CLUSTER.odin01,
-        worker_hosts=HPI_CLUSTER.nodes
+        scheduler_host="localhost",
+        worker_hosts=["localhost"]
     )
     limits = ResourceConstraints(
-        tasks_per_host=15,
+        tasks_per_host=1,
         task_cpu_limit=1.,
         train_timeout=Duration("1 minute"),
         execute_timeout=Duration("1 minute")
     )
     timeeval = TimeEval(dm, datasets, algorithms,
-                        repetitions=1,
-                        # distributed=True,
-                        # remote_config=cluster_config,
+                        distributed=True,
+                        remote_config=cluster_config,
                         resource_constraints=limits,
-                        skip_invalid_combinations=True,
-                        metrics=[DefaultMetrics.ROC_AUC, DefaultMetrics.RANGE_PR_AUC]
+                        metrics=[RocAUC(), RangeRocAUC(buffer_size=100), RangePrVUS(max_buffer_size=100)]
                         )
-
     timeeval.run()
     print(timeeval.get_results(aggregated=False))
 

@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 from pathlib import Path
+from typing import Any, Dict
+
+import numpy as np
 
 from timeeval import TimeEval, DatasetManager, DefaultMetrics, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter, FunctionAdapter
-from timeeval.params import FixedParameters
 from timeeval.data_types import AlgorithmParameter
-import numpy as np
+from timeeval.params import FixedParameters
 
 
-def your_algorithm_function(data: AlgorithmParameter, args: dict) -> np.ndarray:
+def your_algorithm_function(data: AlgorithmParameter, args: Dict[str, Any]) -> np.ndarray:
     if isinstance(data, np.ndarray):
         return np.zeros_like(data)
-    else:  # data = pathlib.Path
-        return np.genfromtxt(data)[0]
+    else:  # isinstance(data, pathlib.Path)
+        return np.genfromtxt(data, delimiter=",", skip_header=1)[:, 1]
 
 
 def main():
-    dm = DatasetManager(Path("tests/example_data"))  # or test-cases directory
+    dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
     datasets = dm.select()
 
     algorithms = [
@@ -38,9 +40,7 @@ def main():
         )
     ]
 
-    timeeval = TimeEval(dm, datasets, algorithms,
-                        metrics=[DefaultMetrics.ROC_AUC, DefaultMetrics.RANGE_PR_AUC])
-
+    timeeval = TimeEval(dm, datasets, algorithms, metrics=[DefaultMetrics.ROC_AUC, DefaultMetrics.RANGE_PR_AUC])
     timeeval.run()
     results = timeeval.get_results(aggregated=False)
     print(results)
