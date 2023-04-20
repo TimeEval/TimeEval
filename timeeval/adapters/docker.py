@@ -1,13 +1,15 @@
 import json
 import subprocess
+import sys
 from dataclasses import dataclass, asdict, field
 from pathlib import Path, WindowsPath, PosixPath
+from traceback import print_exc
 from typing import Optional, Any, Callable, Tuple, Dict
 
 import docker
 import numpy as np
 import requests
-from docker.errors import DockerException
+from docker.errors import DockerException, ImageNotFound, APIError
 from docker.models.containers import Container
 from durations import Duration
 from numpyencoder import NumpyEncoder
@@ -15,7 +17,7 @@ from numpyencoder import NumpyEncoder
 from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
 from ..resource_constraints import ResourceConstraints, GB
-
+from ..utils.excpetions import exc_causes
 
 DATASET_TARGET_PATH = Path("/data")
 RESULTS_TARGET_PATH = Path("/results")
@@ -30,6 +32,10 @@ class DockerJSONEncoder(NumpyEncoder):
         elif isinstance(o, (PosixPath, WindowsPath)):
             return str(o)
         return super().default(o)
+
+
+class DockerAdapterInternalError(Exception):
+    pass
 
 
 class DockerTimeoutError(Exception):
@@ -141,23 +147,36 @@ class DockerAdapter(Adapter):
         cpu_shares = int(cpu_limit * 1e9)
         print(f"Restricting container to {cpu_limit} CPUs and {memory_limit / GB:.3f} GB RAM")
 
-        return client.containers.run(
-            f"{self.image_name}:{self.tag}",
-            f"execute-algorithm '{algorithm_interface.to_json_string()}'",
-            volumes={
-                str(dataset_path.parent.resolve()): {"bind": str(DATASET_TARGET_PATH), "mode": "ro"},
-                str(self._results_path(args, absolute=True)): {"bind": str(RESULTS_TARGET_PATH), "mode": "rw"}
-            },
-            environment={
-                "LOCAL_GID": gid,
-                "LOCAL_UID": uid
-            },
-            mem_swappiness=0,
-            mem_limit=memory_limit,
-            memswap_limit=memory_limit,
-            nano_cpus=cpu_shares,
-            detach=True,
-        )
+        try:
+            return client.containers.run(
+                f"{self.image_name}:{self.tag}",
+                f"execute-algorithm '{algorithm_interface.to_json_string()}'",
+                volumes={
+                    str(dataset_path.parent.resolve()): {"bind": str(DATASET_TARGET_PATH), "mode": "ro"},
+                    str(self._results_path(args, absolute=True)): {"bind": str(RESULTS_TARGET_PATH), "mode": "rw"}
+                },
+                environment={
+                    "LOCAL_GID": gid,
+                    "LOCAL_UID": uid
+                },
+                mem_swappiness=0,
+                mem_limit=memory_limit,
+                memswap_limit=memory_limit,
+                nano_cpus=cpu_shares,
+                detach=True,
+            )
+        except (APIError, ImageNotFound) as e:
+            reason = str(e)
+            for exc in exc_causes(e):
+                if type(exc) == ImageNotFound:
+                    reason = "image not found"
+                    break
+
+            print(f"Could not start Docker container for algorithm ({self.image_name}:{self.tag}:")
+            print_exc(file=sys.stdout)
+            raise DockerAdapterInternalError(
+                f"Could not start Docker container for algorithm {self.image_name}:{self.tag} because {reason}!"
+            ) from None  # hides exception chain for driver process
 
     def _run_until_timeout(self, container: Container, args: Dict[str, Any]) -> None:
         timeout = self._get_timeout(args)
