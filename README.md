@@ -76,7 +76,8 @@ git clone git@github.com:HPI-Information-Systems/TimeEval.git
 cd timeeval/
 conda env create --file environment.yml
 conda activate timeeval
-python setup.py install
+python setup.py bdist_wheel
+pip install dist/TimeEval-*-py3-none-any.whl
 ```
 
 #### Prerequisites
@@ -92,9 +93,12 @@ The following tools are required to install TimeEval from source:
 2. Create a conda-environment and install all required dependencies.
    Use the file [`environment.yml`](./environment.yml) for this:
    `conda env create --file environment.yml`.
-3. Activate the new environment and install TimeEval using _setup.py_:
-   `python setup.py install`.
-4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
+3. Activate the new environment and build TimeEval:
+   `python setup.py bdist_wheel`.
+   This should create a Python wheel in the `dist/`-folder.
+4. Install TimeEval and all of its dependencies:
+   `pip install dist/TimeEval-*-py3-none-any.whl`.
+5. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
 
 ## Usage
