@@ -76,7 +76,8 @@ git clone git@github.com:HPI-Information-Systems/TimeEval.git
 cd timeeval/
 conda env create --file environment.yml
 conda activate timeeval
-python setup.py install
+python setup.py bdist_wheel
+pip install dist/TimeEval-*-py3-none-any.whl
 ```
 
 #### Prerequisites
@@ -92,9 +93,12 @@ The following tools are required to install TimeEval from source:
 2. Create a conda-environment and install all required dependencies.
    Use the file [`environment.yml`](./environment.yml) for this:
    `conda env create --file environment.yml`.
-3. Activate the new environment and install TimeEval using _setup.py_:
-   `python setup.py install`.
-4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
+3. Activate the new environment and build TimeEval:
+   `python setup.py bdist_wheel`.
+   This should create a Python wheel in the `dist/`-folder.
+4. Install TimeEval and all of its dependencies:
+   `pip install dist/TimeEval-*-py3-none-any.whl`.
+5. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
 
 ## Usage
@@ -102,26 +106,27 @@ The following tools are required to install TimeEval from source:
 **tl;dr**
 
 ```python
+from pathlib import Path
 from typing import Dict, Any
 
 import numpy as np
 
 from timeeval import TimeEval, DatasetManager, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import FunctionAdapter
-from timeeval.constants import HPI_CLUSTER
 from timeeval.params import FixedParameters
 
-
 # Load dataset metadata
-dm = DatasetManager(HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK], create_if_missing=False)
+dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
+
 
 # Define algorithm
 def my_algorithm(data: np.ndarray, args: Dict[str, Any]) -> np.ndarray:
     score_value = args.get("score_value", 0)
     return np.full_like(data, fill_value=score_value)
 
+
 # Select datasets and algorithms
-datasets = dm.select(collection="NAB")
+datasets = dm.select()
 datasets = datasets[-1:]
 # Add algorithms to evaluate...
 algorithms = [

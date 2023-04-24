@@ -236,6 +236,8 @@ class TimeEval:
         assert n_jobs >= -1, f"n_jobs={n_jobs} not supported (must be >= -1)!"
         if experiment_combinations_file is not None:
             assert experiment_combinations_file.exists(), "Experiment combination file not found!"
+        if remote_config:
+            assert len(remote_config.worker_hosts) > 0, "At least one worker is required to execute experiments!"
 
         dataset_details = []
         not_found_datasets = []

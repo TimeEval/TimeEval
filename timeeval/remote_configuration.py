@@ -57,10 +57,10 @@ class RemoteConfiguration:
     """
     scheduler_host: str = DEFAULT_SCHEDULER_HOST
     scheduler_port: int = DEFAULT_DASK_PORT
-    worker_hosts: List[str] = field(default_factory=lambda: [])
+    worker_hosts: List[str] = field(default_factory=lambda: ["localhost"])
     remote_python: str = field(default_factory=lambda: sys.executable)
     kwargs_overwrites: Dict[str, Any] = field(default_factory=lambda: {})
-    dask_logging_file_level: str = "INFO"
+    dask_logging_file_level: str = "INFO"  # NOTSET, DEBUG, INFO (WARNING, ERROR, CRITICAL does not work somehow)
     dask_logging_console_level: str = "INFO"
     dask_logging_filename: str = DEFAULT_DASK_LOG_FILENAME
 
