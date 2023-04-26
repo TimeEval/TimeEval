@@ -471,29 +471,33 @@
         30,
         40,
         50
-      ]
+      ],
+      "value": 5
     },
     "leaf_size": {
       "algorithms": [
         "KNN",
-        "LOF"
+        "LOF",
+        "Subsequence LOF"
       ],
       "search_space": [
         20,
         30,
         40
-      ]
+      ],
+      "value": 20
     },
     "mag_window_size": {
       "algorithms": [
         "MTAD-GAT",
-        "SR"
+        "Spectral Residual (SR)"
       ],
       "search_space": [
         28,
         40,
         52
-      ]
+      ],
+      "value": 40
     },
     "n_bins": {
       "algorithms": [
@@ -505,14 +509,17 @@
       "search_space": [
         5,
         8,
-        10
-      ]
+        10,
+        20
+      ],
+      "value": 10
     },
     "n_clusters": {
       "algorithms": [
         "CBLOF",
         "DBStream",
-        "KMeans"
+        "k-Means",
+        "SAND"
       ],
       "search_space": [
         5,
@@ -520,28 +527,31 @@
         30,
         40,
         50
-      ]
+      ],
+      "value": 50
     },
     "n_estimators": {
       "algorithms": [
-        "EnsembleGI",
-        "Hybrid-KNN",
-        "Random Black Forest Regressor",
-        "XGBoost Regressor"
+        "Ensemble GI",
+        "XGBoosting (RR)",
+        "Hybrid KNN",
+        "Random Black Forest (RR)"
       ],
       "search_space": [
         10,
         100,
         1000
-      ]
+      ],
+      "value": 500
     },
     "n_neighbors": {
       "algorithms": [
         "COF",
-        "Hybrid-KNN",
-        "Isolation Forest - Local Outier Factor",
+        "Hybrid KNN",
+        "IF-LOF",
         "KNN",
-        "LOF"
+        "LOF",
+        "Subsequence LOF"
       ],
       "search_space": [
         5,
@@ -550,23 +560,26 @@
         30,
         40,
         50
-      ]
+      ],
+      "value": 50
     },
     "n_trees": {
       "algorithms": [
-        "Extended Isolation Forest",
-        "HIF",
-        "Isolation Forest",
-        "Isolation Forest - Local Outier Factor",
-        "Random Black Forest Regressor",
-        "Random Forest Regressor",
-        "XGBoost Regressor"
+        "Extended Isolation Forest (EIF)",
+        "Random Forest Regressor (RR)",
+        "XGBoosting (RR)",
+        "Hybrid Isolation Forest (HIF)",
+        "IF-LOF",
+        "Isolation Forest (iForest)",
+        "Random Black Forest (RR)",
+        "Subsequence IF"
       ],
       "search_space": [
         10,
         100,
         1000
-      ]
+      ],
+      "value": 500
     },
     "prediction_window_size": {
       "algorithms": [
@@ -581,35 +594,39 @@
         5,
         10,
         50
-      ]
+      ],
+      "value": 50
     },
     "score_window_size": {
       "algorithms": [
         "MTAD-GAT",
-        "SR"
+        "Spectral Residual (SR)"
       ],
       "search_space": [
         28,
         40,
         52
-      ]
+      ],
+      "value": 40
     },
     "train_window_size": {
       "algorithms": [
+        "Random Forest Regressor (RR)",
+        "XGBoosting (RR)",
         "NoveltySVR",
         "OceanWNN",
-        "Random Black Forest Regressor",
-        "Random Forest Regressor",
+        "Random Black Forest (RR)",
         "SARIMA",
         "Torsk",
-        "XGBoost Regressor"
+        "Triple ES (Holt-Winter's)"
       ],
       "search_space": [
         50,
         100,
         500,
         1000
-      ]
+      ],
+      "value": 500
     }
   }
 }
