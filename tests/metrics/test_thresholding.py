@@ -30,7 +30,13 @@ class TestThresholding(unittest.TestCase):
     def test_no_thresholding(self):
         strategy = NoThresholding()
         self.assertIsNone(strategy.find_threshold(self.y_true, self.y_true))
+
+        # allow ints
         result = strategy.fit_transform(self.y_true, self.y_true)
+        np.testing.assert_array_equal(self.y_true, result)
+
+        # allow bools
+        result = strategy.fit_transform(self.y_true, self.y_true.astype(np.bool_))
         np.testing.assert_array_equal(self.y_true, result)
 
     def test_no_thresholding_error(self):
