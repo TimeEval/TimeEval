@@ -145,7 +145,7 @@ For further details about the Algorithm integration concept, please read the con
 
 Repeat the above steps for all algorithms that you want to execute with TimeEval.
 Creating a script to build all algorithm images is left as an exercise for the reader (tip: use [`find`](https://www.gnu.org/software/findutils/manual/html_node/find_html/Invoking-find.html#Invoking-find) to get the correct folder and image names, and iterate over them).
-The README of the timeeval-algorithms repository contains [example calls](https://github.com/HPI-Information-Systems/TimeEval-algorithms#example-calls) to test the algorithm Docker images.
+The README of the timeeval-algorithms repository contains [example calls](https://github.com/HPI-Information-Systems/TimeEval-algorithms#testing-an-algorithm-and-its-timeeval-integration) to test the algorithm Docker images.
 
 ## Configure evaluation run
 
