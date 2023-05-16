@@ -8,7 +8,7 @@ Existing datasets in another format must first be transformed into the canonical
 TimeEval's canonical file format is based on CSV.
 Each file requires a header, cells (values) are separated by commas (decimal seperator is `.`), and records are separated by newlines (unix-style LF: `\n`).
 The first column of the dataset is its index, either in integer- or datetime-format
-(multiple timestamp-formats are supported but [RFC 3339](https://tools.ietf.org/html/rfc3339) is preferred, e.g. `2017-03-22 15:16:45.433502912`).
+(multiple timestamp-formats are supported but [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339) is preferred, e.g. `2017-03-22 15:16:45.433502912`).
 The index follows a single or multiple (if multivariate dataset) time series columns.
 The last column contains the annotations, `0` for normal points and `1` for anomalies.
 Usage of the `timestamp` and `is_anomaly` column headers is recommended.
@@ -25,7 +25,7 @@ timestamp,value,is_anomaly
 ## Registering datasets
 
 TimeEval comes with its own collection of benchmark datasets (**currently not included**, download them [from our website](https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html)).
-They can directly be used using the dataset manager `DatasetManager`:
+They can directly be used from the dataset manager `DatasetManager`:
 
 ```python
 from pathlib import Path
