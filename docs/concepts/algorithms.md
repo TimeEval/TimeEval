@@ -259,13 +259,13 @@ docker run --rm \
     -e LOCAL_UID=<current user id> \
     -e LOCAL_GID=<groupid of akita group> \
     <resource restrictions> \
-  registry.gitlab.hpi.de/akita/i/<your_algorithm>:latest execute-algorithm '{ \
-    "executionType": "execute", \
-    "dataInput": "/data/dataset.csv", \
-    "modelInput": "/results/model.pkl", \
-    "dataOutput": "/results/anomaly_scores.ts", \
-    "modelOutput": "/results/model.pkl", \
-    "customParameters": {} \
+  registry.gitlab.hpi.de/akita/i/<your_algorithm>:latest execute-algorithm '{
+    "executionType": "execute",
+    "dataInput": "/data/dataset.csv",
+    "modelInput": "/results/model.pkl",
+    "dataOutput": "/results/anomaly_scores.ts",
+    "modelOutput": "/results/model.pkl",
+    "customParameters": {}
   }'
 ```
 
@@ -274,15 +274,15 @@ This is translated to the following call within the container from the entry scr
 ```bash
 docker run --rm \
     -v <path/to/dataset.csv>:/data/dataset.csv:ro \
-    -v <path/to/results-folder>:/results:rw <...>\
+    -v <path/to/results-folder>:/results:rw <...> \
   registry.gitlab.hpi.de/akita/i/<your_algorithm>:latest bash
 # now, within the container
-<python | java -jar | Rscript> $ALGORITHM_MAIN '{ \
-  "executionType": "execute", \
-  "dataInput": "/data/dataset.csv", \
-  "modelInput": "/results/model.pkl", \
-  "dataOutput": "/results/anomaly_scores.ts", \
-  "modelOutput": "/results/model.pkl", \
-  "customParameters": {} \
+<python | java -jar | Rscript> $ALGORITHM_MAIN '{
+  "executionType": "execute",
+  "dataInput": "/data/dataset.csv",
+  "modelInput": "/results/model.pkl",
+  "dataOutput": "/results/anomaly_scores.ts",
+  "modelOutput": "/results/model.pkl",
+  "customParameters": {}
 }'
 ```
