@@ -365,7 +365,9 @@ class Datasets(abc.ABC):
             if self._get_value_internal(dataset_id, "datetime_index"):
                 return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
             else:
-                return pd.read_csv(path)
+                df = pd.read_csv(path)
+                df["timestamp"] = df["timestamp"].astype(np.int_)
+                return df
         else:
             df = pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
             # timestamp parsing failed, hopefully because we have an integer-timestamp
