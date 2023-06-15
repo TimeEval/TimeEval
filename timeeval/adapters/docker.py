@@ -1,8 +1,9 @@
 import json
+import os
 import subprocess
 import sys
 from dataclasses import dataclass, asdict, field
-from pathlib import Path, WindowsPath, PosixPath
+from pathlib import Path, PurePath, PurePosixPath
 from traceback import print_exc
 from typing import Optional, Any, Callable, Tuple, Dict
 
@@ -17,10 +18,11 @@ from numpyencoder import NumpyEncoder
 from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
 from ..resource_constraints import ResourceConstraints, GB
+
 from ..utils.exceptions import exc_causes
 
-DATASET_TARGET_PATH = Path("/data")
-RESULTS_TARGET_PATH = Path("/results")
+DATASET_TARGET_PATH = PurePosixPath("/data")
+RESULTS_TARGET_PATH = PurePosixPath("/results")
 SCORES_FILE_NAME = "docker-algorithm-scores.csv"
 MODEL_FILE_NAME = "model.pkl"
 
@@ -29,7 +31,7 @@ class DockerJSONEncoder(NumpyEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, ExecutionType):
             return o.name.lower()
-        elif isinstance(o, (PosixPath, WindowsPath)):
+        elif isinstance(o, (Path, PurePath)):
             return str(o)
         return super().default(o)
 
@@ -52,10 +54,10 @@ class DockerAlgorithmFailedError(Exception):
 
 @dataclass
 class AlgorithmInterface:
-    dataInput: Path
-    dataOutput: Path
-    modelInput: Path
-    modelOutput: Path
+    dataInput: PurePath
+    dataOutput: PurePath
+    modelInput: PurePath
+    modelOutput: PurePath
     executionType: ExecutionType
     customParameters: Dict[str, Any] = field(default_factory=dict)
 
@@ -78,16 +80,34 @@ class DockerAdapter(Adapter):
 
     @staticmethod
     def _get_gid(group: str) -> str:
+        if os.name == "nt":
+            return ""
+
         CMD = "getent group %s | cut -d ':' -f 3"
         return subprocess.run(CMD % group, capture_output=True, text=True, shell=True).stdout.strip()
 
     @staticmethod
     def _get_uid() -> str:
+        if os.name == "nt":
+            return ""
+
         uid = subprocess.run(["id", "-u"], capture_output=True, text=True).stdout.strip()
         if uid == "0":  # if uid is root (0), we don't want to change it
             return ""
         else:
             return uid
+
+    def _prepare_env(self) -> Dict[str, str]:
+        uid = DockerAdapter._get_uid()
+        gid = DockerAdapter._get_gid(self.group)
+        if uid and not gid:
+            gid = uid
+        env = {}
+        if uid:
+            env["LOCAL_UID"] = uid
+        if gid:
+            env["LOCAL_GID"] = gid
+        return env
 
     def _get_compute_limits(self, args: Dict[str, Any]) -> Tuple[int, float]:
         limits: Tuple[int, float] = args.get("resource_constraints", ResourceConstraints()).get_compute_resource_limits(
@@ -129,19 +149,15 @@ class DockerAdapter(Adapter):
         client = docker.from_env()
 
         algorithm_interface = AlgorithmInterface(
-            dataInput=(DATASET_TARGET_PATH / dataset_path.name).resolve(),
-            dataOutput=(RESULTS_TARGET_PATH / SCORES_FILE_NAME).resolve(),
-            modelInput=(RESULTS_TARGET_PATH / MODEL_FILE_NAME).resolve(),
-            modelOutput=(RESULTS_TARGET_PATH / MODEL_FILE_NAME).resolve(),
+            dataInput=DATASET_TARGET_PATH / dataset_path.name,
+            dataOutput=RESULTS_TARGET_PATH / SCORES_FILE_NAME,
+            modelInput=RESULTS_TARGET_PATH / MODEL_FILE_NAME,
+            modelOutput=RESULTS_TARGET_PATH / MODEL_FILE_NAME,
             executionType=args.get("executionType", ExecutionType.EXECUTE.value),
             customParameters=args.get("hyper_params", {}),
         )
-
-        uid = DockerAdapter._get_uid()
-        gid = DockerAdapter._get_gid(self.group)
-        if not gid:
-            gid = uid
-        print(f"Running container '{self.image_name}:{self.tag}' with uid={uid} and gid={gid} privileges in {algorithm_interface.executionType} mode.")
+        env_vars = self._prepare_env()
+        print(f"Running container '{self.image_name}:{self.tag}' with env='{repr(env_vars)}' in {algorithm_interface.executionType} mode.")
 
         memory_limit, cpu_limit = self._get_compute_limits(args)
         cpu_shares = int(cpu_limit * 1e9)
@@ -155,10 +171,7 @@ class DockerAdapter(Adapter):
                     str(dataset_path.parent.resolve()): {"bind": str(DATASET_TARGET_PATH), "mode": "ro"},
                     str(self._results_path(args, absolute=True)): {"bind": str(RESULTS_TARGET_PATH), "mode": "rw"}
                 },
-                environment={
-                    "LOCAL_GID": gid,
-                    "LOCAL_UID": uid
-                },
+                environment=env_vars,
                 mem_swappiness=0,
                 mem_limit=memory_limit,
                 memswap_limit=memory_limit,
@@ -228,13 +241,13 @@ class DockerAdapter(Adapter):
             raise DockerAlgorithmFailedError(f"Status '{result['StatusCode']}', please consider log files in {self._results_path(args, absolute=True)}!")
 
     def _read_results(self, args: Dict[str, Any]) -> np.ndarray:
-        results: np.ndarray = np.genfromtxt(self._results_path(args, absolute=True) / SCORES_FILE_NAME, delimiter=",")
+        results: np.ndarray = np.genfromtxt(self._results_path(args) / SCORES_FILE_NAME, delimiter=",")
         return results
 
     # Adapter overwrites
 
     def _call(self, dataset: AlgorithmParameter, args: Dict[str, Any]) -> AlgorithmParameter:
-        assert isinstance(dataset, (WindowsPath, PosixPath)), \
+        assert isinstance(dataset, Path), \
             "Docker adapters cannot handle NumPy arrays! Please put in the path to the dataset."
         container = self._run_container(dataset, args)
         self._run_until_timeout(container, args)
