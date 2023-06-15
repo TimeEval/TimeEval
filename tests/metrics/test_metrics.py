@@ -41,6 +41,34 @@ class TestMetrics(unittest.TestCase):
         result = DefaultMetrics.ROC_AUC(y_true, y_scores, neginf_is_0=False)
         self.assertEqual(0.5, result)
 
+    def test_continuous_metric_requires_scores(self):
+        y_scores = np.array([1, 0, 1, 0, 0])
+        y_true = np.array([0, 0, 1, 0, 0])
+
+        with self.assertRaises(ValueError) as ex:
+            DefaultMetrics.ROC_AUC(y_true, y_scores)
+        self.assertRegex(str(ex.exception), "scores must be floats")
+
+        y_scores = y_scores.astype(np.float_)
+        result = DefaultMetrics.ROC_AUC(y_true, y_scores)
+        self.assertAlmostEqual(result, 0.875, places=4)
+
+    def test_binary_metric_requires_predictions(self):
+        y_scores = np.array([0.8, 0.1, 0.9, 0.3, 0.3], dtype=np.float_)
+        y_true = np.array([0, 0, 1, 0, 0], dtype=np.bool_)
+
+        with self.assertRaises(ValueError) as ex:
+            DefaultMetrics.RANGE_F1(y_true, y_scores)
+        self.assertRegex(str(ex.exception), "scores must be integers")
+
+        y_pred = np.array(y_scores > 0.5, dtype=np.int_)
+        result = DefaultMetrics.RANGE_F1(y_true, y_pred)
+        self.assertAlmostEqual(result, 0.66666, places=4)
+
+        y_pred = y_pred.astype(np.bool_)
+        result = DefaultMetrics.RANGE_F1(y_true, y_pred)
+        self.assertAlmostEqual(result, 0.66666, places=4)
+
     def test_range_based_f1(self):
         y_pred = np.array([0, 1, 1, 0])
         y_true = np.array([0, 1, 0, 0])

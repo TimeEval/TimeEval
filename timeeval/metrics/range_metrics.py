@@ -11,13 +11,17 @@ from .thresholding import ThresholdingStrategy, NoThresholding
 class RangePrecision(Metric):
     """Computes the range-based precision metric introduced by Tatbul et al. at NeurIPS 2018 [TatbulEtAl2018]_.
 
+    Range precision is the average precision of each predicted anomaly range. For each predicted continuous anomaly
+    range the overlap size, position, and cardinality is considered.
+
     Parameters
     ----------
     thresholding_strategy : ThresholdingStrategy
         Strategy used to find a threshold over continuous anomaly scores to get binary labels.
         Use :class:`timeeval.metrics.thresholding.NoThresholding` for results that already contain binary labels.
     alpha : float
-        Weight of the existence reward. For most - when not all - cases, `p_alpha` should be set to 0.
+        Weight of the existence reward. Because precision by definition emphasizes on prediction quality, there is no
+        need for an existence reward and this value should always be set to 0.
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
@@ -50,13 +54,18 @@ class RangePrecision(Metric):
 class RangeRecall(Metric):
     """Computes the range-based recall metric introduced by Tatbul et al. at NeurIPS 2018 [TatbulEtAl2018]_.
 
+    Range recall is the average recall of each real anomaly range. For each real anomaly range the overlap size,
+    position, and cardinality with predicted anomaly ranges are considered. In addition, an existence reward can be
+    given that boosts the recall even if just a single point of the real anomaly is in the predicted ranges.
+
     Parameters
     ----------
     thresholding_strategy : ThresholdingStrategy
         Strategy used to find a threshold over continuous anomaly scores to get binary labels.
         Use :class:`timeeval.metrics.thresholding.NoThresholding` for results that already contain binary labels.
     alpha : float
-        Weight of the existence reward. If 0: no existence reward, if 1: only existence reward.
+        Weight of the existence reward. If 0: no existence reward, if 1: only existence reward. The existence reward is
+        given if the real anomaly range has overlap with even a single point of the predicted anomaly range.
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}

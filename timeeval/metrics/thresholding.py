@@ -107,7 +107,7 @@ class NoThresholding(ThresholdingStrategy):
         y_pred : np.ndarray
             Array of binary labels; 0 for normal points and 1 for anomalous points.
         """
-        if y_score.dtype != np.int_:
+        if y_score.dtype not in [np.int_, np.bool_]:
             raise ValueError("The NoThresholding strategy can only be used for binary predictions (either 0 or 1). "
                              "Continuous anomaly scorings are not supported, please use any other thresholding "
                              "strategy for this!")
