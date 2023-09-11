@@ -16,7 +16,7 @@ jobs:
     name: Typecheck TimeEval on ubuntu with python 3.7
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v2.2.0
         with:
@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.2.0
       with:
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.2.0
       with:
@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build manylinux Python wheels
         uses: RalfG/python-wheels-manylinux-build@v0.4.2-manylinux2010_x86_64
         with:
