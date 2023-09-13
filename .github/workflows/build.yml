@@ -22,7 +22,6 @@ jobs:
         with:
           use-mamba: true
           auto-update-conda: true
-          environment-file: environment.yml
           python-version: "3.7"
       - name: Install CI dependencies
         run: |
@@ -47,7 +46,6 @@ jobs:
       with:
         use-mamba: true
         auto-update-conda: true
-        environment-file: environment.yml
         python-version: ${{ matrix.python_version }}
     - name: Install CI dependencies
       run: |
@@ -100,7 +98,6 @@ jobs:
         use-mamba: true
         auto-update-conda: true
         python-version: 3.7
-        environment-file: environment.yml
     - name: Build source distribution
       run: |
         python setup.py sdist
