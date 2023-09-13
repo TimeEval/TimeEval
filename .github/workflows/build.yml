@@ -16,13 +16,12 @@ jobs:
     name: Typecheck TimeEval on ubuntu with python 3.7
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v2.2.0
         with:
           use-mamba: true
           auto-update-conda: true
-          environment-file: environment.yml
           python-version: "3.7"
       - name: Install CI dependencies
         run: |
@@ -41,13 +40,12 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.2.0
       with:
         use-mamba: true
         auto-update-conda: true
-        environment-file: environment.yml
         python-version: ${{ matrix.python_version }}
     - name: Install CI dependencies
       run: |
@@ -93,14 +91,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.2.0
       with:
         use-mamba: true
         auto-update-conda: true
         python-version: 3.7
-        environment-file: environment.yml
     - name: Build source distribution
       run: |
         python setup.py sdist
@@ -119,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build manylinux Python wheels
         uses: RalfG/python-wheels-manylinux-build@v0.4.2-manylinux2010_x86_64
         with:
