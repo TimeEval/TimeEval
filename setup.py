@@ -16,37 +16,15 @@ VERSION: str = __version__  # noqa
 
 
 def load_dependencies():
-    try:
-        import yaml
-    except ImportError:
-        import pip
-        pip.main(["install", "pyyaml"])
-        import yaml
-
     EXCLUDES = ["python", "pip"]
-    with open(HERE / "environment.yml", "r", encoding="UTF-8") as f:
-        env = yaml.safe_load(f)
-
-    def split_deps(deps):
-        pip_deps = list(filter(lambda x: isinstance(x, dict), deps))
-        if len(pip_deps) == 1:
-            pip_deps = pip_deps[0].get("pip", []) or []
-        conda = list(filter(lambda x: not isinstance(x, dict), deps))
-        conda = list(map(lambda x: x.split("::")[-1], conda))
-        return pip_deps, conda
-
-    def to_pip(dep):
-        if "<" in dep or ">" in dep:
-            return dep
-        else:
-            return dep.replace("=", "==")
+    with open(HERE / "requirements.txt", "r", encoding="UTF-8") as f:
+        env = f.readlines()
 
     def excluded(name):
         return any([excl in name for excl in EXCLUDES])
 
-    pip_deps, conda_deps = split_deps(env.get("dependencies", []))
-    conda_deps = [to_pip(dep) for dep in conda_deps if not excluded(dep)]
-    return conda_deps + pip_deps
+    deps = [dep for dep in env if not excluded(dep)]
+    return deps
 
 
 class PyTestCommand(Command):
