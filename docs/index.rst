@@ -26,16 +26,16 @@ TimeEval can be configured using a simple Python API and comes with
 and `algorithms <https://github.com/HPI-Information-Systems/TimeEval-algorithms>`_.
 
 TimeEval takes your input and automatically creates experiment configurations by taking the cross-product of your inputs.
-It executes all experiment configurations one after the other or - when distributed - in parallel and records the anomaly detection quality and the runtime of the algorithms.
+It executes all experiment configurations one after the other or — when distributed — in parallel and records the anomaly detection quality and the runtime of the algorithms.
 
 TimeEval takes four inputs for the experiment creation:
 
 1. Algorithms
 2. Datasets
-3. Algorithm ParameterGrids
+3. Algorithm hyperparameter specifications
 4. A repetition number
 
-The following code snippet shows a simple example experiment evaluating `LOF <https://github.com/HPI-Information-Systems/TimeEval-algorithms/tree/main/lof>`_
+The following code snippet shows a simple example experiment evaluating `COF <https://github.com/HPI-Information-Systems/TimeEval-algorithms/tree/main/cof>`_
 and a simple baseline algorithm on some test data:
 
 .. literalinclude:: ../easy-example-experiment.py
@@ -47,20 +47,20 @@ and a simple baseline algorithm on some test data:
 Features
 ^^^^^^^^
 
-Listing :ref:`example-experiment-py` illustrates some of the main features of TimeEval:
+Listing :ref:`example-experiment-py` illustrates some main features of TimeEval:
 
 Dataset API:
-   :doc:`Interface <api/timeeval.datasets>` to available dataset collection to select datasets easily (L19-20).
+   :doc:`Interface <api/timeeval.datasets>` to available dataset collection to select datasets easily (L21-22).
 Algorithm Adapter Architecture:
-   TimeEval supports different algorithm adapters to execute simple Python functions or whole pipelines and applications (L25, L35).
+   TimeEval supports different algorithm adapters to execute simple Python functions or whole pipelines and applications (L27, L38).
 Hyperparameter Specification:
-   Algorithm hyperparameters can be specified using different search grids (L26-29).
+   Algorithm hyperparameters can be specified using different search grids (L28-31).
 Metrics:
    TimeEval provides various evaluation metrics (such as :attr:`timeeval.utils.metrics.DefaultMetrics.ROC_AUC`,
    :attr:`timeeval.utils.metrics.DefaultMetrics.RANGE_PR_AUC`, or :attr:`timeeval.utils.metrics.FScoreAtK`)
-   and measures algorithm runtimes automatically (L42).
+   and measures algorithm runtimes automatically (L43).
 Distributed Execution:
-   TimeEal can be deployed on a compute cluster to execute evaluation tasks distributedly.
+   TimeEval can be deployed on a compute cluster to execute evaluation tasks distributedly.
 
 Installation
 ^^^^^^^^^^^^
@@ -79,7 +79,7 @@ TimeEval is published to `PyPI <https://pypi.org>`_ and you can install it using
 
 .. attention::
 
-   Currently TimeEval is tested only on Linux systems and relies on unixoid capabilities.
+   Currently, TimeEval is tested only on Linux systems and relies on unix-oid capabilities.
 
 
 License
@@ -93,7 +93,7 @@ If you use TimeEval in your project or research, please cite our demonstration p
    TimeEval: A Benchmarking Toolkit for Time Series Anomaly Detection Algorithms. PVLDB, 15(12): 3678 - 3681, 2022.
    doi:`10.14778/3554821.3554873 <https://doi.org/10.14778/3554821.3554873>`_
 
-You can use the following BibTex entry:
+You can use the following BibTeX entry:
 
 .. code-block:: bibtex
 

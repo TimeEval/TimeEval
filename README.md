@@ -86,7 +86,7 @@ pip install dist/TimeEval-*-py3-none-any.whl
 The following tools are required to install TimeEval from source:
 
 - git
-- python/pip (anaconda or miniconda is preferred)
+- Python > 3.7 and Pip (anaconda or miniconda is preferred)
 
 #### Steps
 

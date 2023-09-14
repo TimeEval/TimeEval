@@ -18,7 +18,7 @@ class DatasetAnalyzer:
     """Utility class to analyze a dataset and infer metadata about the dataset.
 
     Use this class to compute necessary metadata from a time series. The computation is started directly when
-    instantiating this class. You can access the results using the property ``metadata``. There multiple ways to
+    instantiating this class. You can access the results using the property ``metadata``. There are multiple ways to
     instantiate this class, but you always have to specify the dataset ID, because it is part of the metadata:
 
         1. Use an existing pandas data frame object. Supply a value to the parameter `df`.
@@ -112,7 +112,7 @@ class DatasetAnalyzer:
         """Save the computed metadata for a dataset to disk.
 
         This method writes a dataset's metadata to a JSON-formatted file to disk. The file contains a list of
-        metadata specifications. One specification for the test time series and potentially another one for the test
+        metadata specifications. One specification for the test time series and potentially another one for the train
         time series. Since the DatasetAnalyzer just analyzes a single time series at a time, this method appends the
         current metadata to the existing list per default. If you want to overwrite the existing content of the file,
         you can use the parameter `overwrite`.

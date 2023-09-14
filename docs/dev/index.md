@@ -7,8 +7,9 @@
 ```bash
 git clone git@gitlab.hpi.de:akita/bp2020fn1/timeeval.git
 cd timeeval/
-conda env create --file environment.yml
+conda create -n timeeval python=3.7
 conda activate timeeval
+pip install -r requirements.txt
 python setup.py install
 ```
 
@@ -17,17 +18,23 @@ python setup.py install
 The following tools are required to install TimeEval from source:
 
 - git
-- conda (anaconda or miniconda)
+- Python > 3.7 and Pip (anaconda or miniconda is preferred)
 
 ### Steps
 
 1. Clone this repository using git and change into its root directory.
 2. Create a conda-environment and install all required dependencies.
-   Use the file `environment.yml` for this:
-   `conda env create --file environment.yml`.
-3. Activate the new environment and install TimeEval using _setup.py_:
-   `python setup.py install`.
-4. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
+   ```sh
+   conda create -n timeeval python=3.7
+   conda activate timeeval
+   pip install -r requirements.txt
+   ```
+3. Build TimeEval:
+   `python setup.py bdist_wheel`.
+   This should create a Python wheel in the `dist/`-folder.
+4. Install TimeEval and all of its dependencies:
+   `pip install dist/TimeEval-*-py3-none-any.whl`.
+5. If you want to make changes to TimeEval or run the tests, you need to install the development dependencies from `requirements.dev`:
    `pip install -r requirements.dev`.
 
 ## Tests
@@ -44,10 +51,10 @@ or
 pytest tests
 ```
 
-If you want to run the tests that include docker and dask, you need to fulfill some prerequesites:
+If you want to run the tests that include docker and dask, you need to fulfill some prerequisites:
 
-- Docker is installed and running
-- Your SSH-server is running, and you can SSH to `localhost` with your users without supplying a password.
+- Docker is installed and running.
+- Your SSH-server is running, and you can SSH to `localhost` with your user without supplying a password.
 - You have installed all TimeEval dev dependencies.
 
 You can then run:
