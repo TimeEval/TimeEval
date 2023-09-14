@@ -16,6 +16,9 @@ if TYPE_CHECKING:
 class DatasetIdHeuristic(TimeEvalParameterHeuristic):
     """Heuristic to pass the dataset ID as a parameter value.
 
+    The dataset ID is a tuple of the collection name and the dataset name, such as
+    ``("KDD-TSAD", "022_UCR_Anomaly_DISTORTEDGP711MarkerLFM5z4")``.
+
     Examples
     --------
     >>> from timeeval import Algorithm, TrainingType, InputDimensionality
