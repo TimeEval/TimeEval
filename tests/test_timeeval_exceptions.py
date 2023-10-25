@@ -1,3 +1,4 @@
+from copy import deepcopy
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from tests.fixtures.algorithms import ErroneousAlgorithm
-from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, Status, ResourceConstraints
+from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, Status, ResourceConstraints, TrainingType
 from timeeval.adapters import FunctionAdapter
 
 
@@ -81,3 +82,10 @@ class TestTimeEvalExceptions(unittest.TestCase):
 
         self.assertEqual(r[r.algorithm == "exception"].iloc[0].status, Status.ERROR)
         self.assertIn(ERROR_MESSAGE, r[r.algorithm == "exception"].iloc[0].error_message)
+
+    def test_no_experiments(self):
+        algo = deepcopy(self.identity_algorithm)
+        algo.training_type = TrainingType.SUPERVISED
+        with self.assertRaises(AssertionError) as ex:
+            TimeEval(self.datasets, [("test", "dataset-int")], [algo])
+        self.assertRegex(str(ex.exception), "[Nn]o [Vv]alid [Ee]xperiments")

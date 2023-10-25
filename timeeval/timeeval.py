@@ -300,6 +300,11 @@ class TimeEval:
                                 force_dimensionality_match=force_dimensionality_match,
                                 metrics=self.metrics,
                                 experiment_combinations_file=experiment_combinations_file)
+        assert len(self.exps) != 0, "No valid experiments configured! Please check that the input dimensionality and " \
+                                    "training type of algorithms and datasets match. You can use the parameters "\
+                                    "``skip_invalid_combinations``, ``force_training_type_match``, "\
+                                    "``force_dimensionality_match``, and ``experiment_combinations_file`` to control " \
+                                    "which algorithm runs on which dataset."
 
         self.remote_config: RemoteConfiguration = remote_config or RemoteConfiguration()
         self.remote_config.update_logging_path(self.results_path)
@@ -547,10 +552,10 @@ class TimeEval:
         )
 
     def _prepare(self) -> None:
-        n = len(self.exps)
-        self.log.debug(f"Running {n} algorithm prepare steps")
+        self.log.debug(f"Running {len(self.exps.algorithms)} algorithm prepare steps")
         for algorithm in self.exps.algorithms:
             algorithm.prepare()
+        n = len(self.exps)
         self.log.debug(f"Creating {n} result directories")
         for exp in self.exps:
             exp.results_path.mkdir(parents=True, exist_ok=True)
