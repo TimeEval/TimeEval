@@ -227,8 +227,8 @@ class Experiments:
                         # create parameter hash before executing heuristics
                         # (they replace the parameter values, but we want to be able to group by original configuration)
                         params_id = algorithm_config.uid()
-                        params = inject_heuristic_values(algorithm_config, algorithm, dataset, test_path)
                         if self._should_be_run(algorithm, dataset, params_id):
+                            params = inject_heuristic_values(algorithm_config, algorithm, dataset, test_path)
                             for repetition in range(1, self.repetitions + 1):
                                 yield Experiment(
                                     algorithm=algorithm,
