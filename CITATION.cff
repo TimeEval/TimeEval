@@ -9,7 +9,7 @@ authors:
     orcid: https://orcid.org/0000-0002-8942-4322
 title: "TimeEval: A Benchmarking Toolkit for Time Series Anomaly Detection Algorithms"
 date-released: 2022
-url: "https://github.com/HPI-Information-Systems/TimeEval"
+url: "https://github.com/TimeEval/TimeEval"
 preferred-citation:
   type: article
   authors:

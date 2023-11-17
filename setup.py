@@ -111,7 +111,7 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         author="Phillip Wenig and Sebastian Schmidl",
         author_email="phillip.wenig@hpi.de",
-        url="https://github.com/HPI-Information-Systems/TimeEval",
+        url="https://github.com/TimeEval/TimeEval",
         license="MIT",
         classifiers=[
             "License :: OSI Approved :: MIT License",

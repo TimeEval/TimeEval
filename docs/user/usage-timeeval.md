@@ -17,7 +17,7 @@ For the latter, we included datasets with categorical labels, where a single cla
 One example for this is an ECG signal with beat annotations, where most beats are annotated as normal beats, but some beats are premature or superventricular heart beats.
 The premature or superventricular heart beats can then be labelled as anomalous while the rest of the time series is normal behavior.
 Overall, we collected 1354 datasets (as of May 2022).
-For more details about the datasets, we refer you to the [_Datasets_ page](https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html) of the repeatability website of our evaluation paper (doi:[10.14778/3538598.3538602](https://doi.org/10.14778/3538598.3538602)).
+For more details about the datasets, we refer you to the [_Datasets_ page](https://timeeval.github.io/evaluation-paper/notebooks/Datasets.html) of the repeatability website of our evaluation paper (doi:[10.14778/3538598.3538602](https://doi.org/10.14778/3538598.3538602)).
 
 We grouped the datasets into 24 different dataset collection for easier download and management.
 The collections group datasets from a common source together, and you can download each dataset collection separately.
@@ -30,7 +30,7 @@ The index-File (named `datasets.csv`) for the paper's benchmark datasets can be 
 ```{warning}
 The _GutenTAG_ dataset collection comes with its own index-file!
 
-The GutenTAG collection contains synthetically generated datasets using the [GutenTAG](https://github.com/HPI-Information-Systems/gutentag) dataset generator.
+The GutenTAG collection contains synthetically generated datasets using the [GutenTAG](https://github.com/TimeEval/gutentag) dataset generator.
 It is compatible to TimeEval and generates TimeEval-compatible datasets and also the necessary metadata for the index-File.
 ```
 
@@ -90,8 +90,8 @@ This section is just for your convenience, and we don't update it very frequentl
 - [index-File ⬇](https://nextcloud.hpi.de/s/3ciMX4yAn8yC5Lb/download) (`datasets.csv`, <1MB)
 - [CalIt2 ⬇](https://nextcloud.hpi.de/s/i4HNX5StwBdkjFJ/download) (<1MB)
 - [Daphnet ⬇](https://nextcloud.hpi.de/s/sD8KNDF7JBR3Ajo/download) (15MB)
-- [Dodgers ⬇](https://nextcloud.hpi.de/s/kj8fi8csPdsRXws/download) (<1MB))
-- [Exathlon ⬇](https://nextcloud.hpi.de/s/ME9EJcpBa5i4HGq/download) (106MB))
+- [Dodgers ⬇](https://nextcloud.hpi.de/s/kj8fi8csPdsRXws/download) (<1MB)
+- [Exathlon ⬇](https://nextcloud.hpi.de/s/ME9EJcpBa5i4HGq/download) (106MB)
 - [GHL ⬇](https://nextcloud.hpi.de/s/trKcAzSxm3A4PMW/download) (153MB)
 - [Genesis ⬇](https://nextcloud.hpi.de/s/Y3yq3CnnMarXzSJ/download) (<1MB)
 - [KDD-TSAD ⬇](https://nextcloud.hpi.de/s/3ZbWw478teRJLzB/download) (110MB)
@@ -119,7 +119,7 @@ If you want to integrate your own algorithm into TimeEval, please read [](integr
 
 We collected over 70 time series anomaly detection algorithms and integrated them into TimeEval (as of May 2022).
 All of our algorithm implementation make use of the {class}`~timeeval.adapters.docker.DockerAdapter` to allow you to use all features of TimeEval with them (such as resource restrictions, timeout, and fair runtime measurements).
-You can find the TimeEval algorithm implementations on GitHub: <https://github.com/HPI-Information-Systems/TimeEval-algorithms>.
+You can find the TimeEval algorithm implementations on GitHub: <https://github.com/TimeEval/TimeEval-algorithms>.
 Using Docker images to bundle an algorithm for TimeEval also allows easy integration of new algorithms because there are no requirements regarding programming languages, frameworks, or tools.
 Besides the many benefits, using Docker images to bundle algorithms makes preparing them for use with TimeEval a bit more cumbursome.
 
@@ -134,10 +134,10 @@ However, this should be a community effort.
 Please follow the following steps to prepare the algorithms to be evaluated with TimeEval.
 For further details about the Algorithm integration concept, please read the concept page [](../concepts/algorithms.md).
 
-1. Clone or download the [timeeval-algorithms repository](https://github.com/HPI-Information-Systems/TimeEval-algorithms)
+1. Clone or download the [timeeval-algorithms repository](https://github.com/TimeEval/TimeEval-algorithms)
 2. Build the base Docker image for your algorithm.
    You can find the image dependencies in the README-file of the repository.
-   The base images are located in the folder [`0-base-images`](https://github.com/HPI-Information-Systems/TimeEval-algorithms/tree/main/0-base-images).
+   The base images are located in the folder [`0-base-images`](https://github.com/TimeEval/TimeEval-algorithms/tree/main/0-base-images).
    Please make sure that you tag your image correctly (the image name must match the `FROM`-clause in your algorithm image; **this includes the image tag**).
    To be sure, you can tag the images based on our naming scheme, which uses the prefix `registry.gitlab.hpi.de/akita/i/`.
 3. Optionally build an intermediate image, such as `registry.gitlab.hpi.de/akita/i/tsmp`, required for some algorithms.
@@ -145,7 +145,7 @@ For further details about the Algorithm integration concept, please read the con
 
 Repeat the above steps for all algorithms that you want to execute with TimeEval.
 Creating a script to build all algorithm images is left as an exercise for the reader (tip: use [`find`](https://www.gnu.org/software/findutils/manual/html_node/find_html/Invoking-find.html#Invoking-find) to get the correct folder and image names, and iterate over them).
-The README of the timeeval-algorithms repository contains [example calls](https://github.com/HPI-Information-Systems/TimeEval-algorithms#testing-an-algorithm-and-its-timeeval-integration) to test the algorithm Docker images.
+The README of the timeeval-algorithms repository contains [example calls](https://github.com/TimeEval/TimeEval-algorithms#testing-an-algorithm-and-its-timeeval-integration) to test the algorithm Docker images.
 
 ## Configure evaluation run
 

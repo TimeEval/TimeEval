@@ -7,7 +7,7 @@ This means that you have to create a Docker image for your algorithm before you 
 
 In the following, we assume that you want to create a Docker image with your algorithm to execute it with TimeEval.
 We provide base images for various programming languages.
-You can find them [here](https://github.com/HPI-Information-Systems/TimeEval-algorithms/tree/main/0-base-images).
+You can find them [here](https://github.com/TimeEval/TimeEval-algorithms/tree/main/0-base-images).
 
 ## Procedure
 
@@ -17,8 +17,8 @@ There are three main steps:
 
 ### (i) Prepare the base image
 
-1. Clone the [`timeeval-algorithms`-repository](https://github.com/HPI-Information-Systems/TimeEval-algorithms)
-2. Build the selected base image from [`0-base-images`](https://github.com/HPI-Information-Systems/TimeEval-algorithms/tree/main/0-base-images).
+1. Clone the [`timeeval-algorithms`-repository](https://github.com/TimeEval/TimeEval-algorithms)
+2. Build the selected base image from [`0-base-images`](https://github.com/TimeEval/TimeEval-algorithms/tree/main/0-base-images).
    Please make sure that you tag your image correctly (the image name must match the `FROM`-clause in your algorithm image).
 
    - change to the `0-base-images` folder: `cd 0-base-images`
@@ -68,7 +68,7 @@ Once you are familiar with the concepts, you can adapt your algorithm and create
    - Check if the algorithm parameters are correctly set using TimeEval's call format.
    - Check if the anomaly scores are written in the correct format (an anomaly score value for each point of the original time series in a headerless CSV-file).
 
-   The [README](https://github.com/HPI-Information-Systems/TimeEval-algorithms#usage) of the [`timeeval-algorithms`-repository](https://github.com/HPI-Information-Systems/TimeEval-algorithms) provides further details and instructions on how to create and test TimeEval algorithm images, including example calls.
+   The [README](https://github.com/TimeEval/TimeEval-algorithms#usage) of the [`timeeval-algorithms`-repository](https://github.com/TimeEval/TimeEval-algorithms) provides further details and instructions on how to create and test TimeEval algorithm images, including example calls.
 
 ### (iii) Use algorithm image within TimeEval
 

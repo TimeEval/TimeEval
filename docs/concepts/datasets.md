@@ -24,7 +24,7 @@ timestamp,value,is_anomaly
 
 ## Registering datasets
 
-TimeEval comes with its own collection of benchmark datasets (**currently not included**, download them [from our website](https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html)).
+TimeEval comes with its own collection of benchmark datasets (**currently not included**, download them [from our website](https://timeeval.github.io/evaluation-paper/notebooks/Datasets.html)).
 They can directly be used from the dataset manager `DatasetManager`:
 
 ```python
@@ -82,7 +82,7 @@ dm.load_custom_datasets(custom_datasets_path)
 
 Datasets in different formats should be transformed in TimeEval's canonical file format.
 TimeEval provides a utility script to perform this transformation: `scripts/preprocess_dataset.py`.
-You can download this scrip from its [GitHub repository](https://github.com/HPI-Information-Systems/TimeEval).
+You can download this scrip from its [GitHub repository](https://github.com/TimeEval/TimeEval).
 
 A single dataset can be provided in two Numpy-readable text files.
 The first text file contains the data.

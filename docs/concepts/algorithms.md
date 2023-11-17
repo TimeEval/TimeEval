@@ -150,7 +150,7 @@ If `n_jobs > 1`, the algorithms are executed in parallel.
 ## Algorithms provided with TimeEval
 
 All algorithms that we provide with TimeEval use the {class}`~timeeval.adapters.docker.DockerAdapter` as adapter-implementation to allow you to use all features of TimeEval with them (such as resource restrictions, timeout, and fair runtime measurements).
-You can find the TimeEval algorithm implementations on Github: <https://github.com/HPI-Information-Systems/TimeEval-algorithms>.
+You can find the TimeEval algorithm implementations on Github: <https://github.com/TimeEval/TimeEval-algorithms>.
 Using Docker images to bundle an algorithm for TimeEval also allows easy integration of new algorithms because there are no requirements regarding programming languages, frameworks, or tools.
 However, using Docker images to bundle algorithms makes preparing them for use with TimeEval a bit more cumbursome (cf. [](../user/integrate-algorithm.md)).
 
@@ -187,7 +187,7 @@ In addition to the root base images, we also provide some derived base images th
 | timeeval-test-algorithm | `registry.gitlab.hpi.de/akita/i/timeeval-test-algorithm` | Test image for TimeEval tests that use docker; is based on `registry.gitlab.hpi.de/akita/i/python3-base`. |
 | python3-torch | `registry.gitlab.hpi.de/akita/i/python3-torch` | Base image for TimeEval methods that use python3 (version 3.7.9) and PyTorch (version 1.7.1); includes default python packages and torch; is based on `registry.gitlab.hpi.de/akita/i/python3-base`. |
 
-You can find all current base images in the [`timeeval-algorithms`-repository](https://github.com/HPI-Information-Systems/TimeEval-algorithms/tree/main/0-base-images).
+You can find all current base images in the [`timeeval-algorithms`-repository](https://github.com/TimeEval/TimeEval-algorithms/tree/main/0-base-images).
 
 ### TimeEval algorithm interface
 

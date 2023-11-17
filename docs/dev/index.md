@@ -5,7 +5,7 @@
 **tl;dr**
 
 ```bash
-git clone git@gitlab.hpi.de:akita/bp2020fn1/timeeval.git
+git clone git@github.com:timeeval/timeeval.git
 cd timeeval/
 conda create -n timeeval python=3.7
 conda activate timeeval

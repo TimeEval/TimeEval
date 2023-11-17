@@ -1,13 +1,13 @@
 <div align="center">
-<img width="100px" src="https://github.com/HPI-Information-Systems/TimeEval/raw/main/timeeval-icon.png" alt="TimeEval logo"/>
+<img width="100px" src="https://github.com/TimeEval/TimeEval/raw/main/timeeval-icon.png" alt="TimeEval logo"/>
 <h1 align="center">TimeEval</h1>
 <p>
 Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 </p>
 
-[![CI](https://github.com/HPI-Information-Systems/TimeEval/actions/workflows/build.yml/badge.svg)](https://github.com/HPI-Information-Systems/TimeEval/actions/workflows/build.yml)
+[![CI](https://github.com/TimeEval/TimeEval/actions/workflows/build.yml/badge.svg)](https://github.com/TimeEval/TimeEval/actions/workflows/build.yml)
 [![Documentation Status](https://readthedocs.org/projects/timeeval/badge/?version=latest)](https://timeeval.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/HPI-Information-Systems/TimeEval/branch/main/graph/badge.svg?token=esrQJQmMQe)](https://codecov.io/gh/HPI-Information-Systems/TimeEval)
+[![codecov](https://codecov.io/gh/TimeEval/TimeEval/branch/main/graph/badge.svg?token=esrQJQmMQe)](https://codecov.io/gh/TimeEval/TimeEval)
 [![PyPI version](https://badge.fury.io/py/TimeEval.svg)](https://badge.fury.io/py/TimeEval)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![python version 3.7|3.8|3.9](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
@@ -15,7 +15,7 @@ Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 
 </div>
 
-See [TimeEval Algorithms](https://github.com/HPI-Information-Systems/TimeEval-algorithms) for algorithms that are compatible to this tool.
+See [TimeEval Algorithms](https://github.com/TimeEval/TimeEval-algorithms) for algorithms that are compatible to this tool.
 The algorithms in that repository are containerized and can be executed using the [`DockerAdapter`](./timeeval/adapters/docker.py) of TimeEval.
 
 > If you use TimeEval, please consider [citing](#citation) our paper.
@@ -32,7 +32,7 @@ The algorithms in that repository are containerized and can be executed using th
   - DistributedAdapter
   - MultivarAdapter
   - ... (add your own adapter)
-- Large collection of existing algorithm implementations (in [TimeEval Algorithms](https://github.com/HPI-Information-Systems/TimeEval-algorithms) repository)
+- Large collection of existing algorithm implementations (in [TimeEval Algorithms](https://github.com/TimeEval/TimeEval-algorithms) repository)
 - Automatic algorithm detection quality scoring using [AUC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve)
   (Area under the ROC curve, also _c-statistic_) or range-based metrics
 - Automatic timing of the algorithm execution (differentiates pre-, main-, and post-processing)
@@ -72,7 +72,7 @@ pip install TimeEval
 **tl;dr**
 
 ```bash
-git clone git@github.com:HPI-Information-Systems/TimeEval.git
+git clone git@github.com:TimeEval/TimeEval.git
 cd timeeval/
 conda create -n timeeval python=3.7
 conda activate timeeval

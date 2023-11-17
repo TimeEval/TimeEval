@@ -1,6 +1,6 @@
 # Algorithm Code Generator
 
-This module can generate the algorithm call functions for the algorithms from the [TimeEval Algorithms repo](https://gitlab.hpi.de/akita/timeeval-algorithms) and the parameter settings from the parameter matrix file.
+This module can generate the algorithm call functions for the algorithms from the [TimeEval Algorithms repo](https://github.com/timeeval/timeeval-algorithms) and the parameter settings from the parameter matrix file.
 
 ## Usage
 

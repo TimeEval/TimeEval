@@ -22,8 +22,8 @@ Overview
 TimeEval is an evaluation tool for time series anomaly detection algorithms.
 It defines common interfaces for datasets and algorithms to allow the efficient comparison of the algorithms' quality and runtime performance.
 TimeEval can be configured using a simple Python API and comes with
-`a large collection of compatible datasets <https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html>`_
-and `algorithms <https://github.com/HPI-Information-Systems/TimeEval-algorithms>`_.
+`a large collection of compatible datasets <https://timeeval.github.io/evaluation-paper/notebooks/Datasets.html>`_
+and `algorithms <https://github.com/TimeEval/TimeEval-algorithms>`_.
 
 TimeEval takes your input and automatically creates experiment configurations by taking the cross-product of your inputs.
 It executes all experiment configurations one after the other or — when distributed — in parallel and records the anomaly detection quality and the runtime of the algorithms.
@@ -35,7 +35,7 @@ TimeEval takes four inputs for the experiment creation:
 3. Algorithm hyperparameter specifications
 4. A repetition number
 
-The following code snippet shows a simple example experiment evaluating `COF <https://github.com/HPI-Information-Systems/TimeEval-algorithms/tree/main/cof>`_
+The following code snippet shows a simple example experiment evaluating `COF <https://github.com/TimeEval/TimeEval-algorithms/tree/main/cof>`_
 and a simple baseline algorithm on some test data:
 
 .. literalinclude:: ../easy-example-experiment.py
@@ -148,10 +148,10 @@ process of improving TimeEval and its ecosystem.
 Additional Links
 ================
 
-* `TimeEval Github repository <https://github.com/HPI-Information-Systems/TimeEval>`_
-* `TimeEval algorithms <https://github.com/HPI-Information-Systems/TimeEval-algorithms>`_
-* `Datasets <https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html>`_ for TimeEval
-* `TimeEval GUI <https://github.com/HPI-Information-Systems/TimeEval-GUI>`_ (prototype)
-* Time series anomaly dataset generator `GutenTAG <https://github.com/HPI-Information-Systems/gutentag>`_
+* `TimeEval Github repository <https://github.com/TimeEval/TimeEval>`_
+* `TimeEval algorithms <https://github.com/TimeEval/TimeEval-algorithms>`_
+* `Datasets <https://timeeval.github.io/evaluation-paper/notebooks/Datasets.html>`_ for TimeEval
+* `TimeEval GUI <https://github.com/TimeEval/TimeEval-GUI>`_ (prototype)
+* Time series anomaly dataset generator `GutenTAG <https://github.com/TimeEval/gutentag>`_
 * :ref:`modindex`
 * :ref:`search`

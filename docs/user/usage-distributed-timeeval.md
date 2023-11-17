@@ -46,7 +46,7 @@ There are different ways to get the Docker images to all hosts:
   This can be accomplished using image export and import.
   You can follow these rough outline of steps: `docker build`, [`docker image save`](https://docs.docker.com/engine/reference/commandline/image_save/), `rsync` to all machines, [`docker image import`](https://docs.docker.com/engine/reference/commandline/image_import/)
 - Push / publish image to a registry available to you (if it's public, you would be responsible for maintaining it)
-- [Host your own registry](https://docs.docker.com/registry/introduction/)
+- [Host your own registry](https://distribution.github.io/distribution/about/)
 
 At the end, TimeEval must be able to create the algorithms' Docker containers, otherwise it is not able to execute and evaluate them.
 
