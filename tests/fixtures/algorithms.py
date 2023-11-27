@@ -11,7 +11,12 @@ def deviating_from_1d(data: np.ndarray, fn: Callable) -> np.ndarray:
     return diffs / diffs.max()
 
 
-def deviating_from(data: np.ndarray, fn: Callable) -> np.ndarray:
+def deviating_from(dataset: AlgorithmParameter, fn: Callable) -> np.ndarray:
+    if isinstance(dataset, np.ndarray):
+        data = dataset
+    else:
+        data = np.genfromtxt(dataset, delimiter=",", usecols=[1], skip_header=1)
+
     if len(data.shape) == 1:
         return deviating_from_1d(data, fn)
 

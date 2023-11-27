@@ -30,7 +30,7 @@ class AggregationMethod(Enum):
         """Aggregates the channels using the specified method."""
         if isinstance(data, list):
             data = pd.DataFrame(np.stack(data, axis=1))
-        
+
         if self == self.MEAN:
             return data.mean(axis=1)
         elif self == self.MEDIAN:
@@ -44,10 +44,10 @@ class AggregationMethod(Enum):
     def combining_before(self) -> bool:
         """Returns whether the aggregation method combines the channels before or after running the anomaly detector."""
         return self == self.SUM_BEFORE
-    
+
 
 class MultivarAdapter(Adapter):
-    """An adapter that allows to apply univariate anomaly detectors to multiple dimensions of a timeseries. 
+    """An adapter that allows to apply univariate anomaly detectors to multiple dimensions of a timeseries.
     The adapter runs the anomaly detector on each dimension separately and aggregates the results using the specified aggregation method."""
 
     def __init__(self, adapter: Adapter, aggregation: AggregationMethod = AggregationMethod.MEAN) -> None:
@@ -57,14 +57,20 @@ class MultivarAdapter(Adapter):
         self._adapter = adapter
         self._aggregation = aggregation
 
-    def _get_timeseries(self, dataset: AlgorithmParameter) -> pd.DataFrame:
+    def _get_timeseries(self, dataset: AlgorithmParameter, with_anomaly: bool = True) -> pd.DataFrame:
         """Returns the timeseries as a pandas DataFrame."""
+
+        df: Optional[pd.DataFrame] = None
         if isinstance(dataset, Path):
-            return pd.read_csv(dataset, index_col=0)
+            df = pd.read_csv(dataset, index_col=0)
         elif isinstance(dataset, np.ndarray):
-            return pd.DataFrame(dataset)
+            df = pd.DataFrame(dataset)
         else:
             raise ValueError(f"Invalid dataset type: {type(dataset)}")
+
+        if with_anomaly:
+            return df.iloc[:, :-1]
+        return df
 
     def _split_timeseries_into_channels(self, dataset: AlgorithmParameter, tmp_dir: tempfile.TemporaryDirectory) -> List[AlgorithmParameter]:
         """Splits the timeseries into channels and stores the paths to the channels in self._channel_paths."""
@@ -75,7 +81,7 @@ class MultivarAdapter(Adapter):
             df[[column_name]].to_csv(channel_path)
             channel_paths.append(channel_path)
         return channel_paths
-    
+
     def _combine_channels(self, dataset: AlgorithmParameter, tmp_dir: tempfile.TemporaryDirectory) -> AlgorithmParameter:
         """Combines the channels into a single timeseries and stores the path to the timeseries in self._channel_paths."""
         channel_path = Path(tmp_dir) / "combined_test.csv"
@@ -85,9 +91,9 @@ class MultivarAdapter(Adapter):
 
     def _combine_channel_scores(self, scores: List[AlgorithmParameter]) -> AlgorithmParameter:
         """Combines the scores of the channels into a single score file."""
-        scores = pd.concat([self._get_timeseries(score) for score in scores], axis=1)
+        scores = pd.concat([self._get_timeseries(score, False) for score in scores], axis=1)
         scores = self._aggregation(scores)
-        return scores.values[:, 0]
+        return scores.values
 
     # Adapter overwrites
 
@@ -99,12 +105,11 @@ class MultivarAdapter(Adapter):
                 dataset_paths = [self._combine_channels(dataset, tmp_dir)]
             else:
                 dataset_paths = self._split_timeseries_into_channels(dataset, tmp_dir)
-            
+
             scores: List[AlgorithmParameter] = []
             for dataset_path in dataset_paths:
-                args["dataset"] = dataset_path
-                scores.append(self._adapter._call(dataset, args))
-            
+                scores.append(self._adapter._call(dataset_path, args))
+
             if not self._aggregation.combining_before:
                 return self._combine_channel_scores(scores)
             assert len(scores) == 1, "Expected only one score file when combining before"
