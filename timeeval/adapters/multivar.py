@@ -6,19 +6,28 @@ import tempfile
 import numpy as np
 import pandas as pd
 
-from timeeval.adapters.docker import DockerAdapter
-
 from .base import Adapter
 from ..data_types import AlgorithmParameter
 
 
 class AggregationMethod(Enum):
-    MEAN = 0  # aggregate channel scores using the element-wise mean
-    MEDIAN = 1  # aggregate channel scores using the element-wise median
-    MAX = 2  # aggregate channel scores using the element-wise max
-    SUM_BEFORE = 3  # sum the channels before running the anomaly detector
+    """
+    An enum that specifies how to aggregate the anomaly scores of the channels.
+
+    Choices
+    -------
+    MEAN : aggregate channel scores using the element-wise mean
+    MEDIAN : aggregate channel scores using the element-wise median
+    MAX : aggregate channel scores using the element-wise max
+    SUM_BEFORE : sum the channels before running the anomaly detector
+    """
+    MEAN = 0
+    MEDIAN = 1
+    MAX = 2
+    SUM_BEFORE = 3
 
     def __call__(self, data: Union[List[np.ndarray], pd.DataFrame]) -> pd.DataFrame:
+        """Aggregates the channels using the specified method."""
         if isinstance(data, list):
             data = pd.DataFrame(np.stack(data, axis=1))
         
@@ -33,6 +42,7 @@ class AggregationMethod(Enum):
 
     @property
     def combining_before(self) -> bool:
+        """Returns whether the aggregation method combines the channels before or after running the anomaly detector."""
         return self == self.SUM_BEFORE
     
 
@@ -40,9 +50,11 @@ class MultivarAdapter(Adapter):
     """An adapter that allows to apply univariate anomaly detectors to multiple dimensions of a timeseries. 
     The adapter runs the anomaly detector on each dimension separately and aggregates the results using the specified aggregation method."""
 
-    def __init__(self, docker_adapter: DockerAdapter, aggregation: AggregationMethod = AggregationMethod.MEAN) -> None:
-        """Initializes the adapter. Uses the specified DockerAdapter to run the anomaly detector on each dimension separately."""
-        self._docker_adapter = docker_adapter
+    def __init__(self, adapter: Adapter, aggregation: AggregationMethod = AggregationMethod.MEAN) -> None:
+        """Initializes the adapter. Uses the specified Adapter to run the anomaly detector on each dimension separately."""
+        assert not isinstance(adapter, MultivarAdapter), "Cannot nest MultivarAdapters"
+
+        self._adapter = adapter
         self._aggregation = aggregation
 
     def _get_timeseries(self, dataset: AlgorithmParameter) -> pd.DataFrame:
@@ -91,7 +103,7 @@ class MultivarAdapter(Adapter):
             scores: List[AlgorithmParameter] = []
             for dataset_path in dataset_paths:
                 args["dataset"] = dataset_path
-                scores.append(self._docker_adapter._call(dataset, args))
+                scores.append(self._adapter._call(dataset, args))
             
             if not self._aggregation.combining_before:
                 return self._combine_channel_scores(scores)
