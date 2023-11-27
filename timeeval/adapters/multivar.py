@@ -11,21 +11,15 @@ from ..data_types import AlgorithmParameter
 
 
 class AggregationMethod(Enum):
-    """
-    An enum that specifies how to aggregate the anomaly scores of the channels.
-
-    Properties
-    ----------
-
-    MEAN : aggregate channel scores using the element-wise mean
-    MEDIAN : aggregate channel scores using the element-wise median
-    MAX : aggregate channel scores using the element-wise max
-    SUM_BEFORE : sum the channels before running the anomaly detector
-    """
+    """An enum that specifies how to aggregate the anomaly scores of the channels."""
     MEAN = 0
+    """aggregates channel scores using the element-wise mean."""
     MEDIAN = 1
+    """aggregates channel scores using the element-wise median."""
     MAX = 2
+    """aggregates channel scores using the element-wise max."""
     SUM_BEFORE = 3
+    """sums the channels before running the anomaly detector."""
 
     def __call__(self, data: Union[List[np.ndarray], pd.DataFrame]) -> pd.DataFrame:
         """
