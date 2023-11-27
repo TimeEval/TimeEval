@@ -14,8 +14,9 @@ class AggregationMethod(Enum):
     """
     An enum that specifies how to aggregate the anomaly scores of the channels.
 
-    Choices
-    -------
+    Properties
+    ----------
+
     MEAN : aggregate channel scores using the element-wise mean
     MEDIAN : aggregate channel scores using the element-wise median
     MAX : aggregate channel scores using the element-wise max
@@ -27,7 +28,11 @@ class AggregationMethod(Enum):
     SUM_BEFORE = 3
 
     def __call__(self, data: Union[List[np.ndarray], pd.DataFrame]) -> pd.DataFrame:
-        """Aggregates the channels using the specified method."""
+        """
+        Aggregates the channels using the specified method.
+
+        :meta private:
+        """
         if isinstance(data, list):
             data = pd.DataFrame(np.stack(data, axis=1))
 
@@ -42,16 +47,30 @@ class AggregationMethod(Enum):
 
     @property
     def combining_before(self) -> bool:
-        """Returns whether the aggregation method combines the channels before or after running the anomaly detector."""
+        """
+        Returns whether the aggregation method combines the channels before or after running the anomaly detector.
+
+        :meta private:
+        """
         return self == self.SUM_BEFORE
 
 
 class MultivarAdapter(Adapter):
-    """An adapter that allows to apply univariate anomaly detectors to multiple dimensions of a timeseries.
-    The adapter runs the anomaly detector on each dimension separately and aggregates the results using the specified aggregation method."""
+    """
+    An adapter that allows to apply univariate anomaly detectors to multiple dimensions of a timeseries.
+    The adapter runs the anomaly detector on each dimension separately and aggregates the results using the specified aggregation method.
+
+    Parameters
+    ----------
+
+    adapter : Adapter
+        The :class:`~timeeval.adapters.Adapter` that runs the anomaly detector on each dimension.
+
+    aggregation : AggregationMethod
+        The :class:`~timeeval.adapters.multivar.AggregationMethod` to use to combine the anomaly scores of the dimensions.
+    """
 
     def __init__(self, adapter: Adapter, aggregation: AggregationMethod = AggregationMethod.MEAN) -> None:
-        """Initializes the adapter. Uses the specified Adapter to run the anomaly detector on each dimension separately."""
         assert not isinstance(adapter, MultivarAdapter), "Cannot nest MultivarAdapters"
 
         self._adapter = adapter
@@ -72,28 +91,28 @@ class MultivarAdapter(Adapter):
             return df.iloc[:, :-1]
         return df
 
-    def _split_timeseries_into_channels(self, dataset: AlgorithmParameter, tmp_dir: tempfile.TemporaryDirectory) -> List[AlgorithmParameter]:
+    def _split_timeseries_into_channels(self, dataset: AlgorithmParameter, tmp_dir: Path) -> List[Path]:
         """Splits the timeseries into channels and stores the paths to the channels in self._channel_paths."""
         channel_paths: List[Path] = []
         df = self._get_timeseries(dataset)
         for c, column_name in enumerate(df.columns):
-            channel_path = Path(tmp_dir) / f"channel_{c}.csv"
+            channel_path = tmp_dir / f"channel_{c}.csv"
             df[[column_name]].to_csv(channel_path)
             channel_paths.append(channel_path)
         return channel_paths
 
-    def _combine_channels(self, dataset: AlgorithmParameter, tmp_dir: tempfile.TemporaryDirectory) -> AlgorithmParameter:
+    def _combine_channels(self, dataset: AlgorithmParameter, tmp_dir: Path) -> Path:
         """Combines the channels into a single timeseries and stores the path to the timeseries in self._channel_paths."""
-        channel_path = Path(tmp_dir) / "combined_test.csv"
+        channel_path = tmp_dir / "combined_test.csv"
         combined = self._aggregation(self._get_timeseries(dataset))
         combined.to_csv(channel_path)
         return channel_path
 
-    def _combine_channel_scores(self, scores: List[AlgorithmParameter]) -> AlgorithmParameter:
+    def _combine_channel_scores(self, scores: List[AlgorithmParameter]) -> np.ndarray:
         """Combines the scores of the channels into a single score file."""
-        scores = pd.concat([self._get_timeseries(score, False) for score in scores], axis=1)
-        scores = self._aggregation(scores)
-        return scores.values
+        loaded_scores = pd.concat([self._get_timeseries(score, False) for score in scores], axis=1)
+        combined_scores: np.ndarray = self._aggregation(loaded_scores).values
+        return combined_scores
 
     # Adapter overwrites
 
@@ -102,9 +121,9 @@ class MultivarAdapter(Adapter):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dataset_paths: Optional[List[Path]] = None
             if self._aggregation.combining_before:
-                dataset_paths = [self._combine_channels(dataset, tmp_dir)]
+                dataset_paths = [self._combine_channels(dataset, Path(tmp_dir))]
             else:
-                dataset_paths = self._split_timeseries_into_channels(dataset, tmp_dir)
+                dataset_paths = self._split_timeseries_into_channels(dataset, Path(tmp_dir))
 
             scores: List[AlgorithmParameter] = []
             for dataset_path in dataset_paths:
