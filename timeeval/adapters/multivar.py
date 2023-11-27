@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Union, Optional
 from pathlib import Path
 import tempfile
 
@@ -18,23 +18,18 @@ class AggregationMethod(Enum):
     MAX = 2  # aggregate channel scores using the element-wise max
     SUM_BEFORE = 3  # sum the channels before running the anomaly detector
 
-    def __call__(self, data: Union[List[np.ndarray], pd.DataFrame]) -> np.ndarray:
+    def __call__(self, data: Union[List[np.ndarray], pd.DataFrame]) -> pd.DataFrame:
+        if isinstance(data, list):
+            data = pd.DataFrame(np.stack(data, axis=1))
+        
         if self == self.MEAN:
-            fn: Any = np.mean
+            return data.mean(axis=1)
         elif self == self.MEDIAN:
-            fn = np.median
+            return data.median(axis=1)
         elif self == self.MAX:
-            fn = np.max
+            return data.max(axis=1)
         else:  # self == self.SUM_BEFORE
-            fn = np.sum
-
-        if isinstance(data, pd.DataFrame):
-            data = data.values
-        elif isinstance(data, list):
-            data = np.stack(data, axis=1)
-
-        values: np.ndarray = fn(data, axis=1).reshape(-1)
-        return values
+            return data.sum(axis=1)
 
     @property
     def combining_before(self) -> bool:
@@ -49,59 +44,56 @@ class MultivarAdapter(Adapter):
         """Initializes the adapter. Uses the specified DockerAdapter to run the anomaly detector on each dimension separately."""
         self._docker_adapter = docker_adapter
         self._aggregation = aggregation
-        self._tmp_dir: Optional[tempfile.TemporaryDirectory] = None
-        self._channel_paths: List[Path] = []
 
-    def _get_timeseries_path(self) -> Path:
-        ...
+    def _get_timeseries(self, dataset: AlgorithmParameter) -> pd.DataFrame:
+        """Returns the timeseries as a pandas DataFrame."""
+        if isinstance(dataset, Path):
+            return pd.read_csv(dataset, index_col=0)
+        elif isinstance(dataset, np.ndarray):
+            return pd.DataFrame(dataset)
+        else:
+            raise ValueError(f"Invalid dataset type: {type(dataset)}")
 
-    def _split_timeseries_into_channels(self) -> None:
+    def _split_timeseries_into_channels(self, dataset: AlgorithmParameter, tmp_dir: tempfile.TemporaryDirectory) -> List[AlgorithmParameter]:
         """Splits the timeseries into channels and stores the paths to the channels in self._channel_paths."""
-        timeseries_path = self._get_timeseries_path()
-        df = pd.read_csv(timeseries_path, index_col=0)
-        self._tmp_dir = tempfile.TemporaryDirectory()
+        channel_paths: List[Path] = []
+        df = self._get_timeseries(dataset)
         for c, column_name in enumerate(df.columns):
-            channel_path = Path(self._tmp_dir) / f"channel_{c}.csv"
+            channel_path = Path(tmp_dir) / f"channel_{c}.csv"
             df[[column_name]].to_csv(channel_path)
-            self._channel_paths.append(channel_path)
+            channel_paths.append(channel_path)
+        return channel_paths
     
-    def _combine_channels(self) -> None:
+    def _combine_channels(self, dataset: AlgorithmParameter, tmp_dir: tempfile.TemporaryDirectory) -> AlgorithmParameter:
         """Combines the channels into a single timeseries and stores the path to the timeseries in self._channel_paths."""
-        timeseries_path = self._get_timeseries_path()
-        self._tmp_dir = tempfile.TemporaryDirectory()
-        channel_path = Path(self._tmp_dir) / "combined_test.csv"
-        combined = self._aggregation(pd.read_csv(timeseries_path, index_col=0))
-        df = pd.DataFrame(combined, columns=["combined"])
-        df.to_csv(channel_path)
+        channel_path = Path(tmp_dir) / "combined_test.csv"
+        combined = self._aggregation(self._get_timeseries(dataset))
+        combined.to_csv(channel_path)
+        return channel_path
 
-    def _combine_channel_scores(self) -> None:
+    def _combine_channel_scores(self, scores: List[AlgorithmParameter]) -> AlgorithmParameter:
         """Combines the scores of the channels into a single score file."""
-        scores = []
-        for channel_path in self._channel_paths:
-            scores.append(pd.read_csv(channel_path, index_col=0).values)
-        scores = pd.DataFrame(self._aggregation(scores), columns=["score"])
-        scores.to_csv(self._docker_adapter._result_path())
+        scores = pd.concat([self._get_timeseries(score) for score in scores], axis=1)
+        scores = self._aggregation(scores)
+        return scores.values[:, 0]
 
     # Adapter overwrites
 
     def _call(self, dataset: AlgorithmParameter, args: Dict[str, Any]) -> AlgorithmParameter:
-        return self._docker_adapter._call(dataset, args)
-
-    def get_prepare_fn(self) -> Optional[Callable[[], None]]:
-        """Returns a function that is called before the anomaly detector is run. This function is called only once per anomaly detection run."""
-        def prepare_fn():
-            self._docker_adapter.get_prepare_fn()()
+        """Calls the anomaly detector on each channel and aggregates the results or combines the channels and calls the anomaly detector on the combined timeseries."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dataset_paths: Optional[List[Path]] = None
             if self._aggregation.combining_before:
-                self._combine_channels()
+                dataset_paths = [self._combine_channels(dataset, tmp_dir)]
             else:
-                self._split_timeseries_into_channels()
-        return prepare_fn
-    
-    def get_finalize_fn(self) -> Optional[Callable[[], None]]:
-        """Returns a function that is called after the anomaly detector is run. This function is called only once per anomaly detection run."""
-        def finalize_fn():
-            self._docker_adapter.get_finalize_fn()()
+                dataset_paths = self._split_timeseries_into_channels(dataset, tmp_dir)
+            
+            scores: List[AlgorithmParameter] = []
+            for dataset_path in dataset_paths:
+                args["dataset"] = dataset_path
+                scores.append(self._docker_adapter._call(dataset, args))
+            
             if not self._aggregation.combining_before:
-                self._combine_channel_scores()
-            self._tmp_dir.cleanup()
-        return finalize_fn
+                return self._combine_channel_scores(scores)
+            assert len(scores) == 1, "Expected only one score file when combining before"
+            return scores[0]
