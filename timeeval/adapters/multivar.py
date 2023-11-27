@@ -52,7 +52,8 @@ class AggregationMethod(Enum):
 class MultivarAdapter(Adapter):
     """
     An adapter that allows to apply univariate anomaly detectors to multiple dimensions of a timeseries.
-    The adapter runs the anomaly detector on each dimension separately and aggregates the results using the specified aggregation method.
+    In one case, the adapter runs the anomaly detector on each dimension separately and aggregates the results using the specified aggregation method.
+    In the other case, the adapter combines the dimensions into a single timeseries and runs the anomaly detector on the combined timeseries.
 
     Parameters
     ----------
@@ -70,7 +71,7 @@ class MultivarAdapter(Adapter):
         self._adapter = adapter
         self._aggregation = aggregation
 
-    def _get_timeseries(self, dataset: AlgorithmParameter, with_anomaly: bool = True) -> pd.DataFrame:
+    def _get_timeseries(self, dataset: AlgorithmParameter, with_anomaly_channel: bool = True) -> pd.DataFrame:
         """Returns the timeseries as a pandas DataFrame."""
 
         df: Optional[pd.DataFrame] = None
@@ -81,7 +82,7 @@ class MultivarAdapter(Adapter):
         else:
             raise ValueError(f"Invalid dataset type: {type(dataset)}")
 
-        if with_anomaly:
+        if with_anomaly_channel:
             return df.iloc[:, :-1]
         return df
 

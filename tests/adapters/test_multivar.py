@@ -114,3 +114,4 @@ class TestMultivarAdapter(unittest.TestCase):
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 2)
         self.assertEqual(containers[0].status, "exited")
+        self.assertEqual(containers[1].status, "exited")
