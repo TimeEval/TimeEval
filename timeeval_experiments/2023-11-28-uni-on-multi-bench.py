@@ -25,6 +25,9 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
 )
 
+MAX_CONTAMINATION = 0.1
+MIN_ANOMALIES = 1
+
 random.seed(42)
 np.random.rand(42)
 
@@ -42,7 +45,11 @@ def define_datasets() -> Tuple[List[Tuple[str, str]], MultiDatasetManager]:
         HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK]
     ])
 
-    datasets = dm.select(input_dimensionality=InputDimensionality.MULTIVARIATE,)
+    datasets = dm.select(
+        input_dimensionality=InputDimensionality.MULTIVARIATE,
+        max_contamination=MAX_CONTAMINATION,
+        min_anomalies=MIN_ANOMALIES
+    )
 
     return datasets, dm
 
@@ -107,13 +114,13 @@ def main():
 
     cluster_config = RemoteConfiguration(
         scheduler_host=HPI_CLUSTER.odin01,
-        worker_hosts=HPI_CLUSTER.nodes,
+        worker_hosts=list(set(HPI_CLUSTER.nodes) - {HPI_CLUSTER.odin14}),
     )
     limits = ResourceConstraints(
-        tasks_per_host=10,
+        tasks_per_host=3,
         task_cpu_limit=1.,
-        task_memory_limit=6 * GB,
-        execute_timeout=Duration("4 hours"),
+        task_memory_limit=20 * GB,
+        execute_timeout=Duration("12 hours"),
     )
     timeeval = TimeEval(dm, datasets, algorithms,
                         repetitions=1,
