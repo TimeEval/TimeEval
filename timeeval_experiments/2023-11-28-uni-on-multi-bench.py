@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+import logging
+import sys
+import random
+from typing import List, Tuple
+
+import numpy as np
+from durations import Duration
+
+from timeeval import TimeEval, MultiDatasetManager, TrainingType, InputDimensionality, RemoteConfiguration
+from timeeval.algorithm import Algorithm
+from timeeval.constants import HPI_CLUSTER
+from timeeval.metrics import RocAUC, PrAUC, RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS
+from timeeval.resource_constraints import ResourceConstraints, GB
+from timeeval_experiments.algorithms import subsequence_lof, dwt_mlead, subsequence_if, norma, series2graph, kmeans, stamp, mstamp
+from timeeval.adapters.multivar import MultivarAdapter, AggregationMethod
+
+
+# Setup logging
+logging.basicConfig(
+    filename="timeeval.log",
+    filemode="a",
+    level=logging.INFO,
+    # force=True,
+    format="%(asctime)s %(levelname)6.6s - %(name)20.20s: %(message)s",
+)
+
+random.seed(42)
+np.random.rand(42)
+
+
+def wrap_multivar(algorithm: Algorithm, aggregation_method: AggregationMethod) -> Algorithm:
+    algorithm.name = f"{algorithm.name}_multi({aggregation_method.name})"
+    algorithm.training_type = TrainingType.UNSUPERVISED
+    algorithm.input_dimensionality = InputDimensionality.MULTIVARIATE
+    algorithm.main = MultivarAdapter(algorithm.main, aggregation_method)
+    return algorithm
+
+
+def define_datasets() -> Tuple[List[Tuple[str, str]], MultiDatasetManager]:
+    dm = MultiDatasetManager([
+        HPI_CLUSTER.akita_dataset_paths[HPI_CLUSTER.BENCHMARK]
+    ])
+
+    datasets = dm.select(input_dimensionality=InputDimensionality.MULTIVARIATE,)
+
+    return datasets, dm
+
+
+def define_algorithms() -> List[Algorithm]:
+    return [
+        wrap_multivar(subsequence_lof(), AggregationMethod.MEAN),
+        wrap_multivar(subsequence_lof(), AggregationMethod.MAX),
+        wrap_multivar(subsequence_lof(), AggregationMethod.SUM_BEFORE),
+
+        wrap_multivar(dwt_mlead(), AggregationMethod.MEAN),
+        wrap_multivar(dwt_mlead(), AggregationMethod.MAX),
+        wrap_multivar(dwt_mlead(), AggregationMethod.SUM_BEFORE),
+
+        wrap_multivar(subsequence_if(), AggregationMethod.MEAN),
+        wrap_multivar(subsequence_if(), AggregationMethod.MAX),
+        wrap_multivar(subsequence_if(), AggregationMethod.SUM_BEFORE),
+
+        wrap_multivar(norma(), AggregationMethod.MEAN),
+        wrap_multivar(norma(), AggregationMethod.MAX),
+        wrap_multivar(norma(), AggregationMethod.SUM_BEFORE),
+
+        wrap_multivar(series2graph(), AggregationMethod.MEAN),
+        wrap_multivar(series2graph(), AggregationMethod.MAX),
+        wrap_multivar(series2graph(), AggregationMethod.SUM_BEFORE),
+
+        wrap_multivar(kmeans(), AggregationMethod.MEAN),
+        wrap_multivar(kmeans(), AggregationMethod.MAX),
+        wrap_multivar(kmeans(), AggregationMethod.SUM_BEFORE),
+
+        wrap_multivar(stamp(), AggregationMethod.MEAN),
+        wrap_multivar(stamp(), AggregationMethod.MAX),
+        wrap_multivar(stamp(), AggregationMethod.SUM_BEFORE),
+
+        mstamp(),
+    ]
+
+
+def main():
+
+    algorithms = define_algorithms()
+    datasets, dm = define_datasets()
+
+    print("\nDatasets:")
+    print("=====================================================================================")
+    for collection in np.unique([c for (c, d) in datasets]):
+        print(collection)
+        cds = sorted([d for (c, d) in datasets if c == collection])
+        for cd in cds:
+            print(f"  {cd}")
+    print("=====================================================================================\n\n")
+
+    print("\nParameter configurations:")
+    print("=====================================================================================")
+    for algo in algorithms:
+        print(f"{algo.name}: {len(algo.param_config)}")
+    print("=====================================================================================\n\n")
+    print(f"Datasets: {len(datasets)}")
+    print(f"Algorithms: {len(algorithms)}")
+    sys.stdout.flush()
+
+
+    cluster_config = RemoteConfiguration(
+        scheduler_host=HPI_CLUSTER.odin01,
+        worker_hosts=HPI_CLUSTER.nodes,
+    )
+    limits = ResourceConstraints(
+        tasks_per_host=10,
+        task_cpu_limit=1.,
+        task_memory_limit=6 * GB,
+        execute_timeout=Duration("4 hours"),
+    )
+    timeeval = TimeEval(dm, datasets, algorithms,
+                        repetitions=1,
+                        distributed=True,
+                        remote_config=cluster_config,
+                        resource_constraints=limits,
+                        skip_invalid_combinations=True,
+                        metrics=[
+                            RocAUC(),
+                            PrAUC(),
+                            RangeRocAUC(buffer_size=100),
+                            RangePrAUC(buffer_size=100),
+                            RangePrVUS(),
+                            RangeRocVUS()
+                        ],
+                )
+
+    timeeval.run()
+    print(timeeval.get_results(aggregated=True, short=True))
+
+
+
+if __name__ == "__main__":
+    main()
