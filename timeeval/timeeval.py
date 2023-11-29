@@ -19,6 +19,7 @@ from ._core.experiments import Experiments, Experiment
 from ._core.remote import Remote, RemoteConfiguration
 from ._core.times import Times
 from .adapters.docker import DockerTimeoutError, DockerMemoryError, DockerAdapter
+from .adapters.multivar import MultivarAdapter
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
 from .data_types import TrainingType, InputDimensionality
@@ -251,7 +252,7 @@ class TimeEval:
 
         limits = resource_constraints or ResourceConstraints.default_constraints()
         if limits != ResourceConstraints.default_constraints():
-            incompatible_algos = [a.name for a in algorithms if not isinstance(a.main, DockerAdapter)]
+            incompatible_algos = [a.name for a in algorithms if not isinstance(a.main, DockerAdapter) or (isinstance(a.main, MultivarAdapter) and isinstance(a.main._adapter, DockerAdapter))]
             assert len(incompatible_algos) == 0, "The following algorithms won't satisfy the specified resource " \
                                                  f"constraints: {', '.join(incompatible_algos)}. Either drop the " \
                                                  "resource constraints or use the DockerAdapter for all algorithms!"
