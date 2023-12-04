@@ -56,33 +56,33 @@ def define_datasets() -> Tuple[List[Tuple[str, str]], MultiDatasetManager]:
 
 def define_algorithms() -> List[Algorithm]:
     return [
-        wrap_multivar(subsequence_lof(), AggregationMethod.MEAN),
-        wrap_multivar(subsequence_lof(), AggregationMethod.MAX),
-        wrap_multivar(subsequence_lof(), AggregationMethod.SUM_BEFORE),
+        wrap_multivar(subsequence_lof(skip_pull=True), AggregationMethod.MEAN),
+        wrap_multivar(subsequence_lof(skip_pull=True), AggregationMethod.MAX),
+        wrap_multivar(subsequence_lof(skip_pull=True), AggregationMethod.SUM_BEFORE),
 
-        wrap_multivar(dwt_mlead(), AggregationMethod.MEAN),
-        wrap_multivar(dwt_mlead(), AggregationMethod.MAX),
-        wrap_multivar(dwt_mlead(), AggregationMethod.SUM_BEFORE),
+        wrap_multivar(dwt_mlead(skip_pull=True), AggregationMethod.MEAN),
+        wrap_multivar(dwt_mlead(skip_pull=True), AggregationMethod.MAX),
+        wrap_multivar(dwt_mlead(skip_pull=True), AggregationMethod.SUM_BEFORE),
 
-        wrap_multivar(subsequence_if(), AggregationMethod.MEAN),
-        wrap_multivar(subsequence_if(), AggregationMethod.MAX),
-        wrap_multivar(subsequence_if(), AggregationMethod.SUM_BEFORE),
+        wrap_multivar(subsequence_if(skip_pull=True), AggregationMethod.MEAN),
+        wrap_multivar(subsequence_if(skip_pull=True), AggregationMethod.MAX),
+        wrap_multivar(subsequence_if(skip_pull=True), AggregationMethod.SUM_BEFORE),
 
-        wrap_multivar(norma(), AggregationMethod.MEAN),
-        wrap_multivar(norma(), AggregationMethod.MAX),
-        wrap_multivar(norma(), AggregationMethod.SUM_BEFORE),
+        wrap_multivar(norma(skip_pull=True), AggregationMethod.MEAN),
+        wrap_multivar(norma(skip_pull=True), AggregationMethod.MAX),
+        wrap_multivar(norma(skip_pull=True), AggregationMethod.SUM_BEFORE),
 
-        wrap_multivar(series2graph(), AggregationMethod.MEAN),
-        wrap_multivar(series2graph(), AggregationMethod.MAX),
-        wrap_multivar(series2graph(), AggregationMethod.SUM_BEFORE),
+        wrap_multivar(series2graph(skip_pull=True), AggregationMethod.MEAN),
+        wrap_multivar(series2graph(skip_pull=True), AggregationMethod.MAX),
+        wrap_multivar(series2graph(skip_pull=True), AggregationMethod.SUM_BEFORE),
 
-        wrap_multivar(kmeans(), AggregationMethod.MEAN),
-        wrap_multivar(kmeans(), AggregationMethod.MAX),
-        wrap_multivar(kmeans(), AggregationMethod.SUM_BEFORE),
+        wrap_multivar(kmeans(skip_pull=True), AggregationMethod.MEAN),
+        wrap_multivar(kmeans(skip_pull=True), AggregationMethod.MAX),
+        wrap_multivar(kmeans(skip_pull=True), AggregationMethod.SUM_BEFORE),
 
-        wrap_multivar(stamp(), AggregationMethod.MEAN),
-        wrap_multivar(stamp(), AggregationMethod.MAX),
-        wrap_multivar(stamp(), AggregationMethod.SUM_BEFORE),
+        wrap_multivar(stamp(skip_pull=True), AggregationMethod.MEAN),
+        wrap_multivar(stamp(skip_pull=True), AggregationMethod.MAX),
+        wrap_multivar(stamp(skip_pull=True), AggregationMethod.SUM_BEFORE),
 
         #mstamp(),
     ]
