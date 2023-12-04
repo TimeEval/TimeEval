@@ -31,13 +31,13 @@ class AggregationMethod(Enum):
             data = pd.DataFrame(np.stack(data, axis=1))
 
         if self == self.MEAN:
-            return data.mean(axis=1)
+            return pd.DataFrame(data.mean(axis=1))
         elif self == self.MEDIAN:
-            return data.median(axis=1)
+            return pd.DataFrame(data.median(axis=1))
         elif self == self.MAX:
-            return data.max(axis=1)
+            return pd.DataFrame(data.max(axis=1))
         else:  # self == self.SUM_BEFORE
-            return data.sum(axis=1)
+            return pd.DataFrame(data.sum(axis=1))
 
     @property
     def combining_before(self) -> bool:
@@ -71,7 +71,7 @@ class MultivarAdapter(Adapter):
         self._adapter = adapter
         self._aggregation = aggregation
 
-    def _get_timeseries(self, dataset: AlgorithmParameter, with_anomaly_channel: bool = True) -> pd.DataFrame:
+    def _get_timeseries(self, dataset: AlgorithmParameter) -> pd.DataFrame:
         """Returns the timeseries as a pandas DataFrame."""
 
         df: Optional[pd.DataFrame] = None
@@ -82,31 +82,32 @@ class MultivarAdapter(Adapter):
         else:
             raise ValueError(f"Invalid dataset type: {type(dataset)}")
 
-        if with_anomaly_channel:
-            return df.iloc[:, :-1]
         return df
 
     def _split_timeseries_into_channels(self, dataset: AlgorithmParameter, tmp_dir: Path) -> List[Path]:
         """Splits the timeseries into channels and stores the paths to the channels in self._channel_paths."""
         channel_paths: List[Path] = []
         df = self._get_timeseries(dataset)
-        for c, column_name in enumerate(df.columns):
+        anomaly_column = df.columns[-1]
+        for c, column_name in enumerate(df.columns[:-1]):
             channel_path = tmp_dir / f"channel_{c}.csv"
-            df[[column_name]].to_csv(channel_path)
+            df[[column_name, anomaly_column]].to_csv(channel_path)
             channel_paths.append(channel_path)
         return channel_paths
 
     def _combine_channels(self, dataset: AlgorithmParameter, tmp_dir: Path) -> Path:
         """Combines the channels into a single timeseries and stores the path to the timeseries in self._channel_paths."""
         channel_path = tmp_dir / "combined_test.csv"
-        combined = self._aggregation(self._get_timeseries(dataset))
+        loaded = self._get_timeseries(dataset)
+        combined = self._aggregation(loaded.iloc[:, :-1])
+        combined[loaded.columns[-1]] = loaded.iloc[:, -1].values
         combined.to_csv(channel_path)
         return channel_path
 
     def _combine_channel_scores(self, scores: List[AlgorithmParameter]) -> np.ndarray:
         """Combines the scores of the channels into a single score file."""
-        loaded_scores = pd.concat([self._get_timeseries(score, False) for score in scores], axis=1)
-        combined_scores: np.ndarray = self._aggregation(loaded_scores).values
+        loaded_scores = pd.concat([self._get_timeseries(score) for score in scores], axis=1)
+        combined_scores: np.ndarray = self._aggregation(loaded_scores).values[:, 0]
         return combined_scores
 
     # Adapter overwrites
