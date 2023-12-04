@@ -84,7 +84,7 @@ def define_algorithms() -> List[Algorithm]:
         wrap_multivar(stamp(), AggregationMethod.MAX),
         wrap_multivar(stamp(), AggregationMethod.SUM_BEFORE),
 
-        mstamp(),
+        #mstamp(),
     ]
 
 
