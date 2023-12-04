@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Any, Union, Optional
+from typing import Callable, Dict, List, Any, Union, Optional
 from pathlib import Path
 import tempfile
 
@@ -129,3 +129,9 @@ class MultivarAdapter(Adapter):
                 return self._combine_channel_scores(scores)
             assert len(scores) == 1, "Expected only one score file when combining before"
             return scores[0]
+
+    def get_prepare_fn(self) -> Optional[Callable[[], None]]:
+        return self._adapter.get_prepare_fn()
+
+    def get_finalize_fn(self) -> Optional[Callable[[], None]]:
+        return self._adapter.get_finalize_fn()
