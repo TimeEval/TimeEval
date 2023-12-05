@@ -23,17 +23,6 @@ def main():
 
     algorithms = [
         Algorithm(
-            name="COF",
-            main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/cof", skip_pull=True),
-            param_config=FixedParameters({
-                "n_neighbors": 20,
-                "random_state": 42
-            }),
-            data_as_file=True,
-            training_type=TrainingType.UNSUPERVISED,
-            input_dimensionality=InputDimensionality.MULTIVARIATE
-        ),
-        Algorithm(
             name="MyPythonFunctionAlgorithm",
             main=FunctionAdapter(your_algorithm_function),
             data_as_file=False
