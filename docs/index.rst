@@ -36,7 +36,7 @@ TimeEval takes four inputs for the experiment creation:
 4. A repetition number
 
 The following code snippet shows a simple example experiment evaluating `COF <https://github.com/TimeEval/TimeEval-algorithms/tree/main/cof>`_
-and a simple baseline algorithm on some test data:
+(Connectivity-Based Outlier Factor) algorithm and a simple baseline algorithm on some test data:
 
 .. literalinclude:: ../easy-example-experiment.py
    :language: python
@@ -70,6 +70,14 @@ Prerequisites:
 - Python 3.7, 3.8, or 3.9
 - `Docker <https://www.docker.com>`_
 - `rsync <https://rsync.samba.org>`_ (if you want to use distributed TimeEval)
+
+Create a virtual environment:
+
+.. code-block:: bash
+
+   mkdir timeeval
+   python3 -m venv time/.venv
+   source timeeval/.venv/bin/activate
 
 TimeEval is published to `PyPI <https://pypi.org>`_ and you can install it using:
 
