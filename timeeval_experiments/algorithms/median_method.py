@@ -26,7 +26,8 @@ def median_method(params: Optional[ParameterConfig] = None, skip_pull: bool = Fa
     return Algorithm(
         name="MedianMethod",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/median_method",
+            image_name="ghcr.io/timeeval/median_method",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

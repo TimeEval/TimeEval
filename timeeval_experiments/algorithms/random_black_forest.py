@@ -92,7 +92,8 @@ def random_black_forest(params: Optional[ParameterConfig] = None, skip_pull: boo
     return Algorithm(
         name="Random Black Forest (RR)",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/random_black_forest",
+            image_name="ghcr.io/timeeval/random_black_forest",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

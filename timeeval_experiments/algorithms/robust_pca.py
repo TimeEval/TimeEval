@@ -26,7 +26,8 @@ def robust_pca(params: Optional[ParameterConfig] = None, skip_pull: bool = False
     return Algorithm(
         name="RobustPCA",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/robust_pca",
+            image_name="ghcr.io/timeeval/robust_pca",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

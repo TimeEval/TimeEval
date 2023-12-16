@@ -41,7 +41,8 @@ def subsequence_fast_mcd(params: Optional[ParameterConfig] = None, skip_pull: bo
     return Algorithm(
         name="Subsequence Fast-MCD",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/subsequence_fast_mcd",
+            image_name="ghcr.io/timeeval/subsequence_fast_mcd",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

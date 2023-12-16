@@ -32,7 +32,8 @@ def fast_mcd(params: Optional[ParameterConfig] = None, skip_pull: bool = False, 
     return Algorithm(
         name="Fast-MCD",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/fast_mcd",
+            image_name="ghcr.io/timeeval/fast_mcd",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

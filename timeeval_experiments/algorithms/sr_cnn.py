@@ -80,7 +80,8 @@ def sr_cnn(params: Optional[ParameterConfig] = None, skip_pull: bool = False, ti
     return Algorithm(
         name="SR-CNN",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/sr_cnn",
+            image_name="ghcr.io/timeeval/sr_cnn",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

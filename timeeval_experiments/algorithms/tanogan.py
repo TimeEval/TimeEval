@@ -93,7 +93,8 @@ def tanogan(params: Optional[ParameterConfig] = None, skip_pull: bool = False, t
     return Algorithm(
         name="TAnoGan",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/tanogan",
+            image_name="ghcr.io/timeeval/tanogan",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

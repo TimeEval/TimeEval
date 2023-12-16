@@ -79,7 +79,8 @@ def deepant(params: Optional[ParameterConfig] = None, skip_pull: bool = False, t
     return Algorithm(
         name="DeepAnT",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/deepant",
+            image_name="ghcr.io/timeeval/deepant",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

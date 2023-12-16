@@ -101,7 +101,8 @@ def encdec_ad(params: Optional[ParameterConfig] = None, skip_pull: bool = False,
     return Algorithm(
         name="EncDec-AD",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/encdec_ad",
+            image_name="ghcr.io/timeeval/encdec_ad",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

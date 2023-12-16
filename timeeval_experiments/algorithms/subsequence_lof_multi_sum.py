@@ -59,7 +59,7 @@ def subsequence_lof_multi_sum(params: Optional[ParameterConfig] = None, skip_pul
     return Algorithm(
         name="Subsequence LOF Multivariate Sum",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/subsequence_lof_multi_sum",
+            image_name="ghcr.io/timeeval/subsequence_lof_multi_sum",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

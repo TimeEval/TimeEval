@@ -68,7 +68,8 @@ def lstm_vae(params: Optional[ParameterConfig] = None, skip_pull: bool = False, 
     return Algorithm(
         name="LSTM-VAE",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/lstm_vae",
+            image_name="ghcr.io/timeeval/lstm_vae",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

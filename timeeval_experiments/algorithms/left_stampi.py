@@ -54,7 +54,8 @@ def left_stampi(params: Optional[ParameterConfig] = None, skip_pull: bool = Fals
     return Algorithm(
         name="Left STAMPi",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/left_stampi",
+            image_name="ghcr.io/timeeval/left_stampi",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

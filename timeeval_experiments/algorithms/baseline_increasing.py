@@ -13,7 +13,8 @@ def baseline_increasing(params: Optional[ParameterConfig] = None, skip_pull: boo
     return Algorithm(
         name="Increasing Baseline",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/baseline_increasing",
+            image_name="ghcr.io/timeeval/baseline_increasing",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

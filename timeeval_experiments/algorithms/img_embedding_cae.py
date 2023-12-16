@@ -92,7 +92,8 @@ def img_embedding_cae(params: Optional[ParameterConfig] = None, skip_pull: bool 
     return Algorithm(
         name="ImageEmbeddingCAE",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/img_embedding_cae",
+            image_name="ghcr.io/timeeval/img_embedding_cae",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

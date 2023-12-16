@@ -42,7 +42,8 @@ def norma(params: Optional[ParameterConfig] = None, skip_pull: bool = False, tim
     return Algorithm(
         name="NormA",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/norma",
+            image_name="ghcr.io/timeeval/norma",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

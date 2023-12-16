@@ -32,7 +32,8 @@ def laser_dbn(params: Optional[ParameterConfig] = None, skip_pull: bool = False,
     return Algorithm(
         name="LaserDBN",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/laser_dbn",
+            image_name="ghcr.io/timeeval/laser_dbn",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

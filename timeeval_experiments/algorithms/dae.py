@@ -62,7 +62,8 @@ def dae(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="DenoisingAutoEncoder (DAE)",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/dae",
+            image_name="ghcr.io/timeeval/dae",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

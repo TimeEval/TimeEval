@@ -71,7 +71,8 @@ def subsequence_knn(params: Optional[ParameterConfig] = None, skip_pull: bool = 
     return Algorithm(
         name="Sub-KNN",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/subsequence_knn",
+            image_name="ghcr.io/timeeval/subsequence_knn",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -56,7 +56,8 @@ def pst(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="PST",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/pst",
+            image_name="ghcr.io/timeeval/pst",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

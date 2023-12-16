@@ -44,7 +44,8 @@ def triple_es(params: Optional[ParameterConfig] = None, skip_pull: bool = False,
     return Algorithm(
         name="Triple ES (Holt-Winter's)",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/triple_es",
+            image_name="ghcr.io/timeeval/triple_es",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

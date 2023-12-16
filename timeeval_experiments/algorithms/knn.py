@@ -56,7 +56,8 @@ def knn(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="KNN",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/knn",
+            image_name="ghcr.io/timeeval/knn",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

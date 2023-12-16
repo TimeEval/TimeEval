@@ -78,7 +78,8 @@ def phasespace_svm(params: Optional[ParameterConfig] = None, skip_pull: bool = F
     return Algorithm(
         name="PhaseSpace-SVM",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/phasespace_svm",
+            image_name="ghcr.io/timeeval/phasespace_svm",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

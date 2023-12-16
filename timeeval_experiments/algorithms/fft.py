@@ -50,7 +50,8 @@ def fft(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="FFT",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/fft",
+            image_name="ghcr.io/timeeval/fft",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

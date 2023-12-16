@@ -89,7 +89,8 @@ def omnianomaly(params: Optional[ParameterConfig] = None, skip_pull: bool = Fals
     return Algorithm(
         name="OmniAnomaly",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/omnianomaly",
+            image_name="ghcr.io/timeeval/omnianomaly",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

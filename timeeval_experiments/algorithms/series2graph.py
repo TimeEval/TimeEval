@@ -50,7 +50,8 @@ def series2graph(params: Optional[ParameterConfig] = None, skip_pull: bool = Fal
     return Algorithm(
         name="Series2Graph",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/series2graph",
+            image_name="ghcr.io/timeeval/series2graph",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

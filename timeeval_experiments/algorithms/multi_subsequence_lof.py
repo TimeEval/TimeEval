@@ -65,7 +65,8 @@ def multi_subsequence_lof(params: Optional[ParameterConfig] = None, skip_pull: b
     return Algorithm(
         name="Multi-Sub-LOF",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/multi_subsequence_lof",
+            image_name="ghcr.io/timeeval/multi_subsequence_lof",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -62,7 +62,8 @@ def ensemble_gi(params: Optional[ParameterConfig] = None, skip_pull: bool = Fals
     return Algorithm(
         name="Ensemble GI",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/ensemble_gi",
+            image_name="ghcr.io/timeeval/ensemble_gi",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
