@@ -24,7 +24,7 @@ def main():
     algorithms = [
         Algorithm(
             name="COF",
-            main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/cof", skip_pull=True),
+            main=DockerAdapter(image_name="ghcr.io/timeeval/cof", skip_pull=True),
             param_config=FixedParameters({
                 "n_neighbors": 20,
                 "random_state": 42
