@@ -102,7 +102,7 @@ jobs:
       run: |
         python setup.py sdist
     - name: Upload packages
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: packages-source
         path: dist
@@ -125,7 +125,7 @@ jobs:
         run: |
           ls -alh dist
       - name: Upload packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages-manylinux
           path: dist/*.whl
