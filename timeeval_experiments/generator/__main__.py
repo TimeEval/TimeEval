@@ -62,7 +62,7 @@ def _run_algorithm_gen(args: argparse.Namespace) -> None:
         skip_pull=args.skip_pull,
     )
 
-    target_dir = Path(__file__).parent.parent / "algorithms"
+    target_dir = Path(__file__).parent.parent.parent / "timeeval" / "algorithms"
     if not target_dir.is_dir():
         target_dir.mkdir(exist_ok=True)
 
