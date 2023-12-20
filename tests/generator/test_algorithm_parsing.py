@@ -31,6 +31,7 @@ class TestAlgorithmParsing(unittest.TestCase):
             algo2 = tmp
         self.assertDictEqual(algo1, {
             "display_name": "DEMO algorithm with post-processing",
+            "description": "Uses the demo docker image algorithm for testing purposes",
             "name": "timeeval_test_algorithm_post",
             "version": "0.3.0",
             "training_type": "unsupervised",
@@ -44,6 +45,7 @@ class TestAlgorithmParsing(unittest.TestCase):
         })
         self.assertDictEqual(algo2, {
             "display_name": "DEMO algorithm",
+            "description": "Uses the demo docker image algorithm for testing purposes",
             "name": "timeeval_test_algorithm",
             "version": "0.3.0",
             "training_type": "unsupervised",
