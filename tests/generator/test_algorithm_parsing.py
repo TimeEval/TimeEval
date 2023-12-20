@@ -40,6 +40,7 @@ class TestAlgorithmParsing(unittest.TestCase):
                 "raise": {"name": "raise", "type": "Boolean", "defaultValue": "false", "description": ""},
                 "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
             },
+            "available": True,
             "post_function_name": "post_func",
             "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n",
         })
@@ -55,6 +56,7 @@ class TestAlgorithmParsing(unittest.TestCase):
                 "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
                 "dummy": {"name": "dummy", "type": "String", "defaultValue": "ignore", "description": ""},
             },
+            "available": True,
         })
         self.assertEqual(algo2, loader.algo_detail("timeeval_test_algorithm"))
 
