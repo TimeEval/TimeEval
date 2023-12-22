@@ -32,6 +32,7 @@ class TestAlgorithmParsing(unittest.TestCase):
         self.assertDictEqual(algo1, {
             "display_name": "DEMO algorithm with post-processing",
             "name": "timeeval_test_algorithm_post",
+            "version": "0.3.0",
             "training_type": "unsupervised",
             "input_dimensionality": "multivariate",
             "params": {
@@ -44,6 +45,7 @@ class TestAlgorithmParsing(unittest.TestCase):
         self.assertDictEqual(algo2, {
             "display_name": "DEMO algorithm",
             "name": "timeeval_test_algorithm",
+            "version": "0.3.0",
             "training_type": "unsupervised",
             "input_dimensionality": "multivariate",
             "params": {

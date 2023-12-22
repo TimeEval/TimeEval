@@ -23,7 +23,7 @@ def {{ image_name }}(params: Optional[ParameterConfig] = None, skip_pull: bool =
     return Algorithm(
         name="{{ name }}",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/{{ image_name }}",
+            image_name="ghcr.io/timeeval/{{ image_name }}",
 {% if image_tag is defined %}
             tag="{{ image_tag }}",
 {% endif %}

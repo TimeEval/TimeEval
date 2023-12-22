@@ -123,7 +123,8 @@ def mtad_gat(params: Optional[ParameterConfig] = None, skip_pull: bool = False, 
     return Algorithm(
         name="MTAD-GAT",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/mtad_gat",
+            image_name="ghcr.io/timeeval/mtad_gat",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

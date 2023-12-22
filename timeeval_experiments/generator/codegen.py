@@ -41,6 +41,7 @@ class AlgorithmGenerator:
             s = file_template.render(
                 name=algo_data["display_name"],
                 image_name=algo_data["name"],
+                image_tag=algo_data["version"],
                 training_type=algo_data["training_type"],
                 skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
@@ -52,6 +53,7 @@ class AlgorithmGenerator:
             s = file_template.render(
                 name=algo_data["display_name"],
                 image_name=algo_data["name"],
+                image_tag=algo_data["version"],
                 training_type=algo_data["training_type"],
                 skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],

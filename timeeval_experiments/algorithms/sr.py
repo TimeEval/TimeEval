@@ -38,7 +38,8 @@ def sr(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeou
     return Algorithm(
         name="Spectral Residual (SR)",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/sr",
+            image_name="ghcr.io/timeeval/sr",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

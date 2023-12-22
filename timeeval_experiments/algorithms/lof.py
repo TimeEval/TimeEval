@@ -44,7 +44,8 @@ def lof(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="LOF",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/lof",
+            image_name="ghcr.io/timeeval/lof",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

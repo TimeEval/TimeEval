@@ -53,7 +53,8 @@ def damp(params: Optional[ParameterConfig] = None, skip_pull: bool = False, time
     return Algorithm(
         name="DAMP",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/damp",
+            image_name="ghcr.io/timeeval/damp",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

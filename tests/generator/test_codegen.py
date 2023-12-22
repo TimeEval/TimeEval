@@ -27,7 +27,7 @@ class TestCodeGen(unittest.TestCase):
                 "f'{algo.main.image_name}:{algo.main.tag}', end='')"
             ], capture_output=True, check=True, cwd=tmp_path)
             self.assertEqual(
-                "DEMO algorithm unsupervised multivariate registry.gitlab.hpi.de/akita/i/timeeval_test_algorithm:latest",
+                "DEMO algorithm unsupervised multivariate ghcr.io/timeeval/timeeval_test_algorithm:0.3.0",
                 process.stdout.decode("utf-8"),
             )
 

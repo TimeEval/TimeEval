@@ -56,7 +56,8 @@ def pcc(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="PCC",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/pcc",
+            image_name="ghcr.io/timeeval/pcc",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

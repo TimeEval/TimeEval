@@ -107,7 +107,8 @@ def deepnap(params: Optional[ParameterConfig] = None, skip_pull: bool = False, t
     return Algorithm(
         name="DeepNAP",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/deepnap",
+            image_name="ghcr.io/timeeval/deepnap",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

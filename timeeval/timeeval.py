@@ -55,7 +55,7 @@ class TimeEval:
 
     After you have created your TimeEval object, holding the experiment run configuration, you can execute the
     experiments by calling :func:`~timeeval.TimeEval.run`.
-    Afterwards, the evaluation summary results are accessible in the ``results_path`` and from
+    Afterward, the evaluation summary results are accessible in the ``results_path`` and from
     :func:`~timeeval.TimeEval.get_results`.
 
     Examples
@@ -73,7 +73,7 @@ class TimeEval:
     >>> algorithms = [
     >>>     Algorithm(
     >>>         name="COF",
-    >>>         main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/cof"),
+    >>>         main=DockerAdapter(image_name="ghcr.io/timeeval/cof"),
     >>>         param_config=FixedParameters({"n_neighbors": 20, "random_state": 42}),
     >>>         data_as_file=True,
     >>>         training_type=TrainingType.UNSUPERVISED,

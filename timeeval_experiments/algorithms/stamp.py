@@ -56,7 +56,8 @@ def stamp(params: Optional[ParameterConfig] = None, skip_pull: bool = False, tim
     return Algorithm(
         name="STAMP",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/stamp",
+            image_name="ghcr.io/timeeval/stamp",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

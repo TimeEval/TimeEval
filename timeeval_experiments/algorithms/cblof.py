@@ -50,7 +50,8 @@ def cblof(params: Optional[ParameterConfig] = None, skip_pull: bool = False, tim
     return Algorithm(
         name="CBLOF",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/cblof",
+            image_name="ghcr.io/timeeval/cblof",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

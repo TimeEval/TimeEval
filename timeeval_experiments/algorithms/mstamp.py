@@ -35,7 +35,8 @@ def mstamp(params: Optional[ParameterConfig] = None, skip_pull: bool = False, ti
     return Algorithm(
         name="mSTAMP",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/mstamp",
+            image_name="ghcr.io/timeeval/mstamp",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

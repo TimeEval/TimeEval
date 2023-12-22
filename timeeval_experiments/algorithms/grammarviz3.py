@@ -87,7 +87,8 @@ def grammarviz3(params: Optional[ParameterConfig] = None, skip_pull: bool = Fals
     return Algorithm(
         name="GrammarViz",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/grammarviz3",
+            image_name="ghcr.io/timeeval/grammarviz3",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

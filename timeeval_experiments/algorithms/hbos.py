@@ -38,7 +38,8 @@ def hbos(params: Optional[ParameterConfig] = None, skip_pull: bool = False, time
     return Algorithm(
         name="HBOS",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/hbos",
+            image_name="ghcr.io/timeeval/hbos",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

@@ -6,7 +6,7 @@ from timeeval.adapters import DockerAdapter
 from timeeval.params import ParameterConfig
 
 
-_multinorma_parameters: Dict[str, Dict[str, Any]] = {
+_multi_norma_parameters: Dict[str, Dict[str, Any]] = {
  "anomaly_window_size": {
   "defaultValue": 20,
   "description": "Sliding window size used to create subsequences (equal to desired anomaly length)",
@@ -58,18 +58,19 @@ _multinorma_parameters: Dict[str, Dict[str, Any]] = {
 }
 
 
-def multinorma(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
+def multi_norma(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeout: Optional[Duration] = None) -> Algorithm:
     return Algorithm(
         name="MultiNormA",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/multinorma",
+            image_name="ghcr.io/timeeval/multi_norma",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
         ),
         preprocess=None,
         postprocess=None,
-        param_schema=_multinorma_parameters,
+        param_schema=_multi_norma_parameters,
         param_config=params or ParameterConfig.defaults(),
         data_as_file=True,
         training_type=TrainingType.UNSUPERVISED,

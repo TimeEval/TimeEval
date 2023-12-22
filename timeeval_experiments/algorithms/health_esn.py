@@ -50,7 +50,8 @@ def health_esn(params: Optional[ParameterConfig] = None, skip_pull: bool = False
     return Algorithm(
         name="HealthESN",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/health_esn",
+            image_name="ghcr.io/timeeval/health_esn",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

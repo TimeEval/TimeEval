@@ -158,7 +158,8 @@ def numenta_htm(params: Optional[ParameterConfig] = None, skip_pull: bool = Fals
     return Algorithm(
         name="NumentaHTM",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/numenta_htm",
+            image_name="ghcr.io/timeeval/numenta_htm",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

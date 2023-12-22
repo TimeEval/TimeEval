@@ -8,7 +8,7 @@ from .exceptions import (
     MissingReadmeWarning, MissingManifestWarning, InvalidManifestWarning, AlgorithmManifestLoadingWarning
 )
 
-IGNORED_FOLDERS = ["results", "data", "scripts"]
+IGNORED_FOLDERS = ["results", "data", "scripts", "0-base-images", "1-intermediate-images", "2-scripts"]
 CODEBLOCK = r"[`]{3}\w*?\n(.+?)[`]{3}"
 CODEBLOCK_PATTERN = re.compile(CODEBLOCK, re.S)  # G is set through find**all**
 TE_POST_CODEBLOCK_PATTERN = re.compile(
@@ -49,6 +49,7 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
         "display_name": manifest["title"],
         "training_type": manifest["learningType"],
         "input_dimensionality": manifest["inputDimensionality"],
+        "version": manifest["version"],
         "params": params
     }
 

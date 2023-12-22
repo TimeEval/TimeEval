@@ -68,7 +68,8 @@ def dbstream(params: Optional[ParameterConfig] = None, skip_pull: bool = False, 
     return Algorithm(
         name="DBStream",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/dbstream",
+            image_name="ghcr.io/timeeval/dbstream",
+            tag="0.3.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

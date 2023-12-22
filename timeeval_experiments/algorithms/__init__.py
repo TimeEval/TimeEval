@@ -44,8 +44,8 @@ from .mscred import mscred
 from .mstamp import mstamp
 from .mtad_gat import mtad_gat
 from .multi_hmm import multi_hmm
+from .multi_norma import multi_norma
 from .multi_subsequence_lof import multi_subsequence_lof
-from .multinorma import multinorma
 from .mvalmod import mvalmod
 from .norma import norma
 from .normalizing_flows import normalizing_flows
