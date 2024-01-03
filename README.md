@@ -118,6 +118,7 @@ import numpy as np
 
 from timeeval import TimeEval, DatasetManager, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import FunctionAdapter
+from timeeval.algorithms import subsequence_if
 from timeeval.params import FixedParameters
 
 # Load dataset metadata
@@ -142,7 +143,8 @@ algorithms = [
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality.UNIVARIATE,
         param_config=FixedParameters({"score_value": 1.})
-    )
+    ),
+    subsequence_if(params=FixedParameters({"n_trees": 50}))
 ]
 timeeval = TimeEval(dm, datasets, algorithms)
 

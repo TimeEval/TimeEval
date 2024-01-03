@@ -31,6 +31,7 @@ class TestAlgorithmParsing(unittest.TestCase):
             algo2 = tmp
         self.assertDictEqual(algo1, {
             "display_name": "DEMO algorithm with post-processing",
+            "description": "Uses the demo docker image algorithm for testing purposes",
             "name": "timeeval_test_algorithm_post",
             "version": "0.3.0",
             "training_type": "unsupervised",
@@ -39,11 +40,13 @@ class TestAlgorithmParsing(unittest.TestCase):
                 "raise": {"name": "raise", "type": "Boolean", "defaultValue": "false", "description": ""},
                 "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
             },
+            "available": True,
             "post_function_name": "post_func",
             "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n",
         })
         self.assertDictEqual(algo2, {
             "display_name": "DEMO algorithm",
+            "description": "Uses the demo docker image algorithm for testing purposes",
             "name": "timeeval_test_algorithm",
             "version": "0.3.0",
             "training_type": "unsupervised",
@@ -53,6 +56,7 @@ class TestAlgorithmParsing(unittest.TestCase):
                 "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
                 "dummy": {"name": "dummy", "type": "String", "defaultValue": "ignore", "description": ""},
             },
+            "available": True,
         })
         self.assertEqual(algo2, loader.algo_detail("timeeval_test_algorithm"))
 

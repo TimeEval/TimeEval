@@ -62,12 +62,15 @@ def _run_algorithm_gen(args: argparse.Namespace) -> None:
         skip_pull=args.skip_pull,
     )
 
-    target_dir = Path(__file__).parent.parent / "algorithms"
+    target_dir = Path(__file__).parent.parent.parent / "timeeval" / "algorithms"
     if not target_dir.is_dir():
         target_dir.mkdir(exist_ok=True)
+    docs_target_file = Path(__file__).parent.parent.parent / "docs" / "api" / "timeeval.algorithms.rst"
 
     print(f"\n#### Generating algorithm stubs in {target_dir}")
     generator.generate_all(target=target_dir, force=args.force)
+    print(f"Generating docs in {docs_target_file.resolve()}")
+    generator.generate_algo_docs(target=docs_target_file, force=args.force)
     print("#### DONE")
 
 
