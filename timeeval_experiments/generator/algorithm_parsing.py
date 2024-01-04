@@ -8,7 +8,7 @@ from .exceptions import (
     MissingReadmeWarning, MissingManifestWarning, InvalidManifestWarning, AlgorithmManifestLoadingWarning
 )
 
-IGNORED_FOLDERS = ["results", "data", "scripts"]
+IGNORED_FOLDERS = ["results", "data", "scripts", "0-base-images", "1-intermediate-images", "2-scripts"]
 CODEBLOCK = r"[`]{3}\w*?\n(.+?)[`]{3}"
 CODEBLOCK_PATTERN = re.compile(CODEBLOCK, re.S)  # G is set through find**all**
 TE_POST_CODEBLOCK_PATTERN = re.compile(
@@ -18,11 +18,14 @@ TE_POST_CODEBLOCK_PATTERN = re.compile(
     re.S  # G is set through find**all**
 )
 POST_FUNC_PATTERN = re.compile(r"def (.+?)\(", re.M)
+MANIFEST_FILENAME = "manifest.json"
+README_FILENAME = "README.md"
+AVAILABILITY_FILENAME = "AVAILABILITY.md"
 
 
 def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
     name = algo_dir.name
-    manifest_path = algo_dir / "manifest.json"
+    manifest_path = algo_dir / MANIFEST_FILENAME
 
     if not manifest_path.exists():
         warnings.warn(MissingManifestWarning.msg(name), category=MissingManifestWarning)
@@ -47,8 +50,10 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
 
     return {
         "display_name": manifest["title"],
+        "description": manifest.get("description", ""),
         "training_type": manifest["learningType"],
         "input_dimensionality": manifest["inputDimensionality"],
+        "version": manifest["version"],
         "params": params
     }
 
@@ -74,7 +79,7 @@ def _collect_parameters(name: str, manifest: Dict[str, Any]) -> Dict:
 
 def _parse_readme(algo_dir: Path) -> Optional[Dict]:
     name = algo_dir.name
-    readme_path = algo_dir / "README.md"
+    readme_path = algo_dir / README_FILENAME
 
     if not readme_path.exists():
         warnings.warn(MissingReadmeWarning.msg(name), category=MissingReadmeWarning)
@@ -110,6 +115,13 @@ def _fix_indent(codeblock: str) -> str:
         return codeblock
 
 
+def _parse_availability(algo_dir: Path) -> Dict[str, Any]:
+    path = algo_dir / AVAILABILITY_FILENAME
+    return {
+        "available": not path.exists(),
+    }
+
+
 class AlgorithmLoader:
     def __init__(self, timeeval_algorithms_path: Union[str, Path]):
         self.path = Path(timeeval_algorithms_path)
@@ -131,12 +143,14 @@ class AlgorithmLoader:
         for algo_dir in algo_dirs:
             d_manifest = _parse_manifest(algo_dir)
             d_readme = _parse_readme(algo_dir)
+            d_availability = _parse_availability(algo_dir)
             if d_manifest is None or d_readme is None:
                 skipped_algos += 1
                 continue
             d_algo = {"name": algo_dir.name}
             d_algo.update(d_manifest)
             d_algo.update(d_readme)
+            d_algo.update(d_availability)
 
             algos.append(d_algo)
         print(f"Found {len(algos)}/{len(algo_dirs)} valid algorithms (skipped {skipped_algos})")
@@ -144,7 +158,7 @@ class AlgorithmLoader:
 
     @property
     def algorithm_names(self) -> List[str]:
-        return list(self._algos.keys())
+        return sorted(list(self._algos.keys()))
 
     @property
     def all_algorithms(self) -> List[Dict]:

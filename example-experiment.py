@@ -7,9 +7,9 @@ from pathlib import Path
 from durations import Duration
 
 from timeeval import TimeEval, DatasetManager, RemoteConfiguration, ResourceConstraints
+from timeeval.algorithms import *
 from timeeval.metrics import RocAUC, RangeRocAUC, RangePrVUS
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
-from timeeval_experiments.algorithms import *
 
 # Setup logging
 logging.basicConfig(
@@ -76,8 +76,8 @@ def main():
         # mstamp(),
         # mtad_gat(),
         # multi_hmm(),
+        # multi_norma(),
         # multi_subsequence_lof(),
-        # multinorma(),
         # mvalmod(),
         # norma(),
         # normalizing_flows(),

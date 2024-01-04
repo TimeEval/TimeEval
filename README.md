@@ -47,6 +47,7 @@ TimeEval can be installed as a package or from source.
 >
 > Currently TimeEval is tested **only on Linux and MacOS** and relies on unixoid capabilities.
 > On Windows, you can use TimeEval within [WSL](https://learn.microsoft.com/windows/wsl/install).
+> If you want to use the provided detection algorithms, Docker is required.
 
 ### Installation using `pip`
 
@@ -56,7 +57,7 @@ Builds of `TimeEval` are published to [PyPI](https://pypi.org/project/TimeEval/)
 
 - python >= 3.7, <= 3.9
 - pip >= 20
-- Docker
+- Docker (for the anomaly detection algorithms)
 - (optional) `rsync` for distributed TimeEval
 
 #### Steps
@@ -117,6 +118,7 @@ import numpy as np
 
 from timeeval import TimeEval, DatasetManager, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import FunctionAdapter
+from timeeval.algorithms import subsequence_if
 from timeeval.params import FixedParameters
 
 # Load dataset metadata
@@ -141,7 +143,8 @@ algorithms = [
         training_type=TrainingType.UNSUPERVISED,
         input_dimensionality=InputDimensionality.UNIVARIATE,
         param_config=FixedParameters({"score_value": 1.})
-    )
+    ),
+    subsequence_if(params=FixedParameters({"n_trees": 50}))
 ]
 timeeval = TimeEval(dm, datasets, algorithms)
 

@@ -2,7 +2,7 @@
   "title": "DEMO algorithm with post-processing",
   "description": "Uses the demo docker image algorithm for testing purposes",
   "inputDimensionality": "multivariate",
-  "version": "0.1",
+  "version": "0.3.0",
   "authors": "Phillip Wenig",
   "language": "Python",
   "type": "Detector",

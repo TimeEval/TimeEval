@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, Any, Dict
+from typing import Union, Any, Dict, List
 
 import json
 from jinja2 import Environment, PackageLoader
@@ -40,25 +40,42 @@ class AlgorithmGenerator:
         if "post_process_block" in algo_data and "post_function_name" in algo_data:
             s = file_template.render(
                 name=algo_data["display_name"],
+                description=algo_data["description"],
                 image_name=algo_data["name"],
+                image_tag=algo_data["version"],
                 training_type=algo_data["training_type"],
                 skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
-                parameters=self._encode_params(algo_data["params"]),
+                parameters=algo_data["params"],
+                parameters_string=self._encode_params(algo_data['params']),
+                available=algo_data["available"],
                 post_process_block=algo_data["post_process_block"],
                 postprocess=algo_data["post_function_name"],
             )
         else:
             s = file_template.render(
                 name=algo_data["display_name"],
+                description=algo_data["description"],
                 image_name=algo_data["name"],
+                image_tag=algo_data["version"],
                 training_type=algo_data["training_type"],
                 skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
-                parameters=self._encode_params(algo_data["params"]),
+                parameters=algo_data["params"],
+                parameters_string=self._encode_params(algo_data["params"]),
+                available=algo_data["available"],
             )
         with target_path.open("w") as fh:
             fh.write(s)
+
+    def generate_algo_docs(self, target: Union[str, Path], force: bool = False) -> None:
+        target_path = self._check_target(target, allow_overwrite=force, allow_dir=False)
+        file_template = self._jenv.get_template("timeeval.algorithms.rst.jinja")
+        algorithms = self.algorithm_details.algorithm_names
+        with target_path.open("w") as fh:
+            fh.write(file_template.render(
+                algorithms=algorithms
+            ))
 
     @staticmethod
     def _encode_params(params: Dict[str, Dict[str, Any]]) -> str:

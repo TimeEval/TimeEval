@@ -8,6 +8,7 @@ This section documents the public API of TimeEval.
 
    timeeval
    timeeval.adapters
+   timeeval.algorithms
    timeeval.datasets
    timeeval.heuristics
    timeeval.metrics

@@ -150,9 +150,10 @@ If `n_jobs > 1`, the algorithms are executed in parallel.
 ## Algorithms provided with TimeEval
 
 All algorithms that we provide with TimeEval use the {class}`~timeeval.adapters.docker.DockerAdapter` as adapter-implementation to allow you to use all features of TimeEval with them (such as resource restrictions, timeout, and fair runtime measurements).
-You can find the TimeEval algorithm implementations on Github: <https://github.com/TimeEval/TimeEval-algorithms>.
+You can find the TimeEval algorithm implementations on Github: <https://github.com/TimeEval/TimeEval-algorithms> and can pull the images directly from the [GitHub container registry](https://github.com/orgs/TimeEval/packages?ecosystem=container).
 Using Docker images to bundle an algorithm for TimeEval also allows easy integration of new algorithms because there are no requirements regarding programming languages, frameworks, or tools.
-However, using Docker images to bundle algorithms makes preparing them for use with TimeEval a bit more cumbursome (cf. [](../user/integrate-algorithm.md)).
+However, using Docker images to bundle algorithms makes preparing them for use with TimeEval a bit more cumbersome (cf. [](../user/integrate-algorithm.md)).
+We use GitHub Actions to automatically build and publish the algorithm Docker images for direct use within TimeEval.
 
 In this section, we describe some important aspects of this architecture.
 
@@ -170,24 +171,24 @@ The following is taken care of by base images:
 Currently, we provide the following root base images:
 
 | Name/Folder | Image | Usage |
-| :--- | :---- | :---- |
-| python2-base | `registry.gitlab.hpi.de/akita/i/python2-base` | Base image for TimeEval methods that use python2 (version 2.7); includes default python packages. |
-| python3-base | `registry.gitlab.hpi.de/akita/i/python3-base` | Base image for TimeEval methods that use python3 (version 3.7.9); includes default python packages. |
-| python36-base | `registry.gitlab.hpi.de/akita/i/python36-base` | Base image for TimeEval methods that use python3.6 (version 3.6.13); includes default python packages. |
-| r-base | `registry.gitlab.hpi.de/akita/i/r-base` | Base image for TimeEval methods that use R (version 3.5.2-1). |
-| r4-base | `registry.gitlab.hpi.de/akita/i/r4-base` | Base image for TimeEval methods that use R (version 4.0.5). |
-| java-base | `registry.gitlab.hpi.de/akita/i/java-base` | Base image for TimeEval methods that use Java (JRE 11.0.10). |
+| :--- | :---- |:-------------------------------------------------------------------------------------------------------|
+| python2-base | `ghcr.io/timeeval/python2-base` | Base image for TimeEval methods that use python2 (version 2.7); includes default python packages. |
+| python3-base | `ghcr.io/timeeval/python3-base` | Base image for TimeEval methods that use python3 (version 3.7.9); includes default python packages. |
+| python36-base | `ghcr.io/timeeval/python36-base` | Base image for TimeEval methods that use python3.6 (version 3.6.13); includes default python packages. |
+| r4-base | `ghcr.io/timeeval/r4-base` | Base image for TimeEval methods that use R (version 4.0.5). |
+| java-base | `ghcr.io/timeeval/java-base` | Base image for TimeEval methods that use Java (JRE 11.0.10). |
+| rust-base | `ghcr.io/timeeval/rust-base` | Base image for TimeEVal methods that use Rust (Rust 1.58). |
 
-In addition to the root base images, we also provide some derived base images that add further common functionality to the language runtimes:
+In addition to the root base images, we also provide some derived base images (_intermediate images_) that add further common functionality to the language runtimes:
 
 | Name/Folder | Image | Usage |
-| :--- | :---- | :---- |
-| tsmp | `registry.gitlab.hpi.de/akita/i/tsmp` | Base image for TimeEval methods that use the matrix profile R package [`tsmp`](https://github.com/matrix-profile-foundation/tsmp); is based on `registry.gitlab.hpi.de/akita/i/r-base`. |
-| pyod | `registry.gitlab.hpi.de/akita/i/pyod` | Base image for TimeEval methods that are based on the [`pyod`](https://github.com/yzhao062/pyod) library; is based on `registry.gitlab.hpi.de/akita/i/python3-base` |
-| timeeval-test-algorithm | `registry.gitlab.hpi.de/akita/i/timeeval-test-algorithm` | Test image for TimeEval tests that use docker; is based on `registry.gitlab.hpi.de/akita/i/python3-base`. |
-| python3-torch | `registry.gitlab.hpi.de/akita/i/python3-torch` | Base image for TimeEval methods that use python3 (version 3.7.9) and PyTorch (version 1.7.1); includes default python packages and torch; is based on `registry.gitlab.hpi.de/akita/i/python3-base`. |
+| :--- | :---- |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tsmp | `ghcr.io/timeeval/tsmp` | Base image for TimeEval methods that use the matrix profile R package [`tsmp`](https://github.com/matrix-profile-foundation/tsmp); is based on `ghcr.io/timeeval/r4-base`. |
+| pyod | `ghcr.io/timeeval/pyod` | Base image for TimeEval methods that are based on the [`pyod`](https://github.com/yzhao062/pyod) library; is based on `ghcr.io/timeeval/python3-base`. |
+| timeeval-test-algorithm | `ghcr.io/timeeval/timeeval-test-algorithm` | Test image for TimeEval tests that use docker; is based on `ghcr.io/timeeval/python3-base`; technically not a base images. |
+| python3-torch | `ghcr.io/timeeval/python3-torch` | Base image for TimeEval methods that use python3 (version 3.7.9) and PyTorch (version 1.7.1); includes default python packages and torch; is based on `ghcr.io/timeeval/python3-base`. |
 
-You can find all current base images in the [`timeeval-algorithms`-repository](https://github.com/TimeEval/TimeEval-algorithms/tree/main/0-base-images).
+You can find all current base images in the [`timeeval-algorithms`-repository](https://github.com/TimeEval/TimeEval-algorithms) under `0-base-images` and `1-intermediate-images`.
 
 ### TimeEval algorithm interface
 
@@ -214,7 +215,7 @@ Example parameter JSON (2022-08-18):
 
 #### Custom algorithm parameters
 
-All algorithm hyper parameters described in the correspoding algorithm paper are exposed via the `customParameters` configuration option.
+All algorithm hyperparameters described in the corresponding algorithm paper are exposed via the `customParameters` configuration option.
 This allows us to set those parameters from TimeEval.
 
 ```{warning}
@@ -259,7 +260,7 @@ docker run --rm \
     -e LOCAL_UID=<current user id> \
     -e LOCAL_GID=<groupid of akita group> \
     <resource restrictions> \
-  registry.gitlab.hpi.de/akita/i/<your_algorithm>:latest execute-algorithm '{
+  ghcr.io/timeeval/<your_algorithm>:latest execute-algorithm '{
     "executionType": "execute",
     "dataInput": "/data/dataset.csv",
     "modelInput": "/results/model.pkl",
@@ -275,7 +276,7 @@ This is translated to the following call within the container from the entry scr
 docker run --rm \
     -v <path/to/dataset.csv>:/data/dataset.csv:ro \
     -v <path/to/results-folder>:/results:rw <...> \
-  registry.gitlab.hpi.de/akita/i/<your_algorithm>:latest bash
+  ghcr.io/timeeval/<your_algorithm>:latest bash
 # now, within the container
 <python | java -jar | Rscript> $ALGORITHM_MAIN '{
   "executionType": "execute",

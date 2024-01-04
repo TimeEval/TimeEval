@@ -6,6 +6,7 @@ import numpy as np
 
 from timeeval import TimeEval, DatasetManager, DefaultMetrics, Algorithm, TrainingType, InputDimensionality
 from timeeval.adapters import DockerAdapter, FunctionAdapter
+from timeeval.algorithms import cof
 from timeeval.data_types import AlgorithmParameter
 from timeeval.params import FixedParameters
 
@@ -24,7 +25,7 @@ def main():
     algorithms = [
         Algorithm(
             name="COF",
-            main=DockerAdapter(image_name="registry.gitlab.hpi.de/akita/i/cof", skip_pull=True),
+            main=DockerAdapter(image_name="ghcr.io/timeeval/cof", skip_pull=True),
             param_config=FixedParameters({
                 "n_neighbors": 20,
                 "random_state": 42
@@ -33,6 +34,8 @@ def main():
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=InputDimensionality.MULTIVARIATE
         ),
+        # or:
+        # cof(params=FixedParameters({"n_neighbors": 20, "random_state": 42})),
         Algorithm(
             name="MyPythonFunctionAlgorithm",
             main=FunctionAdapter(your_algorithm_function),

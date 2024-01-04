@@ -203,8 +203,8 @@ def main():
     algorithms = [Algorithm(
         name="LOF",
         main=DockerAdapter(
-            image_name="registry.gitlab.hpi.de/akita/i/lof",
-            tag="latest",  # usually you can use the default here
+            image_name="ghcr.io/timeeval/lof",
+            tag="0.3.0",  # please use a specific tag instead of "latest" for reproducibility
             skip_pull=True  # set to True because the image is already present from the previous section
         ),
         # The hyperparameters of the algorithm are specified here. If you want to perform a parameter
@@ -221,7 +221,7 @@ def main():
         # UNSUPERVISED --> no training, SEMI_SUPERVISED --> training on normal data, SUPERVISED --> training on anomalies
         # if SEMI_SUPERVISED or SUPERVISED, the datasets must have a corresponding training time series
         training_type=TrainingType.UNSUPERVISED,
-        # MULTIVARIATE (multi-dimensional TS) or UNIVARIATE (just a single dimension is supported)
+        # MULTIVARIATE (multidimensional TS) or UNIVARIATE (just a single dimension is supported)
         input_dimensionality=InputDimensionality.MULTIVARIATE
     )]
 

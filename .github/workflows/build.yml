@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v2.3.0
+        uses: conda-incubator/setup-miniconda@v3.0.1
         with:
           use-mamba: true
           auto-update-conda: true
@@ -42,7 +42,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Miniconda
-      uses: conda-incubator/setup-miniconda@v2.3.0
+      uses: conda-incubator/setup-miniconda@v3.0.1
       with:
         use-mamba: true
         auto-update-conda: true
@@ -93,7 +93,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Miniconda
-      uses: conda-incubator/setup-miniconda@v2.3.0
+      uses: conda-incubator/setup-miniconda@v3.0.1
       with:
         use-mamba: true
         auto-update-conda: true
@@ -102,7 +102,7 @@ jobs:
       run: |
         python setup.py sdist
     - name: Upload packages
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: packages-source
         path: dist
@@ -125,7 +125,7 @@ jobs:
         run: |
           ls -alh dist
       - name: Upload packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages-manylinux
           path: dist/*.whl
@@ -138,7 +138,7 @@ jobs:
 
     steps:
     - name: Download packages
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: dist
     - name: Restore original folder structure of dist
@@ -146,7 +146,7 @@ jobs:
         find dist -type f -exec mv {} dist/ \;
         find dist/* -type d -exec rmdir {} \; || true
     - name: Publish package to PyPi
-      uses: pypa/gh-action-pypi-publish@v1.8.10
+      uses: pypa/gh-action-pypi-publish@v1.8.11
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}

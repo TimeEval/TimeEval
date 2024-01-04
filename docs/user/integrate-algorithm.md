@@ -22,9 +22,15 @@ There are three main steps:
    Please make sure that you tag your image correctly (the image name must match the `FROM`-clause in your algorithm image).
 
    - change to the `0-base-images` folder: `cd 0-base-images`
-   - build your desired base image, e.g. `docker build -t registry.gitlab.hpi.de/akita/i/python3-base:0.2.5 ./python3-base`
-   - (optionally: build derived base image, e.g. `docker build -t registry.gitlab.hpi.de/akita/i/pyod:0.2.5 ./pyod`)
+   - build your desired base image, e.g. `docker build -t ghcr.io/timeeval/python3-base:0.3.0 ./python3-base`
+   - (optionally: build derived base image, e.g. `docker build -t ghcr.io/timeeval/pyod:0.3.0 ./pyod`)
    - now you can build your algorithm image from the base image (see next section)
+
+   Alternatively, you can also pull one of the existing base images from the registry, e.g.:
+
+   ```bash
+   docker pull ghcr.io/timeeval/pyod:0.3.0
+   ```
 
 ```{note}
 Please contact the maintainers if there is no base image for your algorithm programming language or runtime.
@@ -46,7 +52,7 @@ Once you are familiar with the concepts, you can adapt your algorithm and create
    Example:
 
    ```Dockerfile
-   FROM registry.gitlab.hpi.de/akita/i/python3-base:0.2.5
+   FROM ghcr.io/timeeval/python3-base:0.3.0
 
    LABEL maintainer="sebastian.schmidl@hpi.de"
 
@@ -90,7 +96,7 @@ from timeeval.params import FixedParameters
 
 def main():
     dm = MultiDatasetManager([Path("<datasets-folder>")])
-    dataset = dm.select()
+    datasets = dm.select()
 
     ####################
     # Add your own algorithm

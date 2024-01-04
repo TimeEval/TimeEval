@@ -24,3 +24,4 @@ comment:
 ignore:
   - "tests/*"
   - "timeeval_experiments/*"
+  - "timeeval/algorithms/*"
