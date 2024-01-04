@@ -9,7 +9,24 @@ from ..data_types import TSFunction, AlgorithmParameter
 
 class DistributedAdapter(Adapter):
     """
+    An adapter that allows to run a function as an anomaly detector on multiple remote machines. So far, this adapter
+    only supports TSFunctions as algorithms.
     Please, be aware that you need password-less ssh to the remote machines!
+
+    Parameters
+    ----------
+
+    algorithm : TSFunction
+        The function to run.
+
+    remote_command : str
+        The command to run on the remote machines.
+
+    remote_user : str
+        The user to use for the ssh connection.
+
+    remote_hosts : List[str]
+        The hosts to connect to.
     """
 
     def __init__(self, algorithm: TSFunction, remote_command: str, remote_user: str, remote_hosts: List[str]) -> None:

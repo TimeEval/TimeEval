@@ -67,6 +67,33 @@ class AlgorithmInterface:
 
 
 class DockerAdapter(Adapter):
+    """
+    An adapter that allows to run a Docker image as an anomaly detector.
+
+    Parameters
+    ----------
+
+    image_name : str
+        The name of the Docker image to run.
+
+    tag : str
+        The tag of the Docker image to run. Defaults to "latest".
+
+    group_privileges : str
+        The group privileges to use for the Docker container. Defaults to "akita".
+
+    skip_pull : bool
+        Whether to skip pulling the Docker image. Defaults to False.
+
+    timeout : Optional[Duration]
+        The timeout for the Docker container. Defaults to None.
+
+    memory_limit_overwrite : Optional[int]
+        The memory limit for the Docker container. Defaults to None.
+
+    cpu_limit_overwrite : Optional[float]
+        The CPU limit for the Docker container. Defaults to None.
+    """
     def __init__(self, image_name: str, tag: str = "latest", group_privileges: str = "akita", skip_pull: bool = False,
                  timeout: Optional[Duration] = None, memory_limit_overwrite: Optional[int] = None,
                  cpu_limit_overwrite: Optional[float] = None) -> None:
