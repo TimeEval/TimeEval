@@ -40,10 +40,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: |
-            'timeeval/algorithms'
-            'docs/api/timeeval.algorithms.rst'
-          commit-message: [automated] Update algorithm stubs
-          branch: feat/automated-update-algorithm-stubs
-          title: [automated] Update algorithm stubs
-          labels: 'comp:algorithms,🤖 bot'
-          reviewers: codelionx,wenig
+            timeeval/algorithms
+            docs/api/timeeval.algorithms.rst
+          commit-message: "[automated] Update algorithm stubs"
+          branch: "feat/automated-update-algorithm-stubs"
+          title: "[automated] Update algorithm stubs"
+          labels: "comp:algorithms,🤖 bot"
+          reviewers: "codelionx,wenig"
