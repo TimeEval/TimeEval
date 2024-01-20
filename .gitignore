@@ -2,6 +2,7 @@ data/
 results/
 timeeval_experiments/results
 **/*.log
+timeeval-algorithms
 
 ########################################
 # Python.gitignore from github/gitignore
