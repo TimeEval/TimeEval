@@ -45,7 +45,7 @@ TimeEval can be installed as a package or from source.
 
 > :warning: **Attention!**
 >
-> Currently TimeEval is tested **only on Linux and MacOS** and relies on unixoid capabilities.
+> Currently, TimeEval is tested **only on Linux and macOS** and relies on unixoid capabilities.
 > On Windows, you can use TimeEval within [WSL](https://learn.microsoft.com/windows/wsl/install).
 > If you want to use the provided detection algorithms, Docker is required.
 
