@@ -16,7 +16,7 @@ def deviating_from(dataset: AlgorithmParameter, fn: Callable) -> np.ndarray:
     if isinstance(dataset, np.ndarray):
         data = dataset
     else:
-        data = pd.read_csv(dataset, index_col=0).iloc[:, :-1].values[:, 0]
+        data = pd.read_csv(dataset, index_col=0).iloc[:, 0].values
 
     if len(data.shape) == 1:
         return deviating_from_1d(data, fn)

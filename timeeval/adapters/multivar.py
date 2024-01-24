@@ -21,23 +21,21 @@ class AggregationMethod(Enum):
     SUM_BEFORE = 3
     """sums the channels before running the anomaly detector."""
 
-    def __call__(self, data: Union[List[np.ndarray], pd.DataFrame]) -> pd.DataFrame:
+    def __call__(self, data: np.ndarray) -> np.ndarray:
         """
         Aggregates the channels using the specified method.
 
         :meta private:
         """
-        if isinstance(data, list):
-            data = pd.DataFrame(np.stack(data, axis=1))
 
         if self == self.MEAN:
-            return pd.DataFrame(data.mean(axis=1))
+            return data.mean(axis=1)
         elif self == self.MEDIAN:
-            return pd.DataFrame(data.median(axis=1))
+            return data.median(axis=1)
         elif self == self.MAX:
-            return pd.DataFrame(data.max(axis=1))
+            return data.max(axis=1)
         else:  # self == self.SUM_BEFORE
-            return pd.DataFrame(data.sum(axis=1))
+            return data.sum(axis=1)
 
     @property
     def combining_before(self) -> bool:
@@ -99,15 +97,15 @@ class MultivarAdapter(Adapter):
         """Combines the channels into a single timeseries and stores the path to the timeseries in self._channel_paths."""
         channel_path = tmp_dir / "combined_test.csv"
         loaded = self._get_timeseries(dataset)
-        combined = self._aggregation(loaded.iloc[:, :-1])
-        combined[loaded.columns[-1]] = loaded.iloc[:, -1].values
+        combined = pd.DataFrame(self._aggregation(loaded.iloc[:, :-1].values), index=loaded.index, columns=["combined"])
+        combined[loaded.columns[-1]] = loaded.iloc[:, -1]
         combined.to_csv(channel_path)
         return channel_path
 
     def _combine_channel_scores(self, scores: List[AlgorithmParameter]) -> np.ndarray:
         """Combines the scores of the channels into a single score file."""
-        loaded_scores = pd.concat([self._get_timeseries(score) for score in scores], axis=1)
-        combined_scores: np.ndarray = self._aggregation(loaded_scores).values[:, 0]
+        loaded_scores = np.concatenate([self._get_timeseries(score).values for score in scores], axis=1)
+        combined_scores: np.ndarray = self._aggregation(loaded_scores)
         return combined_scores
 
     # Adapter overwrites
