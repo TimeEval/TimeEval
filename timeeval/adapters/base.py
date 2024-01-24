@@ -38,5 +38,5 @@ class Adapter(ABC):
         return None
 
     def get_finalize_fn(self) -> Optional[Callable[[], None]]:
-        """This method is executed after the algorithm is run."""
+        """This method is executed after all algorithms are run."""
         return None
