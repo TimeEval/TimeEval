@@ -34,7 +34,7 @@ class Adapter(ABC):
         return self._call(dataset, args)
 
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:
-        """This method is executed before the algorithm is run."""
+        """This method is executed before all algorithms are run."""
         return None
 
     def get_finalize_fn(self) -> Optional[Callable[[], None]]:
