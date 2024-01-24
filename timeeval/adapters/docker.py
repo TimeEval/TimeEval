@@ -69,6 +69,7 @@ class AlgorithmInterface:
 class DockerAdapter(Adapter):
     """
     An adapter that allows to run a Docker image as an anomaly detector.
+    You can find a list of available Docker images on `GitHub <https://github.com/TimeEval/TimeEval-algorithms>`_.
 
     Parameters
     ----------
