@@ -13,6 +13,9 @@ class DistributedAdapter(Adapter):
     only supports TSFunctions as algorithms.
     Please, be aware that you need password-less ssh to the remote machines!
 
+    .. warning::
+        This adapter is deprecated and will be removed in a future version of TimeEval.
+
     Parameters
     ----------
 

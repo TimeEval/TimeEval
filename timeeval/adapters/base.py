@@ -23,7 +23,15 @@ class Adapter(ABC):
             The dataset to run the algorithm on.
 
         args : Dict[str, Any]
-            The arguments to pass to the algorithm.
+            The arguments to pass to the algorithm and TimeEval-internal configuration options.
+            TimeEval arguments that get passed to the :class:`~timeeval.adapters.Adapter`-implementation. Example:: 
+  
+                 { 
+                     "hyper_params": {}, 
+                     "results_path": Path("results"), 
+                     "resource_constraints": ResourceConstraints(), 
+                     "dataset_details": ... 
+                 } 
         """
         ...
 

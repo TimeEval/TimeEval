@@ -11,6 +11,9 @@ class JarAdapter(Adapter):
     """
     An adapter that allows to run a jar file as an anomaly detector.
 
+    .. warning::
+        This adapter is deprecated and will be removed in a future version of TimeEval.
+
     Parameters
     ----------
 

@@ -87,13 +87,13 @@ class DockerAdapter(Adapter):
         Whether to skip pulling the Docker image. Defaults to False.
 
     timeout : Optional[Duration]
-        The timeout for the Docker container. Defaults to None.
+        The timeout for the Docker container. If not set, the timeout is taken from the :class:`~timeeval.resource_contraints.ResourceConstraints`.
 
     memory_limit_overwrite : Optional[int]
-        The memory limit for the Docker container. Defaults to None.
+        The memory limit for the Docker container. If not set, the memory limit is taken from the :class:`~timeeval.resource_contraints.ResourceConstraints`.
 
     cpu_limit_overwrite : Optional[float]
-        The CPU limit for the Docker container. Defaults to None.
+        The CPU limit for the Docker container. If not set, the CPU limit is taken from the :class:`~timeeval.resource_contraints.ResourceConstraints`.
     """
     def __init__(self, image_name: str, tag: str = "latest", group_privileges: str = "akita", skip_pull: bool = False,
                  timeout: Optional[Duration] = None, memory_limit_overwrite: Optional[int] = None,
