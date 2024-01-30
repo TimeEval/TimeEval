@@ -8,6 +8,30 @@ from ..data_types import AlgorithmParameter
 
 
 class JarAdapter(Adapter):
+    """
+    An adapter that allows to run a jar file as an anomaly detector.
+
+    .. warning::
+        This adapter is deprecated and will be removed in a future version of TimeEval.
+
+    Parameters
+    ----------
+
+    jar_file : str
+        The path to the jar file to run.
+
+    output_file : str
+        The path to the file to which the jar file writes its output.
+
+    args : List[Any]
+        The arguments to pass to the jar file.
+
+    kwargs : Dict[str, Any]
+        The keyword arguments to pass to the jar file.
+
+    verbose : bool
+        Whether to print the output of the jar file to the console.
+    """
     def __init__(self, jar_file: str, output_file: str, args: List[Any], kwargs: Dict[str, Any], verbose: bool = False) -> None:
         self.jar_file = jar_file
         self.output_file = output_file

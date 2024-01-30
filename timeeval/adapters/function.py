@@ -5,7 +5,15 @@ from ..data_types import TSFunction, AlgorithmParameter
 
 
 class FunctionAdapter(Adapter):
+    """
+    An adapter that allows to run a function as an anomaly detector.
 
+    Parameters
+    ----------
+
+    fn : TSFunction
+        The function to run.
+    """
     def __init__(self, fn: TSFunction):
         self.fn = fn
 
