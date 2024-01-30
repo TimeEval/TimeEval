@@ -29,13 +29,13 @@ class AggregationMethod(Enum):
         """
 
         if self == self.MEAN:
-            return data.mean(axis=1)
+            return data.mean(axis=1)  # type: ignore
         elif self == self.MEDIAN:
-            return data.median(axis=1)
+            return np.median(data, axis=1)  # type: ignore
         elif self == self.MAX:
-            return data.max(axis=1)
+            return data.max(axis=1)  # type: ignore
         else:  # self == self.SUM_BEFORE
-            return data.sum(axis=1)
+            return data.sum(axis=1)  # type: ignore
 
     @property
     def combining_before(self) -> bool:
