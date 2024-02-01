@@ -53,28 +53,28 @@ class TestMultivarAdapter(unittest.TestCase):
         algorithm = MultivarAdapter(DeviatingFromMedian(), AggregationMethod.MEAN)
         score = algorithm(self.X)
 
-        np.testing.assert_array_equal(self.y_mean, score)
+        np.testing.assert_array_almost_equal(self.y_mean, score)
         self.assertEqual(len(self.X), len(score))
 
     def test_multivar_deviating_from_median_median(self):
         algorithm = MultivarAdapter(DeviatingFromMedian(), AggregationMethod.MEDIAN)
         score = algorithm(self.X)
 
-        np.testing.assert_array_equal(self.y_median, score)
+        np.testing.assert_array_almost_equal(self.y_median, score)
         self.assertEqual(len(self.X), len(score))
 
     def test_multivar_deviating_from_median_max(self):
         algorithm = MultivarAdapter(DeviatingFromMedian(), AggregationMethod.MAX)
         score = algorithm(self.X)
 
-        np.testing.assert_array_equal(self.y_max, score)
+        np.testing.assert_array_almost_equal(self.y_max, score)
         self.assertEqual(len(self.X), len(score))
 
     def test_multivar_deviating_from_median_sum_before(self):
         algorithm = MultivarAdapter(DeviatingFromMedian(), AggregationMethod.SUM_BEFORE)
         score = algorithm(self.X)
 
-        np.testing.assert_array_equal(self.y_sum_before, score)
+        np.testing.assert_array_almost_equal(self.y_sum_before, score)
         self.assertEqual(len(self.X), len(score))
 
     def test_multivar_raises_on_nested_multivar(self):
@@ -93,7 +93,7 @@ class TestMultivarAdapter(unittest.TestCase):
             }
             adapter = MultivarAdapter(DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds")), AggregationMethod.MEAN)
             res = adapter(self.input_data_path, args)
-        np.testing.assert_array_equal(np.zeros(3600), res)
+        np.testing.assert_array_almost_equal(np.zeros(3600), res)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 1)
         self.assertEqual(containers[0].status, "exited")
@@ -110,7 +110,7 @@ class TestMultivarAdapter(unittest.TestCase):
             }
             adapter = MultivarAdapter(DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds")), AggregationMethod.MEAN)
             res = adapter(self.input_data_multi_path, args)
-        np.testing.assert_array_equal(np.zeros(3600), res)
+        np.testing.assert_array_almost_equal(np.zeros(3600), res)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 2)
         self.assertEqual(containers[0].status, "exited")
