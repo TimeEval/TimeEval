@@ -18,6 +18,30 @@ _is_still_none = _is_none  # syntactic sugar ;)
 
 
 class PeriodSizeHeuristic(TimeEvalParameterHeuristic):
+    """Heuristic to use the period size of the dataset as parameter value.
+
+    Not all datasets have a period size, so this heuristic uses the following fallbacks in order:
+
+    1. If ``fb_anomaly_length_agg_type`` is specified, the :class:`~timeeval.heuristics.AnomalyLengthHeuristic`
+    with the specified aggregation type is used as fallback.
+    2. If ``fb_value`` is specified, it is directly used as fallback.
+
+    Examples
+    --------
+    >>> from timeeval.params import FixedParameters
+    >>> params = FixedParameters({
+    ...     "window_size": "heuristic:PeriodSizeHeuristic(factor=1.0, fb_anomaly_length_agg_type='median', fb_value=100)"
+    ... })
+
+    Parameters
+    ----------
+    factor : float
+        Factor to use for the period size. (default: 1.0)
+    fb_anomaly_length_agg_type : str, optional
+        Aggregation type to use for the :class:`~timeeval.heuristics.AnomalyLengthHeuristic` fallback. (default: None)
+    fb_value : int, optional
+        Value to use as fallback if no period size is available. (default: 1)
+    """
     def __init__(self, factor: float = 1., fb_anomaly_length_agg_type: Optional[str] = None, fb_value: int = 1):
         self.factor = factor
         self.fb_anomaly_length_agg_type = fb_anomaly_length_agg_type

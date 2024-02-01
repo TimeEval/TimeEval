@@ -17,7 +17,7 @@ timeeval.heuristics.TimeEvalParameterHeuristic
 timeeval.heuristics.AnomalyLengthHeuristic
 ------------------------------------------
 
-.. autoclass:: timeeval.heuristics.AnomalyLengthHeuristic.AnomalyLengthHeuristic
+.. autoclass:: timeeval.heuristics.AnomalyLengthHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -25,7 +25,7 @@ timeeval.heuristics.AnomalyLengthHeuristic
 timeeval.heuristics.CleanStartSequenceSizeHeuristic
 ---------------------------------------------------
 
-.. autoclass:: timeeval.heuristics.CleanStartSequenceSizeHeuristic.CleanStartSequenceSizeHeuristic
+.. autoclass:: timeeval.heuristics.CleanStartSequenceSizeHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -33,7 +33,7 @@ timeeval.heuristics.CleanStartSequenceSizeHeuristic
 timeeval.heuristics.ContaminationHeuristic
 ------------------------------------------
 
-.. autoclass:: timeeval.heuristics.ContaminationHeuristic.ContaminationHeuristic
+.. autoclass:: timeeval.heuristics.ContaminationHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -41,7 +41,7 @@ timeeval.heuristics.ContaminationHeuristic
 timeeval.heuristics.DatasetIdHeuristic
 --------------------------------------
 
-.. autoclass:: timeeval.heuristics.DatasetIdHeuristic.DatasetIdHeuristic
+.. autoclass:: timeeval.heuristics.DatasetIdHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -49,7 +49,7 @@ timeeval.heuristics.DatasetIdHeuristic
 timeeval.heuristics.DefaultExponentialFactorHeuristic
 -----------------------------------------------------
 
-.. autoclass:: timeeval.heuristics.DefaultExponentialFactorHeuristic.DefaultExponentialFactorHeuristic
+.. autoclass:: timeeval.heuristics.DefaultExponentialFactorHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -57,7 +57,7 @@ timeeval.heuristics.DefaultExponentialFactorHeuristic
 timeeval.heuristics.DefaultFactorHeuristic
 ------------------------------------------
 
-.. autoclass:: timeeval.heuristics.DefaultFactorHeuristic.DefaultFactorHeuristic
+.. autoclass:: timeeval.heuristics.DefaultFactorHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -65,7 +65,7 @@ timeeval.heuristics.DefaultFactorHeuristic
 timeeval.heuristics.EmbedDimRangeHeuristic
 ------------------------------------------
 
-.. autoclass:: timeeval.heuristics.EmbedDimRangeHeuristic.EmbedDimRangeHeuristic
+.. autoclass:: timeeval.heuristics.EmbedDimRangeHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -73,7 +73,7 @@ timeeval.heuristics.EmbedDimRangeHeuristic
 timeeval.heuristics.ParameterDependenceHeuristic
 ------------------------------------------------
 
-.. autoclass:: timeeval.heuristics.ParameterDependenceHeuristic.ParameterDependenceHeuristic
+.. autoclass:: timeeval.heuristics.ParameterDependenceHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -81,7 +81,7 @@ timeeval.heuristics.ParameterDependenceHeuristic
 timeeval.heuristics.PeriodSizeHeuristic
 ---------------------------------------
 
-.. autoclass:: timeeval.heuristics.PeriodSizeHeuristic.PeriodSizeHeuristic
+.. autoclass:: timeeval.heuristics.PeriodSizeHeuristic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -89,7 +89,7 @@ timeeval.heuristics.PeriodSizeHeuristic
 timeeval.heuristics.RelativeDatasetSizeHeuristic
 ------------------------------------------------
 
-.. autoclass:: timeeval.heuristics.RelativeDatasetSizeHeuristic.RelativeDatasetSizeHeuristic
+.. autoclass:: timeeval.heuristics.RelativeDatasetSizeHeuristic
    :members:
    :undoc-members:
    :show-inheritance:

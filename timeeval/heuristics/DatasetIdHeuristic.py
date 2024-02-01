@@ -21,14 +21,8 @@ class DatasetIdHeuristic(TimeEvalParameterHeuristic):
 
     Examples
     --------
-    >>> from timeeval import Algorithm, TrainingType, InputDimensionality
-    >>> from timeeval.adapters import FunctionAdapter
     >>> from timeeval.params import FixedParameters
-    >>> algo = Algorithm(name="example", main=FunctionAdapter(lambda x, args: x),
-    ...     training_type=TrainingType.UNSUPERVISED,
-    ...     input_dimensionality=InputDimensionality.UNIVARIATE,
-    ...     param_config=FixedParameters({"dataset_id": "heuristic:DatasetIdHeuristic()"},
-    ... )
+    >>> params = FixedParameters({"dataset_id": "heuristic:DatasetIdHeuristic()"})
     """
     def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Tuple[str, str]:  # type: ignore[no-untyped-def]
         return dataset_details.datasetId
