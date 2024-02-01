@@ -1,2 +1,2 @@
-__version__: str = "1.3.0"
+__version__: str = "1.4.0"
 """Version of this TimeEval installation"""
