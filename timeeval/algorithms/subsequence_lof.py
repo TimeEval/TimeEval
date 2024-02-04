@@ -107,7 +107,7 @@ def subsequence_lof(params: Optional[ParameterConfig] = None, skip_pull: bool = 
         name="Subsequence LOF",
         main=DockerAdapter(
             image_name="ghcr.io/timeeval/subsequence_lof",
-            tag="0.3.0",
+            tag="0.3.1",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

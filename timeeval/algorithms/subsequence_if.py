@@ -115,7 +115,7 @@ def subsequence_if(params: Optional[ParameterConfig] = None, skip_pull: bool = F
         name="Subsequence IF",
         main=DockerAdapter(
             image_name="ghcr.io/timeeval/subsequence_if",
-            tag="0.3.0",
+            tag="0.3.1",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

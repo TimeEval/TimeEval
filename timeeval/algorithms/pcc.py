@@ -98,7 +98,7 @@ def pcc(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
         name="PCC",
         main=DockerAdapter(
             image_name="ghcr.io/timeeval/pcc",
-            tag="0.3.0",
+            tag="0.3.1",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
