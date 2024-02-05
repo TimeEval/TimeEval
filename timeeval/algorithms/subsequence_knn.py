@@ -115,7 +115,7 @@ def subsequence_knn(params: Optional[ParameterConfig] = None, skip_pull: bool = 
         name="Sub-KNN",
         main=DockerAdapter(
             image_name="ghcr.io/timeeval/subsequence_knn",
-            tag="0.3.0",
+            tag="0.3.1",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

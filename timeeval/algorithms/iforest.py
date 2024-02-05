@@ -98,7 +98,7 @@ def iforest(params: Optional[ParameterConfig] = None, skip_pull: bool = False, t
         name="Isolation Forest (iForest)",
         main=DockerAdapter(
             image_name="ghcr.io/timeeval/iforest",
-            tag="0.3.0",
+            tag="0.3.1",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

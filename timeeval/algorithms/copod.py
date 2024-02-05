@@ -50,7 +50,7 @@ def copod(params: Optional[ParameterConfig] = None, skip_pull: bool = False, tim
         name="COPOD",
         main=DockerAdapter(
             image_name="ghcr.io/timeeval/copod",
-            tag="0.3.0",
+            tag="0.4.0",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

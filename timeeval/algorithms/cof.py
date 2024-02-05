@@ -58,7 +58,7 @@ def cof(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
         name="COF",
         main=DockerAdapter(
             image_name="ghcr.io/timeeval/cof",
-            tag="0.3.0",
+            tag="0.3.1",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
