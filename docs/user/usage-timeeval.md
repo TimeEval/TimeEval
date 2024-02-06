@@ -41,7 +41,7 @@ We will need it later, and we will refer to it as `<datasets-folder>`
 
 **Example:**
 
-Scenario: You want to use the datasets from the CalIt2 and Daphnet collections.
+Scenario: You want to use the datasets from the [CalIt2](https://my.hidrive.com/api/sharelink/download?id=QbiGASlZ) and [Daphnet](https://my.hidrive.com/api/sharelink/download?id=SfCmg30B) collections.
 
 Dataset download and folder structure:
 
@@ -72,45 +72,16 @@ timeeval-datasets
 3 directories, 77 files
 ```
 
-TimeEval configuration:
+To examine multiple datasets at once, TimeEval configuration would be:
 
 ```python
 dm = MultiDatasetManager([Path("timeeval-datasets")])
 datasets = []
-datasets.append(dm.select(collection="CalIt2"))
-datasets.append(dm.select(collection="Daphnet"))
-# ...
+datasets.extend(dm.select(collection="CalIt2"))
+datasets.extend(dm.select(collection="Daphnet"))
+#...
 ```
-
-### Dataset download links
-
-Please consider the repeatability page for a complete list of up-to-date download links.
-This section is just for your convenience, and we don't update it very frequently!
-
-- [index-File ⬇](https://nextcloud.hpi.de/s/3ciMX4yAn8yC5Lb/download) (`datasets.csv`, <1MB)
-- [CalIt2 ⬇](https://nextcloud.hpi.de/s/i4HNX5StwBdkjFJ/download) (<1MB)
-- [Daphnet ⬇](https://nextcloud.hpi.de/s/sD8KNDF7JBR3Ajo/download) (15MB)
-- [Dodgers ⬇](https://nextcloud.hpi.de/s/kj8fi8csPdsRXws/download) (<1MB)
-- [Exathlon ⬇](https://nextcloud.hpi.de/s/ME9EJcpBa5i4HGq/download) (106MB)
-- [GHL ⬇](https://nextcloud.hpi.de/s/trKcAzSxm3A4PMW/download) (153MB)
-- [Genesis ⬇](https://nextcloud.hpi.de/s/Y3yq3CnnMarXzSJ/download) (<1MB)
-- [KDD-TSAD ⬇](https://nextcloud.hpi.de/s/3ZbWw478teRJLzB/download) (110MB)
-- [Kitsune ⬇](https://nextcloud.hpi.de/s/gLPAPbwj2TgAi3j/download) (13.5GB)
-- [LTDB ⬇](https://nextcloud.hpi.de/s/z8Nt5NgBfDnJbzY/download) (405MB)
-- [MGAB ⬇](https://nextcloud.hpi.de/s/4ByzxjWmAALb5Tn/download) (12MB)
-- [MITDB ⬇](https://nextcloud.hpi.de/s/8yoLBDC5ezMwe9R/download) (176MB)
-- [Metro ⬇](https://nextcloud.hpi.de/s/wSCxtM4Y6PHMmD7/download) (<1MB)
-- [NAB ⬇](https://nextcloud.hpi.de/s/bec4p8XNEGNWTwP/download) (2MB)
-- [NASA-MSL ⬇](https://nextcloud.hpi.de/s/w9332jso24yHijZ/download) (<1MB)
-- [NASA-SMAP ⬇](https://nextcloud.hpi.de/s/CiGza9EQ5fxRS9F/download) (2MB)
-- [NormA ⬇](https://nextcloud.hpi.de/s/5sC7Pb2PowdZFFK/download) (15MB)
-- [OPPORTUNITY ⬇](https://nextcloud.hpi.de/s/nYtZ5mTLpYX2G7p/download) (204MB)
-- [Occupancy ⬇](https://nextcloud.hpi.de/s/6bxznJmk3PHbz7Z/download) (<1MB)
-- [SMD ⬇](https://nextcloud.hpi.de/s/LSfo8wLW77yrZEY/download) (99MB)
-- [SVDB ⬇](https://nextcloud.hpi.de/s/ScHgYbP7eD8Dtnq/download) (103MB)
-- [TSB-UAD synthetic ⬇](https://nextcloud.hpi.de/s/dY2K6ZG9QLkqrZj/download) (1.8GB)
-- [TSB-UAD artificial ⬇](https://nextcloud.hpi.de/s/FyGRCMXKWqH7kHw/download) (178MB)
-- [GutenTAG ⬇](https://nextcloud.hpi.de/s/5fPgiDQW5iLbwi3/download) (own `datasets.csv`-File, 106MB)
+A list of dataset with respective download links are given in [_Datasets_ page](https://timeeval.github.io/evaluation-paper/notebooks/Datasets.html).
 
 ## Prepare algorithms
 
