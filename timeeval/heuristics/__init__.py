@@ -40,7 +40,34 @@ def _check_signature(signature: str) -> bool:
 
 
 def TimeEvalHeuristic(signature: str) -> TimeEvalParameterHeuristic:
-    """This wrapper allows using the heuristics by name without the need for imports."""
+    """Factory function for TimeEval heuristics based on their string-representation.
+
+    This wrapper allows using the heuristics by name without the need for imports. It
+    is primarily used in the :func:`timeeval.heuristics.inject_heuristic_values`
+    function. The following heuristics are currently supported:
+
+    - :class:`~timeeval.heuristics.RelativeDatasetSizeHeuristic`
+    - :class:`~timeeval.heuristics.AnomalyLengthHeuristic`
+    - :class:`~timeeval.heuristics.CleanStartSequenceSizeHeuristic`
+    - :class:`~timeeval.heuristics.ParameterDependenceHeuristic`
+    - :class:`~timeeval.heuristics.PeriodSizeHeuristic`
+    - :class:`~timeeval.heuristics.EmbedDimRangeHeuristic`
+    - :class:`~timeeval.heuristics.ContaminationHeuristic`
+    - :class:`~timeeval.heuristics.DefaultFactorHeuristic`
+    - :class:`~timeeval.heuristics.DefaultExponentialFactorHeuristic`
+    - :class:`~timeeval.heuristics.DatasetIdHeuristic`
+
+    Parameters
+    ----------
+    signature : str
+        String representation of the heuristic to be created. Must be of the form
+        ``<heuristic_name>(<heuristic_parameters>)``
+
+    Returns
+    -------
+    heuristic: TimeEvalParameterHeuristic
+        The created heuristic object.
+    """
     if not _check_signature(signature):
         raise ValueError(f"Heuristic '{signature}' is invalid! Only constructor calls to classes derived from "
                          "TimeEvalParameterHeuristic are allowed.")
@@ -53,6 +80,41 @@ def inject_heuristic_values(
         dataset_details: Dataset,
         dataset_path: Path,
 ) -> T:
+    """This function parses the supplied parameter mapping in ``params`` and replaces all heuristic definitions with
+    their actual values.
+
+    The heuristics are generally evaluated in the order they are defined in the parameter mapping.
+    However, :class:`~timeeval.heuristics.ParameterDependenceHeuristic`s are evaluated after all other heuristics. The
+    order within multiple ``ParameterDependenceHeuristic`s` is not defined. If a heuristic returns ``None``, the
+    corresponding parameter is removed from the parameter mapping. Heuristics can be defined by using the following
+    syntax as the parameter value:
+
+        ``"heuristic:<heuristic_name>(<heuristic_parameters>)"``
+
+    Heuristics can use the following information to compute their values:
+
+    - properties of the algorithm
+    - properties of the dataset
+    - the full dataset (supplied as a path to the dataset)
+    - the (current) parameter mapping (later evaluated heuristics can see the changes of previous heuristics)
+
+    Parameters
+    ----------
+    params: T
+        The current parameter mapping, whose values should be updated by the heuristics. If a immutable mapping is
+        passed, no changes will be made.
+    algorithm: Algorithm
+        The algorithm (:class:`~timeeval.algorithm.Algorithm`) for which the parameter mapping is valid.
+    dataset_details: Dataset
+        The dataset for which the parameter mapping is supposed to be used.
+    dataset_path: Path
+        The path to the dataset.
+
+    Returns
+    -------
+    params: T
+        The updated parameter mapping.
+    """
     # if not hasattr(params, "__setitem__") or not hasattr(params, "__delitem__"):
     if not isinstance(params, MutableMapping):
         # ignore all dynamic parameter search spaces that cannot be altered

@@ -8,6 +8,18 @@ from timeeval.datasets import Dataset
 
 
 class TimeEvalParameterHeuristic(abc.ABC):
+    """Base class for TimeEval parameter heuristics.
+
+    Heuristics are used to calculate parameter values for algorithms based on information about the algorithm, the
+    dataset, or other parameters. They are evaluated in the driver process when TimeEval is configured. This means
+    that the datasets must be available on the node executing the driver process. The calculated parameter values are
+    then injected into the algorithm configuration and the algorithm is executed on the cluster.
+
+    See Also
+    --------
+    :func:`timeeval.heuristics.inject_heuristic_values`
+        Function that uses the heuristics to calculate parameter values for algorithms.
+    """
     @abc.abstractmethod
     def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         """
@@ -18,9 +30,11 @@ class TimeEvalParameterHeuristic(abc.ABC):
 
     @property
     def name(self) -> str:
+        """Name of this parameter heuristic (corresponds to the class name)."""
         return self.__class__.__name__
 
     def parameters(self) -> Dict[str, Any]:
+        """Get the heuristic's parameters (arguments to the heuristic) as a dictionary."""
         out = {}
         for key in self.get_param_names():
             out[key] = getattr(self, key)
@@ -29,9 +43,9 @@ class TimeEvalParameterHeuristic(abc.ABC):
     @classmethod
     def get_param_names(cls) -> List[str]:
         """
-        Get parameter names for the heuristic
+        Get parameter names (arguments) for the heuristic.
 
-        Adopted from https://github.com/scikit-learn/scikit-learn/blob/2beed5584/sklearn/base.py
+        Adopted from https://github.com/scikit-learn/scikit-learn/blob/2beed5584/sklearn/base.py.
         """
         # fetch the constructor or the original constructor before deprecation wrapping if any
         init = getattr(cls.__init__, 'deprecated_original', cls.__init__)

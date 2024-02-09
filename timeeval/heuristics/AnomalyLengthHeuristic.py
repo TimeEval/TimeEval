@@ -13,6 +13,21 @@ if TYPE_CHECKING:
 
 
 class AnomalyLengthHeuristic(TimeEvalParameterHeuristic):
+    """Heuristic to use the anomaly length of the dataset as parameter value. **Uses ground-truth labels,** and
+    should therefore only be used for testing purposes.
+
+    Examples
+    --------
+
+    >>> from timeeval.params import FixedParameters
+    >>> params = FixedParameters({"window_size": "heuristic:AnomalyLengthHeuristic(agg_type='max')"})
+
+    Parameters
+    ----------
+    agg_type : str
+        Type of aggregation to use for calculating the anomaly length when multiple anomalies are present in the time
+        series. Must be one of min, median, or max. (default: median)
+    """
     def __init__(self, agg_type: str = "median"):
         if agg_type not in ["min", "median", "max"]:
             raise ValueError(f"'agg_type' must be one of min, median, or max. But '{agg_type}' was given.")
