@@ -4,7 +4,6 @@ from typing import Any, Dict
 import numpy as np
 
 from timeeval import TimeEval, DatasetManager, DefaultMetrics, Algorithm, TrainingType, InputDimensionality
-from timeeval.adapters import DockerAdapter
 from timeeval.adapters import FunctionAdapter # for defining customized algorithm
 from timeeval.algorithms import cof 
 from timeeval.data_types import AlgorithmParameter
@@ -18,10 +17,9 @@ def your_algorithm_function(data: AlgorithmParameter, args: Dict[str, Any]) -> n
 
 def main():
     dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
-    datasets = dm.select()    
-    
+    datasets = dm.select()
     algorithms = [
-    # list of algorithms which will be implimented on the selected dataset(s)
+    # list of algorithms which will be executed on the selected dataset(s)
         cof(
             params=FixedParameters({
                 "n_neighbors": 20, 
