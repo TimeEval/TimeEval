@@ -16,6 +16,7 @@ results/<time-stamp>/
 │       ├── anomaly_scores.ts
 │       ├── docker-algorithm-scores.csv
 │       ├── execution.log
+|	├── model.pkl
 │       ├── hyper_params.json
 │       └── metrics.csv
 └── algorithm_2/hyperparameter/
@@ -62,6 +63,8 @@ Result associated with respective dataset and algorithm is stored in following f
 ### anomaly_scores.ts
 
 ### docker-algorithm-scores.csv
+
+### model.pkl
 
 ### execution.log
 
