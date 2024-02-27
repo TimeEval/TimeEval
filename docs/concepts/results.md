@@ -1,6 +1,6 @@
 # TimeEval results
 
-Upon executing TimeEval python script for the given datasets, timeeval checks the effectiveness of selected algorithm and generate an output file as `./TimeEval/results/<timestamp>` directory. The output directory has following data structure:
+Upon executing TimeEval python script for the given datasets, TimeEval checks the effectiveness of selected algorithm and generate an output file as `./TimeEval/results/<timestamp>` directory. The output directory has following data structure:
 
 ```bash
 results/<time-stamp>/
@@ -31,7 +31,8 @@ results/<time-stamp>/
 Description of each file is given below. 
 
 ## result.csv
-The file `result.csv` contains following attributes:
+
+For a given dataset, different algorithms with varying hyperparameters would yield distict results. The file `result.csv` provides an overview of evalution and contains following attributes:
 
 | Column Name | Datatype | Description |
 | --- | --- | --- |
