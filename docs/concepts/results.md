@@ -1,25 +1,25 @@
 # TimeEval results
 
-Upon executing TimeEval python script for the given datasets, timeeval checks the effectiveness of selected algorithm and generate an output file as './TimeEval/results/<timestamp>' directory. The output directory has following data structure:
+Upon executing TimeEval python script for the given datasets, timeeval checks the effectiveness of selected algorithm and generate an output file as `./TimeEval/results/<timestamp>` directory. The output directory has following data structure:
 
 ```bash
-results_dir
+results/<time-stamp>/
 ├── results.csv
-├── alg_1
-|   ├── dataset_1
+├── algorithm_1/hyperparameter/
+|   ├── dataset_1/epoch/
 │   |   ├── anomaly_scores.ts
 │   |   ├── docker-algorithm-scores.csv
 │   |   ├── execution.log
 │   |   ├── hyper_params.json
 │   |   └── metrics.csv
-|   └── dataset_2
+|   └── dataset_2/epoch/
 │       ├── anomaly_scores.ts
 │       ├── docker-algorithm-scores.csv
 │       ├── execution.log
 │       ├── hyper_params.json
 │       └── metrics.csv
-└── alg_2
-    └── dataset_1
+└── algorithm_2/hyperparameter/
+    └── dataset_1/epoch/
         ├── anomaly_scores.ts
         ├── docker-algorithm-scores.csv
         ├── execution.log
@@ -27,32 +27,35 @@ results_dir
         └── metrics.csv
 
 ```
+Description of each file is given below. 
 
-## File - result.csv
-The file 'result.csv' contains following attributes:
+### result.csv
+The file `result.csv` contains following attributes:
 
-- algorithm: applied on the dataset
-- collection: indicates the name of the dataset 
-- dataset: indicates the targeted segment of the data collection
-- algo_training_type: three learning types: unsupervised, semi-supervised, supervised
-- algo_input_dimensionality: two kinds: univarites, multivariate
-- dataset_training_type: three learning type as above 
-- dataset_input_dimensionality: two kinds as above
-- train_preprocess_time: 
-- train_main_time:
-- execute_preprocess_time:
-- execute_main_time: time taken for execute the script for the given datafile
-- execute_postprocess_time: 
-- status: assigns flag value upon the process
-- error_message:
-- repetition: number of times dataset being processed
-- hyper_params: for given algorithm
-- hyper_params_id: 32 alphanumerical characters
-- ROC_AUC: varies between 0 and 1.
-- FIXED_RANGE_PR_AUC: 
+| Column Name | Datatype | Description |
+| --- | --- | --- |
+| algorithm| str | applied on the dataset |
+| collection| str | indicates the name of the dataset | 
+| dataset| str | indicates the targeted segment of the data collection |
+| algo_training_type | str | three learning types: unsupervised, semi-supervised, supervised |
+| algo_input_dimensionality | str | two kinds: univarites, multivariate |
+| dataset_training_type | str | three learning type as above | 
+| dataset_input_dimensionality | str | two kinds as above |
+| train_preprocess_time| float64| |
+| train_main_time| float64 | |
+| execute_preprocess_time| float64 | |
+| execute_main_time | float64 | time taken for execute the script for the given datafile |
+| execute_postprocess_time|  float64 | |
+| status| str | assigns flag value upon the process |
+| error_message| str | |
+| repetition| int | number of times dataset being processed |
+| hyper_params| float64 | for given algorithm |
+| hyper_params_id| float64 | 32 alphanumerical characters |
+| metric_1| float64 | --user-- |
+| metric_2|  float64 | --user-- |
 
 ## Directory - alg_1
-The directory contains a set of directories named by <hyper_params_id> for used algorithm. For every modification in hyperparameter, TimeEval will generate a new directory with new <hyper_params_id>. <hyper_params_id> directory contains a set of directories named by input dataset. 
+The directory contains a set of directories named by `<hyper_params_id>` used for algorithm. For every modification in hyperparameter, TimeEval will generate a new directory with new `<hyper_params_id>`. The `<hyper_params_id>` directory contains a set of directories named by input dataset. 
 
 Result associated with respective dataset and algorithm is stored in following files:
 
@@ -60,8 +63,10 @@ Result associated with respective dataset and algorithm is stored in following f
 
 ### docker-algorithm-scores.csv
 
+### execution.log
+
 ### metrics.csv
-   This file consisting information related to metrics used in the experiment. In the above syntax, metrics can be selected by defining metric list as [met1, met2, ...]. Most common metric being used in TimeEval are:
+   This file consisting information related to metrics used in the experiment. In the above syntax, metrics can be selected by defining metric list as `[met1, met2, ...]`. Most common metric being used in TimeEval are:
 1. Classification-metrics: for binary dataset
    - Precision
    - Recall
