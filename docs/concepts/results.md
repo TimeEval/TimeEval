@@ -30,7 +30,7 @@ results/<time-stamp>/
 ```
 Description of each file is given below. 
 
-### result.csv
+## result.csv
 The file `result.csv` contains following attributes:
 
 | Column Name | Datatype | Description |
