@@ -1,6 +1,9 @@
 # TimeEval results
 
-Upon executing TimeEval python script for the given datasets, TimeEval checks the effectiveness of selected algorithm and generate an output file as `./TimeEval/results/<timestamp>` directory. The output directory has following data structure:
+On configuring and executing TimeEval, TimeEval applies the algorithms with their configured hyperparameter values on all the datasets.
+It measures the algorithms' runtimes and checks their effectiveness using evaluation measures (:doc:`metrics <api/timeeval.metrics>`).
+The results are stored in a summary file `results.csv`  and a nested folder structure in a results folder (``./results/<timestamp>`` per default).
+The output directory has the following structure:
 
 ```bash
 results/<time-stamp>/
@@ -12,15 +15,15 @@ results/<time-stamp>/
 │   |   ├── execution.log
 │   |   ├── hyper_params.json
 │   |   └── metrics.csv
-|   └── dataset_2/epoch/
-│       ├── anomaly_scores.ts
+|   └── <collection_name>/<dataset_name_2>/<repetition_number>/
+│       ├── anomaly_scores.ts
 │       ├── docker-algorithm-scores.csv
 │       ├── execution.log
-|	├── model.pkl
+|       ├── model.pkl
 │       ├── hyper_params.json
 │       └── metrics.csv
-└── algorithm_2/hyperparameter/
-    └── dataset_1/epoch/
+└── <algorithm_2>/<hyper_params_id>/
+    └── <collection_name>/<dataset_name_1>/<repetition_number>/
         ├── anomaly_scores.ts
         ├── docker-algorithm-scores.csv
         ├── execution.log
@@ -56,18 +59,22 @@ For a given dataset, different algorithms with varying hyperparameters would yie
 | metric_1| float64 | --user-- |
 | metric_2|  float64 | --user-- |
 
-## Directory - alg_1
-The directory contains a set of directories named by `<hyper_params_id>` used for algorithm. For every modification in hyperparameter, TimeEval will generate a new directory with new `<hyper_params_id>`. The `<hyper_params_id>` directory contains a set of directories named by input dataset. 
+## Directory - <algorithm_1>/<hyper_params_id>/<collection_name>/<dataset_name_1>/<repetition_number>/
+For every modification in hyperparameter of algorithms, TimeEval generates a parent directory named by `<algorithm_1>`, which contains a set of nested directories named by `<hyper_params_id>`. Following the directory tree, the base directory contains the following files. 
 
 Result associated with respective dataset and algorithm is stored in following files:
 
-### anomaly_scores.ts
-
 ### docker-algorithm-scores.csv
+This single-column file stores evaluation score for the each datapoint of the time series. 
+
+### anomaly_scores.ts
+Normalization of the `docker-algorthim-scores.csv` file yields the `anamoly_scores.ts` where every datapoint of the timeseries get a score between 0 to 1. For an anamoly, the score tends to 1. 
 
 ### model.pkl
+For semi-supervised and supervised algorithm, a pickel file required which contains the a trained model from a labelled dataset.  
 
 ### execution.log
+This log report summarizes the execution process. It provides information about the algorithm type and saves the calculated metric score for the applied algorithm on the dataset.
 
 ### metrics.csv
    This file consisting information related to metrics used in the experiment. In the above syntax, metrics can be selected by defining metric list as `[met1, met2, ...]`. Most common metric being used in TimeEval are:
@@ -85,6 +92,6 @@ Result associated with respective dataset and algorithm is stored in following f
    - RangePrecisionRangeRecallAUC
 
 ### hyper_params.json
-	
+This file stores the information about hyperparameters associated with the applied algorithm.
 	
 	
