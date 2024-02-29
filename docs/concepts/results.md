@@ -5,8 +5,8 @@ Upon executing TimeEval python script for the given datasets, TimeEval checks th
 ```bash
 results/<time-stamp>/
 ├── results.csv
-├── algorithm_1/hyperparameter/
-|   ├── dataset_1/epoch/
+├── <algorithm_1>/<hyper_params_id>/
+|   ├── <collection_name>/<dataset_name_1>/<repetition_number>/
 │   |   ├── anomaly_scores.ts
 │   |   ├── docker-algorithm-scores.csv
 │   |   ├── execution.log
