@@ -60,34 +60,28 @@ For a given dataset, different algorithms with varying hyperparameters yield dis
 | ...   |  ... | ...  |
 
 ## Directory - <algorithm_1>/<hyper_params_id>/<collection_name>/<dataset_name_1>/<repetition_number>/
+
 For every modification in hyperparameter of algorithms, TimeEval generates a parent directory named by `<algorithm_1>`, which contains a set of nested directories named by `<hyper_params_id>`. Following the directory tree, the deepest directory contains a set of files associated with respective dataset and algorithm as:
 
 ### docker-algorithm-scores.csv
+
 This single-column file stores evaluation score for the each datapoint of the time series. 
 
 ### anomaly_scores.ts
+
 Normalization of the `docker-algorthim-scores.csv` file yields the `anomaly_scores.ts` where every datapoint of the timeseries get a score between 0 to 1. For an anomaly, the score tends to 1. 
 
 ### model.pkl
+
 For semi-supervised and supervised algorithm, a pickel file gets generated which contains a trained model from labelled datapoints.  
 
 ### execution.log
+
 This log-report summarizes the execution process. Mainly used for debugging purpose as upon failure, it records the source of errors. It also stores the calculated metric score for the applied algorithm on the dataset.
 
 ### metrics.csv
-   This file consisting information related to metrics used in the experiment. In the above syntax, metrics can be selected by defining metric list as `[met1, met2, ...]`. Most common metric being used in TimeEval are:
-1. Classification-metrics: for binary dataset
-   - Precision
-   - Recall
-   - F1Score
-2. AUC-metrics: for continuous dataset
-   - RocAUC
-   - PrAUC
-4. Range-metrics: analyse segment of the dataset
-   - RangePrecision
-   - RangeRecall
-   - RangeFScore
-   - RangePrecisionRangeRecallAUC
+
+   This file consisting information related to metrics used in the experiment. Find more information about it: `api/timeeval.metrics`
 
 ### hyper_params.json
 This file stores the information about hyperparameters associated with the applied algorithm.
