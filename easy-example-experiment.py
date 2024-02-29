@@ -12,7 +12,7 @@ from timeeval.params import FixedParameters
 def your_algorithm_function(data: AlgorithmParameter, args: Dict[str, Any]) -> np.ndarray:
     if isinstance(data, np.ndarray):
         return np.zeros_like(data)
-    else:
+    else: # isinstance(data, pathlib.Path)
         return np.genfromtxt(data, delimiter=",", skip_header=1)[:, 1]
 
 def main():
