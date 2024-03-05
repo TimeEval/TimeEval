@@ -481,7 +481,7 @@ class TimeEval:
         if short:
             results = results.rename(columns=dict([(k, f"{k}_mean") for k in keys]))
         else:
-            std_results = grouped_results.std(numeric_only=True)[keys]
+            std_results = grouped_results.std()[keys]
             results = results.join(std_results, lsuffix="_mean", rsuffix="_std")
         results["repetitions"] = grouped_results["repetition"].count()
         return results
