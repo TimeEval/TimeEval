@@ -196,10 +196,10 @@ class TimeEval:
                    "hyper_params_id"]
     """This list contains all the _fixed_ result data frame's column headers.
     TimeEval dynamically adds the metrics and execution times depending on its configuration.
-    
+
     For metrics, their :func:`~timeeval.utils.metrics.Metric.name` will be used as column header, and TimeEval will add
     the following runtime measurements depending on whether they are applicable to the algorithms in the run or not:
-    
+
     - train_preprocess_time: if :func:`~timeeval.Algorithm.preprocess` is defined
     - train_main_time: if the algorithm is semi-supervised or supervised
     - execute_preprocess_time: if :func:`~timeeval.Algorithm.preprocess` is defined
@@ -209,7 +209,7 @@ class TimeEval:
 
     DEFAULT_RESULT_PATH = Path("./results")
     """Default path for the results.
-    
+
     If you don't specify the ``results_path``, TimeEval will store the evaluation results in the folder ``results``
     within the current working directory.
     """
@@ -481,7 +481,7 @@ class TimeEval:
         if short:
             results = results.rename(columns=dict([(k, f"{k}_mean") for k in keys]))
         else:
-            std_results = grouped_results.std()[keys]
+            std_results = grouped_results.std(numeric_only=True)[keys]
             results = results.join(std_results, lsuffix="_mean", rsuffix="_std")
         results["repetitions"] = grouped_results["repetition"].count()
         return results
