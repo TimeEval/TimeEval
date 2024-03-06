@@ -4,6 +4,7 @@ from pathlib import Path
 
 METRICS_CSV = "metrics.csv"
 EXECUTION_LOG = "execution.log"
+RAW_ANOMALY_SCORES_TS = "raw_anomaly_scores.ts"
 ANOMALY_SCORES_TS = "anomaly_scores.ts"
 HYPER_PARAMETERS = "hyper_params.json"
 RESULTS_CSV = "results.csv"

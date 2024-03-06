@@ -9,7 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from .times import Times
 from ..algorithm import Algorithm
-from ..constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
+from ..constants import EXECUTION_LOG, RAW_ANOMALY_SCORES_TS, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
 from ..data_types import AlgorithmParameter, TrainingType, InputDimensionality
 from ..datasets import Datasets, Dataset
 from ..heuristics import inject_heuristic_values
@@ -97,6 +97,8 @@ class Experiment:
             result.update(execution_times)
             # backup results to disk
             pd.DataFrame([result]).to_csv(self.results_path / METRICS_CSV, index=False)
+            # persist raw scores to disk
+            y_scores.tofile(str(self.results_path / RAW_ANOMALY_SCORES_TS), sep="\n")
 
             y_true = load_labels_only(self.resolved_test_dataset_path)
             y_true, y_scores = self.scale_scores(y_true, y_scores)
