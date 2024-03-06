@@ -10,6 +10,7 @@ import pandas as pd
 from tests.fixtures.algorithms import ErroneousAlgorithm
 from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, Status, ResourceConstraints, TrainingType
 from timeeval.adapters import FunctionAdapter
+from timeeval.metrics import DefaultMetrics
 
 
 class TestTimeEvalExceptions(unittest.TestCase):
@@ -89,3 +90,19 @@ class TestTimeEvalExceptions(unittest.TestCase):
         with self.assertRaises(AssertionError) as ex:
             TimeEval(self.datasets, [("test", "dataset-int")], [algo])
         self.assertRegex(str(ex.exception), "[Nn]o [Vv]alid [Ee]xperiments")
+
+    def test_no_metrics(self):
+        with tempfile.TemporaryDirectory() as tmp_path:
+            timeeval = TimeEval(
+                self.datasets,
+                [("test", "dataset-int")],
+                [self.identity_algorithm],
+                results_path=Path(tmp_path),
+                metrics=[],
+            )
+            timeeval.run()
+
+        c = timeeval.results.columns
+        default_metric_names = [m.name for m in DefaultMetrics.default_list()]
+        for metric in default_metric_names:
+            self.assertNotIn(metric, c)

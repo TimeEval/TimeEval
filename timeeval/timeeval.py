@@ -261,7 +261,10 @@ class TimeEval:
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         self.results_path = results_path.resolve() / start_date
         self.disable_progress_bar = disable_progress_bar
-        self.metrics: List[Metric] = metrics or DefaultMetrics.default_list()
+        if metrics is None:
+            self.metrics: List[Metric] = DefaultMetrics.default_list()
+        else:
+            self.metrics = metrics
         self.metric_names = [m.name for m in self.metrics]
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
         self.distributed = distributed

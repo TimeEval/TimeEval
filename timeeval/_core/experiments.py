@@ -185,7 +185,7 @@ class Experiments:
                  base_result_path: Path,
                  resource_constraints: ResourceConstraints = ResourceConstraints.default_constraints(),
                  repetitions: int = 1,
-                 metrics: Optional[List[Metric]] = None,
+                 metrics: List[Metric] = [],
                  skip_invalid_combinations: bool = False,
                  force_training_type_match: bool = False,
                  force_dimensionality_match: bool = False,
@@ -196,7 +196,7 @@ class Experiments:
         self.repetitions = repetitions
         self.base_result_path = base_result_path
         self.resource_constraints = resource_constraints
-        self.metrics = metrics or DefaultMetrics.default_list()
+        self.metrics = metrics
         self.skip_invalid_combinations = skip_invalid_combinations or force_training_type_match or force_dimensionality_match
         self.force_training_type_match = force_training_type_match
         self.force_dimensionality_match = force_dimensionality_match
