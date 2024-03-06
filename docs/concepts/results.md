@@ -1,7 +1,7 @@
 # TimeEval results
 
 On configuring and executing TimeEval, TimeEval applies the algorithms with their configured hyperparameter values on all the datasets.
-It measures the algorithms' runtimes and checks their effectiveness using evaluation measures ({doc}`metrics <api/timeeval.metrics>`).
+It measures the algorithms' runtimes and checks their effectiveness using evaluation measures ({doc}`metrics <../api/timeeval.metrics>`).
 The results are stored in a summary file called `results.csv` and a nested folder structure in the results-folder (`./results/<timestamp>` per default).
 The output directory has the following structure:
 
@@ -43,24 +43,24 @@ The file `result.csv` provides an overview of the evaluation run and contains th
 
 | Column Name | Datatype | Description |
 | --- | --- | --- |
-| algorithm| str | name of the algorithm as defined in {class}`~timeeval.Algorithm_name` attribute |
+| algorithm| str | name of the algorithm as defined in {class}`~timeeval.Algorithm`#name attribute |
 | collection| str | name of the dataset collection. A collection contains similar datasets. |
 | dataset| str | name of the dataset |
-| algo_training_type | str | specifies, whether a dataset has a training time series with anomaly labels (supervised), with normal data only (semi-supervised), or no training time series at all (unsupervised)|
+| algo_training_type | str | specifies, whether a dataset has a training time series with anomaly labels (supervised), with normal data only (semi-supervised), or no training time series at all (unsupervised) |
 | algo_input_dimensionality | str | specifies if the dataset has multiple channels (multivariate) or not (univariate) |
 | dataset_training_type | str | specifies, whether an algorithm requires training data with anomalies (supervised), without normal data only (semi-supervised), or does not require training data (unsupervised) |
 | dataset_input_dimensionality | str |univariate or multivariate (see above) |
-| train_preprocess_time| float64| runtime of the preprocessing step during training in seconds|
-| train_main_time| float64 | runtime of the training in seconds (does not include pre-processing time)|
-| execute_preprocess_time| float64 | runtime of the preprocessing step during execution in seconds|
-| execute_main_time | float64 | runtime of the execution of the algorithm on the test time series in seconds (does not include pre- or post-processing times)|
-| execute_postprocess_time|  float64 | runtime of the post-processing step during execution|
+| train_preprocess_time| float | runtime of the preprocessing step during training in seconds |
+| train_main_time| float | runtime of the training in seconds (does not include pre-processing time) |
+| execute_preprocess_time| float | runtime of the preprocessing step during execution in seconds |
+| execute_main_time | float | runtime of the execution of the algorithm on the test time series in seconds (does not include pre- or post-processing times) |
+| execute_postprocess_time|  float | runtime of the post-processing step during execution |
 | status| str | specifies, whether the algorithm executed successfully ({obj}`~timeeval.Status.OK`), exceeded the time limit ({obj}`~timeeval.Status.TIMEOUT`), exceeded the memory limit ({obj}`~timeeval.Status.OOM`), or failed ({obj}`~timeeval.Status.ERROR`) |
-| error_message| str | optional detailed error message|
-| repetition| int | repetition number if a dataset-hyperparameter-dataset combination was executed multiple times|
-| hyper_params| float64 | actual hyperparameter values for this execution|
-| hyper_params_id| float64 | alphanumerical hash of the hyperparameter configuration|
-| metric_1| float64 | value of the first performance metric|
+| error_message| str | optional detailed error message |
+| repetition| int | repetition number if a dataset-hyperparameter-dataset combination was executed multiple times |
+| hyper_params| float | actual hyperparameter values for this execution |
+| hyper_params_id| float | alphanumerical hash of the hyperparameter configuration |
+| metric_1| float | value of the first performance metric |
 | ...   |  ... | ...  |
 
 ## Directory (`<algorithm_1>/<hyper_params_id>/<collection_name>/<dataset_name_1>/<repetition_number>/`)
@@ -84,11 +84,11 @@ Each experiment directory contains at least the following files:
 - `metrics.csv`:
   This file lists the metric and runtime measurements for the corresponding experiment.
   The used metrics are defined by the user.
-  Find more information in the API documentation: {doc}`api/timeeval.metrics`
+  Find more information in the API documentation: {doc}`../api/timeeval.metrics`
 - `hyper_params.json`:
   Contains a JSON-object with the hyperparameter values used to execute the algorithm on the dataset.
   If hyperparameter heuristics were defined, the heuristic' values are already resolved.
 
-All other files are optional and depend on the used {class}`~timeeval.adapters.BaseAdapter`.
-For example, the {class}`~timeeval.adapters.DockerAdapter` usually produces a temporary file called `docker-algorithm-scores.csv`
+All other files are optional and depend on the used algorithm {class}`~timeeval.adapters.base.Adapter`.
+For example, the {class}`~timeeval.adapters.docker.DockerAdapter` usually produces a temporary file called `docker-algorithm-scores.csv`
 to pass the algorithm result from the Docker container to TimeEval, and (semi-)supervised algorithms store their trained model in `model.pkl`-files.
