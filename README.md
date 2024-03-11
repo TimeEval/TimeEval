@@ -10,7 +10,7 @@ Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 [![codecov](https://codecov.io/gh/TimeEval/TimeEval/branch/main/graph/badge.svg?token=esrQJQmMQe)](https://codecov.io/gh/TimeEval/TimeEval)
 [![PyPI version](https://badge.fury.io/py/TimeEval.svg)](https://badge.fury.io/py/TimeEval)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![python version 3.7|3.8|3.9](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
+![python version 3.7|3.8|3.9|3.10|3.11](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)
 [![Downloads](https://pepy.tech/badge/timeeval)](https://pepy.tech/project/timeeval)
 
 </div>
@@ -55,7 +55,7 @@ Builds of `TimeEval` are published to [PyPI](https://pypi.org/project/TimeEval/)
 
 #### Prerequisites
 
-- python >= 3.7, <= 3.9
+- python >= 3.7, <= 3.11
 - pip >= 20
 - Docker (for the anomaly detection algorithms)
 - (optional) `rsync` for distributed TimeEval
