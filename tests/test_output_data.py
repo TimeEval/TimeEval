@@ -9,7 +9,7 @@ from freezegun import freeze_time
 
 from timeeval import TimeEval, Algorithm, Datasets, DatasetManager, AlgorithmParameter, DefaultMetrics
 from timeeval.adapters import FunctionAdapter
-from timeeval.constants import ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
+from timeeval.constants import RAW_ANOMALY_SCORES_TS, ANOMALY_SCORES_TS, METRICS_CSV, EXECUTION_LOG, HYPER_PARAMETERS, RESULTS_CSV
 from timeeval.params import FixedParameters
 from timeeval.utils.hash_dict import hash_dict
 
@@ -41,6 +41,7 @@ class TestOutputData(unittest.TestCase):
             timeeval.run()
             parent_path = tmp_path / "2021_01_01_00_00_00" / "deviating_from_mean" / self.hash / "test" / "dataset-int" / "1"
 
+            self.assertTrue((parent_path / RAW_ANOMALY_SCORES_TS).exists())
             self.assertTrue((parent_path / ANOMALY_SCORES_TS).exists())
             self.assertTrue((parent_path / EXECUTION_LOG).exists())
             self.assertTrue((parent_path / METRICS_CSV).exists())
