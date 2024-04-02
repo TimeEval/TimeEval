@@ -85,8 +85,8 @@ def ssa(params: Optional[ParameterConfig] = None, skip_pull: bool = False, timeo
     return Algorithm(
         name="SSA",
         main=DockerAdapter(
-            image_name="ghcr.io/timeeval/ssa",
-            tag="1.0.0",
+            image_name="registry.gitlab.hpi.de/akita/i/ssa",
+            tag="latest",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

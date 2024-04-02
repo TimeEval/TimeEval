@@ -117,8 +117,8 @@ def arima(params: Optional[ParameterConfig] = None, skip_pull: bool = False, tim
     return Algorithm(
         name="ARIMA",
         main=DockerAdapter(
-            image_name="ghcr.io/timeeval/arima",
-            tag="0.3.0",
+            image_name="registry.gitlab.hpi.de/akita/i/arima",
+            tag="latest",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",

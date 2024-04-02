@@ -101,8 +101,8 @@ def sand(params: Optional[ParameterConfig] = None, skip_pull: bool = False, time
     return Algorithm(
         name="SAND",
         main=DockerAdapter(
-            image_name="ghcr.io/timeeval/sand",
-            tag="0.3.0",
+            image_name="registry.gitlab.hpi.de/akita/i/sand",
+            tag="latest",
             skip_pull=skip_pull,
             timeout=timeout,
             group_privileges="akita",
