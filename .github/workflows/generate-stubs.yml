@@ -24,7 +24,7 @@ jobs:
           path: './timeeval-algorithms'
           # ref: 'main'
       - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3.0.3
+        uses: conda-incubator/setup-miniconda@v3.0.4
         with:
           use-mamba: true
           auto-update-conda: true
