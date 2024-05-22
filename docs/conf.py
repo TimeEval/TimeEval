@@ -37,7 +37,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'myst_parser',
     'sphinx_rtd_dark_mode',
-    'sphinx.ext.mathjax'
+    'sphinx.ext.mathjax',
     'sphinx_copybutton'
 ]
 
