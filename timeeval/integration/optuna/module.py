@@ -86,6 +86,14 @@ def _stop_containers(scheduler: Optional[Scheduler] = None, remove: bool = False
         pass
 
 
+def _check_docker_available(reason: str) -> None:
+    if reason:
+        try:
+            docker.from_env()
+        except DockerException as e:
+            raise ValueError(f"No docker client found, but docker is required to {reason}!") from e
+
+
 class OptunaModule(TimeEvalModule):
     """This module is automatically loaded when at least one algorithm uses
     :class:`timeeval.params.BayesianParameterSearch` as parameter config.
@@ -113,17 +121,9 @@ class OptunaModule(TimeEvalModule):
         elif isinstance(self.config.default_storage, str) and self.config.default_storage == "postgresql":
             and_required = " and " if check_docker else ""
             check_docker += and_required + f"start the Optuna storage {self.config.default_storage}"
-        self._check_docker_available(check_docker)
+        _check_docker_available(check_docker)
 
         self.storage_url: Optional[str] = None
-
-    @staticmethod
-    def _check_docker_available(reason: str) -> None:
-        if reason:
-            try:
-                docker.from_env()
-            except DockerException as e:
-                raise ValueError(f"No docker client found, but docker is required to {reason}!") from e
 
     def prepare(self, timeeval: TimeEval) -> None:
         log.info("Optuna module: preparing ...")

@@ -78,7 +78,7 @@ class TestOptunaModule(unittest.TestCase):
         with self.assertRaises(ValueError):
             OptunaModule(OptunaConfiguration(default_storage=None))
 
-    @patch("timeeval.integration.optuna.module.OptunaModule._check_docker_available")
+    @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_checks_docker(self, mock_check):
         from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
 
@@ -90,7 +90,7 @@ class TestOptunaModule(unittest.TestCase):
 
     @patch("socket.gethostname")
     @patch("timeeval.integration.optuna.module._start_postgres_container")
-    @patch("timeeval.integration.optuna.module.OptunaModule._check_docker_available")
+    @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_prepare_start_storage_container(self, mock_check, mock_start_postgres, mock_hostname):
         from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
 
@@ -105,7 +105,7 @@ class TestOptunaModule(unittest.TestCase):
         mock_start_postgres.assert_called_with(password="hairy_bumblebee", port=5432)
 
     @patch("socket.gethostname")
-    @patch("timeeval.integration.optuna.module.OptunaModule._check_docker_available")
+    @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_prepare_not_starting_dashboard(self, mock_check, mock_hostname):
         from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
 
@@ -126,7 +126,7 @@ class TestOptunaModule(unittest.TestCase):
     @patch("socket.gethostname")
     @patch("timeeval.integration.optuna.module._start_dashboard_container")
     @patch("timeeval.integration.optuna.module._start_postgres_container")
-    @patch("timeeval.integration.optuna.module.OptunaModule._check_docker_available")
+    @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_prepare_start_storage_and_dashboard_container(self, mock_check, mock_start_postgres, mock_start_dashboard, mock_hostname):
         from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
 
@@ -144,7 +144,7 @@ class TestOptunaModule(unittest.TestCase):
 
     @patch("socket.gethostname")
     @patch("timeeval.integration.optuna.module._start_postgres_container")
-    @patch("timeeval.integration.optuna.module.OptunaModule._check_docker_available")
+    @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_prepare_start_on_scheduler(self, mock_check, mock_start_postgres, mock_hostname):
         from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
 
@@ -159,7 +159,8 @@ class TestOptunaModule(unittest.TestCase):
         )
 
     @patch("timeeval.integration.optuna.module._stop_containers")
-    def test_finalize_local(self, mock_stop_containers):
+    @patch("timeeval.integration.optuna.module._check_docker_available")
+    def test_finalize_local(self, mock_check, mock_stop_containers):
         from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
 
         module = OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=False))
@@ -176,7 +177,8 @@ class TestOptunaModule(unittest.TestCase):
         mock_stop_containers.assert_called_with(remove=True)
 
     @patch("timeeval.integration.optuna.module._stop_containers")
-    def test_finalize_distributed(self, mock_stop_containers):
+    @patch("timeeval.integration.optuna.module._check_docker_available")
+    def test_finalize_distributed(self, mock_check, mock_stop_containers):
         from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
 
         module = OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=False))
