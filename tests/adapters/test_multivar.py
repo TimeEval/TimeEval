@@ -21,8 +21,7 @@ from timeeval.resource_constraints import ResourceConstraints
 
 class TestMultivarAdapter(unittest.TestCase):
     def setUp(self) -> None:
-        np.random.seed(4444)
-        self.X = np.random.rand(100, 3)
+        self.X = np.random.default_rng(4444).random((100, 3))
         tmp = np.abs(self.X - np.median(self.X, axis=0))
         self.y = tmp / tmp.max(axis=0)
         self.y_median = np.median(self.y, axis=1)
@@ -35,19 +34,6 @@ class TestMultivarAdapter(unittest.TestCase):
 
         self.X = np.c_[self.X, np.zeros(100)]
 
-        self.docker = docker.from_env()
-        self.input_data_path = Path("./tests/example_data/dataset.train.csv").absolute()
-        self.input_data_multi_path = Path("./tests/example_data/dataset.multi.csv").absolute()
-
-    def tearDown(self) -> None:
-        # remove test containers
-        containers = self.docker.containers.list(all=True, filters={"ancestor": TEST_DOCKER_IMAGE})
-        for c in containers:
-            c.remove()
-        del self.docker
-
-    def _list_test_containers(self, ancestor_image: str = TEST_DOCKER_IMAGE) -> List[Container]:
-        return self.docker.containers.list(all=True, filters={"ancestor": ancestor_image})
 
     def test_multivar_deviating_from_median_mean(self):
         algorithm = MultivarAdapter(DeviatingFromMedian(), AggregationMethod.MEAN)
@@ -80,6 +66,23 @@ class TestMultivarAdapter(unittest.TestCase):
     def test_multivar_raises_on_nested_multivar(self):
         with pytest.raises(AssertionError):
             MultivarAdapter(MultivarAdapter(DeviatingFromMedian()), AggregationMethod.MEAN)
+
+
+class TestMultivarAdapterDocker(unittest.TestCase):
+    def setUp(self) -> None:
+        self.docker = docker.from_env()
+        self.input_data_path = Path("./tests/example_data/dataset.train.csv").absolute()
+        self.input_data_multi_path = Path("./tests/example_data/dataset.multi.csv").absolute()
+
+    def tearDown(self) -> None:
+        # remove test containers
+        containers = self._list_test_containers()
+        for c in containers:
+            c.remove()
+        del self.docker
+
+    def _list_test_containers(self, ancestor_image: str = TEST_DOCKER_IMAGE) -> List[Container]:
+        return self.docker.containers.list(all=True, filters={"ancestor": ancestor_image})
 
     @pytest.mark.docker
     def test_execute_successful(self):
