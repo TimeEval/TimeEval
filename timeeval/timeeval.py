@@ -196,10 +196,10 @@ class TimeEval:
                    "hyper_params_id"]
     """This list contains all the _fixed_ result data frame's column headers.
     TimeEval dynamically adds the metrics and execution times depending on its configuration.
-    
+
     For metrics, their :func:`~timeeval.utils.metrics.Metric.name` will be used as column header, and TimeEval will add
     the following runtime measurements depending on whether they are applicable to the algorithms in the run or not:
-    
+
     - train_preprocess_time: if :func:`~timeeval.Algorithm.preprocess` is defined
     - train_main_time: if the algorithm is semi-supervised or supervised
     - execute_preprocess_time: if :func:`~timeeval.Algorithm.preprocess` is defined
@@ -209,7 +209,7 @@ class TimeEval:
 
     DEFAULT_RESULT_PATH = Path("./results")
     """Default path for the results.
-    
+
     If you don't specify the ``results_path``, TimeEval will store the evaluation results in the folder ``results``
     within the current working directory.
     """
@@ -261,7 +261,10 @@ class TimeEval:
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         self.results_path = results_path.resolve() / start_date
         self.disable_progress_bar = disable_progress_bar
-        self.metrics: List[Metric] = metrics or DefaultMetrics.default_list()
+        if metrics is None:
+            self.metrics: List[Metric] = DefaultMetrics.default_list()
+        else:
+            self.metrics = metrics
         self.metric_names = [m.name for m in self.metrics]
         self.results = pd.DataFrame(columns=TimeEval.RESULT_KEYS + self.metric_names)
         self.distributed = distributed

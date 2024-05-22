@@ -87,7 +87,7 @@ class Metric(ABC):
         else:
             penalize_mask = penalize_mask | neginf_mask
         if nan_is_0:
-            y_score[nan_mask] = 0.
+            y_score[nan_mask] = 0
         else:
             penalize_mask = penalize_mask | nan_mask
         y_score[penalize_mask] = (~np.array(y_true[penalize_mask], dtype=bool)).astype(np.int_)
