@@ -66,12 +66,17 @@ class Metric(ABC):
         check_consistent_length([y_true, y_score])
         if not self.supports_continuous_scorings():
             if y_score.dtype not in [np.int_, np.bool_]:
-                raise ValueError("When using Metrics other than AUC-metric that need discrete (0 or 1) scores (like "
-                                 "Precision, Recall or F1-Score), the scores must be integers and should only contain "
-                                 "the values {0, 1}. Please consider applying a threshold to the scores!")
+                raise ValueError(
+                    "When using Metrics other than AUC-metric that need discrete (0 or 1) scores (like "
+                    "Precision, Recall or F1-Score), the scores must be integers and should only contain "
+                    "the values {0, 1}. Please consider applying a threshold to the scores!"
+                )
         else:
-            if y_score.dtype != np.float_:
-                raise ValueError("When using continuous scoring metrics, the scores must be floats!")
+            if not np.issubdtype(y_score.dtype, np.floating):
+                raise ValueError(
+                    f"When using continuous scoring metrics, the scores must be floats!. "
+                    f"Got {y_score.dtype} instead."
+                )
 
         # substitute NaNs and Infs
         nan_mask = np.isnan(y_score)
