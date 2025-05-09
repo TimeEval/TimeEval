@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 from docker.models.containers import Container
@@ -15,10 +15,10 @@ class MockDockerContainer:
         self.stopped = True
         self._write_scores_file = write_scores_file
 
-    def wait(self, timeout=None) -> dict:
+    def wait(self, timeout: Optional[int] = None) -> dict:
         return {"Error": None, "StatusCode": 0}
 
-    def run(self, image: str, cmd: str, volumes: dict, **kwargs):
+    def run(self, image: str, cmd: str, volumes: dict, **kwargs) -> "MockDockerContainer":
         self.stopped = False
         self.image = image
         self.cmd = cmd
@@ -47,11 +47,11 @@ class MockDockerContainer:
 
 
 class MockImages:
-    def pull(self, image, tag):
+    def pull(self, image, tag) -> None:
         pass
 
 
 class MockDockerClient:
-    def __init__(self, write_scores_file: bool = False):
+    def __init__(self, write_scores_file: bool = False) -> None:
         self.containers = MockDockerContainer(write_scores_file)
         self.images = MockImages()

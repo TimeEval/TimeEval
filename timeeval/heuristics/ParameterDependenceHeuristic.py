@@ -4,7 +4,7 @@ from typing import Optional, Callable, Any
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
-from .base import TimeEvalParameterHeuristic
+from .base import TimeEvalParameterHeuristic, HeuristicFallbackWarning
 
 
 class ParameterDependenceHeuristic(TimeEvalParameterHeuristic):
@@ -49,7 +49,8 @@ class ParameterDependenceHeuristic(TimeEvalParameterHeuristic):
         try:
             original = kwargs["params"][self.source_parameter]
         except KeyError:
-            warnings.warn(f"Could not find a value for source parameter '{self.source_parameter}'")
+            warnings.warn(f"Could not find a value for source parameter '{self.source_parameter}'",
+                          category=HeuristicFallbackWarning)
             # don't set the parameter --> use the algorithm default
             return None
 

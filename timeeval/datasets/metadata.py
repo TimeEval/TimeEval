@@ -165,7 +165,7 @@ class DatasetMetadataEncoder(JSONEncoder):
                 stationarities_dict[k] = Stationarity[v.upper()]
 
             return DatasetMetadata(
-                dataset_id=tuple(dct["dataset_id"]),  # type: ignore
+                dataset_id=tuple(dct["dataset_id"]),
                 is_train=dct["is_train"],
                 length=dct["length"],
                 dimensions=dct["dimensions"],

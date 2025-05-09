@@ -226,8 +226,7 @@ def test_get_dataset_methods_custom(tmp_path):
     # get_df
     df = dm.get_dataset_df(dataset_id)
     dataset_df = pd.read_csv(Path("./tests/example_data/dataset.test.csv").resolve(),
-                             parse_dates=["timestamp"],
-                             infer_datetime_format=True)
+                             parse_dates=["timestamp"])
     pd.testing.assert_frame_equal(df, dataset_df, check_datetimelike_compat=True)
 
     # get_ndarray

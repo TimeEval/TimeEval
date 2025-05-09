@@ -28,10 +28,11 @@ jobs:
         with:
           use-mamba: true
           auto-update-conda: true
-          python-version: "3.7"
+          python-version: "3.9"
+          channels: defaults
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install .
       - name: Generate code
         run: |
           python -m timeeval_experiments.generator algo-stubs -f ./timeeval-algorithms
@@ -46,4 +47,4 @@ jobs:
           branch: "feat/automated-update-algorithm-stubs"
           title: "[automated] Update algorithm stubs"
           labels: "comp: algorithms,🤖 bot"
-          reviewers: "codelionx,wenig"
+          reviewers: "sebastianschmidl,wenig"

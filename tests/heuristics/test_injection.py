@@ -1,13 +1,15 @@
 import unittest
+import warnings
 
 import numpy as np
 
 import tests.fixtures.heuristics_fixtures as fixtures
 from timeeval.heuristics import TimeEvalHeuristic, TimeEvalParameterHeuristic, inject_heuristic_values
+from timeeval.heuristics.base import HeuristicFallbackWarning
 
 
 class TestInjection(unittest.TestCase):
-    def test_successful_factory(self):
+    def test_successful_factory(self) -> None:
         obj = TimeEvalHeuristic("AnomalyLengthHeuristic(agg_type='median')")
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
         obj = TimeEvalHeuristic("CleanStartSequenceSizeHeuristic(max_factor=0.1)")
@@ -29,7 +31,7 @@ class TestInjection(unittest.TestCase):
         obj = TimeEvalHeuristic("DatasetIdHeuristic()")
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
 
-    def test_unknown_heuristic_factory(self):
+    def test_unknown_heuristic_factory(self) -> None:
         with self.assertRaises(ValueError):
             TimeEvalHeuristic("bla")
         with self.assertRaises(ValueError):
@@ -37,12 +39,12 @@ class TestInjection(unittest.TestCase):
         with self.assertRaises(ValueError):
             TimeEvalHeuristic("Algorithm(num_anomalies=3)")
 
-    def test_wrong_parameter_factory(self):
+    def test_wrong_parameter_factory(self) -> None:
         with self.assertRaises(TypeError) as e:
             TimeEvalHeuristic("RelativeDatasetSizeHeuristic(dummy=0)")
         self.assertIn("unexpected keyword argument", str(e.exception))
 
-    def test_inject_heuristic_values(self):
+    def test_inject_heuristic_values(self) -> None:
         params = {
             "x": 2,
             "window_size": "heuristic:AnomalyLengthHeuristic(agg_type='median')",
@@ -59,12 +61,16 @@ class TestInjection(unittest.TestCase):
         }
         # required by DefaultFactorHeuristics and DefaultExponentialFactorHeuristic:
         fixtures.algorithm.param_schema = {"alpha": {"defaultValue": 0.1}, "beta": {"defaultValue": 5.0}}
+
+        warnings.simplefilter("ignore", category=HeuristicFallbackWarning)
         new_params = inject_heuristic_values(
             params=params,
             algorithm=fixtures.algorithm,
             dataset_details=fixtures.dataset,
             dataset_path=fixtures.real_test_dataset_path
         )
+        warnings.simplefilter("default", category=HeuristicFallbackWarning)
+
         expected_embed_dim_range = (
             [50, 100, 150] if fixtures.dataset.period_size is None else
             (np.array([0.5, 1.0, 1.5]) * fixtures.dataset.period_size * 2).astype(int)

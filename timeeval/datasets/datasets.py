@@ -68,8 +68,12 @@ class Datasets(abc.ABC):
         if not dataset_dir.is_dir():
             self._log.warning(f"Directory {dataset_dir} does not exist, creating it!")
             dataset_dir.mkdir(parents=True)
-        df_temp.to_csv(filepath)
+        self._save_index_file(df_temp, filepath)
         return df_temp
+
+    @staticmethod
+    def _save_index_file(df: pd.DataFrame, filepath: Path) -> None:
+        df.to_csv(filepath, index=True, header=True)
 
     def _get_value_internal(self, dataset_id: DatasetId, column_name: str) -> Any:
         try:
@@ -87,7 +91,10 @@ class Datasets(abc.ABC):
         collection_names = self._custom_datasets.get_collection_names()
         if len(collection_names) > 0:
             datasets = self._custom_datasets.get_dataset_names()
-            indices = [(collection_names[0], name) for name in datasets]
+            index = pd.MultiIndex.from_tuples(
+                tuples=[(collection_names[0], name) for name in datasets],
+                names=self._df.index.names
+            )
             data = {
                 "test_path": [safe_extract_path(name, train=False) for name in datasets],
                 "train_path": [safe_extract_path(name, train=True) for name in datasets],
@@ -103,7 +110,7 @@ class Datasets(abc.ABC):
                 "max_anomaly_length": [self._custom_datasets.get(name).max_anomaly_length for name in datasets],
                 "period_size": [self._custom_datasets.get(name).period_size for name in datasets]
             }
-            return pd.DataFrame(data, index=indices, columns=self._df.columns)
+            return pd.DataFrame(data, index=index, columns=self._df.columns)
         else:
             return pd.DataFrame()
 
@@ -227,7 +234,13 @@ class Datasets(abc.ABC):
         df: data frame
             All custom and benchmark datasets and their metadata.
         """
-        df = pd.concat([self._df, self._build_custom_df()], axis=0, copy=True)
+        custom_df = self._build_custom_df()
+        if not self._df.empty and not custom_df.empty:
+            df = pd.concat([self._df, custom_df], axis=0, copy=True)
+        elif custom_df.empty:
+            df = self._df
+        else:
+            df = custom_df
         df = df[~df.index.duplicated(keep="last")]
         df = df.sort_index()
         return df
@@ -363,13 +376,13 @@ class Datasets(abc.ABC):
         path = self.get_dataset_path(dataset_id, train)
         if dataset_id[0] not in self._custom_datasets.get_collection_names():
             if self._get_value_internal(dataset_id, "datetime_index"):
-                return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+                return pd.read_csv(path, parse_dates=["timestamp"])
             else:
                 df = pd.read_csv(path)
                 df["timestamp"] = df["timestamp"].astype(np.int_)
                 return df
         else:
-            df = pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+            df = pd.read_csv(path, parse_dates=["timestamp"])
             # timestamp parsing failed, hopefully because we have an integer-timestamp
             if df["timestamp"].dtype == np.dtype("O"):
                 try:

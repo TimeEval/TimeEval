@@ -7,6 +7,11 @@ from timeeval import Algorithm
 from timeeval.datasets import Dataset
 
 
+class HeuristicFallbackWarning(UserWarning):
+    """Warning that is raised if a heuristic falls back to a default value."""
+    ...
+
+
 class TimeEvalParameterHeuristic(abc.ABC):
     """Base class for TimeEval parameter heuristics.
 

@@ -84,7 +84,7 @@ timestamp,value,is_anomaly
 2014-10-30 17:00:00,16382,1
 """
 dataset_content_io = StringIO(dataset_content)
-dataset_df = pd.read_csv(dataset_content_io, parse_dates=["timestamp"], infer_datetime_format=True)
+dataset_df = pd.read_csv(dataset_content_io, parse_dates=["timestamp"])
 dataset_content_io.seek(0)
 dataset_ndarray = dataset_df.values
 

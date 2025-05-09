@@ -14,11 +14,11 @@ class Method(Enum):
 
     def fn(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if self == self.MEAN:
-            return np.nanmean(x, axis=axis)  # type: ignore
+            return np.nanmean(x, axis=axis)
         elif self == self.MEDIAN:
-            return np.nanmedian(x, axis=axis)  # type: ignore
+            return np.nanmedian(x, axis=axis)
         elif self == self.SUM:
-            return np.nansum(x, axis=axis)  # type: ignore
+            return np.nansum(x, axis=axis)
         else:
             raise ValueError("Reduction method isn't supported!")
 
@@ -78,7 +78,7 @@ class ReverseWindowing(TransformerMixin):
         else:
             windowed_scores_split = pool.starmap(self._chunk_and_vectorize, zip(scores_split, cycle([False]), cycle([False])))
 
-        return np.concatenate(windowed_scores_split)  # type: ignore
+        return np.concatenate(windowed_scores_split)
 
     def _chunk_array(self, X: np.ndarray, n_chunks: int, pad_start: bool = True, pad_end: bool = True) -> List[np.ndarray]:
         chunks = []
@@ -108,7 +108,7 @@ class ReverseWindowing(TransformerMixin):
         for chunk in chunks:
             chunked_scores.append(self._reverse_windowing_vectorized_chunk(chunk))
 
-        return np.concatenate(chunked_scores)  # type: ignore
+        return np.concatenate(chunked_scores)
 
     def _chunk_and_vectorize(self, scores: np.ndarray, pad_start: bool = True, pad_end: bool = True) -> np.ndarray:
         if self.chunksize is None:

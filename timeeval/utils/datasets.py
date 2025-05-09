@@ -15,7 +15,7 @@ def extract_features(df: pd.DataFrame) -> np.ndarray:
 
 
 def load_dataset(path: Path) -> pd.DataFrame:
-    return pd.read_csv(path, parse_dates=["timestamp"], infer_datetime_format=True)
+    return pd.read_csv(path, parse_dates=["timestamp"])
 
 
 def load_labels_only(path: Path) -> np.ndarray:

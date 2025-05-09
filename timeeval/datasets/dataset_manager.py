@@ -129,29 +129,38 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
         dataset: DatasetRecord object
             The dataset information to add to the benchmark collection.
         """
-        df_new = pd.DataFrame({
-            "train_path": dataset.train_path,
-            "test_path": dataset.test_path,
-            "dataset_type": dataset.dataset_type,
-            "datetime_index": dataset.datetime_index,
-            "split_at": dataset.split_at,
-            "train_type": dataset.train_type,
-            "train_is_normal": dataset.train_is_normal,
-            "input_type": dataset.input_type,
-            "length": dataset.length,
-            "dimensions": dataset.dimensions,
-            "contamination": dataset.contamination,
-            "num_anomalies": dataset.num_anomalies,
-            "min_anomaly_length": dataset.min_anomaly_length,
-            "median_anomaly_length": dataset.median_anomaly_length,
-            "max_anomaly_length": dataset.max_anomaly_length,
-            "mean": dataset.mean,
-            "stddev": dataset.stddev,
-            "trend": dataset.trend,
-            "stationarity": dataset.stationarity,
-            "period_size": dataset.period_size
-        }, index=[(dataset.collection_name, dataset.dataset_name)])
-        df = pd.concat([self._df, df_new], axis=0)
+        df_new = pd.DataFrame(
+            data = {
+                "train_path": dataset.train_path,
+                "test_path": dataset.test_path,
+                "dataset_type": dataset.dataset_type,
+                "datetime_index": dataset.datetime_index,
+                "split_at": dataset.split_at,
+                "train_type": dataset.train_type,
+                "train_is_normal": dataset.train_is_normal,
+                "input_type": dataset.input_type,
+                "length": dataset.length,
+                "dimensions": dataset.dimensions,
+                "contamination": dataset.contamination,
+                "num_anomalies": dataset.num_anomalies,
+                "min_anomaly_length": dataset.min_anomaly_length,
+                "median_anomaly_length": dataset.median_anomaly_length,
+                "max_anomaly_length": dataset.max_anomaly_length,
+                "mean": dataset.mean,
+                "stddev": dataset.stddev,
+                "trend": dataset.trend,
+                "stationarity": dataset.stationarity,
+                "period_size": dataset.period_size
+            },
+            index=pd.MultiIndex.from_tuples(
+                tuples=[(dataset.collection_name, dataset.dataset_name)],
+                names=self._df.index.names
+            )
+        )
+        if self._df.empty:
+            df = df_new
+        else:
+            df = pd.concat([self._df, df_new], axis=0)
         df = df[~df.index.duplicated(keep="last")]
         self._df = df.sort_index()
         self._dirty = True
@@ -173,7 +182,12 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
         """
         df_new = pd.DataFrame(datasets)
         df_new.set_index(["collection_name", "dataset_name"], inplace=True)
-        df = pd.concat([self._df, df_new], axis=0)
+        if not df_new.empty and not self._df.empty:
+            df = pd.concat([self._df, df_new], axis=0)
+        elif df_new.empty:
+            df = self._df
+        else:
+            df = df_new
         df = df[~df.index.duplicated(keep="last")]
         self._df = df.sort_index()
         self._dirty = True
@@ -187,5 +201,5 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
         :func:`~timeeval.datasets.dataset_manager.DatasetManager.add_datasets`
         to add datasets to the benchmark dataset collection.
         """
-        self._df.to_csv(self._filepath)
+        self._save_index_file(self._df, self._filepath)
         self._dirty = False
