@@ -35,8 +35,8 @@ dependencies = [
     "tqdm>=4.54.0",
     "asyncssh>=2.5.0",
     "psutil",
-    "dask[distributed]==2021.5.1",
-    "click==8.0.2",  # newer versions are not compatible with dask[distributed] ATM; remove if fixed upstream (https://github.com/dask/distributed/issues/6013)
+    "dask[distributed]==2022.12.1",
+    "click>=8.0.2",
     "docker>=4.4.0",
     "durations>=0.3.0",
     "prts==1.0.0.3", # prevents us from using numpy>=2.0.0, which prevents us from updating to newer python versions

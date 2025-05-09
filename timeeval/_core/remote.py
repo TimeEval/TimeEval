@@ -99,10 +99,14 @@ class Remote:
                 failed_on.append(host)
         return failed_on
 
+    @staticmethod
+    async def async_gather(client: Client, futures: List[Future[Dict[str, Any]]]) -> None:
+        await client.gather(futures, asynchronous=True)
+
     def fetch_results(self) -> None:
         n_experiments = len(self.futures)
         self.log.debug(f"Waiting for the results of {n_experiments} tasks submitted previously to the cluster")
-        coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
+        coroutine_future = run_coroutine_threadsafe(self.async_gather(self.client, self.futures), get_event_loop())
         progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
 
         while not coroutine_future.done():

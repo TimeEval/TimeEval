@@ -634,6 +634,7 @@ class TimeEval:
         self._run()
         if self.distributed:
             self._resolve_future_results()
+        self.results = self.results.infer_objects()
         for module in self.modules.values():
             module.post_run(self)
         self.save_results()
