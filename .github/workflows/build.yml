@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   typecheck:
-    name: Typecheck TimeEval on ubuntu with python 3.7
+    name: Typecheck TimeEval on ubuntu with python 3.9
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +22,11 @@ jobs:
         with:
           use-mamba: true
           auto-update-conda: true
-          python-version: "3.7"
+          python-version: "3.9"
+          channels: defaults
       - name: Install CI dependencies
         run: |
-          pip install -r requirements.ci
+          pip install ".[ci]"
       - name: Typcheck with mypy
         run: |
           python setup.py typecheck
@@ -36,7 +37,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
-        python_version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python_version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
       fail-fast: false
 
     steps:
@@ -47,14 +48,15 @@ jobs:
         use-mamba: true
         auto-update-conda: true
         python-version: ${{ matrix.python_version }}
+        channels: defaults
     - name: Install CI dependencies
       run: |
-        pip install -r requirements.ci
+        pip install ".[ci]"
     - name: Test with pytest
       run: |
         python setup.py test
     - name: Extract test coverage
-      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.python_version == '3.13' && matrix.os == 'ubuntu-latest' }}
       run: |
         SUMMARY=$(sed -n "s/^<coverage.*line-rate=\"\([0-9.]*\)\".*>$/\1/p" coverage.xml)
         echo "COVERAGE=$(echo ${SUMMARY})" >> $GITHUB_ENV
@@ -65,7 +67,7 @@ jobs:
         echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
         echo "Extracted branch name: $BRANCH_NAME"
     - name: Create coverage badge
-      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.python_version == '3.13' && matrix.os == 'ubuntu-latest' }}
       uses: schneegans/dynamic-badges-action@v1.7.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
@@ -76,7 +78,7 @@ jobs:
         color: green
         namedLogo: pytest
     - name: Upload Coverage to Codecov
-      if: ${{ matrix.python_version == '3.9' && matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.python_version == '3.13' && matrix.os == 'ubuntu-latest' }}
       uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -99,7 +101,8 @@ jobs:
       with:
         use-mamba: true
         auto-update-conda: true
-        python-version: 3.7
+        python-version: 3.9
+        channels: defaults
     - name: Build source distribution
       run: |
         python setup.py sdist
@@ -109,8 +112,8 @@ jobs:
         name: packages-source
         path: dist
 
-  build-manylinux-wheels:
-    name: Build manylinux wheels
+  build-manylinux-wheel:
+    name: Build manylinux wheel
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     needs:
       - test
@@ -119,24 +122,34 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build manylinux Python wheels
-        uses: RalfG/python-wheels-manylinux-build@v0.4.2-manylinux2010_x86_64
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3.1.1
         with:
-          python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39'
+          use-mamba: true
+          auto-update-conda: true
+          python-version: 3.9
+          channels: defaults
+      - name: Build pure-Python wheel
+        run: |
+          python -m pip wheel --no-deps --wheel-dir dist/ .
       - name: List packages
         run: |
           ls -alh dist
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: packages-manylinux
+          name: packages-wheel
           path: dist/*.whl
 
   publish:
     name: Publish distributions
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: [build-source-distribution, build-manylinux-wheels]
+    needs: [build-source-distribution, build-manylinux-wheel]
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
 
     steps:
     - name: Download packages
@@ -149,6 +162,3 @@ jobs:
         find dist/* -type d -exec rmdir {} \; || true
     - name: Publish package to PyPi
       uses: pypa/gh-action-pypi-publish@v1.12.4
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
