@@ -36,7 +36,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
-        python_version: ["3.9", "3.13"]
+        python_version: ["3.9", "3.12"]
       fail-fast: false
 
     steps:

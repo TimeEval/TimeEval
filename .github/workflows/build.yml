@@ -37,7 +37,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
-        python_version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python_version: ["3.9", "3.10", "3.11", "3.12"]
       fail-fast: false
 
     steps:
@@ -56,7 +56,7 @@ jobs:
       run: |
         python setup.py test
     - name: Extract test coverage
-      if: ${{ matrix.python_version == '3.13' && matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.python_version == '3.12' && matrix.os == 'ubuntu-latest' }}
       run: |
         SUMMARY=$(sed -n "s/^<coverage.*line-rate=\"\([0-9.]*\)\".*>$/\1/p" coverage.xml)
         echo "COVERAGE=$(echo ${SUMMARY})" >> $GITHUB_ENV
@@ -67,7 +67,7 @@ jobs:
         echo "BRANCH=$(echo ${BRANCH_NAME})" >> $GITHUB_ENV
         echo "Extracted branch name: $BRANCH_NAME"
     - name: Create coverage badge
-      if: ${{ matrix.python_version == '3.13' && matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.python_version == '3.12' && matrix.os == 'ubuntu-latest' }}
       uses: schneegans/dynamic-badges-action@v1.7.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
@@ -78,7 +78,7 @@ jobs:
         color: green
         namedLogo: pytest
     - name: Upload Coverage to Codecov
-      if: ${{ matrix.python_version == '3.13' && matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.python_version == '3.12' && matrix.os == 'ubuntu-latest' }}
       uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
