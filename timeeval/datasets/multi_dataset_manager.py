@@ -39,7 +39,7 @@ class MultiDatasetManager(Datasets):
         existing_files = np.array([p.exists() for p in self._filepaths])
         if not np.all(existing_files):
             missing = np.array(self._filepaths)[~existing_files]
-            missing = [str(p) for p in missing]
+            missing = np.array([str(p) for p in missing], dtype=str)
             raise FileNotFoundError(f"Could not find the index files ({', '.join(missing)}). "
                                     "Is your data_folders parameter correct?")
         else:

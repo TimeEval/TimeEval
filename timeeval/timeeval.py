@@ -391,7 +391,7 @@ class TimeEval:
             "dataset_training_type": exp.dataset.training_type.name,
             "dataset_input_dimensionality": exp.dataset.input_dimensionality.name,
             "status": status,
-            "error_message": error_message,
+            "error_message": error_message if error_message is not None else "",
             "repetition": exp.repetition,
             "hyper_params_id": exp.params_id
         }
@@ -403,8 +403,10 @@ class TimeEval:
             new_row.update(result)
         elif result is None and future_result is not None:
             new_row.update({"future_result": future_result})
-        self.results = pd.concat([self.results, pd.DataFrame([new_row])], ignore_index=True)
-        self.results.replace(to_replace=[None], value=np.nan, inplace=True)
+        if self.results.empty:
+            self.results = pd.DataFrame([new_row])
+        else:
+            self.results = pd.concat([self.results, pd.DataFrame([new_row])], ignore_index=True)
 
     def _resolve_future_results(self) -> None:
         self.remote.fetch_results()
@@ -433,7 +435,7 @@ class TimeEval:
             return tuple(np.nan for _ in result_keys) + (status, error_message)
 
         self.results[keys] = self.results["future_result"].apply(get_future_result).tolist()
-        self.results = self.results.drop(['future_result'], axis=1)
+        self.results = self.results.drop(["future_result"], axis=1)
 
     def get_results(self, aggregated: bool = True, short: bool = True) -> pd.DataFrame:
         """Return the (aggregated) evaluation results of a previous evaluation run.
@@ -466,7 +468,7 @@ class TimeEval:
 
         df = self.results
 
-        if np.any(np.isin(df.status.unique(), [Status.ERROR, Status.TIMEOUT, Status.OOM])):
+        if np.any(np.isin(df.status.unique(), [Status.ERROR, Status.TIMEOUT, Status.OOM])):  # type:ignore
             self.log.warning("The results contain errors which are filtered out for the final aggregation. "
                              "To see all results, call .get_results(aggregated=False)")
             df = df[df.status == Status.OK]
@@ -484,7 +486,7 @@ class TimeEval:
         if short:
             results = results.rename(columns=dict([(k, f"{k}_mean") for k in keys]))
         else:
-            std_results = grouped_results.std()[keys]
+            std_results = grouped_results[keys].std()
             results = results.join(std_results, lsuffix="_mean", rsuffix="_std")
         results["repetitions"] = grouped_results["repetition"].count()
         return results

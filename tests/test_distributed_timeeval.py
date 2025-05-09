@@ -79,7 +79,8 @@ class TestDistributedTimeEval(unittest.TestCase):
     @patch("timeeval._core.remote.Client")
     @patch("timeeval._core.remote.SSHCluster")
     def test_distributed_phases(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
-        mock_client.return_value = MockDaskClient()
+        client = MockDaskClient()
+        mock_client.return_value = client
         mock_cluster.return_value = MockDaskSSHCluster(workers=2)
         mock_docker.return_value = MockDockerClient(write_scores_file=True)
         rsync = MockRsync()
@@ -102,8 +103,8 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertTrue(
                 (timeeval.results_path / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
             )
-            self.assertTrue(timeeval.remote.client.closed)
-            self.assertTrue(timeeval.remote.client.did_shutdown)
+            self.assertTrue(client.closed)
+            self.assertTrue(client.did_shutdown)
             target_path = timeeval.results_path  # == "/results/YYYY_mm_dd_hh_mm"
             self.assertListEqual(rsync.params[0], ["rsync", "-a", "test-host2:" + str(target_path) + "/", str(target_path)])
 

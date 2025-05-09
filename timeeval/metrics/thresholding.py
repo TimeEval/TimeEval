@@ -125,9 +125,9 @@ class NoThresholding(ThresholdingStrategy):
 
         Returns
         -------
-        None
+        0.5 as default threshold between 0 and 1.
         """
-        pass
+        return 0.5
 
     def __str__(self) -> str:
         return self.__repr__()

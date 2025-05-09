@@ -66,7 +66,8 @@ class Remote:
 
     def add_task(self, task: Callable, *args, **kwargs) -> Future:  # type: ignore[no-untyped-def]
         self.log.debug(f"Submitting task {task} to cluster")
-        future = self.client.submit(task, *args, pure=False, **kwargs)
+        kwargs["pure"] = False
+        future = self.client.submit(task, *args, **kwargs)
         self.futures.append(future)
         return future  # type: ignore
 

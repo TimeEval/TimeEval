@@ -7,7 +7,7 @@ import numpy as np
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
 from .AnomalyLengthHeuristic import AnomalyLengthHeuristic
-from .base import TimeEvalParameterHeuristic
+from .base import TimeEvalParameterHeuristic, HeuristicFallbackWarning
 
 
 def _is_none(period: Optional[int]) -> bool:
@@ -54,13 +54,15 @@ class PeriodSizeHeuristic(TimeEvalParameterHeuristic):
                 anomaly_length_heuristic = AnomalyLengthHeuristic(agg_type=self.fb_anomaly_length_agg_type)
                 period = anomaly_length_heuristic(algorithm, dataset_details, dataset_path)
                 warnings.warn(f"{algorithm.name}: No period_size specified for dataset {dataset_details.datasetId}. "
-                              f"Using AnomalyLengthHeuristic({self.fb_anomaly_length_agg_type}) as fallback.")
+                              f"Using AnomalyLengthHeuristic({self.fb_anomaly_length_agg_type}) as fallback.",
+                              category=HeuristicFallbackWarning)
             except ValueError:
                 pass
 
         if _is_still_none(period):
             warnings.warn(f"{algorithm.name}: No period_size specified for dataset {dataset_details.datasetId}. "
-                          f"Using fixed value '{self.fb_value}' as parameter value.")
+                          f"Using fixed value '{self.fb_value}' as parameter value.",
+                          category=HeuristicFallbackWarning)
             return self.fb_value
         # period: Optional[int] but _is_none guards for None, so it's an int!
         return int(period * self.factor)  # type: ignore

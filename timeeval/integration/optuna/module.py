@@ -157,7 +157,7 @@ class OptunaModule(TimeEvalModule):
                 try:
                     storage = optuna.storages.get_storage(self.config.default_storage())
                     if hasattr(storage, "url"):
-                        self.storage_url = storage.url  # type: ignore
+                        self.storage_url = storage.url
                     else:
                         log.warning(f"Could not find dashboard connection URL for storage {self.config.default_storage}, "
                                     "not starting dashboard!")
@@ -182,7 +182,7 @@ class OptunaModule(TimeEvalModule):
         log.debug("updating optuna study configurations ...")
         for algo in timeeval.exps.algorithms:
             if hasattr(algo.param_config, "update_config"):
-                algo.param_config.update_config(self.config)  # type: ignore
+                algo.param_config.update_config(self.config)
         log.info("Optuna module: preparing done.")
 
     def finalize(self, timeeval: TimeEval) -> None:

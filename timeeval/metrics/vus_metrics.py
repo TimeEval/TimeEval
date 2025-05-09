@@ -314,8 +314,8 @@ class RangePrVUS(RangeAucMetric):
             self._buffer_size = bs
             pr_auc, _, _ = self._range_pr_roc_auc_support(y_true, y_score)
             prs[bs] = pr_auc
-        range_pr_volume: float = np.sum(prs) / (self._max_buffer_size + 1)
-        return range_pr_volume
+        range_pr_volume = np.sum(prs) / (self._max_buffer_size + 1)
+        return float(range_pr_volume)
 
     @property
     def name(self) -> str:
@@ -372,8 +372,8 @@ class RangeRocVUS(RangeAucMetric):
             self._buffer_size = bs
             _, roc_auc, _ = self._range_pr_roc_auc_support(y_true, y_score)
             rocs[bs] = roc_auc
-        range_pr_volume: float = np.sum(rocs) / (self._max_buffer_size + 1)
-        return range_pr_volume
+        range_pr_volume = np.sum(rocs) / (self._max_buffer_size + 1)
+        return float(range_pr_volume)
 
     @property
     def name(self) -> str:
