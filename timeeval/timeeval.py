@@ -12,7 +12,7 @@ from typing import Callable, List, Tuple, Dict, Optional, Any, Union, Mapping
 import numpy as np
 import pandas as pd
 import tqdm
-from distributed.client import Future
+from asyncio import Future
 from joblib import Parallel, delayed
 
 from ._core.experiments import Experiments, Experiment
