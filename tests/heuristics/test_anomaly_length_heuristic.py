@@ -1,5 +1,4 @@
 import unittest
-import warnings
 
 import tests.fixtures.heuristics_fixtures as fixtures
 from timeeval.heuristics import AnomalyLengthHeuristic

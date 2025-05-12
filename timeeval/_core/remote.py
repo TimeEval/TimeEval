@@ -5,17 +5,14 @@ import time
 from asyncio import Future, run_coroutine_threadsafe, get_event_loop
 from pathlib import Path
 from subprocess import Popen
-from typing import Any, List, Callable, Tuple, Dict, TYPE_CHECKING
+from typing import Any, List, Callable, Tuple, Dict
 
 import tqdm
 from dask import config as dask_config
-from dask.distributed import Client, SSHCluster
+from dask.distributed import Client, SSHCluster, SpecCluster
 
 from ..remote_configuration import RemoteConfiguration
 from ..resource_constraints import ResourceConstraints
-
-if TYPE_CHECKING:
-    from dask.distributed import SpecCluster
 
 
 class Remote:
