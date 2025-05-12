@@ -539,8 +539,9 @@ class TimeEval:
 
         if np.any(
             np.isin(
-                df.status.unique(), [Status.ERROR, Status.TIMEOUT, Status.OOM]
-            )  # type:ignore
+                df.status.unique(),
+                [Status.ERROR, Status.TIMEOUT, Status.OOM],  # type:ignore
+            )
         ):
             self.log.warning(
                 "The results contain errors which are filtered out for the final aggregation. "
