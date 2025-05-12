@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from io import StringIO
 from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -12,11 +12,14 @@ import pytest
 class TestOptunaConfiguration(unittest.TestCase):
     def test_log_level(self):
         import optuna
+
         from timeeval.integration.optuna import OptunaConfiguration
 
         # test setting log level on init
         old_logging_level = optuna.logging.get_verbosity()
-        config = OptunaConfiguration(default_storage="journal-file", log_level=logging.DEBUG)
+        config = OptunaConfiguration(
+            default_storage="journal-file", log_level=logging.DEBUG
+        )
         new_logging_level = optuna.logging.get_verbosity()
         self.assertNotEqual(old_logging_level, new_logging_level)
         self.assertEqual(new_logging_level, logging.DEBUG)
@@ -30,6 +33,7 @@ class TestOptunaConfiguration(unittest.TestCase):
     # @pytest.mark.usefixtures("capfd")
     def test_update_log_stream(self):
         import optuna
+
         from timeeval.integration.optuna import OptunaConfiguration
 
         # set up logging
@@ -50,7 +54,9 @@ class TestOptunaConfiguration(unittest.TestCase):
         # self.assertIn("logging-test", capfd.readouterr().err)
 
         # within TimeEval, Optuna logs to root logger from logging configuration
-        config = OptunaConfiguration(default_storage="journal-file", log_level=logging.DEBUG)
+        config = OptunaConfiguration(
+            default_storage="journal-file", log_level=logging.DEBUG
+        )
         test_logger.info("logging-test2")
         self.assertIn("logging-test2", logfile.getvalue())
         # self.assertNotIn("logging-test2", capfd.readouterr().err)
@@ -65,24 +71,30 @@ class TestOptunaConfiguration(unittest.TestCase):
 class TestOptunaModule(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.mock_timeeval = Mock(spec=["distributed", "remote", "exps", "results_path"])
+        self.mock_timeeval = Mock(
+            spec=["distributed", "remote", "exps", "results_path"]
+        )
         self.mock_timeeval.distributed = False
         self.mock_timeeval.remote = Mock(spec=["config", "run_on_scheduler"])
         self.mock_timeeval.remote.config = Mock(spec=["scheduler_host"])
         self.mock_timeeval.exps = Mock(algorithms=[])
-        self.full_storage_url = "postgresql://postgres:hairy_bumblebee@test-host:5432/postgres"
+        self.full_storage_url = (
+            "postgresql://postgres:hairy_bumblebee@test-host:5432/postgres"
+        )
 
     def test_missing_or_wrong_storage(self):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
         with self.assertRaises(ValueError):
             OptunaModule(OptunaConfiguration(default_storage=None))
 
     @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_checks_docker(self, mock_check):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
-        OptunaModule(OptunaConfiguration(default_storage="journal-file", dashboard=True))
+        OptunaModule(
+            OptunaConfiguration(default_storage="journal-file", dashboard=True)
+        )
         mock_check.assert_called_with("start the Optuna dashboard")
 
         OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=False))
@@ -91,10 +103,14 @@ class TestOptunaModule(unittest.TestCase):
     @patch("socket.gethostname")
     @patch("timeeval.integration.optuna.module._start_postgres_container")
     @patch("timeeval.integration.optuna.module._check_docker_available")
-    def test_prepare_start_storage_container(self, mock_check, mock_start_postgres, mock_hostname):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+    def test_prepare_start_storage_container(
+        self, mock_check, mock_start_postgres, mock_hostname
+    ):
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
-        module = OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=False))
+        module = OptunaModule(
+            OptunaConfiguration(default_storage="postgresql", dashboard=False)
+        )
         mock_hostname.return_value = "test-host"
         self.mock_timeeval.distributed = False
 
@@ -107,9 +123,11 @@ class TestOptunaModule(unittest.TestCase):
     @patch("socket.gethostname")
     @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_prepare_not_starting_dashboard(self, mock_check, mock_hostname):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
-        module = OptunaModule(OptunaConfiguration(default_storage="journal-file", dashboard=True))
+        module = OptunaModule(
+            OptunaConfiguration(default_storage="journal-file", dashboard=True)
+        )
         mock_hostname.return_value = "test-host"
         self.mock_timeeval.distributed = False
 
@@ -117,7 +135,9 @@ class TestOptunaModule(unittest.TestCase):
             self.mock_timeeval.results_path = Path(tempdir)
             with self.assertLogs(level="WARNING") as logs:
                 module.prepare(self.mock_timeeval)
-            self.assertRegex("\n".join(logs.output), "[C|c]ould not find dashboard connection URL")
+            self.assertRegex(
+                "\n".join(logs.output), "[C|c]ould not find dashboard connection URL"
+            )
 
         mock_check.assert_called_once()
         self.assertIsNone(module.storage_url)
@@ -127,10 +147,14 @@ class TestOptunaModule(unittest.TestCase):
     @patch("timeeval.integration.optuna.module._start_dashboard_container")
     @patch("timeeval.integration.optuna.module._start_postgres_container")
     @patch("timeeval.integration.optuna.module._check_docker_available")
-    def test_prepare_start_storage_and_dashboard_container(self, mock_check, mock_start_postgres, mock_start_dashboard, mock_hostname):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+    def test_prepare_start_storage_and_dashboard_container(
+        self, mock_check, mock_start_postgres, mock_start_dashboard, mock_hostname
+    ):
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
-        module = OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=True))
+        module = OptunaModule(
+            OptunaConfiguration(default_storage="postgresql", dashboard=True)
+        )
         mock_hostname.return_value = "test-host"
         self.mock_timeeval.distributed = False
 
@@ -145,25 +169,31 @@ class TestOptunaModule(unittest.TestCase):
     @patch("socket.gethostname")
     @patch("timeeval.integration.optuna.module._start_postgres_container")
     @patch("timeeval.integration.optuna.module._check_docker_available")
-    def test_prepare_start_on_scheduler(self, mock_check, mock_start_postgres, mock_hostname):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+    def test_prepare_start_on_scheduler(
+        self, mock_check, mock_start_postgres, mock_hostname
+    ):
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
-        module = OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=False))
+        module = OptunaModule(
+            OptunaConfiguration(default_storage="postgresql", dashboard=False)
+        )
         self.mock_timeeval.distributed = True
 
         module.prepare(self.mock_timeeval)
 
         self.mock_timeeval.remote.run_on_scheduler.assert_called_once_with(
             [(mock_start_postgres, [], {"password": "hairy_bumblebee", "port": 5432})],
-            msg="Starting Optuna containers on scheduler"
+            msg="Starting Optuna containers on scheduler",
         )
 
     @patch("timeeval.integration.optuna.module._stop_containers")
     @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_finalize_local(self, mock_check, mock_stop_containers):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
-        module = OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=False))
+        module = OptunaModule(
+            OptunaConfiguration(default_storage="postgresql", dashboard=False)
+        )
         self.mock_timeeval.distributed = False
 
         # without remove
@@ -179,16 +209,18 @@ class TestOptunaModule(unittest.TestCase):
     @patch("timeeval.integration.optuna.module._stop_containers")
     @patch("timeeval.integration.optuna.module._check_docker_available")
     def test_finalize_distributed(self, mock_check, mock_stop_containers):
-        from timeeval.integration.optuna import OptunaModule, OptunaConfiguration
+        from timeeval.integration.optuna import OptunaConfiguration, OptunaModule
 
-        module = OptunaModule(OptunaConfiguration(default_storage="postgresql", dashboard=False))
+        module = OptunaModule(
+            OptunaConfiguration(default_storage="postgresql", dashboard=False)
+        )
         self.mock_timeeval.distributed = True
 
         # without remove
         module.finalize(self.mock_timeeval)
         self.mock_timeeval.remote.run_on_scheduler.assert_called_with(
             [(mock_stop_containers, [], {"remove": False})],
-            msg="Stopping Optuna containers on scheduler"
+            msg="Stopping Optuna containers on scheduler",
         )
 
         # with remove
@@ -196,5 +228,5 @@ class TestOptunaModule(unittest.TestCase):
         module.finalize(self.mock_timeeval)
         self.mock_timeeval.remote.run_on_scheduler.assert_called_with(
             [(mock_stop_containers, [], {"remove": True})],
-            msg="Stopping Optuna containers on scheduler"
+            msg="Stopping Optuna containers on scheduler",
         )

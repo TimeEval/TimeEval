@@ -1,7 +1,15 @@
 import pytest
 
-from tests.fixtures.dataset_fixtures import add_dataset, read_file, fill_file, dataset_index_header, test_record, \
-    nab_record, dataset_index_content_nab, dataset_index_content_test
+from tests.fixtures.dataset_fixtures import (
+    add_dataset,
+    dataset_index_content_nab,
+    dataset_index_content_test,
+    dataset_index_header,
+    fill_file,
+    nab_record,
+    read_file,
+    test_record,
+)
 from timeeval import DatasetManager
 
 

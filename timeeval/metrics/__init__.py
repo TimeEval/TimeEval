@@ -79,14 +79,20 @@ Using the metrics without TimeEval:
 >>>     metric_value = m(y_true, y_score)
 >>>     print(f"{m.name} = {metric_value}")
 """
+
 from typing import List
 
-from .auc_metrics import AucMetric, RocAUC, PrAUC
-from .classification_metrics import Precision, Recall, F1Score
+from .auc_metrics import AucMetric, PrAUC, RocAUC
+from .classification_metrics import F1Score, Precision, Recall
 from .metric import Metric
-from .other_metrics import AveragePrecision, PrecisionAtK, FScoreAtK
-from .range_metrics import RangePrecisionRangeRecallAUC, RangePrecision, RangeRecall, RangeFScore
-from .vus_metrics import RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS
+from .other_metrics import AveragePrecision, FScoreAtK, PrecisionAtK
+from .range_metrics import (
+    RangeFScore,
+    RangePrecision,
+    RangePrecisionRangeRecallAUC,
+    RangeRecall,
+)
+from .vus_metrics import RangePrAUC, RangePrVUS, RangeRocAUC, RangeRocVUS
 
 
 class DefaultMetrics:
@@ -110,7 +116,9 @@ class DefaultMetrics:
 
     ROC_AUC = RocAUC()
     PR_AUC = PrAUC()
-    RANGE_PR_AUC = RangePrecisionRangeRecallAUC(max_samples=50, r_alpha=0, cardinality="one", bias="flat")
+    RANGE_PR_AUC = RangePrecisionRangeRecallAUC(
+        max_samples=50, r_alpha=0, cardinality="one", bias="flat"
+    )
     AVERAGE_PRECISION = AveragePrecision()
     RANGE_PRECISION = RangePrecision()
     RANGE_RECALL = RangeRecall()

@@ -19,25 +19,35 @@ class TestCodeGen(unittest.TestCase):
             loader.generate_all(tmp_path / "algorithms", force=True)
             shutil.copytree("timeeval", tmp_path / "timeeval")
 
-            process = subprocess.run([
-                sys.executable,
-                "-c",
-                "from algorithms import timeeval_test_algorithm; algo = timeeval_test_algorithm(skip_pull=True); "
-                "print(algo.name, algo.training_type.value, algo.input_dimensionality.value, "
-                "f'{algo.main.image_name}:{algo.main.tag}', end='')"
-            ], capture_output=True, check=True, cwd=tmp_path)
+            process = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "from algorithms import timeeval_test_algorithm; algo = timeeval_test_algorithm(skip_pull=True); "
+                    "print(algo.name, algo.training_type.value, algo.input_dimensionality.value, "
+                    "f'{algo.main.image_name}:{algo.main.tag}', end='')",
+                ],
+                capture_output=True,
+                check=True,
+                cwd=tmp_path,
+            )
             self.assertEqual(
                 "DEMO algorithm unsupervised multivariate ghcr.io/timeeval/timeeval_test_algorithm:0.3.0",
                 process.stdout.decode("utf-8"),
             )
 
-            process = subprocess.run([
-                sys.executable,
-                "-c",
-                "from algorithms import timeeval_test_algorithm_post; import numpy as np; "
-                "algo = timeeval_test_algorithm_post(skip_pull=True); "
-                "print(algo.name, list(algo.postprocess(np.arange(3), {})), end='');"
-            ], capture_output=True, check=True, cwd=tmp_path)
+            process = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "from algorithms import timeeval_test_algorithm_post; import numpy as np; "
+                    "algo = timeeval_test_algorithm_post(skip_pull=True); "
+                    "print(algo.name, list(algo.postprocess(np.arange(3), {})), end='');",
+                ],
+                capture_output=True,
+                check=True,
+                cwd=tmp_path,
+            )
             self.assertEqual(
                 "DEMO algorithm with post-processing [0.0, 0.0, 0.0]",
                 process.stdout.decode("utf-8"),
@@ -60,14 +70,20 @@ class TestCodeGen(unittest.TestCase):
             tmp_path = Path(tmp_path) / "algorithms"
             tmp_path.mkdir()
 
-            target = AlgorithmGenerator._check_target(tmp_path, allow_overwrite=False, allow_dir=True, name="test")
+            target = AlgorithmGenerator._check_target(
+                tmp_path, allow_overwrite=False, allow_dir=True, name="test"
+            )
             self.assertEqual(tmp_path / "test.py", target)
 
             with self.assertRaises(ValueError):
-                AlgorithmGenerator._check_target(tmp_path, allow_overwrite=True, allow_dir=False)
+                AlgorithmGenerator._check_target(
+                    tmp_path, allow_overwrite=True, allow_dir=False
+                )
 
             with self.assertRaises(ValueError):
-                AlgorithmGenerator._check_target(tmp_path, allow_overwrite=False, allow_dir=False)
+                AlgorithmGenerator._check_target(
+                    tmp_path, allow_overwrite=False, allow_dir=False
+                )
 
     def test_target_exists(self):
         with tempfile.TemporaryDirectory() as tmp_path:

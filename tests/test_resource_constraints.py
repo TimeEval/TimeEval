@@ -2,11 +2,10 @@ import unittest
 
 import psutil
 from durations import Duration
-from tests.fixtures.algorithms import DeviatingFromMean
 
-from timeeval import TimeEval, DatasetManager, ResourceConstraints, Algorithm
+from timeeval import Algorithm, DatasetManager, ResourceConstraints, TimeEval
 from timeeval.adapters import DockerAdapter
-from timeeval.resource_constraints import GB, DEFAULT_TIMEOUT
+from timeeval.resource_constraints import DEFAULT_TIMEOUT, GB
 
 
 class TestResourceConstraints(unittest.TestCase):
@@ -60,17 +59,34 @@ class TestResourceConstraints(unittest.TestCase):
 
     def test_tasks_per_node_overwrite_when_non_distributed(self):
         limits = ResourceConstraints(tasks_per_host=4)
-        algorithm = Algorithm(name="dummy", main=DockerAdapter(image_name="dummy", skip_pull=True))
+        algorithm = Algorithm(
+            name="dummy", main=DockerAdapter(image_name="dummy", skip_pull=True)
+        )
 
-        timeeval = TimeEval(DatasetManager("./tests/example_data"), [("test", "dataset-int")], [algorithm],
-                            distributed=False,
-                            resource_constraints=limits)
+        timeeval = TimeEval(
+            DatasetManager("./tests/example_data"),
+            [("test", "dataset-int")],
+            [algorithm],
+            distributed=False,
+            resource_constraints=limits,
+        )
         self.assertEqual(1, timeeval.exps.resource_constraints.tasks_per_host)
 
     def test_timeout(self):
-        self.assertEqual(ResourceConstraints.default_constraints().get_train_timeout(), DEFAULT_TIMEOUT)
-        self.assertEqual(ResourceConstraints.default_constraints().get_execute_timeout(), DEFAULT_TIMEOUT)
+        self.assertEqual(
+            ResourceConstraints.default_constraints().get_train_timeout(),
+            DEFAULT_TIMEOUT,
+        )
+        self.assertEqual(
+            ResourceConstraints.default_constraints().get_execute_timeout(),
+            DEFAULT_TIMEOUT,
+        )
 
     def test_timeout_overwrite(self):
         timeout_overwrite = Duration("1 minute")
-        self.assertEqual(ResourceConstraints.default_constraints().get_train_timeout(timeout_overwrite), timeout_overwrite)
+        self.assertEqual(
+            ResourceConstraints.default_constraints().get_train_timeout(
+                timeout_overwrite
+            ),
+            timeout_overwrite,
+        )

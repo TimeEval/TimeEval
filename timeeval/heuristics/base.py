@@ -9,6 +9,7 @@ from timeeval.datasets import Dataset
 
 class HeuristicFallbackWarning(UserWarning):
     """Warning that is raised if a heuristic falls back to a default value."""
+
     ...
 
 
@@ -25,6 +26,7 @@ class TimeEvalParameterHeuristic(abc.ABC):
     :func:`timeeval.heuristics.inject_heuristic_values`
         Function that uses the heuristics to calculate parameter values for algorithms.
     """
+
     @abc.abstractmethod
     def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         """
@@ -53,7 +55,7 @@ class TimeEvalParameterHeuristic(abc.ABC):
         Adopted from https://github.com/scikit-learn/scikit-learn/blob/2beed5584/sklearn/base.py.
         """
         # fetch the constructor or the original constructor before deprecation wrapping if any
-        init = getattr(cls.__init__, 'deprecated_original', cls.__init__)
+        init = getattr(cls.__init__, "deprecated_original", cls.__init__)
         if init is object.__init__:
             # No explicit constructor to introspect
             return []
@@ -61,15 +63,19 @@ class TimeEvalParameterHeuristic(abc.ABC):
         # introspect the constructor arguments to find the parameters to represent
         init_signature = inspect.signature(init)
         # Consider the constructor parameters excluding 'self'
-        parameters = [p for p in init_signature.parameters.values()
-                      if p.name != 'self' and p.kind != p.VAR_KEYWORD]
+        parameters = [
+            p
+            for p in init_signature.parameters.values()
+            if p.name != "self" and p.kind != p.VAR_KEYWORD
+        ]
         for p in parameters:
             if p.kind == p.VAR_POSITIONAL:
-                raise RuntimeError("Heuristic implementations should always "
-                                   "specify their parameters in the signature"
-                                   " of their __init__ (no varargs)."
-                                   " %s with constructor %s doesn't "
-                                   " follow this convention."
-                                   % (cls, init_signature))
+                raise RuntimeError(
+                    "Heuristic implementations should always "
+                    "specify their parameters in the signature"
+                    " of their __init__ (no varargs)."
+                    " %s with constructor %s doesn't "
+                    " follow this convention." % (cls, init_signature)
+                )
         # Extract and sort argument names excluding 'self'
         return sorted([p.name for p in parameters])

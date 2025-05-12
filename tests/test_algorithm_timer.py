@@ -4,9 +4,9 @@ import unittest
 import numpy as np
 
 from timeeval import Algorithm, AlgorithmParameter, TrainingType
+from timeeval._core.times import Times
 from timeeval.adapters import FunctionAdapter
 from timeeval.data_types import ExecutionType
-from timeeval._core.times import Times
 
 
 def pre(x: AlgorithmParameter, args) -> AlgorithmParameter:
@@ -26,9 +26,13 @@ def post(x: AlgorithmParameter, args) -> np.ndarray:
 
 class TestAlgorithmTimer(unittest.TestCase):
     def test_algorithm_times(self):
-        algorithm = Algorithm(main=FunctionAdapter(main), preprocess=pre, postprocess=post,
-                              name="test",
-                              training_type=TrainingType.SUPERVISED)
+        algorithm = Algorithm(
+            main=FunctionAdapter(main),
+            preprocess=pre,
+            postprocess=post,
+            name="test",
+            training_type=TrainingType.SUPERVISED,
+        )
         train_times = Times.from_train_algorithm(algorithm, np.random.rand(10), {})
         self.assertAlmostEqual(train_times.preprocess, 0.2, places=1)
         self.assertAlmostEqual(train_times.main, 0.3, places=1)
@@ -41,7 +45,17 @@ class TestAlgorithmTimer(unittest.TestCase):
         pre = 0.2
         main = 0.3
         post = 0.1
-        times = Times(execution_type=ExecutionType.EXECUTE, main=main, preprocess=pre, postprocess=post)
-        self.assertDictEqual(times.to_dict(), {"execute_preprocess_time": pre,
-                                               "execute_main_time": main,
-                                               "execute_postprocess_time": post})
+        times = Times(
+            execution_type=ExecutionType.EXECUTE,
+            main=main,
+            preprocess=pre,
+            postprocess=post,
+        )
+        self.assertDictEqual(
+            times.to_dict(),
+            {
+                "execute_preprocess_time": pre,
+                "execute_main_time": main,
+                "execute_postprocess_time": post,
+            },
+        )

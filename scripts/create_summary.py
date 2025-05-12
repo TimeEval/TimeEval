@@ -10,7 +10,13 @@ import pandas as pd
 
 from timeeval import Algorithm, Status, Datasets, Metric
 from timeeval.adapters.docker import SCORES_FILE_NAME as DOCKER_SCORES_FILE_NAME
-from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, EXECUTION_LOG, ANOMALY_SCORES_TS
+from timeeval.constants import (
+    RESULTS_CSV,
+    HYPER_PARAMETERS,
+    METRICS_CSV,
+    EXECUTION_LOG,
+    ANOMALY_SCORES_TS,
+)
 from timeeval.data_types import ExecutionType
 from timeeval._core.experiments import Experiment as TimeEvalExperiment
 from timeeval.heuristics import inject_heuristic_values
@@ -19,6 +25,7 @@ from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 
 # required to build a lookup-table for algorithm implementations
 import timeeval_experiments.algorithms as algorithms
+
 # noinspection PyUnresolvedReferences
 from timeeval_experiments.algorithms import *
 from timeeval_experiments.baselines import Baselines
@@ -37,7 +44,7 @@ class Issue:
     hyper_params_id: Optional[str] = None
     repetition: Optional[int] = None
 
-    def exp_equals(self, other: 'Issue') -> bool:
+    def exp_equals(self, other: "Issue") -> bool:
         def compare_optionals(a: Optional[Any], b: Optional[Any]) -> bool:
             return b is None or (a is not None and b is not None and a == b)
 
@@ -63,7 +70,7 @@ class Issue:
         return s
 
     @staticmethod
-    def remove_others(il: List['Issue'], issue: 'Issue') -> None:
+    def remove_others(il: List["Issue"], issue: "Issue") -> None:
         to_remove = set(filter(lambda iss: iss.exp_equals(issue), il))
         for i in to_remove:
             il.remove(i)
@@ -99,7 +106,7 @@ class Experiment:
             "status": self.status,
             "hyper_params_id": self.hyper_params_id,
             "repetition": self.repetition,
-            "hyper_params": self.hyper_params
+            "hyper_params": self.hyper_params,
         }
         if self.metrics:
             obj.update(self.metrics)
@@ -151,37 +158,68 @@ class ResultSummary:
         log_path = path / EXECUTION_LOG
         with log_path.open("r") as fh:
             logs: List[str] = fh.readlines()
-        timeout_logs = list(filter(lambda log: "Container timeout after" in log and "disregard" not in log, logs))
+        timeout_logs = list(
+            filter(
+                lambda log: "Container timeout after" in log and "disregard" not in log,
+                logs,
+            )
+        )
         return len(timeout_logs) > 0
 
     def _inspect_result_folder(self) -> None:
         results_csv = self.results_path / RESULTS_CSV
         if results_csv.exists():
-            self._logger.info(f"There already exists a {RESULTS_CSV} file, backing it up!")
+            self._logger.info(
+                f"There already exists a {RESULTS_CSV} file, backing it up!"
+            )
             # rename file if the name already exists in the target folder:
             counter = 0
-            target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+            target_filename = (
+                results_csv.parent
+                / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+            )
             while target_filename.exists():
                 counter += 1
-                target_filename = results_csv.parent / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+                target_filename = (
+                    results_csv.parent
+                    / f"{results_csv.stem}-bak{counter}{results_csv.suffix}"
+                )
             results_csv.rename(target_filename)
 
     def _get_algo_metadata(self, algorithm_name: str) -> Optional[Algorithm]:
         try:
             return self.algos[algorithm_name]
         except KeyError as e:
-            self._logger.error(f"Could not find metadata about algorithm '{algorithm_name}', skipping!", exc_info=e)
-            self.issues.append(Issue(algorithm=algorithm_name, description="No metadata for algorithm found!"))
+            self._logger.error(
+                f"Could not find metadata about algorithm '{algorithm_name}', skipping!",
+                exc_info=e,
+            )
+            self.issues.append(
+                Issue(
+                    algorithm=algorithm_name,
+                    description="No metadata for algorithm found!",
+                )
+            )
             return None
 
-    def _get_dataset_metadata(self, algorithm_name: str, collection: str, dataset: str) -> Tuple[str, str]:
+    def _get_dataset_metadata(
+        self, algorithm_name: str, collection: str, dataset: str
+    ) -> Tuple[str, str]:
         try:
             meta = self.dmgr.get(collection, dataset)
             return meta.training_type.value, meta.input_dimensionality.value
         except KeyError as e:
-            self._logger.error(f"Metadata about dataset {collection}-{dataset} not found!", exc_info=e)
-            self.issues.append(Issue(algorithm=algorithm_name, collection=collection, dataset=dataset,
-                                     description="No metadata for dataset found!"))
+            self._logger.error(
+                f"Metadata about dataset {collection}-{dataset} not found!", exc_info=e
+            )
+            self.issues.append(
+                Issue(
+                    algorithm=algorithm_name,
+                    collection=collection,
+                    dataset=dataset,
+                    description="No metadata for dataset found!",
+                )
+            )
             return "", ""
 
     def _check_if_empty(self, path) -> bool:
@@ -191,10 +229,16 @@ class ResultSummary:
             self._logger.error(
                 f"No files found for experiment '{algo}-{collection}/{dataset}-{hpi}-{repetition}', skipping!",
             )
-            self.issues.append(Issue(
-                algorithm=algo, collection=collection, dataset=dataset, hyper_params_id=hpi, repetition=repetition,
-                description="No files found! Was this experiment even executed?"
-            ))
+            self.issues.append(
+                Issue(
+                    algorithm=algo,
+                    collection=collection,
+                    dataset=dataset,
+                    hyper_params_id=hpi,
+                    repetition=repetition,
+                    description="No files found! Was this experiment even executed?",
+                )
+            )
         return is_empty
 
     def _load_hyper_params(self, path: Path) -> Dict[str, Any]:
@@ -205,9 +249,20 @@ class ResultSummary:
             return params
         except FileNotFoundError as e:
             algo, collection, dataset, hpi, repetition = self._names_from_path(path)
-            self._logger.debug(f"Could not load hyper parameters for {algo} on {dataset} ({hpi}).", exc_info=e)
-            self.issues.append(Issue(algo, "No hyper parameters found!", collection=collection, dataset=dataset,
-                                     hyper_params_id=hpi, repetition=repetition))
+            self._logger.debug(
+                f"Could not load hyper parameters for {algo} on {dataset} ({hpi}).",
+                exc_info=e,
+            )
+            self.issues.append(
+                Issue(
+                    algo,
+                    "No hyper parameters found!",
+                    collection=collection,
+                    dataset=dataset,
+                    hyper_params_id=hpi,
+                    repetition=repetition,
+                )
+            )
             return {}
 
     def _load_metrics(self, path: Path) -> Dict[str, float]:
@@ -216,23 +271,41 @@ class ResultSummary:
             return pd.read_csv(m_path).iloc[0, :].to_dict()
         except FileNotFoundError as e:
             algo, collection, dataset, hpi, repetition = self._names_from_path(path)
-            self._logger.debug(f"Could not load metrics for {algo} on {dataset} ({hpi}).", exc_info=e)
-            self.issues.append(Issue(algo, "No metrics found!", collection=collection, dataset=dataset,
-                                     hyper_params_id=hpi, repetition=repetition))
+            self._logger.debug(
+                f"Could not load metrics for {algo} on {dataset} ({hpi}).", exc_info=e
+            )
+            self.issues.append(
+                Issue(
+                    algo,
+                    "No metrics found!",
+                    collection=collection,
+                    dataset=dataset,
+                    hyper_params_id=hpi,
+                    repetition=repetition,
+                )
+            )
             return {}
 
-    def _calculate_status(self, path: Path, metrics: Dict[str, float]) -> Optional[Status]:
+    def _calculate_status(
+        self, path: Path, metrics: Dict[str, float]
+    ) -> Optional[Status]:
         # if scores and metrics --> ok
         status = Status.OK
         if not metrics:
             # if scores, but no metrics --> recalculate metrics
             if (path / DOCKER_SCORES_FILE_NAME).exists():
                 algo, collection, dataset, hpi, repetition = self._names_from_path(path)
-                self._logger.warning("Found successful experiment with missing metrics: "
-                                     f"{algo}-{collection}/{dataset}-{repetition} ({hpi})")
+                self._logger.warning(
+                    "Found successful experiment with missing metrics: "
+                    f"{algo}-{collection}/{dataset}-{repetition} ({hpi})"
+                )
                 issue = Issue(
-                    algorithm=algo, collection=collection, dataset=dataset, hyper_params_id=hpi, repetition=repetition,
-                    description="Successful experiment needs recalculation of metrics."
+                    algorithm=algo,
+                    collection=collection,
+                    dataset=dataset,
+                    hyper_params_id=hpi,
+                    repetition=repetition,
+                    description="Successful experiment needs recalculation of metrics.",
                 )
                 Issue.remove_others(self.issues, issue)
                 self.issues.append(issue)
@@ -246,10 +319,17 @@ class ResultSummary:
                 status = Status.ERROR
         return status
 
-    def _update_metrics(self, exp: Experiment, config_path: Path, metric_list: Optional[List[Metric]] = None) -> None:
+    def _update_metrics(
+        self,
+        exp: Experiment,
+        config_path: Path,
+        metric_list: Optional[List[Metric]] = None,
+    ) -> None:
         metric_list: List[Metric] = metric_list or Metric.default_list()
         configurator = AlgorithmConfigurator(config_path)
-        dataset_path = self.dmgr.get_dataset_path((exp.collection_name, exp.dataset_name), train=False)
+        dataset_path = self.dmgr.get_dataset_path(
+            (exp.collection_name, exp.dataset_name), train=False
+        )
 
         self._logger.info(f"Re-calculating quality metrics for {exp.name}")
         y_scores = np.genfromtxt(exp.path / DOCKER_SCORES_FILE_NAME, delimiter=",")
@@ -262,24 +342,33 @@ class ResultSummary:
                 configurator.configure([exp.algorithm], perform_search=False)
                 param_grid = exp.algorithm.param_config
                 if len(param_grid) == 1:
-                    params = inject_heuristic_values(param_grid[0], exp.algorithm, dataset, dataset_path)
+                    params = inject_heuristic_values(
+                        param_grid[0], exp.algorithm, dataset, dataset_path
+                    )
 
                     hp_path = exp.path / HYPER_PARAMETERS
                     if not hp_path.exists():
-                        self._logger.warning(f"{exp.name}: Hyper parameters file is missing, recreating!")
+                        self._logger.warning(
+                            f"{exp.name}: Hyper parameters file is missing, recreating!"
+                        )
                         # persist hyper params to disk
                         with hp_path.open("w") as fh:
                             json.dump(params, fh)
                 else:
-                    self._logger.error(f"Cannot post-process algorithm scores! Multiple possible parameter "
-                                       f"configurations possible.")
+                    self._logger.error(
+                        f"Cannot post-process algorithm scores! Multiple possible parameter "
+                        f"configurations possible."
+                    )
                     return
-            y_scores = exp.algorithm.postprocess(y_scores, {
-                "executionType": ExecutionType.EXECUTE,
-                "results_path": exp.path,
-                "hyper_params": params,
-                "dataset_details": dataset
-            })
+            y_scores = exp.algorithm.postprocess(
+                y_scores,
+                {
+                    "executionType": ExecutionType.EXECUTE,
+                    "results_path": exp.path,
+                    "hyper_params": params,
+                    "dataset_details": dataset,
+                },
+            )
 
         y_true = load_labels_only(dataset_path)
         y_true, y_scores = TimeEvalExperiment.scale_scores(y_true, y_scores)
@@ -296,25 +385,34 @@ class ResultSummary:
                 score = metric(y_true, y_scores)
                 results[metric.name] = score
             except Exception as e:
-                self._logger.debug(f"{exp.name}: Exception while computing metric {metric}!", exc_info=e)
+                self._logger.debug(
+                    f"{exp.name}: Exception while computing metric {metric}!",
+                    exc_info=e,
+                )
                 errors += 1
                 continue
 
         # update metrics and write them to disk
         exp.metrics.update(results)
         if exp.metrics:
-            self._logger.info(f"{exp.name}: Writing new metrics to {exp.path / METRICS_CSV}!")
+            self._logger.info(
+                f"{exp.name}: Writing new metrics to {exp.path / METRICS_CSV}!"
+            )
             pd.DataFrame([exp.metrics]).to_csv(exp.path / METRICS_CSV, index=False)
 
         if errors == 0:
             exp.status = Status.OK
         else:
-            self._logger.error(f"There were errors while computing metrics for {exp.name}. Please consult DEBUG logs!")
+            self._logger.error(
+                f"There were errors while computing metrics for {exp.name}. Please consult DEBUG logs!"
+            )
 
     def create(self):
         self._inspect_result_folder()
 
-        self._logger.info(f"Reading results from the directory {self.results_path} and parsing them...")
+        self._logger.info(
+            f"Reading results from the directory {self.results_path} and parsing them..."
+        )
         experiments: List[Experiment] = []
         to_fix_experiments: List[Experiment] = []
         for d_a in [d for d in self.results_path.iterdir() if d.is_dir()]:
@@ -330,8 +428,11 @@ class ResultSummary:
                     collection_name = d_c.name
                     for d_d in d_c.iterdir():
                         dataset_name = d_d.name
-                        dataset_input_dimensionality, dataset_training_type = \
-                            self._get_dataset_metadata(algorithm_name, collection_name, dataset_name)
+                        dataset_input_dimensionality, dataset_training_type = (
+                            self._get_dataset_metadata(
+                                algorithm_name, collection_name, dataset_name
+                            )
+                        )
                         for d_r in d_d.iterdir():
                             repetition = int(d_r.name)
 
@@ -345,7 +446,25 @@ class ResultSummary:
                             # figure out status
                             status = self._calculate_status(d_r, metrics)
                             if status is None:
-                                to_fix_experiments.append(Experiment(
+                                to_fix_experiments.append(
+                                    Experiment(
+                                        path=d_r,
+                                        algorithm=algo,
+                                        collection_name=collection_name,
+                                        dataset_name=dataset_name,
+                                        repetition=repetition,
+                                        hyper_params=hyper_params,
+                                        hyper_params_id=hyper_params_id,
+                                        metrics=metrics,
+                                        dataset_input_dimensionality=dataset_input_dimensionality,
+                                        dataset_training_type=dataset_training_type,
+                                        status=Status.ERROR,
+                                    )
+                                )
+                                continue
+
+                            experiments.append(
+                                Experiment(
                                     path=d_r,
                                     algorithm=algo,
                                     collection_name=collection_name,
@@ -356,23 +475,9 @@ class ResultSummary:
                                     metrics=metrics,
                                     dataset_input_dimensionality=dataset_input_dimensionality,
                                     dataset_training_type=dataset_training_type,
-                                    status=Status.ERROR
-                                ))
-                                continue
-
-                            experiments.append(Experiment(
-                                path=d_r,
-                                algorithm=algo,
-                                collection_name=collection_name,
-                                dataset_name=dataset_name,
-                                repetition=repetition,
-                                hyper_params=hyper_params,
-                                hyper_params_id=hyper_params_id,
-                                metrics=metrics,
-                                dataset_input_dimensionality=dataset_input_dimensionality,
-                                dataset_training_type=dataset_training_type,
-                                status=status
-                            ))
+                                    status=status,
+                                )
+                            )
 
         if len(to_fix_experiments) > 0:
             self.to_fix_experiments = to_fix_experiments
@@ -399,8 +504,10 @@ class ResultSummary:
 
     def fix_metrics(self, param_config: Path, metric_list: List[Metric]):
         if self.to_fix_experiments:
-            self._logger.info(f"\nFound {len(self.to_fix_experiments)} experiments with missing metrics, "
-                              "recalculating quality measures. Runtimes are lost in all cases!")
+            self._logger.info(
+                f"\nFound {len(self.to_fix_experiments)} experiments with missing metrics, "
+                "recalculating quality measures. Runtimes are lost in all cases!"
+            )
             for exp in self.to_fix_experiments:
                 self._update_metrics(exp, param_config, metric_list=metric_list)
                 self.df = self.df.append(exp.to_dict(), ignore_index=True)
@@ -411,9 +518,13 @@ class ResultSummary:
 
     def save(self) -> None:
         if self.df is not None:
-            self.df.sort_values(by=["algorithm", "collection", "dataset", "repetition"], inplace=True)
+            self.df.sort_values(
+                by=["algorithm", "collection", "dataset", "repetition"], inplace=True
+            )
             self.df.to_csv(self.results_path / RESULTS_CSV, index=False)
-            self._logger.info(f"Stored experiment summary at {self.results_path / RESULTS_CSV}")
+            self._logger.info(
+                f"Stored experiment summary at {self.results_path / RESULTS_CSV}"
+            )
         else:
             raise ValueError("No results available! Run ResultSummary#create() first.")
 
@@ -422,23 +533,46 @@ def _create_arg_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Takes an experiment result folder and re-creates the results.csv-file from the experiment backups."
     )
-    parser.add_argument("result_folder", type=Path,
-                        help="Folder of the experiment")
-    parser.add_argument("data_folder", type=Path,
-                        help="Folder, where the datasets from the experiment are stored. This script loads the dataset "
-                             "metadata directly from the dataset index (datasets.csv).")
-    parser.add_argument("--loglevel", default="INFO", choices=("ERROR", "WARNING", "INFO", "DEBUG"),
-                        help="Set logging verbosity (default: %(default)s)")
-    parser.add_argument("-f", "--fix", action="store_true",
-                        help="If successful experiments with missing metrics are found, try to re-calculate those "
-                             "metrics based on the algorithm (docker) scores.")
-    all_metric_choices = [Metric.ROC_AUC.name, Metric.PR_AUC.name, Metric.RANGE_PR_AUC.name,
-                          Metric.AVERAGE_PRECISION.name]
-    parser.add_argument("--metrics", type=str, nargs="*", default=all_metric_choices, choices=all_metric_choices,
-                        help="Metrics to re-calculate if --fix is given as well. (default: %(default)s)")
-    parser.add_argument("--param-config", type=Path,
-                        help="Path to the param-config.json used to set the parameters for the algorithms. Only "
-                             "required if --fix is given as well.")
+    parser.add_argument("result_folder", type=Path, help="Folder of the experiment")
+    parser.add_argument(
+        "data_folder",
+        type=Path,
+        help="Folder, where the datasets from the experiment are stored. This script loads the dataset "
+        "metadata directly from the dataset index (datasets.csv).",
+    )
+    parser.add_argument(
+        "--loglevel",
+        default="INFO",
+        choices=("ERROR", "WARNING", "INFO", "DEBUG"),
+        help="Set logging verbosity (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-f",
+        "--fix",
+        action="store_true",
+        help="If successful experiments with missing metrics are found, try to re-calculate those "
+        "metrics based on the algorithm (docker) scores.",
+    )
+    all_metric_choices = [
+        Metric.ROC_AUC.name,
+        Metric.PR_AUC.name,
+        Metric.RANGE_PR_AUC.name,
+        Metric.AVERAGE_PRECISION.name,
+    ]
+    parser.add_argument(
+        "--metrics",
+        type=str,
+        nargs="*",
+        default=all_metric_choices,
+        choices=all_metric_choices,
+        help="Metrics to re-calculate if --fix is given as well. (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--param-config",
+        type=Path,
+        help="Path to the param-config.json used to set the parameters for the algorithms. Only "
+        "required if --fix is given as well.",
+    )
     return parser.parse_args()
 
 

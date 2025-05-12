@@ -1,6 +1,6 @@
-from copy import deepcopy
 import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
 
@@ -9,12 +9,12 @@ import pandas as pd
 
 from tests.fixtures.algorithms import ErroneousAlgorithm
 from timeeval import (
-    TimeEval,
     Algorithm,
-    Datasets,
     DatasetManager,
-    Status,
+    Datasets,
     ResourceConstraints,
+    Status,
+    TimeEval,
     TrainingType,
 )
 from timeeval.adapters import FunctionAdapter

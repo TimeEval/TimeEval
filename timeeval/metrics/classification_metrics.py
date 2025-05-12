@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 from .metric import Metric
-from .thresholding import ThresholdingStrategy, NoThresholding
+from .thresholding import NoThresholding, ThresholdingStrategy
 
 
 class ClassificationMetric(Metric, ABC):
@@ -43,6 +43,7 @@ class Precision(ClassificationMetric):
     --------
     sklearn.metrics.precision_score : Implementation of the precision metric.
     """
+
     def __init__(self, thresholding_strategy: ThresholdingStrategy):
         super().__init__(thresholding_strategy)
 
@@ -66,6 +67,7 @@ class Recall(ClassificationMetric):
     --------
     sklearn.metrics.recall_score : Implementation of the recall metric.
     """
+
     def __init__(self, thresholding_strategy: ThresholdingStrategy):
         super().__init__(thresholding_strategy)
 
@@ -89,6 +91,7 @@ class F1Score(ClassificationMetric):
     --------
     sklearn.metrics.f1_score : Implementation of the F1 metric.
     """
+
     def __init__(self, thresholding_strategy: ThresholdingStrategy):
         super().__init__(thresholding_strategy)
 

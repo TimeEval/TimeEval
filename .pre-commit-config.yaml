@@ -1,0 +1,34 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+    args: [--markdown-linebreak-ext=md]
+  - id: check-case-conflict
+  - id: check-merge-conflict
+  - id: mixed-line-ending
+    args: [--fix=lf]
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.15.0
+  hooks:
+  - id: mypy
+    files: "timeeval timeeval_experiments"
+    additional_dependencies:
+      - types-requests
+      - types-freezegun
+- repo: https://github.com/pycqa/isort
+  rev: 6.0.1
+  hooks:
+    - id: isort
+      exclude: '(notebooks/.*|scripts/.*|docs/.*|timeeval/algorithms/.*|^timeeval_experiments/\d\d\d\d-\d\d-\d\d[_-].+)'
+- repo: https://github.com/psf/black
+  rev: 25.1.0
+  hooks:
+  - id: black
+    exclude: '(notebooks/.*|scripts/.*|docs/.*|timeeval/algorithms/.*|^timeeval_experiments/\d\d\d\d-\d\d-\d\d[_-].+)'
+- repo: https://github.com/pycqa/flake8
+  rev: '7.2.0'
+  hooks:
+  - id: flake8
+    exclude: '(notebooks/.*|scripts/.*|docs/.*|timeeval/algorithms/.*|^timeeval_experiments/\d\d\d\d-\d\d-\d\d[_-].+)'

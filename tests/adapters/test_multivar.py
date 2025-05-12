@@ -1,14 +1,13 @@
-import os
-from pathlib import Path
 import tempfile
 import unittest
-from durations import Duration
+from pathlib import Path
 from typing import List
 
-from docker.models.containers import Container
+import docker
 import numpy as np
 import pytest
-import docker
+from docker.models.containers import Container
+from durations import Duration
 
 from tests.fixtures.algorithms import DeviatingFromMedian
 from tests.fixtures.docker_mocks import TEST_DOCKER_IMAGE
@@ -33,7 +32,6 @@ class TestMultivarAdapter(unittest.TestCase):
         self.y_sum_before /= self.y_sum_before.max()
 
         self.X = np.c_[self.X, np.zeros(100)]
-
 
     def test_multivar_deviating_from_median_mean(self):
         algorithm = MultivarAdapter(DeviatingFromMedian(), AggregationMethod.MEAN)
@@ -65,14 +63,18 @@ class TestMultivarAdapter(unittest.TestCase):
 
     def test_multivar_raises_on_nested_multivar(self):
         with pytest.raises(AssertionError):
-            MultivarAdapter(MultivarAdapter(DeviatingFromMedian()), AggregationMethod.MEAN)
+            MultivarAdapter(
+                MultivarAdapter(DeviatingFromMedian()), AggregationMethod.MEAN
+            )
 
 
 class TestMultivarAdapterDocker(unittest.TestCase):
     def setUp(self) -> None:
         self.docker = docker.from_env()
         self.input_data_path = Path("./tests/example_data/dataset.train.csv").absolute()
-        self.input_data_multi_path = Path("./tests/example_data/dataset.multi.csv").absolute()
+        self.input_data_multi_path = Path(
+            "./tests/example_data/dataset.multi.csv"
+        ).absolute()
 
     def tearDown(self) -> None:
         # remove test containers
@@ -81,8 +83,12 @@ class TestMultivarAdapterDocker(unittest.TestCase):
             c.remove()
         del self.docker
 
-    def _list_test_containers(self, ancestor_image: str = TEST_DOCKER_IMAGE) -> List[Container]:
-        return self.docker.containers.list(all=True, filters={"ancestor": ancestor_image})
+    def _list_test_containers(
+        self, ancestor_image: str = TEST_DOCKER_IMAGE
+    ) -> List[Container]:
+        return self.docker.containers.list(
+            all=True, filters={"ancestor": ancestor_image}
+        )
 
     @pytest.mark.docker
     def test_execute_successful(self):
@@ -92,9 +98,12 @@ class TestMultivarAdapterDocker(unittest.TestCase):
                 "executionType": ExecutionType.EXECUTE,
                 "resource_constraints": ResourceConstraints.default_constraints(),
                 "hyper_params": {"sleep": 0.1},
-                "results_path": tmp_path
+                "results_path": tmp_path,
             }
-            adapter = MultivarAdapter(DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds")), AggregationMethod.MEAN)
+            adapter = MultivarAdapter(
+                DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds")),
+                AggregationMethod.MEAN,
+            )
             res = adapter(self.input_data_path, args)
         np.testing.assert_array_almost_equal(np.zeros(3600), res)
         containers = self._list_test_containers()
@@ -109,9 +118,12 @@ class TestMultivarAdapterDocker(unittest.TestCase):
                 "executionType": ExecutionType.EXECUTE,
                 "resource_constraints": ResourceConstraints.default_constraints(),
                 "hyper_params": {"sleep": 0.1},
-                "results_path": tmp_path
+                "results_path": tmp_path,
             }
-            adapter = MultivarAdapter(DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds")), AggregationMethod.MEAN)
+            adapter = MultivarAdapter(
+                DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds")),
+                AggregationMethod.MEAN,
+            )
             res = adapter(self.input_data_multi_path, args)
         np.testing.assert_array_almost_equal(np.zeros(3600), res)
         containers = self._list_test_containers()

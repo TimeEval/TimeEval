@@ -14,15 +14,16 @@ from tqdm import tqdm
 
 from timeeval import Algorithm, Metric, DefaultMetrics, MultiDatasetManager
 from timeeval.constants import RESULTS_CSV, METRICS_CSV, ANOMALY_SCORES_TS
-from timeeval.metrics import FScoreAtK, PrecisionAtK
+from timeeval.metrics import FScoreAtK, PrecisionAtK, RangeRocAUC
 from timeeval.utils.datasets import load_labels_only
 from timeeval.utils.tqdm_joblib import tqdm_joblib
 
 
 # required to build a lookup-table for algorithm implementations
-import timeeval_experiments.algorithms as algorithms
+import timeeval.algorithms as algorithms
+
 # noinspection PyUnresolvedReferences
-from timeeval_experiments.algorithms import *
+from timeeval.algorithms import *
 from timeeval_experiments.baselines import Baselines
 
 INITIAL_WAITING_SECONDS = 5
@@ -48,11 +49,14 @@ def path_is_empty(path: Path) -> bool:
 
 class MetricComputor:
 
-    def __init__(self, results_path: Path,
-                 data_paths: List[Path],
-                 metrics: List[Metric],
-                 save_to_dir: bool = False,
-                 n_jobs: int = 1):
+    def __init__(
+        self,
+        results_path: Path,
+        data_paths: List[Path],
+        metrics: List[Metric],
+        save_to_dir: bool = False,
+        n_jobs: int = 1,
+    ):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._n_jobs = n_jobs
         self.results_path = results_path.resolve()
@@ -64,9 +68,11 @@ class MetricComputor:
 
         self._save_to_dir = save_to_dir
         if save_to_dir:
-            self._logger.warning(f"The MetricComputor changes the results folder ({self.results_path}) in-place! "
-                                 "If you do not want this, cancel this script using Ctrl-C! "
-                                 f"Waiting {INITIAL_WAITING_SECONDS} seconds before continuing ...")
+            self._logger.warning(
+                f"The MetricComputor changes the results folder ({self.results_path}) in-place! "
+                "If you do not want this, cancel this script using Ctrl-C! "
+                f"Waiting {INITIAL_WAITING_SECONDS} seconds before continuing ..."
+            )
             time.sleep(INITIAL_WAITING_SECONDS)
 
     @staticmethod
@@ -90,18 +96,29 @@ class MetricComputor:
 
     def recompute(self, recompute_existing: bool = False):
         exp_indices = self.df.index.values
-        self._logger.info(f"Re-computing the metrics of {len(exp_indices)} experiments from folder {self.results_path}")
+        self._logger.info(
+            f"Re-computing the metrics of {len(exp_indices)} experiments from folder {self.results_path}"
+        )
         with tqdm_joblib(tqdm(desc="Re-computing metrics", total=len(exp_indices))):
             updated_entries: List[pd.Series] = Parallel(n_jobs=self._n_jobs)(
-                delayed(self._process_entry)(self.df.iloc[i].copy(), i, recompute_existing) for i in exp_indices
+                delayed(self._process_entry)(
+                    self.df.iloc[i].copy(), i, recompute_existing
+                )
+                for i in exp_indices
             )
         self.df = pd.DataFrame(updated_entries)
-        self._logger.info(f"Overwriting results file at {self.results_path / RESULTS_CSV}")
+        self._logger.info(
+            f"Overwriting results file at {self.results_path / RESULTS_CSV}"
+        )
         self.df.to_csv(self.results_path / RESULTS_CSV, index=False)
 
-    def _process_entry(self, s_exp: pd.Series, i: int, recompute_existing: bool = False) -> pd.Series:
+    def _process_entry(
+        self, s_exp: pd.Series, i: int, recompute_existing: bool = False
+    ) -> pd.Series:
         init_logging()
-        logger = logging.getLogger(f"{MetricComputor.__name__}.{multiprocessing.current_process().pid}")
+        logger = logging.getLogger(
+            f"{MetricComputor.__name__}.{multiprocessing.current_process().pid}"
+        )
         if s_exp.status in ["Status.ERROR", "Status.TIMEOUT"]:
             logger.info(f"Exp-{i:06d}: Skipping because experiment was not successful.")
             return s_exp
@@ -115,7 +132,9 @@ class MetricComputor:
             return s_exp
 
         logger.info(f"Exp-{i:06d}: Starting processing ...")
-        y_true = load_labels_only(self.dmgr.get_dataset_path((s_exp.collection, s_exp.dataset)))
+        y_true = load_labels_only(
+            self.dmgr.get_dataset_path((s_exp.collection, s_exp.dataset))
+        )
         y_scores = np.genfromtxt(processed_scores_path, delimiter=",")
 
         if not metrics_path.exists():
@@ -125,7 +144,11 @@ class MetricComputor:
 
         if recompute_existing:
             metric_list = [m.name for m in self.metrics]
-            metrics_to_delete = [n for n in metric_scores if n not in metric_list and not n.endswith("time")]
+            metrics_to_delete = [
+                n
+                for n in metric_scores
+                if n not in metric_list and not n.endswith("time")
+            ]
             if len(metrics_to_delete) > 0:
                 logger.warning(f"Exp-{i:06d}: Removing {', '.join(metrics_to_delete)}!")
                 for m in metrics_to_delete:
@@ -133,7 +156,9 @@ class MetricComputor:
         else:
             metric_list = [m.name for m in self.metrics if m.name not in metric_scores]
             if len(metric_list) == 0:
-                logger.info(f"Exp-{i:06d}: ... skipping re-assessment of metrics, they are all present.")
+                logger.info(
+                    f"Exp-{i:06d}: ... skipping re-assessment of metrics, they are all present."
+                )
                 return s_exp
 
         results = {}
@@ -145,7 +170,10 @@ class MetricComputor:
                 score = metric(y_true, y_scores)
                 results[metric.name] = score
             except Exception as e:
-                logger.warning(f"Exp-{i:06d}: Exception while computing metric {metric.name}!", exc_info=e)
+                logger.warning(
+                    f"Exp-{i:06d}: Exception while computing metric {metric.name}!",
+                    exc_info=e,
+                )
                 errors += 1
                 continue
 
@@ -165,12 +193,14 @@ class MetricComputor:
         return s_exp
 
     def _exp_path(self, exp: pd.Series) -> Path:
-        return (self.results_path
-                / exp.algorithm
-                / exp.hyper_params_id
-                / exp.collection
-                / exp.dataset
-                / str(exp.repetition))
+        return (
+            self.results_path
+            / exp.algorithm
+            / exp.hyper_params_id
+            / exp.collection
+            / exp.dataset
+            / str(exp.repetition)
+        )
 
 
 _metrics = {
@@ -178,9 +208,10 @@ _metrics = {
     DefaultMetrics.PR_AUC.name: DefaultMetrics.PR_AUC,
     DefaultMetrics.RANGE_PR_AUC.name: DefaultMetrics.RANGE_PR_AUC,
     DefaultMetrics.FIXED_RANGE_PR_AUC.name: DefaultMetrics.FIXED_RANGE_PR_AUC,
+    "RANGE_ROC_AUC": RangeRocAUC(),
     DefaultMetrics.AVERAGE_PRECISION.name: DefaultMetrics.AVERAGE_PRECISION,
     PrecisionAtK().name: PrecisionAtK(),
-    FScoreAtK().name: FScoreAtK()
+    FScoreAtK().name: FScoreAtK(),
 }
 
 
@@ -188,22 +219,46 @@ def _create_arg_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Takes an experiment result folder and (re-)calculates the quality metrics."
     )
-    parser.add_argument("result_folder", type=Path,
-                        help="Folder of the experiment")
-    parser.add_argument("data_folders", type=Path, nargs="*",
-                        help="Folders, where the datasets from the experiment are stored.")
-    parser.add_argument("--loglevel", default="INFO", choices=("ERROR", "WARNING", "INFO", "DEBUG"),
-                        help="Set logging verbosity (default: %(default)s)")
-    parser.add_argument("-f", "--force", action="store_true",
-                        help="Set this flag if existing metrics should be recomputed as well. With this option, the "
-                             "script will remove metrics not present in the metric list anymore!")
-    parser.add_argument("-s", "--save", action="store_true",
-                        help="Save the metrics in the experiments' result folders in addition to the results.csv")
-    parser.add_argument("--metrics", type=str, nargs="*", default=["ROC_AUC", "PR_AUC", "RANGE_PR_AUC"],
-                        choices=list(_metrics.keys()),
-                        help="Metrics to re-calculate. (default: %(default)s)")
-    parser.add_argument("--n_jobs", type=int, default=1,
-                        help="Set the parallelism. -1 uses all available cores.")
+    parser.add_argument("result_folder", type=Path, help="Folder of the experiment")
+    parser.add_argument(
+        "data_folders",
+        type=Path,
+        nargs="*",
+        help="Folders, where the datasets from the experiment are stored.",
+    )
+    parser.add_argument(
+        "--loglevel",
+        default="INFO",
+        choices=("ERROR", "WARNING", "INFO", "DEBUG"),
+        help="Set logging verbosity (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="Set this flag if existing metrics should be recomputed as well. With this option, the "
+        "script will remove metrics not present in the metric list anymore!",
+    )
+    parser.add_argument(
+        "-s",
+        "--save",
+        action="store_true",
+        help="Save the metrics in the experiments' result folders in addition to the results.csv",
+    )
+    parser.add_argument(
+        "--metrics",
+        type=str,
+        nargs="*",
+        default=["ROC_AUC", "PR_AUC", "RANGE_PR_AUC"],
+        choices=list(_metrics.keys()),
+        help="Metrics to re-calculate. (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--n_jobs",
+        type=int,
+        default=1,
+        help="Set the parallelism. -1 uses all available cores.",
+    )
     return parser.parse_args()
 
 
@@ -214,5 +269,7 @@ if __name__ == "__main__":
     selected_metrics = args.metrics
     selected_metrics = [_metrics[m] for m in selected_metrics]
 
-    rs = MetricComputor(args.result_folder, args.data_folders, selected_metrics, args.save, args.n_jobs)
+    rs = MetricComputor(
+        args.result_folder, args.data_folders, selected_metrics, args.save, args.n_jobs
+    )
     rs.recompute(args.force)

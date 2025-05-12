@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from ..data_types import TrainingType, InputDimensionality
+from ..data_types import InputDimensionality, TrainingType
 from .metadata import DatasetId
 
 
@@ -11,6 +11,7 @@ class Dataset:
 
     This class is used within TimeEval heuristics to determine the heuristic values based on the dataset properties.
     """
+
     datasetId: DatasetId
     dataset_type: str
     training_type: TrainingType

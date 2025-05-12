@@ -4,12 +4,13 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from .base import TimeEvalParameterHeuristic
 from ..utils.datasets import load_labels_only
+from .base import TimeEvalParameterHeuristic
 
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
     from pathlib import Path
+
     from ..algorithm import Algorithm
     from ..datasets import Dataset
 

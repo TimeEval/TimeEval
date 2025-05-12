@@ -1,13 +1,12 @@
 import json
 import warnings
 from pathlib import Path
-from typing import Union, TypeVar, List, Dict, Any
+from typing import Any, Dict, List, TypeVar, Union
 
 from timeeval import Algorithm
 from timeeval.heuristics import TimeEvalHeuristic
 from timeeval.params import FullParameterGrid, IndependentParameterGrid
 from timeeval_experiments.generator import ParamConfigGenerator
-
 
 T = TypeVar("T")
 
@@ -22,7 +21,9 @@ class AlgorithmConfigurator:
         self._shared_params = config[ParamConfigGenerator.SHARED_KEY]
         self._optimized_params = config[ParamConfigGenerator.OPTIMIZED_KEY]
         self._algorithm_overwrites = config[ParamConfigGenerator.OVERWRITES_KEY]
-        self._heuristic_mapping: Dict[str, str] = config[ParamConfigGenerator.HEURISTIC_MAPPING_KEY]
+        self._heuristic_mapping: Dict[str, str] = config[
+            ParamConfigGenerator.HEURISTIC_MAPPING_KEY
+        ]
         if check and self._heuristic_mapping:
             self._check_heuristics()
 
@@ -37,11 +38,15 @@ class AlgorithmConfigurator:
         if len(broken_heuristics) > 0:
             for k, ex in broken_heuristics:
                 print(f"Heuristic '{k}' is invalid: {ex}")
-            raise SyntaxError("Heuristics mapping contains invalid entries, please consider log output!")
+            raise SyntaxError(
+                "Heuristics mapping contains invalid entries, please consider log output!"
+            )
         else:
             print("Heuristics are valid.")
 
-    def _substitute_heuristics(self, search_space: List[Any], checked: bool = False) -> List[Any]:
+    def _substitute_heuristics(
+        self, search_space: List[Any], checked: bool = False
+    ) -> List[Any]:
         def substitute(v: Any) -> Any:
             try:
                 return f"heuristic:{self._heuristic_mapping[v]}"
@@ -50,6 +55,7 @@ class AlgorithmConfigurator:
                     raise ValueError(f"Entry {v} is not a valid heuristic!") from e
                 else:
                     return v
+
         return [substitute(value) for value in search_space]
 
     @staticmethod
@@ -59,15 +65,18 @@ class AlgorithmConfigurator:
         else:
             return elems
 
-    def configure(self, algos: Union[List[Algorithm], Algorithm],
-                  use_defaults: bool = False,
-                  ignore_overwrites: bool = False,
-                  ignore_fixed: bool = False,
-                  ignore_dependent: bool = False,
-                  ignore_shared: bool = False,
-                  ignore_optimized: bool = False,
-                  perform_search: bool = True,
-                  assume_parameter_independence: bool = False) -> None:
+    def configure(  # noqa: C901
+        self,
+        algos: Union[List[Algorithm], Algorithm],
+        use_defaults: bool = False,
+        ignore_overwrites: bool = False,
+        ignore_fixed: bool = False,
+        ignore_dependent: bool = False,
+        ignore_shared: bool = False,
+        ignore_optimized: bool = False,
+        perform_search: bool = True,
+        assume_parameter_independence: bool = False,
+    ) -> None:
         if use_defaults:
             return
 
@@ -79,8 +88,10 @@ class AlgorithmConfigurator:
                 prio_params = self._algorithm_overwrites[algo.name]
 
             if len(algo.param_schema) == 0:
-                warnings.warn(f"{algo.name}: No parameter schema given! Please specify the algorithms' parameters "
-                              "in the param_schema object if you want to use the AlgorithmConfigurator for it.")
+                warnings.warn(
+                    f"{algo.name}: No parameter schema given! Please specify the algorithms' parameters "
+                    "in the param_schema object if you want to use the AlgorithmConfigurator for it."
+                )
                 continue
             for p in algo.param_schema:
                 if not ignore_overwrites and p in prio_params:
@@ -104,38 +115,52 @@ class AlgorithmConfigurator:
                     value = self._shared_params[p]["value"]
                     # this should be a single fixed value
                     if isinstance(value, list):
-                        raise ValueError(f"Wrong format: value for shared parameter '{p}' "
-                                         "should be a single parameter value")
+                        raise ValueError(
+                            f"Wrong format: value for shared parameter '{p}' "
+                            "should be a single parameter value"
+                        )
                     configured_params[p] = [value]
 
                 elif perform_search and p in self._shared_params:
                     value = self._shared_params[p]["search_space"]
                     # this should already be a list of parameter options
                     if not isinstance(value, list):
-                        raise ValueError(f"Wrong format: search_space for shared parameter '{p}' "
-                                         "should be a list of parameter options")
+                        raise ValueError(
+                            f"Wrong format: search_space for shared parameter '{p}' "
+                            "should be a list of parameter options"
+                        )
                     configured_params[p] = value
 
-                elif perform_search and not ignore_optimized and p in self._optimized_params:
+                elif (
+                    perform_search
+                    and not ignore_optimized
+                    and p in self._optimized_params
+                ):
                     value = self._optimized_params[p]
                     # if there are multiple algos with the same parameter, there can be different search spaces
                     if isinstance(value, dict):
                         value = value[algo.name]
                     # this should already be a list of parameter options
                     if not isinstance(value, list):
-                        raise ValueError(f"Wrong format: value for optimized parameter '{p}' ({algo.name}) "
-                                         "should be a list of parameter options")
+                        raise ValueError(
+                            f"Wrong format: value for optimized parameter '{p}' ({algo.name}) "
+                            "should be a list of parameter options"
+                        )
 
                     configured_params[p] = self._substitute_heuristics(value)
 
                 elif not ignore_dependent and p in self._dependent_params:
                     value = self._dependent_params[p]
                     value = self.wrap(value)
-                    configured_params[p] = self._substitute_heuristics(value, checked=True)
+                    configured_params[p] = self._substitute_heuristics(
+                        value, checked=True
+                    )
 
                 else:
-                    warnings.warn(f"{algo.name}: Cannot configure parameter {p}, because no configuration value was found! "
-                                  "Using default.")
+                    warnings.warn(
+                        f"{algo.name}: Cannot configure parameter {p}, because no configuration value was found! "
+                        "Using default."
+                    )
 
             if assume_parameter_independence:
                 # assume that fixed parameters are defaults and should be set for all configurations
@@ -151,6 +176,8 @@ class AlgorithmConfigurator:
                         if isinstance(value, list):
                             value = tuple(value)
                         default_params[p] = value
-                algo.param_config = IndependentParameterGrid(search_params, default_params=default_params)
+                algo.param_config = IndependentParameterGrid(
+                    search_params, default_params=default_params
+                )
             else:
                 algo.param_config = FullParameterGrid(configured_params)

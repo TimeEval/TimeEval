@@ -5,9 +5,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from timeeval import Datasets, DatasetManager
-from timeeval.datasets import DatasetRecord, DatasetMetadata, AnomalyLength, Stationarity
-
+from timeeval import DatasetManager, Datasets
+from timeeval.datasets import (
+    AnomalyLength,
+    DatasetMetadata,
+    DatasetRecord,
+    Stationarity,
+)
 
 CUSTOM_DATASET_PATH = Path("tests/example_data/datasets.json")
 custom_dataset_names = ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4"]
@@ -37,7 +41,7 @@ nab_record = DatasetRecord(
     stddev=2.468,
     trend="no trend",
     stationarity="not_stationary",
-    period_size=None
+    period_size=None,
 )
 test_record = DatasetRecord(
     collection_name="test-collection",
@@ -61,7 +65,7 @@ test_record = DatasetRecord(
     stddev=2.468,
     trend="no trend",
     stationarity="not_stationary",
-    period_size=None
+    period_size=None,
 )
 # excerpt from NYC taxi dataset
 dataset_content = """
@@ -89,46 +93,50 @@ dataset_content_io.seek(0)
 dataset_ndarray = dataset_df.values
 
 
-def fill_file(path, lines=(dataset_index_content_nab,)):
+def fill_file(
+    path: Path, lines: tuple[str, ...] = (dataset_index_content_nab,)
+) -> None:
     with open(path / Datasets.INDEX_FILENAME, "w") as f:
         f.write(dataset_index_header)
         f.write("\n")
-        for l in lines:
-            f.write(l)
+        for line in lines:
+            f.write(line)
             f.write("\n")
 
 
-def read_file(path):
+def read_file(path: Path) -> list[str]:
     assert os.path.isfile(path / Datasets.INDEX_FILENAME)
     with open(path / Datasets.INDEX_FILENAME, "r") as f:
-        return [l.strip() for l in f.readlines()]
+        return [line.strip() for line in f.readlines()]
 
 
-def add_dataset(dm: DatasetManager):
-    dm.add_dataset(DatasetRecord(
-        collection_name=test_record.collection_name,
-        dataset_name=test_record.dataset_name,
-        train_path=test_record.train_path,
-        test_path=test_record.test_path,
-        dataset_type=test_record.dataset_type,
-        datetime_index=test_record.datetime_index,
-        split_at=test_record.split_at,
-        train_type=test_record.train_type,
-        train_is_normal=test_record.train_is_normal,
-        input_type=test_record.input_type,
-        length=test_record.length,
-        dimensions=test_record.dimensions,
-        contamination=test_record.contamination,
-        num_anomalies=test_record.num_anomalies,
-        min_anomaly_length=test_record.min_anomaly_length,
-        median_anomaly_length=test_record.median_anomaly_length,
-        max_anomaly_length=test_record.max_anomaly_length,
-        mean=test_record.mean,
-        stddev=test_record.stddev,
-        trend=test_record.trend,
-        stationarity=test_record.stationarity,
-        period_size=None
-    ))
+def add_dataset(dm: DatasetManager) -> None:
+    dm.add_dataset(
+        DatasetRecord(
+            collection_name=test_record.collection_name,
+            dataset_name=test_record.dataset_name,
+            train_path=test_record.train_path,
+            test_path=test_record.test_path,
+            dataset_type=test_record.dataset_type,
+            datetime_index=test_record.datetime_index,
+            split_at=test_record.split_at,
+            train_type=test_record.train_type,
+            train_is_normal=test_record.train_is_normal,
+            input_type=test_record.input_type,
+            length=test_record.length,
+            dimensions=test_record.dimensions,
+            contamination=test_record.contamination,
+            num_anomalies=test_record.num_anomalies,
+            min_anomaly_length=test_record.min_anomaly_length,
+            median_anomaly_length=test_record.median_anomaly_length,
+            max_anomaly_length=test_record.max_anomaly_length,
+            mean=test_record.mean,
+            stddev=test_record.stddev,
+            trend=test_record.trend,
+            stationarity=test_record.stationarity,
+            period_size=None,
+        )
+    )
 
 
 dataset_metadata = DatasetMetadata(
@@ -142,7 +150,7 @@ dataset_metadata = DatasetMetadata(
     means={"value": 15836.711944},
     stddevs={"value": 7084.011043},
     trends={"value": []},
-    stationarities={"value": Stationarity.DIFFERENCE_STATIONARY}
+    stationarities={"value": Stationarity.DIFFERENCE_STATIONARY},
 )
 dataset_metadata_dict = {
     "dataset_id": ["test", "dataset1"],
@@ -155,5 +163,5 @@ dataset_metadata_dict = {
     "means": {"value": 15836.711944},
     "stddevs": {"value": 7084.011043},
     "trends": {"value": []},
-    "stationarities": {"value": "difference_stationary"}
+    "stationarities": {"value": "difference_stationary"},
 }

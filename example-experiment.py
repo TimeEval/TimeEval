@@ -6,9 +6,9 @@ from pathlib import Path
 
 from durations import Duration
 
-from timeeval import TimeEval, DatasetManager, RemoteConfiguration, ResourceConstraints
+from timeeval import DatasetManager, RemoteConfiguration, ResourceConstraints, TimeEval
 from timeeval.algorithms import *
-from timeeval.metrics import RocAUC, RangeRocAUC, RangePrVUS
+from timeeval.metrics import RangePrVUS, RangeRocAUC, RocAUC
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 
 # Setup logging
@@ -23,9 +23,11 @@ logging.basicConfig(
 random.seed(42)
 
 
-def main():
+def main() -> None:
     dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
-    configurator = AlgorithmConfigurator(config_path="timeeval_experiments/param-config.example.json")
+    configurator = AlgorithmConfigurator(
+        config_path="timeeval_experiments/param-config.example.json"
+    )
 
     # Select datasets and algorithms
     datasets = dm.select()
@@ -118,26 +120,32 @@ def main():
     print()
     for algo in algorithms:
         print(f"Algorithm {algo.name} param_grid:")
-        for config in algo.param_config.iter(algo, dataset=datasets[0]):
+        for config in algo.param_config.iter(algo, dataset=dm.get(datasets[0])):
             print(f"  {config}")
     sys.stdout.flush()
 
     cluster_config = RemoteConfiguration(
-        scheduler_host="localhost",
-        worker_hosts=["localhost"]
+        scheduler_host="localhost", worker_hosts=["localhost"]
     )
     limits = ResourceConstraints(
         tasks_per_host=1,
-        task_cpu_limit=1.,
+        task_cpu_limit=1.0,
         train_timeout=Duration("1 minute"),
-        execute_timeout=Duration("1 minute")
+        execute_timeout=Duration("1 minute"),
     )
-    timeeval = TimeEval(dm, datasets, algorithms,
-                        distributed=True,
-                        remote_config=cluster_config,
-                        resource_constraints=limits,
-                        metrics=[RocAUC(), RangeRocAUC(buffer_size=100), RangePrVUS(max_buffer_size=100)]
-                        )
+    timeeval = TimeEval(
+        dm,
+        datasets,
+        algorithms,
+        distributed=True,
+        remote_config=cluster_config,
+        resource_constraints=limits,
+        metrics=[
+            RocAUC(),
+            RangeRocAUC(buffer_size=100),
+            RangePrVUS(max_buffer_size=100),
+        ],
+    )
     timeeval.run()
     print(timeeval.get_results(aggregated=False))
 

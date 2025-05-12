@@ -6,7 +6,6 @@ from docker.models.containers import Container
 
 from timeeval.adapters.docker import SCORES_FILE_NAME
 
-
 TEST_DOCKER_IMAGE = "ghcr.io/timeeval/timeeval-test-algorithm"
 
 
@@ -18,7 +17,9 @@ class MockDockerContainer:
     def wait(self, timeout: Optional[int] = None) -> dict:
         return {"Error": None, "StatusCode": 0}
 
-    def run(self, image: str, cmd: str, volumes: dict, **kwargs) -> "MockDockerContainer":
+    def run(
+        self, image: str, cmd: str, volumes: dict, **kwargs
+    ) -> "MockDockerContainer":
         self.stopped = False
         self.image = image
         self.cmd = cmd
@@ -27,7 +28,9 @@ class MockDockerContainer:
 
         real_path = Path(list(volumes.items())[1][0]).resolve()
         if self._write_scores_file:
-            np.arange(10, dtype=np.float64).tofile(real_path / SCORES_FILE_NAME, sep="\n")
+            np.arange(10, dtype=np.float64).tofile(
+                real_path / SCORES_FILE_NAME, sep="\n"
+            )
         return self
 
     def prune(self, *args, **kwargs) -> None:

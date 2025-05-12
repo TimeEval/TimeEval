@@ -52,6 +52,7 @@ ci = [
     "mypy==1.15.0",
     "flake8==7.2.0",
     "black==25.1.0",
+    "isort==6.0.1",
     "pre-commit",
     # for the test of the PyThreshThresholding class:
     "pythresh>=0.2.8",
@@ -95,8 +96,16 @@ sort = "Cover"
 
 [tool.mypy]
 python_version = "3.9"
+pretty = true
 show_error_codes = true
-exclude = ["^timeeval_experiments/\\d\\d\\d\\d-\\d\\d-\\d\\d[_-].+$"]
+exclude = [
+    "^timeeval_experiments/\\d\\d\\d\\d-\\d\\d-\\d\\d[_-].+$",
+    "^notebooks/.*$",
+    "^scripts/.*$",
+    "^tests/.*$",
+    "conftest.py",
+    "setup.py",
+]
 ignore_missing_imports = true
 warn_unused_configs = true
 warn_unused_ignores = true
@@ -106,3 +115,26 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 no_implicit_optional = true
 check_untyped_defs = true
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 5
+balanced_wrapping = true
+skip_gitignore = true
+extend_skip_glob = ["timeeval_experiments/20*.py"]
+extend_skip = [
+    "notebooks",
+    "timeeval/algorithms",
+    "scripts",
+]
+
+[tool.black]
+extend-exclude = '''
+(
+    timeeval_experiments/\d\d\d\d-\d\d-\d\d[_-].+$  # experiment scripts
+    | notebooks/.*            # notebooks
+    | timeeval/algorithms/.*  # auto-generated code
+    | scripts/.*              # scripts might contain old code
+)
+'''

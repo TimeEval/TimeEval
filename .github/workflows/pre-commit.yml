@@ -1,0 +1,51 @@
+name: Run Pre-commit Hooks for PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+# Required shell entrypoint to have properly activated conda environments
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  pre-commit:
+    name: Run pre-commit hooks in Python 3.12
+    runs-on: ubuntu-latest
+    permissions:
+      # Allows this workflow to push changes to the repository
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3.1.1
+        with:
+          use-mamba: true
+          auto-update-conda: true
+          python-version: "3.12"
+          channels: defaults
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46.0.5
+
+      - name: List changed files
+        run: echo '${{ steps.changed-files.outputs.all_changed_files }}'
+
+      # just check the changed files
+      - name: Local pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
+
+      # push fixes if pre-commit fails
+      - if: ${{ failure() && github.event_name == 'pull_request' && !github.event.pull_request.draft }}
+        name: Push pre-commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[automated] `pre-commit` fixes"
+          commit_user_name: timeeval-bot[bot]
+          create_branch: false

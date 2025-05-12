@@ -6,8 +6,7 @@ from typing import Optional, Tuple
 import psutil
 from durations import Duration
 
-
-MB = 1024 ** 2
+MB = 1024**2
 """:math:`1 MB = 2^{20} \\text{Bytes}`
 
 Can be used to set the memory limit.
@@ -18,7 +17,7 @@ Examples
 >>> from timeeval.resource_constraints import ResourceConstraints, MB
 >>> ResourceConstraints(task_memory_limit=500 * MB)
 """
-GB = 1024 ** 3
+GB = 1024**3
 """:math:`1 GB = 2^{30} \\text{Bytes}`
 
 Can be used to set the memory limit.
@@ -87,9 +86,11 @@ class ResourceConstraints:
     use_preliminary_model_on_train_timeout: bool = True
     use_preliminary_scores_on_execute_timeout: bool = True
 
-    def get_compute_resource_limits(self,
-                                    memory_overwrite: Optional[int] = None,
-                                    cpu_overwrite: Optional[float] = None) -> Tuple[int, float]:
+    def get_compute_resource_limits(
+        self,
+        memory_overwrite: Optional[int] = None,
+        cpu_overwrite: Optional[float] = None,
+    ) -> Tuple[int, float]:
         """Calculates the resource constraints for a single task.
 
         There are three sources for resource limits (in decreasing priority):
@@ -141,7 +142,9 @@ class ResourceConstraints:
 
         return memory_limit, cpu_limit
 
-    def get_train_timeout(self, timeout_overwrite: Optional[Duration] = None) -> Duration:
+    def get_train_timeout(
+        self, timeout_overwrite: Optional[Duration] = None
+    ) -> Duration:
         """Returns the maximum runtime of a training task in seconds.
 
         Parameters
@@ -156,7 +159,9 @@ class ResourceConstraints:
         """
         return self._get_timeout_with_overwrite(self.train_timeout, timeout_overwrite)
 
-    def get_execute_timeout(self, timeout_overwrite: Optional[Duration] = None) -> Duration:
+    def get_execute_timeout(
+        self, timeout_overwrite: Optional[Duration] = None
+    ) -> Duration:
         """Returns the maximum runtime of an execution task in seconds.
 
         Parameters
@@ -172,7 +177,9 @@ class ResourceConstraints:
         return self._get_timeout_with_overwrite(self.execute_timeout, timeout_overwrite)
 
     @staticmethod
-    def _get_timeout_with_overwrite(timeout: Duration, overwrite: Optional[Duration]) -> Duration:
+    def _get_timeout_with_overwrite(
+        timeout: Duration, overwrite: Optional[Duration]
+    ) -> Duration:
         if overwrite is not None:
             timeout = overwrite
         return timeout

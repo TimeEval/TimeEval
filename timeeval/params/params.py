@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Mapping, Dict
+from typing import TYPE_CHECKING, Any, Dict, Mapping
 
 from timeeval.utils.hash_dict import hash_dict
-
 
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
@@ -14,24 +13,19 @@ if TYPE_CHECKING:
 class Params(Mapping[str, Any], ABC):
 
     @abstractmethod
-    def materialize(self) -> Params:
-        ...
+    def materialize(self) -> Params: ...
 
     @abstractmethod
-    def assess(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        ...
+    def assess(self, y_true: np.ndarray, y_score: np.ndarray) -> float: ...
 
     @abstractmethod
-    def fail(self) -> None:
-        ...
+    def fail(self) -> None: ...
 
     @abstractmethod
-    def uid(self) -> str:
-        ...
+    def uid(self) -> str: ...
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
-        ...
+    def to_dict(self) -> Dict[str, Any]: ...
 
 
 class FixedParams(Dict[str, Any], Params):

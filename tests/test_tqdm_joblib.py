@@ -18,9 +18,12 @@ class TestTqdmJoblib(unittest.TestCase):
     def test_wraps_joblib_correctly(self):
         total = 5
         with tqdm_joblib(tqdm(desc="Joblib tqdm wrapper", total=total)):
-            self.assertEqual(joblib.parallel.BatchCompletionCallBack.__name__, "TqdmBatchCompletionCallback")
-            res = Parallel()(
-                delayed(self._method)(i) for i in range(5)
+            self.assertEqual(
+                joblib.parallel.BatchCompletionCallBack.__name__,
+                "TqdmBatchCompletionCallback",
             )
-        self.assertEqual(joblib.parallel.BatchCompletionCallBack.__name__, "BatchCompletionCallBack")
+            res = Parallel()(delayed(self._method)(i) for i in range(5))
+        self.assertEqual(
+            joblib.parallel.BatchCompletionCallBack.__name__, "BatchCompletionCallBack"
+        )
         self.assertListEqual(res, list(map(self._method, range(5))))

@@ -1,17 +1,20 @@
 from pathlib import Path
-from typing import Dict, Any, Callable
+from typing import Any, Callable, Dict
 
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-from timeeval import Algorithm, AlgorithmParameter, TrainingType, InputDimensionality
+from timeeval import Algorithm, AlgorithmParameter, InputDimensionality, TrainingType
 from timeeval.adapters import FunctionAdapter
 
 
 class Baselines:
     @staticmethod
-    def random(input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE) -> Algorithm:
+    def random(
+        input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE,
+    ) -> Algorithm:
         """Random baseline assigns random scores (between 0 and 1)"""
+
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("Random baseline requires an np.ndarray as input!")
@@ -22,12 +25,15 @@ class Baselines:
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=input_dimensionality,
             data_as_file=False,
-            main=FunctionAdapter(fn)
+            main=FunctionAdapter(fn),
         )
 
     @staticmethod
-    def normal(input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE) -> Algorithm:
+    def normal(
+        input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE,
+    ) -> Algorithm:
         """Normal baseline declares everything as normal (score for all points=0)"""
+
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("Normal baseline requires an np.ndarray as input!")
@@ -38,17 +44,22 @@ class Baselines:
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=input_dimensionality,
             data_as_file=False,
-            main=FunctionAdapter(fn)
+            main=FunctionAdapter(fn),
         )
 
     @staticmethod
-    def increasing(input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE) -> Algorithm:
+    def increasing(
+        input_dimensionality: InputDimensionality = InputDimensionality.MULTIVARIATE,
+    ) -> Algorithm:
         """Increasing baseline assigns linearly increasing scores between 0 and 1"""
+
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
                 raise ValueError("Increasing baseline requires an np.ndarray as input!")
             indices = np.arange(X.shape[0])
-            scores: np.ndarray = MinMaxScaler().fit_transform(indices.reshape(-1, 1)).reshape(-1)
+            scores: np.ndarray = (
+                MinMaxScaler().fit_transform(indices.reshape(-1, 1)).reshape(-1)
+            )
             return scores
 
         return Algorithm(
@@ -56,7 +67,7 @@ class Baselines:
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=input_dimensionality,
             data_as_file=False,
-            main=FunctionAdapter(fn)
+            main=FunctionAdapter(fn),
         )
 
     @staticmethod
@@ -65,9 +76,12 @@ class Baselines:
         Baseline that outputs the difference between current value and time series mean as anomaly score.
         If the dataset is multivariate, the mean deviation is used.
         """
+
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
-                raise ValueError("DeviatingFromMean baseline requires an np.ndarray as input!")
+                raise ValueError(
+                    "DeviatingFromMean baseline requires an np.ndarray as input!"
+                )
             data = np.asarray(X, dtype=np.float_)
             return Baselines._deviating_from(data, np.nanmean)
 
@@ -76,7 +90,7 @@ class Baselines:
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=InputDimensionality.MULTIVARIATE,
             data_as_file=False,
-            main=FunctionAdapter(fn)
+            main=FunctionAdapter(fn),
         )
 
     @staticmethod
@@ -85,9 +99,12 @@ class Baselines:
         Baseline that outputs the difference between current value and time series median as anomaly score.
         If the dataset is multivariate, the mean deviation is used.
         """
+
         def fn(X: AlgorithmParameter, params: Dict[str, Any]) -> AlgorithmParameter:
             if isinstance(X, Path):
-                raise ValueError("DeviatingFromMedian baseline requires an np.ndarray as input!")
+                raise ValueError(
+                    "DeviatingFromMedian baseline requires an np.ndarray as input!"
+                )
             data = np.asarray(X, dtype=np.float_)
             return Baselines._deviating_from(data, np.nanmedian)
 
@@ -96,7 +113,7 @@ class Baselines:
             training_type=TrainingType.UNSUPERVISED,
             input_dimensionality=InputDimensionality.MULTIVARIATE,
             data_as_file=False,
-            main=FunctionAdapter(fn)
+            main=FunctionAdapter(fn),
         )
 
     @staticmethod

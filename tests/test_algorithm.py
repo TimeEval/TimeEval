@@ -13,17 +13,17 @@ class TestAlgorithm(unittest.TestCase):
         self.unsupervised_algorithm = Algorithm(
             name="TestAlgorithm",
             main=FunctionAdapter.identity(),
-            training_type=TrainingType.UNSUPERVISED
+            training_type=TrainingType.UNSUPERVISED,
         )
         self.supervised_algorithm = Algorithm(
             name="TestAlgorithm",
             main=FunctionAdapter.identity(),
-            training_type=TrainingType.SUPERVISED
+            training_type=TrainingType.SUPERVISED,
         )
         self.semi_supervised_algorithm = Algorithm(
             name="TestAlgorithm",
             main=FunctionAdapter.identity(),
-            training_type=TrainingType.SEMI_SUPERVISED
+            training_type=TrainingType.SEMI_SUPERVISED,
         )
 
     def test_execution(self):
@@ -39,7 +39,10 @@ class TestAlgorithm(unittest.TestCase):
     def test_unsupervised_training(self):
         with self.assertRaises(ValueError) as e:
             self.unsupervised_algorithm.train(self.data)
-        self.assertRegex(str(e.exception), r".*[Cc]alling.*train.*unsupervised algorithm.*not supported.*")
+        self.assertRegex(
+            str(e.exception),
+            r".*[Cc]alling.*train.*unsupervised algorithm.*not supported.*",
+        )
 
     def test_semi_and_supervised_training(self):
         result = self.semi_supervised_algorithm.train(self.data)

@@ -14,40 +14,70 @@ def _create_generate_algorithm_stubs_parser(subparsers: Any) -> argparse.Argumen
     parser: argparse.ArgumentParser = subparsers.add_parser(
         ALGO_STUBS_COMMAND,
         help="Generate python stubs for algorithms of the timeeval-algorithms repository that are implemented as "
-             "Docker images."
+        "Docker images.",
     )
-    parser.add_argument("repository_path", type=Path,
-                        help="Folder containing the timeeval-algorithms repository (source for the Docker images; "
-                             "required structure: each algorithm in its own folder, the folder contains a "
-                             "manifest.yaml and a README.md file, and the folder name must be a valid python-identifier.")
-    parser.add_argument("-f", "--force", action="store_true", default=False,
-                        help="Force creation of folders and files. Will overwrite existing files.")
-    parser.add_argument("-s", "--skip-pull", action="store_true", default=False,
-                        help="Sets default Docker image pull policy for all algorithms. Can be overridden during usage")
+    parser.add_argument(
+        "repository_path",
+        type=Path,
+        help="Folder containing the timeeval-algorithms repository (source for the Docker images; "
+        "required structure: each algorithm in its own folder, the folder contains a "
+        "manifest.yaml and a README.md file, and the folder name must be a valid python-identifier.",
+    )
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        default=False,
+        help="Force creation of folders and files. Will overwrite existing files.",
+    )
+    parser.add_argument(
+        "-s",
+        "--skip-pull",
+        action="store_true",
+        default=False,
+        help="Sets default Docker image pull policy for all algorithms. Can be overridden during usage",
+    )
     return parser
 
 
 def _create_generate_param_config_parser(subparsers: Any) -> argparse.ArgumentParser:
-    parser: argparse.ArgumentParser = subparsers.add_parser(PARAM_CONFIG_COMMAND,
-                                                            help="Generate parameter configuration (JSON) based on "
-                                                                 "parameter matrix.")
-    parser.add_argument("parameter_matrix_path", type=Path,
-                        help="Path to the file that contains the parameter matrix (direct CSV export of the Google "
-                             "Spreadsheet document).")
-    parser.add_argument("-o", "--output", type=Path, default="param-config.json", required=False,
-                        help="Output filename.")
-    parser.add_argument("-f", "--force", action="store_true", default=False,
-                        help="Will overwrite existing entries in the parameter configuration file. If `False` "
-                             f"(default) only the keys {ParamConfigGenerator.FIXED_KEY}, "
-                             f"{ParamConfigGenerator.SHARED_KEY}, {ParamConfigGenerator.DEPENDENT_KEY}, and "
-                             f"{ParamConfigGenerator.OPTIMIZED_KEY} are updated. Other keys are untouched")
+    parser: argparse.ArgumentParser = subparsers.add_parser(
+        PARAM_CONFIG_COMMAND,
+        help="Generate parameter configuration (JSON) based on " "parameter matrix.",
+    )
+    parser.add_argument(
+        "parameter_matrix_path",
+        type=Path,
+        help="Path to the file that contains the parameter matrix (direct CSV export of the Google "
+        "Spreadsheet document).",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default="param-config.json",
+        required=False,
+        help="Output filename.",
+    )
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        default=False,
+        help="Will overwrite existing entries in the parameter configuration file. If `False` "
+        f"(default) only the keys {ParamConfigGenerator.FIXED_KEY}, "
+        f"{ParamConfigGenerator.SHARED_KEY}, {ParamConfigGenerator.DEPENDENT_KEY}, and "
+        f"{ParamConfigGenerator.OPTIMIZED_KEY} are updated. Other keys are untouched",
+    )
     return parser
 
 
 def _create_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Generate various configuration files and python stubs for TimeEval "
-                                                 "algorithms of the timeeval-algorithms repository. See subcommands "
-                                                 "for further details.")
+    parser = argparse.ArgumentParser(
+        description="Generate various configuration files and python stubs for TimeEval "
+        "algorithms of the timeeval-algorithms repository. See subcommands "
+        "for further details."
+    )
     subparsers = parser.add_subparsers(dest="command")
     _create_generate_algorithm_stubs_parser(subparsers)
     _create_generate_param_config_parser(subparsers)
@@ -65,7 +95,9 @@ def _run_algorithm_gen(args: argparse.Namespace) -> None:
     target_dir = Path(__file__).parent.parent.parent / "timeeval" / "algorithms"
     if not target_dir.is_dir():
         target_dir.mkdir(exist_ok=True)
-    docs_target_file = Path(__file__).parent.parent.parent / "docs" / "api" / "timeeval.algorithms.rst"
+    docs_target_file = (
+        Path(__file__).parent.parent.parent / "docs" / "api" / "timeeval.algorithms.rst"
+    )
 
     print(f"\n#### Generating algorithm stubs in {target_dir}")
     generator.generate_all(target=target_dir, force=args.force)
@@ -82,10 +114,7 @@ def _run_config_gen(args: argparse.Namespace) -> None:
     print(f"\n#### Generating parameter config at {target}")
     if not target.parent.exists():
         target.parent.mkdir(parents=True, exist_ok=True)
-    generator.generate(
-        target=args.output,
-        overwrite=args.force
-    )
+    generator.generate(target=args.output, overwrite=args.force)
 
 
 def main(argv: List[str]) -> None:

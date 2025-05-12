@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Sized, Iterator, Mapping
+from typing import TYPE_CHECKING, Iterator, Mapping, Sized
 
 from .params import FixedParams
 
-
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
+    from typing import Any
+
     from ..algorithm import Algorithm
     from ..datasets import Dataset
-    from .params import Params
-    from typing import Any
     from .params import Params
 
 
@@ -70,9 +69,11 @@ class FixedParameters(ParameterConfig):
     def __init__(self, params: Mapping[str, Any]):
         if not isinstance(params, Mapping):
             if isinstance(params, (list, Iterator)):
-                raise TypeError("A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
-                                f"ParameterConfig ({params}). Please use a "
-                                "`timeeval.search.IndependentParameterGrid` for this!")
+                raise TypeError(
+                    "A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
+                    f"ParameterConfig ({params}). Please use a "
+                    "`timeeval.search.IndependentParameterGrid` for this!"
+                )
             else:
                 raise TypeError(f"Parameters are not provided as a dict ({params})")
         self._params = [FixedParams(params)]

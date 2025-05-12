@@ -19,8 +19,12 @@ class TestRemote(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             config.update_logging_path(Path(tmp_path))
 
-            already_running_cluster = SSHCluster(hosts=["localhost"], scheduler_options={"port": config.scheduler_port})
-            print("Running cluster scheduler:", already_running_cluster.scheduler_address)
+            already_running_cluster = SSHCluster(
+                hosts=["localhost"], scheduler_options={"port": config.scheduler_port}
+            )
+            print(
+                "Running cluster scheduler:", already_running_cluster.scheduler_address
+            )
             with self.assertLogs("Remote", level="WARNING") as logger:
                 new_remote = Remote(remote_config=config)
                 print(logger.output)
@@ -42,9 +46,9 @@ class TestRemote(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             remote = Remote(
                 remote_config=RemoteConfiguration(
-                    scheduler_host="localhost",
-                    worker_hosts=["localhost", "localhost"]
-                ))
+                    scheduler_host="localhost", worker_hosts=["localhost", "localhost"]
+                )
+            )
             remote.run_on_all_hosts([(_test_func, [Path(tmp_path).absolute()], {})])
             remote.close()
             self.assertEqual(len(os.listdir(tmp_path)), 2)
@@ -55,10 +59,11 @@ class TestRemote(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path).resolve()
-            remote = Remote(remote_config=RemoteConfiguration(
-                scheduler_host=current_host,
-                worker_hosts=[current_host]
-            ))
+            remote = Remote(
+                remote_config=RemoteConfiguration(
+                    scheduler_host=current_host, worker_hosts=[current_host]
+                )
+            )
             remote.run_on_all_hosts_ssh(f"touch {tmp_path}/$(hostname)")
             remote.close()
             self.assertListEqual([d.name for d in tmp_path.iterdir()], [current_host])

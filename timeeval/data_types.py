@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import Union, Callable
+from typing import Callable, Union
 
 import numpy as np
 
@@ -12,6 +12,7 @@ class TrainingType(Enum):
 
     TimeEval distinguishes between unsupervised, semi-supervised, and supervised algorithms.
     """
+
     UNSUPERVISED = "unsupervised"
     """An unsupervised algorithm does not require any training data.
 
@@ -43,7 +44,9 @@ class TrainingType(Enum):
 class InputDimensionality(Enum):
     """Input dimensionality supported by an algorithm or of a dataset.
 
-    TimeEval distinguishes between univariate and multivariate datasets / time series."""
+    TimeEval distinguishes between univariate and multivariate datasets / time series.
+    """
+
     UNIVARIATE = "univariate"
     """Univariate datasets consist of a single feature/dimension/channel.
 
@@ -59,7 +62,7 @@ class InputDimensionality(Enum):
     def from_dimensions(n: int) -> InputDimensionality:
         """Converts the feature/dimension/channel count to an Enum-object."""
         if n < 1:
-            raise ValueError(f"Zero dimensional dataset is not supported!")
+            raise ValueError("Zero dimensional dataset is not supported!")
         elif n == 1:
             return InputDimensionality.UNIVARIATE
         else:
@@ -76,6 +79,7 @@ class ExecutionType(Enum):
     TimeEval will call these algorithms first with the execution type set to ``TRAIN``.
     Then, for all algorithms, the algorithm is called with execution type ``EXECUTE``.
     """
+
     TRAIN = "train"
     EXECUTE = "execute"
 
@@ -85,5 +89,5 @@ TSFunction = Callable[[AlgorithmParameter, dict], AlgorithmParameter]
 TSFunctionPost = Union[
     Callable[[AlgorithmParameter, dict], np.ndarray],
     Callable[[np.ndarray, dict], np.ndarray],
-    Callable[[Path, dict], np.ndarray]
+    Callable[[Path, dict], np.ndarray],
 ]

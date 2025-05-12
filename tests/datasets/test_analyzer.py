@@ -3,14 +3,13 @@ import tempfile
 import unittest
 from copy import deepcopy
 from pathlib import Path
-from typing import List, TypeVar, Dict
+from typing import Dict, List, TypeVar
 from unittest.mock import patch
 
 import numpy as np
 
 from tests.fixtures.dataset_fixtures import dataset_metadata, dataset_metadata_dict
-from timeeval.datasets import DatasetAnalyzer, Stationarity, DatasetMetadata
-
+from timeeval.datasets import DatasetAnalyzer, DatasetMetadata, Stationarity
 
 T = TypeVar("T", DatasetMetadata, dict)
 
@@ -43,21 +42,29 @@ class TestDatasetAnalyzer(unittest.TestCase):
         self.assertIn("must be supplied", str(e.exception))
 
     def test_analyzer_result(self):
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"), is_train=False, dataset_path=self.dataset_path
+        )
         self.assertEqual(_round_meta(analyzer.metadata), dataset_metadata)
 
     def test_analyzer_result_ignore_stationarity(self):
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path,
-                                   ignore_stationarity=True)
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"),
+            is_train=False,
+            dataset_path=self.dataset_path,
+            ignore_stationarity=True,
+        )
         metadata = deepcopy(dataset_metadata)
-        metadata.stationarities = {
-            "value": Stationarity.NOT_STATIONARY
-        }
+        metadata.stationarities = {"value": Stationarity.NOT_STATIONARY}
         self.assertEqual(_round_meta(analyzer.metadata), metadata)
 
     def test_analyzer_result_ignore_trend(self):
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path,
-                                   ignore_trend=True)
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"),
+            is_train=False,
+            dataset_path=self.dataset_path,
+            ignore_trend=True,
+        )
         metadata = deepcopy(dataset_metadata)
         metadata.trends = {}
         self.assertEqual(_round_meta(analyzer.metadata), metadata)
@@ -68,14 +75,16 @@ class TestDatasetAnalyzer(unittest.TestCase):
         adfuller_mock.side_effect = ValueError("expected test exception")
         kpss_mock.side_effect = ValueError("expected test exception")
         metadata = deepcopy(dataset_metadata)
-        metadata.stationarities = {
-            "value": Stationarity.NOT_STATIONARY
-        }
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
+        metadata.stationarities = {"value": Stationarity.NOT_STATIONARY}
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"), is_train=False, dataset_path=self.dataset_path
+        )
         self.assertEqual(_round_meta(analyzer.metadata), metadata)
 
     def test_write_to_json(self):
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"), is_train=False, dataset_path=self.dataset_path
+        )
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             analyzer.save_to_json(tmp_path / "dataset1.metadata.json")
@@ -86,7 +95,9 @@ class TestDatasetAnalyzer(unittest.TestCase):
 
     def test_write_to_json_existing(self):
         existing_entry = {"existing content untouched": True}
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"), is_train=False, dataset_path=self.dataset_path
+        )
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path) / "dataset1.metadata.json"
             with open(tmp_path, "w") as f:
@@ -100,7 +111,11 @@ class TestDatasetAnalyzer(unittest.TestCase):
 
     def test_write_to_json_existing_overwrite(self):
         existing_entry = {"existing content untouched": False}
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path, )
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"),
+            is_train=False,
+            dataset_path=self.dataset_path,
+        )
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path) / "dataset1.metadata.json"
             with open(tmp_path, "w") as f:
@@ -115,7 +130,9 @@ class TestDatasetAnalyzer(unittest.TestCase):
 
     def test_write_to_json_existing_broken(self):
         existing_entry = {"wrongly formatted": "existing json"}
-        analyzer = DatasetAnalyzer(("test", "dataset1"), is_train=False, dataset_path=self.dataset_path)
+        analyzer = DatasetAnalyzer(
+            ("test", "dataset1"), is_train=False, dataset_path=self.dataset_path
+        )
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path) / "dataset1.metadata.json"
             with open(tmp_path, "w") as f:

@@ -1,10 +1,9 @@
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Any, Dict
+from typing import Any, Dict, List
 
 from .resource_constraints import ResourceConstraints
-
 
 DEFAULT_SCHEDULER_HOST = "localhost"
 DEFAULT_DASK_PORT = 8786
@@ -55,12 +54,15 @@ class RemoteConfiguration:
     >>> config = RemoteConfiguration(scheduler_host="192.168.1.1", worker_hosts=["192.168.1.1", "192.168.1.2"])
     >>> TimeEval(dm=..., datasets=[], algorithms=[], distributed=True, remote_config=config)
     """
+
     scheduler_host: str = DEFAULT_SCHEDULER_HOST
     scheduler_port: int = DEFAULT_DASK_PORT
     worker_hosts: List[str] = field(default_factory=lambda: ["localhost"])
     remote_python: str = field(default_factory=lambda: sys.executable)
     kwargs_overwrites: Dict[str, Any] = field(default_factory=lambda: {})
-    dask_logging_file_level: str = "INFO"  # NOTSET, DEBUG, INFO (WARNING, ERROR, CRITICAL does not work somehow)
+    dask_logging_file_level: str = (
+        "INFO"  # NOTSET, DEBUG, INFO (WARNING, ERROR, CRITICAL does not work somehow)
+    )
     dask_logging_console_level: str = "INFO"
     dask_logging_filename: str = DEFAULT_DASK_LOG_FILENAME
 
@@ -111,7 +113,7 @@ class RemoteConfiguration:
                 "port": self.scheduler_port,
             },
             # "worker_module": "distributed.cli.dask_worker",  # default
-            "remote_python": self.remote_python
+            "remote_python": self.remote_python,
         }
         config.update(self.kwargs_overwrites)
         return config
@@ -129,29 +131,24 @@ class RemoteConfiguration:
             "disable_existing_loggers": False,
             "incremental": False,
             "formatters": {
-                "brief": {
-                    "format": "%(name)s - %(levelname)s - %(message)s"
-                },
+                "brief": {"format": "%(name)s - %(levelname)s - %(message)s"},
                 "verbose-file": {
                     "format": "%(asctime)s - %(levelname)s - %(process)d %(name)s - %(message)s"
-                }
+                },
             },
             "handlers": {
                 "stdout": {
                     "level": self.dask_logging_console_level.upper(),
                     "formatter": "brief",
-                    "class": "logging.StreamHandler"
+                    "class": "logging.StreamHandler",
                 },
                 "log_file": {
                     "level": self.dask_logging_file_level.upper(),
                     "formatter": "verbose-file",
                     "filename": self.dask_logging_filename,
                     "class": "logging.FileHandler",
-                    "mode": "a"
-                }
+                    "mode": "a",
+                },
             },
-            "root": {
-                "level": "DEBUG",
-                "handlers": ["stdout", "log_file"]
-            }
+            "root": {"level": "DEBUG", "handlers": ["stdout", "log_file"]},
         }

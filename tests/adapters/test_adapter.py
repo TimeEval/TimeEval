@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 
 from timeeval.adapters.base import Adapter
-from timeeval.data_types import ExecutionType, AlgorithmParameter
+from timeeval.data_types import AlgorithmParameter, ExecutionType
 
 
 class TestBaseAdapter(unittest.TestCase):
@@ -18,7 +18,9 @@ class TestBaseAdapter(unittest.TestCase):
                 super().__init__()
                 self.execution_type: Optional[ExecutionType] = None
 
-            def _call(self, dataset: AlgorithmParameter, args: dict) -> AlgorithmParameter:
+            def _call(
+                self, dataset: AlgorithmParameter, args: dict
+            ) -> AlgorithmParameter:
                 self.execution_type = args.get("executionType", None)
                 return dataset
 

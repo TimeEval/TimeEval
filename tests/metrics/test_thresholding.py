@@ -3,12 +3,19 @@ import unittest
 import numpy as np
 import pytest
 
-from timeeval.metrics.thresholding import FixedValueThresholding, PercentileThresholding, TopKPointsThresholding, \
-    TopKRangesThresholding, SigmaThresholding, NoThresholding, PyThreshThresholding
-
+from timeeval.metrics.thresholding import (
+    FixedValueThresholding,
+    NoThresholding,
+    PercentileThresholding,
+    PyThreshThresholding,
+    SigmaThresholding,
+    TopKPointsThresholding,
+    TopKRangesThresholding,
+)
 
 try:
-    import pythresh
+    import pythresh  # noqa: F401
+
     _skip_pythresh_test = False
 except ImportError:
     _skip_pythresh_test = True
@@ -43,7 +50,9 @@ class TestThresholding(unittest.TestCase):
         strategy = NoThresholding()
         with self.assertRaises(ValueError) as ex:
             strategy.fit_transform(self.y_true, self.y_scores)
-        self.assertIn("Continuous anomaly scorings are not supported", str(ex.exception))
+        self.assertIn(
+            "Continuous anomaly scorings are not supported", str(ex.exception)
+        )
 
     def test_fixed_value_thresholding(self):
         strategy = FixedValueThresholding(threshold=0.7)
@@ -65,13 +74,17 @@ class TestThresholding(unittest.TestCase):
         strategy = SigmaThresholding(factor=1)
         self._test_strategy(strategy, 0.70, [0, 0, 1, 0, 0, 0, 0, 0, 0])
 
-    @pytest.mark.skipif(_skip_pythresh_test == True, reason="PyThresh is not installed!")
+    @pytest.mark.skipif(
+        _skip_pythresh_test is True, reason="PyThresh is not installed!"
+    )
     def test_pythresh_thresholding(self):
         import pythresh.version
         from pythresh.thresholds.regr import REGR
 
         with self.assertWarnsRegex(DeprecationWarning, "parameter is deprecated"):
-            strategy = PyThreshThresholding(pythresh_thresholder=REGR(method="theil"), random_state=42)
+            strategy = PyThreshThresholding(
+                pythresh_thresholder=REGR(method="theil"), random_state=42
+            )
 
         pythresh_version = list(map(int, pythresh.version.__version__.split(".")))
         if pythresh_version >= [0, 2, 8]:
@@ -82,12 +95,16 @@ class TestThresholding(unittest.TestCase):
             exp_res = [0, 0, 1, 1, 1, 1, 0, 0, 0]
         self._test_strategy(strategy, exp_threshold, exp_res)
 
-    @pytest.mark.skipif(_skip_pythresh_test == True, reason="PyThresh is not installed!")
+    @pytest.mark.skipif(
+        _skip_pythresh_test is True, reason="PyThresh is not installed!"
+    )
     def test_pythresh_thresholding_new(self):
         import pythresh.version
         from pythresh.thresholds.regr import REGR
 
         pythresh_version = list(map(int, pythresh.version.__version__.split(".")))
         if pythresh_version >= [0, 2, 8]:
-            strategy = PyThreshThresholding(pythresh_thresholder=REGR(method="theil", random_state=42))
+            strategy = PyThreshThresholding(
+                pythresh_thresholder=REGR(method="theil", random_state=42)
+            )
             self._test_strategy(strategy, 0.72, [0, 0, 1, 0, 0, 0, 0, 0, 0])

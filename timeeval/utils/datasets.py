@@ -19,5 +19,7 @@ def load_dataset(path: Path) -> pd.DataFrame:
 
 
 def load_labels_only(path: Path) -> np.ndarray:
-    labels: np.ndarray = pd.read_csv(path, usecols=["is_anomaly"])["is_anomaly"].values.astype(np.float64)
+    labels: np.ndarray = pd.read_csv(path, usecols=["is_anomaly"])[
+        "is_anomaly"
+    ].values.astype(np.float64)
     return labels

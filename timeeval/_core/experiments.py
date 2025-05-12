@@ -8,7 +8,13 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 from ..algorithm import Algorithm
-from ..constants import ANOMALY_SCORES_TS, EXECUTION_LOG, HYPER_PARAMETERS, METRICS_CSV, RAW_ANOMALY_SCORES_TS
+from ..constants import (
+    ANOMALY_SCORES_TS,
+    EXECUTION_LOG,
+    HYPER_PARAMETERS,
+    METRICS_CSV,
+    RAW_ANOMALY_SCORES_TS,
+)
 from ..data_types import AlgorithmParameter, InputDimensionality, TrainingType
 from ..datasets import Dataset, Datasets
 from ..heuristics import inject_heuristic_values
@@ -173,7 +179,7 @@ class Experiment:
 
         if not self.resolved_train_dataset_path:
             raise ValueError(
-                f"No training dataset was provided. Algorithm cannot be trained!"
+                "No training dataset was provided. Algorithm cannot be trained!"
             )
 
         if self.algorithm.data_as_file:
@@ -181,9 +187,10 @@ class Experiment:
         else:
             X = load_dataset(self.resolved_train_dataset_path).values
 
-        with (self.results_path / EXECUTION_LOG).open(
-            "a"
-        ) as logs_file, redirect_stdout(logs_file):
+        with (
+            (self.results_path / EXECUTION_LOG).open("a") as logs_file,
+            redirect_stdout(logs_file),
+        ):
             print(
                 f"Performing training for {self.algorithm.training_type.name} "
                 f"algorithm {self.algorithm.name}"
@@ -204,9 +211,10 @@ class Experiment:
                     f"that was not expected: {dataset.shape}"
                 )
 
-        with (self.results_path / EXECUTION_LOG).open(
-            "a"
-        ) as logs_file, redirect_stdout(logs_file):
+        with (
+            (self.results_path / EXECUTION_LOG).open("a") as logs_file,
+            redirect_stdout(logs_file),
+        ):
             print(
                 f"Performing execution for {self.algorithm.training_type.name} "
                 f"algorithm {self.algorithm.name}"

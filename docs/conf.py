@@ -4,6 +4,9 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import os
+import sys
+
 import sphinx_rtd_theme
 
 # -- Path setup --------------------------------------------------------------
@@ -12,17 +15,15 @@ import sphinx_rtd_theme
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import os
-import sys
-sys.path.insert(0, os.path.abspath('..'))
-import timeeval
 
+sys.path.insert(0, os.path.abspath(".."))
+import timeeval
 
 # -- Project information -----------------------------------------------------
 
-project = 'TimeEval'
-copyright = '2022, Sebastian Schmidl and Phillip Wenig'
-author = 'Sebastian Schmidl and Phillip Wenig'
+project = "TimeEval"
+copyright = "2022, Sebastian Schmidl and Phillip Wenig"
+author = "Sebastian Schmidl and Phillip Wenig"
 version = timeeval.__version__
 release = timeeval.__version__
 
@@ -32,40 +33,38 @@ release = timeeval.__version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.napoleon',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'myst_parser',
-    'sphinx_rtd_dark_mode',
-    'sphinx.ext.mathjax',
-    'sphinx_copybutton'
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
+    "myst_parser",
+    "sphinx_rtd_dark_mode",
+    "sphinx.ext.mathjax",
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_logo = '../timeeval.png'
+html_logo = "../timeeval.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
-html_css_files = [
-    'css/custom.css'
-]
+html_css_files = ["css/custom.css"]
 
 
 # -- Napolean settings -------------------------------------------------------
@@ -78,14 +77,14 @@ myst_heading_anchors = 3
 
 # -- intersphinx settings ----------------------------------------------------
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'dask': ('https://docs.dask.org/en/stable/', None),
-    'numpy': ('https://numpy.org/doc/1.21/', None),
-    'pandas': ('https://pandas.pydata.org/pandas-docs/version/1.3/', None),
-    'sklearn': ('https://scikit-learn.org/0.24/', None),
-    'statsmodels': ('https://www.statsmodels.org/v0.12.2/', None),
-    'pythresh': ('https://pythresh.readthedocs.io/en/latest', None),
-    'optuna': ('https://optuna.readthedocs.io/en/v3.1.0/', None),
+    "python": ("https://docs.python.org/3", None),
+    "dask": ("https://docs.dask.org/en/stable/", None),
+    "numpy": ("https://numpy.org/doc/1.21/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/version/1.3/", None),
+    "sklearn": ("https://scikit-learn.org/0.24/", None),
+    "statsmodels": ("https://www.statsmodels.org/v0.12.2/", None),
+    "pythresh": ("https://pythresh.readthedocs.io/en/latest", None),
+    "optuna": ("https://optuna.readthedocs.io/en/v3.1.0/", None),
 }
 
 # -- sphinx_rtd_dark_mode settings -------------------------------------------

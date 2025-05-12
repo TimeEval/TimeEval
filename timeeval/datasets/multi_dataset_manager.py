@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Dict
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -33,15 +33,23 @@ class MultiDatasetManager(Datasets):
     :class:`timeeval.datasets.DatasetManager`
     """
 
-    def __init__(self, data_folders: List[Union[str, Path]], custom_datasets_file: Optional[Union[str, Path]] = None):
+    def __init__(
+        self,
+        data_folders: List[Union[str, Path]],
+        custom_datasets_file: Optional[Union[str, Path]] = None,
+    ):
         self._log_: logging.Logger = logging.getLogger(self.__class__.__name__)
-        self._filepaths = [Path(folder) / self.INDEX_FILENAME for folder in data_folders]
+        self._filepaths = [
+            Path(folder) / self.INDEX_FILENAME for folder in data_folders
+        ]
         existing_files = np.array([p.exists() for p in self._filepaths])
         if not np.all(existing_files):
             missing = np.array(self._filepaths)[~existing_files]
             missing = np.array([str(p) for p in missing], dtype=str)
-            raise FileNotFoundError(f"Could not find the index files ({', '.join(missing)}). "
-                                    "Is your data_folders parameter correct?")
+            raise FileNotFoundError(
+                f"Could not find the index files ({', '.join(missing)}). "
+                "Is your data_folders parameter correct?"
+            )
         else:
             path_mapping, df = self._load_df()
         self._root_path_mapping: Dict[Tuple[str, str], Path] = path_mapping
@@ -66,10 +74,18 @@ class MultiDatasetManager(Datasets):
         # ignore the force parameter
         self._df = self._load_df()
 
-    def _get_dataset_path_internal(self, dataset_id: DatasetId, train: bool = False) -> Path:
+    def _get_dataset_path_internal(
+        self, dataset_id: DatasetId, train: bool = False
+    ) -> Path:
         root_path = self._root_path_mapping[dataset_id]
-        path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
-        if not path or (isinstance(path, (np.float64, np.int64, float)) and np.isnan(path)):
-            raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
+        path = self._get_value_internal(
+            dataset_id, "train_path" if train else "test_path"
+        )
+        if not path or (
+            isinstance(path, (np.float64, np.int64, float)) and np.isnan(path)
+        ):
+            raise KeyError(
+                f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!"
+            )
         resolved_path: Path = root_path.resolve() / path
         return resolved_path

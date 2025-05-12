@@ -1,6 +1,6 @@
 import unittest
-from copy import deepcopy
 import warnings
+from copy import deepcopy
 
 import tests.fixtures.heuristics_fixtures as fixtures
 from timeeval.heuristics import EmbedDimRangeHeuristic

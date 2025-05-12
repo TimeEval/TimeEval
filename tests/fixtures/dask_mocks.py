@@ -1,7 +1,7 @@
 from asyncio import Future
-from typing import Optional, List, Union, Generator
+from typing import Generator, List, Optional, Union
 
-from timeeval.adapters.docker import DockerTimeoutError, DockerMemoryError
+from timeeval.adapters.docker import DockerMemoryError, DockerTimeoutError
 
 
 class ExceptionForTest(Exception):
@@ -49,7 +49,9 @@ class MockDaskClient:
     def run(self, task, *args, **kwargs):
         task(*args, **kwargs)
 
-    def gather(self, _futures: List[Future], *args, asynchronous=False, **kwargs) -> Union[Generator[Future, None, None], bool]:
+    def gather(
+        self, _futures: List[Future], *args, asynchronous=False, **kwargs
+    ) -> Union[Generator[Future, None, None], bool]:
         if asynchronous:
             for _ in _futures:
                 f = Future()  # type: ignore

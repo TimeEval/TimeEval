@@ -1,10 +1,10 @@
 import getpass
 import logging
 import subprocess
-from typing import List, Any, Dict
+from typing import Any, Dict, List
 
+from ..data_types import AlgorithmParameter, TSFunction
 from .base import Adapter
-from ..data_types import TSFunction, AlgorithmParameter
 
 
 class DistributedAdapter(Adapter):
@@ -32,7 +32,13 @@ class DistributedAdapter(Adapter):
         The hosts to connect to.
     """
 
-    def __init__(self, algorithm: TSFunction, remote_command: str, remote_user: str, remote_hosts: List[str]) -> None:
+    def __init__(
+        self,
+        algorithm: TSFunction,
+        remote_command: str,
+        remote_user: str,
+        remote_hosts: List[str],
+    ) -> None:
         self.algorithm = algorithm
         self.remote_command = remote_command
         self.remote_user = remote_user
@@ -41,20 +47,26 @@ class DistributedAdapter(Adapter):
     def _remote_command(self, remote_host: str) -> None:
         current_user = getpass.getuser()
         if self.remote_user != current_user:
-            logging.warning(f"You are currently running this Python Script as user '{current_user}', "
-                            f"but you are trying to connect to '{remote_host}' as user '{self.remote_user}'.")
+            logging.warning(
+                f"You are currently running this Python Script as user '{current_user}', "
+                f"but you are trying to connect to '{remote_host}' as user '{self.remote_user}'."
+            )
 
-        ssh_process = subprocess.Popen(["ssh", "-T", f"{self.remote_user}@{remote_host}"],
-                                       stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE,
-                                       universal_newlines=True,
-                                       bufsize=0)
+        ssh_process = subprocess.Popen(
+            ["ssh", "-T", f"{self.remote_user}@{remote_host}"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            universal_newlines=True,
+            bufsize=0,
+        )
         stdin = ssh_process.stdin
         if stdin is not None:
-            stdin.write(f"screen -dm bash -c \"{self.remote_command}\"")
+            stdin.write(f'screen -dm bash -c "{self.remote_command}"')
             stdin.close()
 
-    def _call(self, dataset: AlgorithmParameter, args: Dict[str, Any]) -> AlgorithmParameter:
+    def _call(
+        self, dataset: AlgorithmParameter, args: Dict[str, Any]
+    ) -> AlgorithmParameter:
         # remote call
         for remote_host in self.remote_hosts:
             self._remote_command(remote_host)

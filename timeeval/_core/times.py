@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, asdict
-from typing import Optional, Dict, Tuple, Any, List
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -19,8 +19,13 @@ class Times:
 
     @staticmethod
     def result_keys() -> List[str]:
-        names = ["train_preprocess_time", "train_main_time",
-                 "execute_preprocess_time", "execute_main_time", "execute_postprocess_time"]
+        names = [
+            "train_preprocess_time",
+            "train_main_time",
+            "execute_preprocess_time",
+            "execute_main_time",
+            "execute_postprocess_time",
+        ]
         return names
 
     def to_dict(self) -> Dict[str, Any]:
@@ -29,15 +34,33 @@ class Times:
         return {f"{self.execution_type.value}_{k}_time": v for k, v in dd.items()}
 
     @staticmethod
-    def from_execute_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: Dict[str, Any]) -> Tuple[np.ndarray, Times]:
-        x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, np.nan)
+    def from_execute_algorithm(
+        algorithm: Algorithm, X: AlgorithmParameter, args: Dict[str, Any]
+    ) -> Tuple[np.ndarray, Times]:
+        x, pre_time = (
+            timer(algorithm.preprocess, X, args)
+            if algorithm.preprocess
+            else (X, np.nan)
+        )
         x, main_time = timer(algorithm.execute, x, args)
-        x, post_time = timer(algorithm.postprocess, x, args) if algorithm.postprocess else(x, np.nan)
-        return x, Times(ExecutionType.EXECUTE, main_time, preprocess=pre_time, postprocess=post_time)
+        x, post_time = (
+            timer(algorithm.postprocess, x, args)
+            if algorithm.postprocess
+            else (x, np.nan)
+        )
+        return x, Times(
+            ExecutionType.EXECUTE, main_time, preprocess=pre_time, postprocess=post_time
+        )
 
     @staticmethod
-    def from_train_algorithm(algorithm: Algorithm, X: AlgorithmParameter, args: Dict[str, Any]) -> Times:
-        x, pre_time = timer(algorithm.preprocess, X, args) if algorithm.preprocess else (X, np.nan)
+    def from_train_algorithm(
+        algorithm: Algorithm, X: AlgorithmParameter, args: Dict[str, Any]
+    ) -> Times:
+        x, pre_time = (
+            timer(algorithm.preprocess, X, args)
+            if algorithm.preprocess
+            else (X, np.nan)
+        )
         x, main_time = timer(algorithm.train, x, args)
         return Times(ExecutionType.TRAIN, main_time, preprocess=pre_time)
 

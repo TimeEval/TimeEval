@@ -1,8 +1,8 @@
 from abc import ABC
-from typing import Iterable, Callable, Any
+from typing import Any, Callable, Iterable
 
 import numpy as np
-from sklearn.metrics import auc, roc_curve, precision_recall_curve
+from sklearn.metrics import auc, precision_recall_curve, roc_curve
 
 from .metric import Metric
 
@@ -13,14 +13,17 @@ class AucMetric(Metric, ABC):
     All AUC-Metrics support continuous scorings, calculate the area under a curve function, and allow plotting this
     curve function. See the subclasses' documentation for a detailed explanation of the corresponding curve and metric.
     """
+
     def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
         self._plot = plot
         self._plot_store = plot_store
 
-    def _auc(self,
-             y_true: np.ndarray,
-             y_score: Iterable[float],
-             curve_function: Callable[[np.ndarray, np.ndarray], Any]) -> float:
+    def _auc(
+        self,
+        y_true: np.ndarray,
+        y_score: Iterable[float],
+        curve_function: Callable[[np.ndarray, np.ndarray], Any],
+    ) -> float:
         x, y, thresholds = curve_function(y_true, np.array(y_score))
         if "precision_recall" in curve_function.__name__:
             # swap x and y
@@ -57,6 +60,7 @@ class RocAUC(AucMetric):
     --------
     `https://en.wikipedia.org/wiki/Receiver_operating_characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ : Explanation of the ROC-curve.
     """
+
     def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
         super().__init__(plot, plot_store)
 
@@ -79,6 +83,7 @@ class PrAUC(AucMetric):
         If this parameter is ``True`` the curve plot will be saved in the current working directory under the name
         template "fig-{metric-name}.pdf".
     """
+
     def __init__(self, plot: bool = False, plot_store: bool = False) -> None:
         super().__init__(plot, plot_store)
 

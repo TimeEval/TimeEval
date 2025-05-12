@@ -43,17 +43,9 @@ def _number_of_lines(file: Path) -> int:
 def _create_arg_parser():
     argument_parser = argparse.ArgumentParser()
 
-    argument_parser.add_argument(
-        "--input",
-        type=Path,
-        required=True
-    )
+    argument_parser.add_argument("--input", type=Path, required=True)
 
-    argument_parser.add_argument(
-        "--output",
-        type=Path,
-        required=True
-    )
+    argument_parser.add_argument("--output", type=Path, required=True)
 
     return argument_parser
 

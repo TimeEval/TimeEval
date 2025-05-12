@@ -8,9 +8,10 @@ Evaluation Tool for Anomaly Detection Algorithms on Time Series.
 [![CI](https://github.com/TimeEval/TimeEval/actions/workflows/build.yml/badge.svg)](https://github.com/TimeEval/TimeEval/actions/workflows/build.yml)
 [![Documentation Status](https://readthedocs.org/projects/timeeval/badge/?version=latest)](https://timeeval.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/TimeEval/TimeEval/branch/main/graph/badge.svg?token=esrQJQmMQe)](https://codecov.io/gh/TimeEval/TimeEval)
+[![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyPI version](https://badge.fury.io/py/TimeEval.svg)](https://badge.fury.io/py/TimeEval)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![python version 3.9|3.10|3.11|3.12](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)
+![python version 3.9|3.10|3.11|3.12](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)
 [![Downloads](https://pepy.tech/badge/timeeval)](https://pepy.tech/project/timeeval)
 
 </div>

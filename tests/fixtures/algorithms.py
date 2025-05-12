@@ -28,13 +28,17 @@ def deviating_from(dataset: AlgorithmParameter, fn: Callable) -> np.ndarray:
 
 class DeviatingFromMean(Adapter):
 
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+    def _call(
+        self, dataset: AlgorithmParameter, args: Optional[dict] = None
+    ) -> AlgorithmParameter:
         return deviating_from(dataset, np.mean)  # type: ignore
 
 
 class DeviatingFromMedian(Adapter):
 
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+    def _call(
+        self, dataset: AlgorithmParameter, args: Optional[dict] = None
+    ) -> AlgorithmParameter:
         return deviating_from(dataset, np.median)  # type: ignore
 
 
@@ -63,7 +67,9 @@ class ErroneousAlgorithm(Adapter):
         self.count = raise_after_n_calls
         self.msg = error_message
 
-    def _call(self, dataset: AlgorithmParameter, args: Optional[dict] = None) -> AlgorithmParameter:
+    def _call(
+        self, dataset: AlgorithmParameter, args: Optional[dict] = None
+    ) -> AlgorithmParameter:
         if self.count <= 0:
             raise ValueError(self.msg)
         else:

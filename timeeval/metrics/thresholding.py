@@ -1,7 +1,7 @@
 import contextlib
 import warnings
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, Any, Generator
+from typing import Any, Generator, Optional, Tuple
 
 import numpy as np
 
@@ -15,6 +15,7 @@ class ThresholdingStrategy(ABC):
     already existing binary labels and keeps them untouched. This allows applying the metrics on existing binary
     classification results.
     """
+
     def __init__(self) -> None:
         self.threshold: Optional[float] = None
 
@@ -108,9 +109,11 @@ class NoThresholding(ThresholdingStrategy):
             Array of binary labels; 0 for normal points and 1 for anomalous points.
         """
         if y_score.dtype not in [np.int_, np.bool_]:
-            raise ValueError("The NoThresholding strategy can only be used for binary predictions (either 0 or 1). "
-                             "Continuous anomaly scorings are not supported, please use any other thresholding "
-                             "strategy for this!")
+            raise ValueError(
+                "The NoThresholding strategy can only be used for binary predictions (either 0 or 1). "
+                "Continuous anomaly scorings are not supported, please use any other thresholding "
+                "strategy for this!"
+            )
         return y_score
 
     def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
@@ -133,7 +136,7 @@ class NoThresholding(ThresholdingStrategy):
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"NoThresholding()"
+        return "NoThresholding()"
 
 
 class FixedValueThresholding(ThresholdingStrategy):
@@ -144,10 +147,13 @@ class FixedValueThresholding(ThresholdingStrategy):
     threshold : float
         Fixed threshold to use. All anomaly scorings are scaled to the interval [0, 1]
     """
+
     def __init__(self, threshold: float = 0.8):
         super().__init__()
         if threshold > 1 or threshold < 0:
-            raise ValueError(f"Threshold must be in the interval [0, 1], but was {threshold}!")
+            raise ValueError(
+                f"Threshold must be in the interval [0, 1], but was {threshold}!"
+            )
         self.threshold = threshold
 
     def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
@@ -169,10 +175,13 @@ class PercentileThresholding(ThresholdingStrategy):
     percentile : int
         The percentile of the anomaly scoring to use. Must be between 0 and 100.
     """
+
     def __init__(self, percentile: int = 90):
         super().__init__()
         if percentile < 0 or percentile > 100:
-            raise ValueError(f"Percentile must be within [0, 100], but was {percentile}!")
+            raise ValueError(
+                f"Percentile must be within [0, 100], but was {percentile}!"
+            )
         self._percentile = percentile
 
     def find_threshold(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
@@ -208,6 +217,7 @@ class TopKPointsThresholding(ThresholdingStrategy):
         Number of expected anomalous points. If `k` is `None`, the ground truth data is used to calculate the real
         number of anomalous points.
     """
+
     def __init__(self, k: Optional[int] = None):
         super().__init__()
         if k is not None and k <= 0:
@@ -235,7 +245,7 @@ class TopKPointsThresholding(ThresholdingStrategy):
             Threshold that yields k anomalous points.
         """
         if self._k is None:
-            return np.nanpercentile(y_score, (1 - y_true.sum() / y_true.shape[0])*100)  # type: ignore
+            return np.nanpercentile(y_score, (1 - y_true.sum() / y_true.shape[0]) * 100)  # type: ignore
         else:
             return np.nanpercentile(y_score, (1 - self._k / y_true.shape[0]) * 100)  # type: ignore
 
@@ -256,6 +266,7 @@ class TopKRangesThresholding(ThresholdingStrategy):
         Number of expected anomalies. If `k` is `None`, the ground truth data is used to calculate the real number of
         anomalies.
     """
+
     def __init__(self, k: Optional[int] = None):
         super().__init__()
         if k is not None and k <= 0:
@@ -318,6 +329,7 @@ class SigmaThresholding(ThresholdingStrategy):
     factor: float
         Multiples of the standard deviation to be added to the mean to compute the threshold (:math:`x`).
     """
+
     def __init__(self, factor: float = 3.0):
         super().__init__()
         if factor <= 0:
@@ -395,15 +407,17 @@ class PyThreshThresholding(ThresholdingStrategy):
       y_pred = thresholding.fit_transform(y_labels, y_scores)
     """
 
-    def __init__(self, pythresh_thresholder: 'BaseThresholder', random_state: Any = None):  # type: ignore
+    def __init__(self, pythresh_thresholder: "BaseThresholder", random_state: Any = None):  # type: ignore # noqa: F821
         super().__init__()
         self._thresholder = pythresh_thresholder
         self._predictions: Optional[np.ndarray] = None
         self._random_state: Any = random_state
         if random_state is not None:
-            warnings.warn("'random_state' parameter is deprecated. Use pythresh thresholder's parameter instead.",
-                          DeprecationWarning,
-                          stacklevel=2)
+            warnings.warn(
+                "'random_state' parameter is deprecated. Use pythresh thresholder's parameter instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
     @staticmethod
     def _make_finite(y_score: np.ndarray) -> np.ndarray:
@@ -460,7 +474,7 @@ class PyThreshThresholding(ThresholdingStrategy):
 
 
 @contextlib.contextmanager
-def tmp_np_random_seed_pythresh(thresholder: 'BaseThresholder', random_state: Any) -> Generator[None, None, None]:   # type: ignore
+def tmp_np_random_seed_pythresh(thresholder: "BaseThresholder", random_state: Any) -> Generator[None, None, None]:  # type: ignore # noqa: F821
     import pythresh.version
 
     pythresh_version = list(map(int, pythresh.version.__version__.split(".")))

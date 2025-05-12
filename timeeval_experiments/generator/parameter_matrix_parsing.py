@@ -4,10 +4,9 @@ from distutils.util import strtobool
 from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Union, Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import pandas as pd
-
 
 LIST_TYPETAG_PATTERN = re.compile(r"list\[.*\]", re.I)
 
@@ -50,7 +49,9 @@ class ParameterMatrixProxy:
     def _extract_algorithms(df: pd.DataFrame) -> Dict[str, List[str]]:
         df_only_algos = df.iloc[6:]
         algo_names = df_only_algos[0]
-        df_algos = df_only_algos.apply(lambda s: s[~pd.isnull(s)].map(lambda x: algo_names[s.name]), axis=1)
+        df_algos = df_only_algos.apply(
+            lambda s: s[~pd.isnull(s)].map(lambda x: algo_names[s.name]), axis=1
+        )
         df_algos.columns = df.iloc[0]
         df_algos = df_algos.drop(columns=["name"])
 
@@ -83,35 +84,49 @@ class ParameterMatrixProxy:
                 return value
 
     def fixed_params(self) -> Dict[str, Any]:
-        fixed_df: pd.DataFrame = self._params_df.loc[self._params_df["category"] == ParameterCategory.FIXED.value, ["name", "type", "value range"]]
+        fixed_df: pd.DataFrame = self._params_df.loc[
+            self._params_df["category"] == ParameterCategory.FIXED.value,
+            ["name", "type", "value range"],
+        ]
         fp = {}
         for _, (name, tpe, value) in fixed_df.iterrows():
             fp[name] = self._parse_type(str(value), tpe)
         return fp
 
     def shared_params(self) -> Dict[str, Dict[str, Any]]:
-        df_shared: pd.DataFrame = self._params_df.loc[self._params_df["category"] == ParameterCategory.SHARED.value, ["name", "type", "value range"]]
+        df_shared: pd.DataFrame = self._params_df.loc[
+            self._params_df["category"] == ParameterCategory.SHARED.value,
+            ["name", "type", "value range"],
+        ]
         sp = {}
         for _, (name, tpe, value) in df_shared.iterrows():
             sp[name] = {
                 "algorithms": self._algorithms[name],
                 # "type": tpe,
-                "search_space": json.loads(value)
+                "search_space": json.loads(value),
             }
         return sp
 
     def dependent_params(self) -> Dict[str, Union[str, List[str]]]:
-        dependent_df: pd.DataFrame = self._params_df.loc[self._params_df["category"] == ParameterCategory.DEPENDENT.value, ["name", "value range"]]
+        dependent_df: pd.DataFrame = self._params_df.loc[
+            self._params_df["category"] == ParameterCategory.DEPENDENT.value,
+            ["name", "value range"],
+        ]
         dp = {}
         for _, (name, value) in dependent_df.iterrows():
-            if value.startswith('[') and value.endswith(']'):  # e.g. ["heuristic 1", "heuristic 2"]
+            if value.startswith("[") and value.endswith(
+                "]"
+            ):  # e.g. ["heuristic 1", "heuristic 2"]
                 dp[name] = json.loads(value)
             else:  # e.g. heuristic 1
                 dp[name] = value
         return dp
 
     def optimized_params(self) -> Dict[str, Any]:
-        optimizted_df: pd.DataFrame = self._params_df.loc[self._params_df["category"] == ParameterCategory.OPTIMIZED.value, ["name", "value range", "count"]]
+        optimizted_df: pd.DataFrame = self._params_df.loc[
+            self._params_df["category"] == ParameterCategory.OPTIMIZED.value,
+            ["name", "value range", "count"],
+        ]
 
         op: Dict[str, Union[str, Dict[str, List[Any]]]] = {}
         for _, (name, value, count) in optimizted_df.iterrows():
