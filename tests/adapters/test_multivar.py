@@ -1,14 +1,13 @@
-import os
-from pathlib import Path
 import tempfile
 import unittest
-from durations import Duration
+from pathlib import Path
 from typing import List
 
-from docker.models.containers import Container
+import docker
 import numpy as np
 import pytest
-import docker
+from docker.models.containers import Container
+from durations import Duration
 
 from tests.fixtures.algorithms import DeviatingFromMedian
 from tests.fixtures.docker_mocks import TEST_DOCKER_IMAGE

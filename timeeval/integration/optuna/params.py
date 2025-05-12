@@ -11,14 +11,16 @@ from optuna.trial import TrialState
 
 from timeeval.params import ParameterConfig, Params
 
-
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
-    from typing import Iterator, Any, Mapping, Dict, Optional, ItemsView, Union
+    from typing import Any, Dict, ItemsView, Iterator, Mapping, Optional, Union
+
     from optuna import Study, Trial
     from optuna.distributions import BaseDistribution
+
     from timeeval import Algorithm
     from timeeval.datasets import Dataset
+
     from .config import OptunaConfiguration, OptunaStudyConfiguration
 
 

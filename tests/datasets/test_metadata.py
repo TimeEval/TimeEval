@@ -6,12 +6,12 @@ import numpy as np
 
 from tests.fixtures.dataset_fixtures import dataset_metadata
 from timeeval.datasets.metadata import (
+    AnomalyLength,
+    DatasetMetadata,
+    DatasetMetadataEncoder,
+    Stationarity,
     Trend,
     TrendType,
-    DatasetMetadata,
-    AnomalyLength,
-    Stationarity,
-    DatasetMetadataEncoder,
 )
 
 

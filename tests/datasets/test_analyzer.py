@@ -3,14 +3,13 @@ import tempfile
 import unittest
 from copy import deepcopy
 from pathlib import Path
-from typing import List, TypeVar, Dict
+from typing import Dict, List, TypeVar
 from unittest.mock import patch
 
 import numpy as np
 
 from tests.fixtures.dataset_fixtures import dataset_metadata, dataset_metadata_dict
-from timeeval.datasets import DatasetAnalyzer, Stationarity, DatasetMetadata
-
+from timeeval.datasets import DatasetAnalyzer, DatasetMetadata, Stationarity
 
 T = TypeVar("T", DatasetMetadata, dict)
 

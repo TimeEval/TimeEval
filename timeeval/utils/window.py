@@ -1,7 +1,7 @@
 import multiprocessing as mp
 from enum import Enum
 from itertools import cycle
-from typing import Optional, List
+from typing import List, Optional
 
 import numpy as np
 from sklearn.base import TransformerMixin
@@ -143,8 +143,9 @@ class ReverseWindowing(TransformerMixin):
 
     def _has_enough_memory_for_vectorized_entire(self, n: int) -> bool:
         import sys
-        import psutil
         from pathlib import Path
+
+        import psutil
 
         memory_limit: int = psutil.virtual_memory().available
         memory_buffer = (

@@ -1,10 +1,11 @@
 import warnings
 from pathlib import Path
-from typing import Optional, Callable, Any
+from typing import Any, Callable, Optional
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
-from .base import TimeEvalParameterHeuristic, HeuristicFallbackWarning
+
+from .base import HeuristicFallbackWarning, TimeEvalParameterHeuristic
 
 
 class ParameterDependenceHeuristic(TimeEvalParameterHeuristic):

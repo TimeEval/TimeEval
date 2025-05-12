@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 
 from timeeval.adapters.base import Adapter
-from timeeval.data_types import ExecutionType, AlgorithmParameter
+from timeeval.data_types import AlgorithmParameter, ExecutionType
 
 
 class TestBaseAdapter(unittest.TestCase):

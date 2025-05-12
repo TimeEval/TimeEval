@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from ..data_types import TrainingType, InputDimensionality
+from ..data_types import InputDimensionality, TrainingType
 from .metadata import DatasetId
 
 

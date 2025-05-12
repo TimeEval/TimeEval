@@ -4,10 +4,9 @@ from distutils.util import strtobool
 from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Union, Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import pandas as pd
-
 
 LIST_TYPETAG_PATTERN = re.compile(r"list\[.*\]", re.I)
 

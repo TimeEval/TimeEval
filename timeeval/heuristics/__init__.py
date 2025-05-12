@@ -4,8 +4,8 @@ import re
 from copy import deepcopy
 from typing import TYPE_CHECKING, MutableMapping
 
-from .base import TimeEvalParameterHeuristic
 from .AnomalyLengthHeuristic import AnomalyLengthHeuristic
+from .base import TimeEvalParameterHeuristic
 from .CleanStartSequenceSizeHeuristic import CleanStartSequenceSizeHeuristic
 from .ContaminationHeuristic import ContaminationHeuristic
 from .DatasetIdHeuristic import DatasetIdHeuristic
@@ -16,11 +16,11 @@ from .ParameterDependenceHeuristic import ParameterDependenceHeuristic
 from .PeriodSizeHeuristic import PeriodSizeHeuristic
 from .RelativeDatasetSizeHeuristic import RelativeDatasetSizeHeuristic
 
-
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, TypeVar, Mapping
+    from typing import Any, Mapping, TypeVar
+
     from ..algorithm import Algorithm
     from ..datasets import Dataset
     from ..params import Params

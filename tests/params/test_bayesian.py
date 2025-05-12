@@ -6,7 +6,7 @@ from pathlib import Path
 import optuna
 import pytest
 from optuna.samplers import TPESampler
-from optuna.storages import JournalStorage, JournalFileOpenLock, JournalFileStorage
+from optuna.storages import JournalFileOpenLock, JournalFileStorage, JournalStorage
 
 from timeeval import Algorithm, TrainingType
 from timeeval.adapters import FunctionAdapter
@@ -51,11 +51,12 @@ class TestBayesianParameterSearch(unittest.TestCase):
         ]
 
     def test_update_options(self):
+        from optuna.samplers import CmaEsSampler, TPESampler
+
         from timeeval.integration.optuna import (
             OptunaConfiguration,
             OptunaStudyConfiguration,
         )
-        from optuna.samplers import CmaEsSampler, TPESampler
 
         default_sampler = TPESampler()
         study_sampler = CmaEsSampler(with_margin=True)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Callable, Any, Dict
+from typing import Any, Callable, Dict, Optional
 
 from ..data_types import AlgorithmParameter, ExecutionType
 

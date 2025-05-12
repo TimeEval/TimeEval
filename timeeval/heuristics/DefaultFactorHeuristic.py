@@ -1,8 +1,9 @@
 from pathlib import Path
-from typing import Union, Any
+from typing import Any, Union
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
+
 from .base import TimeEvalParameterHeuristic
 
 

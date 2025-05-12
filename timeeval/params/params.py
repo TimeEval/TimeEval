@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Mapping, Dict
+from typing import TYPE_CHECKING, Any, Dict, Mapping
 
 from timeeval.utils.hash_dict import hash_dict
-
 
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:

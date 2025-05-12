@@ -1,6 +1,5 @@
-from typing import List, Dict
 from pathlib import Path
-
+from typing import Dict, List
 
 METRICS_CSV = "metrics.csv"
 EXECUTION_LOG = "execution.log"

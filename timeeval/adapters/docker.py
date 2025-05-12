@@ -2,24 +2,23 @@ import json
 import os
 import subprocess
 import sys
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path, PurePath, PurePosixPath
 from traceback import print_exc
-from typing import Optional, Any, Callable, Tuple, Dict
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import docker
 import numpy as np
 import requests
-from docker.errors import DockerException, ImageNotFound, APIError
+from docker.errors import APIError, DockerException, ImageNotFound
 from docker.models.containers import Container
 from durations import Duration
 from numpyencoder import NumpyEncoder
 
-from .base import Adapter, AlgorithmParameter
 from ..data_types import ExecutionType
-from ..resource_constraints import ResourceConstraints, GB
-
+from ..resource_constraints import GB, ResourceConstraints
 from ..utils.exceptions import exc_causes
+from .base import Adapter, AlgorithmParameter
 
 DATASET_TARGET_PATH = PurePosixPath("/data")
 RESULTS_TARGET_PATH = PurePosixPath("/results")

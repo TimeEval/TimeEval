@@ -1,11 +1,11 @@
 from typing import Optional, Tuple
 
 import numpy as np
-from prts import ts_precision, ts_recall, ts_fscore
+from prts import ts_fscore, ts_precision, ts_recall
 
 from .auc_metrics import AucMetric
 from .metric import Metric
-from .thresholding import ThresholdingStrategy, NoThresholding
+from .thresholding import NoThresholding, ThresholdingStrategy
 
 
 class RangePrecision(Metric):

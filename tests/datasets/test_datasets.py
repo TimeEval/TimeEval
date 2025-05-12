@@ -1,25 +1,24 @@
-from pathlib import Path
-
-import pytest
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from tests.fixtures.dataset_fixtures import (
-    fill_file,
-    dataset_index_content_nab,
-    dataset_index_content_test,
-    nab_record,
-    test_record,
+    CUSTOM_DATASET_PATH,
     custom_dataset_names,
     dataset_content,
     dataset_df,
-    dataset_ndarray,
-    CUSTOM_DATASET_PATH,
+    dataset_index_content_nab,
+    dataset_index_content_test,
     dataset_metadata,
+    dataset_ndarray,
+    fill_file,
+    nab_record,
+    test_record,
 )
-from timeeval import Datasets, DatasetManager, InputDimensionality, TrainingType
+from timeeval import DatasetManager, Datasets, InputDimensionality, TrainingType
 
 
 def test_initialize_empty_folder(tmp_path):

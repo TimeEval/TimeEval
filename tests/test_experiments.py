@@ -1,15 +1,15 @@
 import unittest
+import warnings
 from copy import deepcopy
 from pathlib import Path
-import warnings
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
 from timeeval import (
     Algorithm,
-    TrainingType,
-    InputDimensionality,
-    DefaultMetrics,
     DatasetManager,
+    DefaultMetrics,
+    InputDimensionality,
+    TrainingType,
 )
 from timeeval._core.experiments import Experiments
 from timeeval.heuristics.base import HeuristicFallbackWarning

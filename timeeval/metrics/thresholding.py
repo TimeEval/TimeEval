@@ -1,7 +1,7 @@
 import contextlib
 import warnings
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, Any, Generator
+from typing import Any, Generator, Optional, Tuple
 
 import numpy as np
 

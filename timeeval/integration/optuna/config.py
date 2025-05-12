@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, Union
 
 import optuna.logging
-from dataclasses import dataclass
-from typing import Union, Optional, Any, Callable
-
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler
 from optuna.storages import BaseStorage

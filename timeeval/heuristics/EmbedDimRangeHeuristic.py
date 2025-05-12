@@ -1,12 +1,13 @@
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
 import numpy as np
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
-from .PeriodSizeHeuristic import PeriodSizeHeuristic
+
 from .base import TimeEvalParameterHeuristic
+from .PeriodSizeHeuristic import PeriodSizeHeuristic
 
 
 class EmbedDimRangeHeuristic(TimeEvalParameterHeuristic):

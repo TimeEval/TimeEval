@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from abc import abstractmethod, ABCMeta
-from typing import TYPE_CHECKING, Mapping, Iterator, Iterable
+from abc import ABCMeta, abstractmethod
+from typing import TYPE_CHECKING, Iterable, Iterator, Mapping
 
 from sklearn.model_selection import ParameterGrid
 
 from .base import ParameterConfig
 from .params import FixedParams, Params
 
-
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
     from typing import Any, Optional
+
     from ..algorithm import Algorithm
     from ..datasets import Dataset
 

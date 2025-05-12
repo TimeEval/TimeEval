@@ -1,8 +1,8 @@
 from abc import ABC
-from typing import Iterable, Callable, Any
+from typing import Any, Callable, Iterable
 
 import numpy as np
-from sklearn.metrics import auc, roc_curve, precision_recall_curve
+from sklearn.metrics import auc, precision_recall_curve, roc_curve
 
 from .metric import Metric
 

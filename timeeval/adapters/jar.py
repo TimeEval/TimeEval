@@ -1,10 +1,10 @@
 import subprocess
-from typing import Any, List, Dict
+from typing import Any, Dict, List
 
 import numpy as np
 
-from .base import Adapter
 from ..data_types import AlgorithmParameter
+from .base import Adapter
 
 
 class JarAdapter(Adapter):

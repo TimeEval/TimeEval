@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Union, Any, Dict
+from typing import Any, Dict, Union
 
 from jinja2 import Environment, PackageLoader
 

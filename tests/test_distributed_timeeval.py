@@ -17,19 +17,19 @@ from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from tests.fixtures.call_mocks import MockProcess, MockRsync
 from tests.fixtures.dask_mocks import (
     MockDaskClient,
-    MockDaskSSHCluster,
-    MockDaskExceptionClient,
-    MockDaskDockerTimeoutExceptionClient,
     MockDaskDockerMemoryExceptionClient,
+    MockDaskDockerTimeoutExceptionClient,
+    MockDaskExceptionClient,
+    MockDaskSSHCluster,
 )
-from tests.fixtures.docker_mocks import MockDockerClient, TEST_DOCKER_IMAGE
+from tests.fixtures.docker_mocks import TEST_DOCKER_IMAGE, MockDockerClient
 from timeeval import (
-    TimeEval,
     Algorithm,
     DatasetManager,
     RemoteConfiguration,
-    Status,
     ResourceConstraints,
+    Status,
+    TimeEval,
 )
 from timeeval.adapters import DockerAdapter
 from timeeval.params import FullParameterGrid

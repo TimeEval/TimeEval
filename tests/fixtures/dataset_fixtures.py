@@ -5,14 +5,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from timeeval import Datasets, DatasetManager
+from timeeval import DatasetManager, Datasets
 from timeeval.datasets import (
-    DatasetRecord,
-    DatasetMetadata,
     AnomalyLength,
+    DatasetMetadata,
+    DatasetRecord,
     Stationarity,
 )
-
 
 CUSTOM_DATASET_PATH = Path("tests/example_data/datasets.json")
 custom_dataset_names = ["dataset.1", "dataset.1.train", "dataset.3", "dataset.4"]

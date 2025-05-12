@@ -1,13 +1,12 @@
 import json
 from copy import deepcopy
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from enum import Enum
 from functools import reduce
 from json import JSONEncoder
-from typing import Tuple, List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-
 
 DatasetId = Tuple[str, str]
 

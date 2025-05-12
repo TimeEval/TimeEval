@@ -2,11 +2,11 @@ import unittest
 
 import psutil
 from durations import Duration
-from tests.fixtures.algorithms import DeviatingFromMean
 
-from timeeval import TimeEval, DatasetManager, ResourceConstraints, Algorithm
+from tests.fixtures.algorithms import DeviatingFromMean
+from timeeval import Algorithm, DatasetManager, ResourceConstraints, TimeEval
 from timeeval.adapters import DockerAdapter
-from timeeval.resource_constraints import GB, DEFAULT_TIMEOUT
+from timeeval.resource_constraints import DEFAULT_TIMEOUT, GB
 
 
 class TestResourceConstraints(unittest.TestCase):

@@ -1,10 +1,9 @@
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Any, Dict
+from typing import Any, Dict, List
 
 from .resource_constraints import ResourceConstraints
-
 
 DEFAULT_SCHEDULER_HOST = "localhost"
 DEFAULT_DASK_PORT = 8786

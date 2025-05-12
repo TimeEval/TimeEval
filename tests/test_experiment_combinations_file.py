@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
-from timeeval import TimeEval, Algorithm, DatasetManager
+from timeeval import Algorithm, DatasetManager, TimeEval
 
 
 class TestExperimentCombinations(unittest.TestCase):

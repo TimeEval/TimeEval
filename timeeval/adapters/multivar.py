@@ -1,13 +1,13 @@
-from enum import Enum
-from typing import Callable, Dict, List, Any, Union, Optional
-from pathlib import Path
 import tempfile
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
-from .base import Adapter
 from ..data_types import AlgorithmParameter
+from .base import Adapter
 
 
 class AggregationMethod(Enum):

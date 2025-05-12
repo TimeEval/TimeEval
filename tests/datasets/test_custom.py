@@ -6,7 +6,7 @@ from unittest.mock import patch
 from tests.fixtures.dataset_fixtures import CUSTOM_DATASET_PATH
 from timeeval import TrainingType
 from timeeval.datasets import Dataset
-from timeeval.datasets.custom import CustomDatasets, TEST_PATH_KEY, TRAIN_PATH_KEY
+from timeeval.datasets.custom import TEST_PATH_KEY, TRAIN_PATH_KEY, CustomDatasets
 
 
 class TestCustomDatasets(unittest.TestCase):

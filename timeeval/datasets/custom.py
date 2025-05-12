@@ -1,17 +1,16 @@
 import json
 import warnings
 from pathlib import Path
-from typing import List, Union, Tuple, Optional, Dict, NamedTuple, Any
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
+from ..data_types import InputDimensionality, TrainingType
 from .analyzer import DatasetAnalyzer
 from .custom_base import CustomDatasetsBase
 from .dataset import Dataset
 from .metadata import DatasetId
-from ..data_types import TrainingType, InputDimensionality
-
 
 TRAIN_PATH_KEY = "train_path"
 TEST_PATH_KEY = "test_path"

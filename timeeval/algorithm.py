@@ -3,15 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from .data_types import ExecutionType, TrainingType, InputDimensionality
+from .data_types import ExecutionType, InputDimensionality, TrainingType
 from .params import ParameterConfig
-
 
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
-    from typing import Optional, Callable, Dict, Any
+    from typing import Any, Callable, Dict, Optional
+
     from .adapters.base import Adapter
-    from .data_types import TSFunction, TSFunctionPost, AlgorithmParameter
+    from .data_types import AlgorithmParameter, TSFunction, TSFunctionPost
 
 
 @dataclass

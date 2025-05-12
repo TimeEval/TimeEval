@@ -1,10 +1,10 @@
 import getpass
 import logging
 import subprocess
-from typing import List, Any, Dict
+from typing import Any, Dict, List
 
+from ..data_types import AlgorithmParameter, TSFunction
 from .base import Adapter
-from ..data_types import TSFunction, AlgorithmParameter
 
 
 class DistributedAdapter(Adapter):

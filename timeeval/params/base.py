@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Sized, Iterator, Mapping
+from typing import TYPE_CHECKING, Iterator, Mapping, Sized
 
 from .params import FixedParams
 
-
 # only imports the below classes for type checking to avoid circular imports (annotations-import is necessary!)
 if TYPE_CHECKING:
+    from typing import Any
+
     from ..algorithm import Algorithm
     from ..datasets import Dataset
-    from .params import Params
-    from typing import Any
     from .params import Params
 
 

@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import Dict, Any, Callable
+from typing import Any, Callable, Dict
 
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-from timeeval import Algorithm, AlgorithmParameter, TrainingType, InputDimensionality
+from timeeval import Algorithm, AlgorithmParameter, InputDimensionality, TrainingType
 from timeeval.adapters import FunctionAdapter
 
 

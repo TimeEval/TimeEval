@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 import pytest
 
-from timeeval.utils.window import ReverseWindowing, Method, padding_borders
+from timeeval.utils.window import Method, ReverseWindowing, padding_borders
 
 
 class TestReverseWindowing(unittest.TestCase):

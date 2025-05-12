@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
+from ..data_types import AlgorithmParameter, TSFunction
 from .base import Adapter
-from ..data_types import TSFunction, AlgorithmParameter
 
 
 class FunctionAdapter(Adapter):

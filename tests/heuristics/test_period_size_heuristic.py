@@ -1,6 +1,6 @@
 import unittest
-from copy import deepcopy
 import warnings
+from copy import deepcopy
 
 import numpy as np
 

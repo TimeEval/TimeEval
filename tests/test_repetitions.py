@@ -11,7 +11,7 @@ from tests.fixtures.algorithms import (
     DeviatingFromMedian,
     ErroneousAlgorithm,
 )
-from timeeval import TimeEval, Algorithm, DatasetManager
+from timeeval import Algorithm, DatasetManager, TimeEval
 
 
 class TestRepetitions(unittest.TestCase):

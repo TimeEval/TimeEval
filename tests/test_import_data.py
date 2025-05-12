@@ -8,11 +8,11 @@ import pandas as pd
 from tests.fixtures.algorithms import DeviatingFromMean, DeviatingFromMedian
 from tests.fixtures.dataset_fixtures import CUSTOM_DATASET_PATH
 from timeeval import (
-    TimeEval,
     Algorithm,
     AlgorithmParameter,
     DatasetManager,
     InputDimensionality,
+    TimeEval,
 )
 
 

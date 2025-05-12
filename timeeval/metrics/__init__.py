@@ -82,17 +82,17 @@ Using the metrics without TimeEval:
 
 from typing import List
 
-from .auc_metrics import AucMetric, RocAUC, PrAUC
-from .classification_metrics import Precision, Recall, F1Score
+from .auc_metrics import AucMetric, PrAUC, RocAUC
+from .classification_metrics import F1Score, Precision, Recall
 from .metric import Metric
-from .other_metrics import AveragePrecision, PrecisionAtK, FScoreAtK
+from .other_metrics import AveragePrecision, FScoreAtK, PrecisionAtK
 from .range_metrics import (
-    RangePrecisionRangeRecallAUC,
-    RangePrecision,
-    RangeRecall,
     RangeFScore,
+    RangePrecision,
+    RangePrecisionRangeRecallAUC,
+    RangeRecall,
 )
-from .vus_metrics import RangePrAUC, RangeRocAUC, RangePrVUS, RangeRocVUS
+from .vus_metrics import RangePrAUC, RangePrVUS, RangeRocAUC, RangeRocVUS
 
 
 class DefaultMetrics:

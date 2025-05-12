@@ -5,14 +5,14 @@ from pathlib import Path
 
 from timeeval_experiments.generator.algorithm_parsing import (
     AlgorithmLoader,
-    _parse_readme,
     _parse_manifest,
+    _parse_readme,
 )
 from timeeval_experiments.generator.exceptions import (
-    MissingReadmeWarning,
-    MissingManifestWarning,
-    InvalidManifestWarning,
     AlgorithmManifestLoadingWarning,
+    InvalidManifestWarning,
+    MissingManifestWarning,
+    MissingReadmeWarning,
 )
 
 

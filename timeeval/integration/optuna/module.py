@@ -3,26 +3,26 @@ from __future__ import annotations
 import asyncio
 import logging
 import socket
-from typing import TYPE_CHECKING, Optional, List, Tuple, Callable, Any, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 import docker
 import optuna.storages
 from docker.errors import DockerException, NotFound
 from optuna.storages import (
-    JournalStorage,
-    JournalFileStorage,
     JournalFileOpenLock,
+    JournalFileStorage,
+    JournalStorage,
     RDBStorage,
 )
 
 from timeeval.integration import TimeEvalModule
 
-
 if TYPE_CHECKING:
-    from .config import OptunaConfiguration
-    from ...timeeval import TimeEval
     from distributed import Scheduler
     from optuna.study import StudySummary
+
+    from ...timeeval import TimeEval
+    from .config import OptunaConfiguration
 
 
 POSTGRESQL_IMAGE_NAME = "postgres:latest"

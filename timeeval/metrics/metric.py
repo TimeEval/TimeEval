@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
-from sklearn.utils import column_or_1d, assert_all_finite, check_consistent_length
+from sklearn.utils import assert_all_finite, check_consistent_length, column_or_1d
 
 
 class Metric(ABC):

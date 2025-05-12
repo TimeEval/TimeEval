@@ -4,8 +4,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from setuptools import setup, find_packages, Command
-
+from setuptools import Command, find_packages, setup
 
 README = (Path(__file__).parent / "README.md").read_text(encoding="UTF-8")
 HERE = Path(os.path.dirname(__file__)).absolute()

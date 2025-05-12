@@ -4,7 +4,6 @@ from tests.fixtures.algorithms import DeviatingFromMean
 from timeeval import Algorithm, TrainingType
 from timeeval.datasets import Dataset
 
-
 algorithm = Algorithm(
     name="deviating_from_mean",
     main=DeviatingFromMean(),

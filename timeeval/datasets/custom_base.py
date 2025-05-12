@@ -2,9 +2,9 @@ import abc
 from pathlib import Path
 from typing import List, Optional
 
+from ..data_types import InputDimensionality, TrainingType
 from .dataset import Dataset
 from .metadata import DatasetId
-from ..data_types import TrainingType, InputDimensionality
 
 
 class CustomDatasetsBase(abc.ABC):

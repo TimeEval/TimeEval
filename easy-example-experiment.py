@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from typing import Any, Dict
+
 import numpy as np
 
 from timeeval import (
-    TimeEval,
+    Algorithm,
     DatasetManager,
     DefaultMetrics,
-    Algorithm,
-    TrainingType,
     InputDimensionality,
+    TimeEval,
+    TrainingType,
 )
 from timeeval.adapters import FunctionAdapter  # for defining customized algorithm
 from timeeval.algorithms import cof
@@ -26,7 +27,7 @@ def your_algorithm_function(
         return np.genfromtxt(data, delimiter=",", skip_header=1)[:, 1]
 
 
-def main():
+def main() -> None:
     dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
     datasets = dm.select()
     algorithms = [
@@ -37,6 +38,8 @@ def main():
             name="MyPythonFunctionAlgorithm",
             main=FunctionAdapter(your_algorithm_function),
             data_as_file=False,
+            training_type=TrainingType.UNSUPERVISED,
+            input_dimensionality=InputDimensionality.UNIVARIATE,
         ),
     ]
 

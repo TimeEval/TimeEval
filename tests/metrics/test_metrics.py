@@ -5,18 +5,18 @@ import numpy as np
 
 from timeeval import DefaultMetrics
 from timeeval.metrics import (
-    RangeFScore,
-    RangePrecision,
-    RangeRecall,
     F1Score,
-    Precision,
-    Recall,
     FScoreAtK,
+    Precision,
     PrecisionAtK,
+    RangeFScore,
     RangePrAUC,
-    RangeRocAUC,
+    RangePrecision,
     RangePrVUS,
+    RangeRecall,
+    RangeRocAUC,
     RangeRocVUS,
+    Recall,
 )
 from timeeval.metrics.thresholding import FixedValueThresholding, NoThresholding
 

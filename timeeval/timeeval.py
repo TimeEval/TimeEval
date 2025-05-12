@@ -3,29 +3,29 @@ import logging
 import signal
 import socket
 import subprocess
+from asyncio import Future
 from enum import Enum
 from pathlib import Path
 from time import time
 from types import FrameType
-from typing import Callable, List, Tuple, Dict, Optional, Any, Union, Mapping
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import tqdm
-from asyncio import Future
 from joblib import Parallel, delayed
 
-from ._core.experiments import Experiments, Experiment
+from ._core.experiments import Experiment, Experiments
 from ._core.remote import Remote, RemoteConfiguration
 from ._core.times import Times
-from .adapters.docker import DockerTimeoutError, DockerMemoryError, DockerAdapter
+from .adapters.docker import DockerAdapter, DockerMemoryError, DockerTimeoutError
 from .adapters.multivar import MultivarAdapter
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
-from .data_types import TrainingType, InputDimensionality
+from .data_types import InputDimensionality, TrainingType
 from .datasets import Datasets
 from .integration import TimeEvalModule
-from .metrics import Metric, DefaultMetrics
+from .metrics import DefaultMetrics, Metric
 from .params import BayesianParameterSearch
 from .resource_constraints import ResourceConstraints
 from .utils.encode_params import dumps_params
@@ -313,7 +313,7 @@ class TimeEval:
                     "search, which does not support repetitions. Reducing `repetitions` for all experiments to 1."
                 )
                 repetitions = 1
-            from .integration.optuna import OptunaModule, OptunaConfiguration
+            from .integration.optuna import OptunaConfiguration, OptunaModule
 
             optuna_config = module_configs.get(
                 "optuna", OptunaConfiguration.default(self.distributed)

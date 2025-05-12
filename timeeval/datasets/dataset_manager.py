@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from types import TracebackType
-from typing import ContextManager, Union, Optional, Type, NamedTuple, List
+from typing import ContextManager, List, NamedTuple, Optional, Type, Union
 
 import numpy as np
 import pandas as pd

@@ -20,9 +20,9 @@ Use the built-in ``help`` function to view a function's or class' docstring::
 
 from ._version import __version__
 from .algorithm import Algorithm
-from .data_types import AlgorithmParameter, TrainingType, InputDimensionality
-from .datasets import Datasets, DatasetManager, MultiDatasetManager
-from .metrics import Metric, DefaultMetrics
+from .data_types import AlgorithmParameter, InputDimensionality, TrainingType
+from .datasets import DatasetManager, Datasets, MultiDatasetManager
+from .metrics import DefaultMetrics, Metric
 from .remote_configuration import RemoteConfiguration
 from .resource_constraints import ResourceConstraints
-from .timeeval import TimeEval, Status
+from .timeeval import Status, TimeEval

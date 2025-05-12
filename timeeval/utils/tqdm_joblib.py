@@ -1,5 +1,5 @@
 import contextlib
-from typing import Generator, Any
+from typing import Any, Generator
 
 import joblib
 from joblib.parallel import BatchCompletionCallBack

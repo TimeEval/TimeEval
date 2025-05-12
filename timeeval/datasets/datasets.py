@@ -2,18 +2,18 @@ import abc
 import logging
 from functools import reduce
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, Any
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
+from ..data_types import InputDimensionality, TrainingType
 from .analyzer import DatasetAnalyzer
 from .custom import CustomDatasets
 from .custom_base import CustomDatasetsBase
 from .custom_noop import NoOpCustomDatasets
 from .dataset import Dataset
 from .metadata import DatasetId, DatasetMetadata
-from ..data_types import TrainingType, InputDimensionality
 
 
 class Datasets(abc.ABC):

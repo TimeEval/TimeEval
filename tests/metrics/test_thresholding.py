@@ -5,14 +5,13 @@ import pytest
 
 from timeeval.metrics.thresholding import (
     FixedValueThresholding,
+    NoThresholding,
     PercentileThresholding,
+    PyThreshThresholding,
+    SigmaThresholding,
     TopKPointsThresholding,
     TopKRangesThresholding,
-    SigmaThresholding,
-    NoThresholding,
-    PyThreshThresholding,
 )
-
 
 try:
     import pythresh

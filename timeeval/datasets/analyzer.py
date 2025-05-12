@@ -3,23 +3,23 @@ import logging
 import shutil
 import warnings
 from pathlib import Path
-from typing import Optional, Union, List, Generator, Dict
+from typing import Dict, Generator, List, Optional, Union
 
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.stattools import adfuller, kpss
 
+from ..utils import datasets as datasets_utils
 from .metadata import (
+    AnomalyLength,
     DatasetId,
     DatasetMetadata,
-    AnomalyLength,
+    DatasetMetadataEncoder,
     Stationarity,
     Trend,
     TrendType,
-    DatasetMetadataEncoder,
 )
-from ..utils import datasets as datasets_utils
 
 
 class DatasetAnalyzer:

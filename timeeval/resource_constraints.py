@@ -6,7 +6,6 @@ from typing import Optional, Tuple
 import psutil
 from durations import Duration
 
-
 MB = 1024**2
 """:math:`1 MB = 2^{20} \\text{Bytes}`
 

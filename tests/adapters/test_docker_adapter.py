@@ -11,18 +11,18 @@ import pytest
 from docker.models.containers import Container
 from durations import Duration
 
-from tests.fixtures.docker_mocks import MockDockerClient, TEST_DOCKER_IMAGE
+from tests.fixtures.docker_mocks import TEST_DOCKER_IMAGE, MockDockerClient
 from timeeval import ResourceConstraints
 from timeeval.adapters import DockerAdapter
 from timeeval.adapters.docker import (
     DATASET_TARGET_PATH,
+    MODEL_FILE_NAME,
     RESULTS_TARGET_PATH,
     SCORES_FILE_NAME,
-    MODEL_FILE_NAME,
-    DockerTimeoutError,
-    DockerMemoryError,
-    DockerAlgorithmFailedError,
     AlgorithmInterface,
+    DockerAlgorithmFailedError,
+    DockerMemoryError,
+    DockerTimeoutError,
 )
 from timeeval.data_types import ExecutionType
 

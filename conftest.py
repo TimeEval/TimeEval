@@ -1,6 +1,5 @@
 import pytest
 
-
 options = {
     "docker": "mark test to run with docker installed",
     "dask": "mark test to run with dask installed and being able to SSH itself.",

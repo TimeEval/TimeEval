@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 from .metric import Metric
-from .thresholding import ThresholdingStrategy, NoThresholding
+from .thresholding import NoThresholding, ThresholdingStrategy
 
 
 class ClassificationMetric(Metric, ABC):

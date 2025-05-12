@@ -8,20 +8,20 @@ import pandas as pd
 from freezegun import freeze_time
 
 from timeeval import (
-    TimeEval,
     Algorithm,
-    Datasets,
-    DatasetManager,
     AlgorithmParameter,
+    DatasetManager,
+    Datasets,
     DefaultMetrics,
+    TimeEval,
 )
 from timeeval.adapters import FunctionAdapter
 from timeeval.constants import (
-    RAW_ANOMALY_SCORES_TS,
     ANOMALY_SCORES_TS,
-    METRICS_CSV,
     EXECUTION_LOG,
     HYPER_PARAMETERS,
+    METRICS_CSV,
+    RAW_ANOMALY_SCORES_TS,
     RESULTS_CSV,
 )
 from timeeval.params import FixedParameters

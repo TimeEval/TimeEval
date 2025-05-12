@@ -2,6 +2,7 @@ from pathlib import Path
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
+
 from .base import TimeEvalParameterHeuristic
 
 

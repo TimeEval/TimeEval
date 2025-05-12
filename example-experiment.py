@@ -6,9 +6,9 @@ from pathlib import Path
 
 from durations import Duration
 
-from timeeval import TimeEval, DatasetManager, RemoteConfiguration, ResourceConstraints
+from timeeval import DatasetManager, RemoteConfiguration, ResourceConstraints, TimeEval
 from timeeval.algorithms import *
-from timeeval.metrics import RocAUC, RangeRocAUC, RangePrVUS
+from timeeval.metrics import RangePrVUS, RangeRocAUC, RocAUC
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator
 
 # Setup logging

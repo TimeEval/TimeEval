@@ -1,7 +1,7 @@
 from asyncio import Future
-from typing import Optional, List, Union, Generator
+from typing import Generator, List, Optional, Union
 
-from timeeval.adapters.docker import DockerTimeoutError, DockerMemoryError
+from timeeval.adapters.docker import DockerMemoryError, DockerTimeoutError
 
 
 class ExceptionForTest(Exception):

@@ -6,8 +6,9 @@ import numpy as np
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset
+
 from .AnomalyLengthHeuristic import AnomalyLengthHeuristic
-from .base import TimeEvalParameterHeuristic, HeuristicFallbackWarning
+from .base import HeuristicFallbackWarning, TimeEvalParameterHeuristic
 
 
 def _is_none(period: Optional[int]) -> bool:

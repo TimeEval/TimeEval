@@ -7,18 +7,18 @@ import numpy as np
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
 from timeeval import (
-    TimeEval,
     Algorithm,
-    Datasets,
-    TrainingType,
-    InputDimensionality,
-    Status,
-    DefaultMetrics,
-    ResourceConstraints,
     DatasetManager,
+    Datasets,
+    DefaultMetrics,
+    InputDimensionality,
+    ResourceConstraints,
+    Status,
+    TimeEval,
+    TrainingType,
 )
-from timeeval.datasets import Dataset, DatasetRecord
 from timeeval._core.experiments import Experiment, Experiments
+from timeeval.datasets import Dataset, DatasetRecord
 from timeeval.params.params import FixedParams
 from timeeval.utils.hash_dict import hash_dict
 

@@ -1,13 +1,12 @@
 import json
 import warnings
 from pathlib import Path
-from typing import Union, TypeVar, List, Dict, Any
+from typing import Any, Dict, List, TypeVar, Union
 
 from timeeval import Algorithm
 from timeeval.heuristics import TimeEvalHeuristic
 from timeeval.params import FullParameterGrid, IndependentParameterGrid
 from timeeval_experiments.generator import ParamConfigGenerator
-
 
 T = TypeVar("T")
 
