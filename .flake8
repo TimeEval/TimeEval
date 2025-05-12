@@ -1,0 +1,26 @@
+[flake8]
+show-source = True
+max-complexity = 10
+hang-closing = False
+max-line-length = 88
+extend-select =
+    B950
+
+extend-ignore =
+    E203
+    E501
+
+extend-exclude =
+    .git
+    __pycache__
+    build
+    dist
+    docs
+    notebooks
+    scripts
+    results
+    timeeval_experiments/20*.py
+
+
+per-file-ignores =
+    __init__.py: F401
