@@ -65,10 +65,14 @@ class BayesianParameterSearch(ParameterConfig):
         Optuna integration TimeEval module.
     """
 
-    def __init__(self, config: OptunaStudyConfiguration,
-                 params: Mapping[str, BaseDistribution],
-                 include_default_params: bool = False):
+    def __init__(
+        self,
+        config: OptunaStudyConfiguration,
+        params: Mapping[str, BaseDistribution],
+        include_default_params: bool = False,
+    ):
         from ..integration.optuna import OptunaParameterSearch
+
         self._impl = OptunaParameterSearch(config, params, include_default_params)
 
     def iter(self, algorithm: Algorithm, dataset: Dataset) -> Iterator[Params]:

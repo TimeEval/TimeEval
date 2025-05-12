@@ -78,7 +78,9 @@ class Algorithm:
     training_type: TrainingType = TrainingType.UNSUPERVISED
     input_dimensionality: InputDimensionality = InputDimensionality.UNIVARIATE
 
-    def train(self, dataset: AlgorithmParameter, args: Optional[Dict[str, Any]] = None) -> AlgorithmParameter:
+    def train(
+        self, dataset: AlgorithmParameter, args: Optional[Dict[str, Any]] = None
+    ) -> AlgorithmParameter:
         """Execute this algorithm's training procedure.
 
         .. warning::
@@ -113,14 +115,18 @@ class Algorithm:
         :meta private:
         """
         if self.training_type == TrainingType.UNSUPERVISED:
-            raise ValueError("Calling 'train()' on an unsupervised algorithm is not supported! "
-                             f"Algorithm '{self.name}' has training type '{self.training_type.value}', but you tried "
-                             f"to execute the training step. Please check the algorithm configuration for {self.name}!")
+            raise ValueError(
+                "Calling 'train()' on an unsupervised algorithm is not supported! "
+                f"Algorithm '{self.name}' has training type '{self.training_type.value}', but you tried "
+                f"to execute the training step. Please check the algorithm configuration for {self.name}!"
+            )
         args = args or {}
         args["executionType"] = ExecutionType.TRAIN
         return self.main(dataset, args)
 
-    def execute(self, dataset: AlgorithmParameter, args: Optional[Dict[str, Any]] = None) -> AlgorithmParameter:
+    def execute(
+        self, dataset: AlgorithmParameter, args: Optional[Dict[str, Any]] = None
+    ) -> AlgorithmParameter:
         """Execute this algorithm's test/execute procedure.
 
         .. warning::

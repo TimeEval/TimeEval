@@ -72,11 +72,20 @@ class CustomDatasets(CustomDatasetsBase):
 
     def _validate_dataset(self, name: str, ds_obj: Dict[str, Any]) -> None:
         if TEST_PATH_KEY not in ds_obj:
-            raise ValueError(f"The dataset {name} misses the required '{TEST_PATH_KEY}' property.")
+            raise ValueError(
+                f"The dataset {name} misses the required '{TEST_PATH_KEY}' property."
+            )
         elif not self._extract_path(ds_obj, TEST_PATH_KEY).exists():
-            raise ValueError(f"The test file for dataset {name} was not found (property '{TEST_PATH_KEY}')!")
-        if TRAIN_PATH_KEY in ds_obj and not self._extract_path(ds_obj, TRAIN_PATH_KEY).exists():
-            raise ValueError(f"The train file for dataset {name} was not found (property '{TRAIN_PATH_KEY}')!")
+            raise ValueError(
+                f"The test file for dataset {name} was not found (property '{TEST_PATH_KEY}')!"
+            )
+        if (
+            TRAIN_PATH_KEY in ds_obj
+            and not self._extract_path(ds_obj, TRAIN_PATH_KEY).exists()
+        ):
+            raise ValueError(
+                f"The train file for dataset {name} was not found (property '{TRAIN_PATH_KEY}')!"
+            )
 
     def _analyze_dataset(self, name: str, ds_obj: Dict[str, Any]) -> CDEntry:
         dataset_id = _dataset_id(name)
@@ -92,22 +101,31 @@ class CustomDatasets(CustomDatasetsBase):
         training_type = _training_type(train_path)
 
         # analyze test time series
-        dm = DatasetAnalyzer(dataset_id, is_train=False, dataset_path=test_path, ignore_trend=True,
-                             ignore_stationarity=True)
+        dm = DatasetAnalyzer(
+            dataset_id,
+            is_train=False,
+            dataset_path=test_path,
+            ignore_trend=True,
+            ignore_stationarity=True,
+        )
 
-        return CDEntry(test_path, train_path, Dataset(
-            datasetId=dataset_id,
-            dataset_type=dataset_type,
-            training_type=training_type,
-            dimensions=dm.metadata.dimensions,
-            length=dm.metadata.length,
-            contamination=dm.metadata.contamination,
-            min_anomaly_length=dm.metadata.anomaly_length.min,
-            median_anomaly_length=dm.metadata.anomaly_length.median,
-            max_anomaly_length=dm.metadata.anomaly_length.max,
-            num_anomalies=dm.metadata.num_anomalies,
-            period_size=period
-        ))
+        return CDEntry(
+            test_path,
+            train_path,
+            Dataset(
+                datasetId=dataset_id,
+                dataset_type=dataset_type,
+                training_type=training_type,
+                dimensions=dm.metadata.dimensions,
+                length=dm.metadata.length,
+                contamination=dm.metadata.contamination,
+                min_anomaly_length=dm.metadata.anomaly_length.min,
+                median_anomaly_length=dm.metadata.anomaly_length.median,
+                max_anomaly_length=dm.metadata.anomaly_length.max,
+                num_anomalies=dm.metadata.num_anomalies,
+                period_size=period,
+            ),
+        )
 
     def get_collection_names(self) -> List[str]:
         return ["custom"]
@@ -121,7 +139,9 @@ class CustomDatasets(CustomDatasetsBase):
         if train:
             train_path = dataset.train_path
             if train_path is None:
-                raise ValueError(f"Custom dataset {dataset_name} is unsupervised and has no training time series!")
+                raise ValueError(
+                    f"Custom dataset {dataset_name} is unsupervised and has no training time series!"
+                )
             else:
                 return train_path
 
@@ -130,20 +150,22 @@ class CustomDatasets(CustomDatasetsBase):
     def get(self, dataset_name: str) -> Dataset:
         return self._dataset_store[dataset_name].details
 
-    def select(self,
-               collection: Optional[str] = None,
-               dataset: Optional[str] = None,
-               dataset_type: Optional[str] = None,
-               datetime_index: Optional[bool] = None,
-               training_type: Optional[TrainingType] = None,
-               train_is_normal: Optional[bool] = None,
-               input_dimensionality: Optional[InputDimensionality] = None,
-               min_anomalies: Optional[int] = None,
-               max_anomalies: Optional[int] = None,
-               max_contamination: Optional[float] = None
-               ) -> List[DatasetId]:
-        if (collection is not None and collection not in self.get_collection_names()) or (
-                dataset is not None and dataset not in self.get_dataset_names()):
+    def select(
+        self,
+        collection: Optional[str] = None,
+        dataset: Optional[str] = None,
+        dataset_type: Optional[str] = None,
+        datetime_index: Optional[bool] = None,
+        training_type: Optional[TrainingType] = None,
+        train_is_normal: Optional[bool] = None,
+        input_dimensionality: Optional[InputDimensionality] = None,
+        min_anomalies: Optional[int] = None,
+        max_anomalies: Optional[int] = None,
+        max_contamination: Optional[float] = None,
+    ) -> List[DatasetId]:
+        if (
+            collection is not None and collection not in self.get_collection_names()
+        ) or (dataset is not None and dataset not in self.get_dataset_names()):
             return []
         else:
             selectors = []
@@ -153,12 +175,16 @@ class CustomDatasets(CustomDatasetsBase):
             if dataset_type is not None:
                 selectors.append(lambda meta: meta.dataset_type == dataset_type)
             if datetime_index is not None:
-                warnings.warn("Filter for index type (datetime or int) is not supported for custom dataset! "
-                              "Ignoring it!")
+                warnings.warn(
+                    "Filter for index type (datetime or int) is not supported for custom dataset! "
+                    "Ignoring it!"
+                )
             if training_type is not None:
                 selectors.append(lambda meta: meta.training_type == training_type)
             if input_dimensionality is not None:
-                selectors.append(lambda meta: meta.input_dimensionality == input_dimensionality)
+                selectors.append(
+                    lambda meta: meta.input_dimensionality == input_dimensionality
+                )
             if min_anomalies is not None:
                 selectors.append(lambda meta: meta.num_anomalies >= min_anomalies)
             if max_anomalies is not None:

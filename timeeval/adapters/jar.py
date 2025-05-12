@@ -32,7 +32,15 @@ class JarAdapter(Adapter):
     verbose : bool
         Whether to print the output of the jar file to the console.
     """
-    def __init__(self, jar_file: str, output_file: str, args: List[Any], kwargs: Dict[str, Any], verbose: bool = False) -> None:
+
+    def __init__(
+        self,
+        jar_file: str,
+        output_file: str,
+        args: List[Any],
+        kwargs: Dict[str, Any],
+        verbose: bool = False,
+    ) -> None:
         self.jar_file = jar_file
         self.output_file = output_file
         self.args = args
@@ -51,6 +59,9 @@ class JarAdapter(Adapter):
 
     def _call(self, _1: AlgorithmParameter, _2: Dict[str, Any]) -> np.ndarray:
         stdout = subprocess.STDOUT if self.verbose else subprocess.DEVNULL
-        subprocess.call(f"java -jar {self.jar_file} {self._format_args()} {self._format_kwargs()}".split(),
-                        stdout=stdout, stderr=subprocess.STDOUT)
+        subprocess.call(
+            f"java -jar {self.jar_file} {self._format_args()} {self._format_kwargs()}".split(),
+            stdout=stdout,
+            stderr=subprocess.STDOUT,
+        )
         return self._read_results()

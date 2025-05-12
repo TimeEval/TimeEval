@@ -25,7 +25,7 @@ class TestFunctionAdapter(unittest.TestCase):
             "executionType": ExecutionType.EXECUTE,
             "resource_constraints": ResourceConstraints(),
             "hyper_params": {"param1": True, "param2": 20},
-            "results_path": Path("some_path")
+            "results_path": Path("some_path"),
         }
         result = algorithm(self.X, args)
         np.testing.assert_array_equal(result, self.X)
@@ -33,17 +33,13 @@ class TestFunctionAdapter(unittest.TestCase):
 
     def test_execute(self):
         algorithm = FunctionAdapter(lambda x, _: x)
-        args = {
-            "executionType": ExecutionType.EXECUTE
-        }
+        args = {"executionType": ExecutionType.EXECUTE}
         result = algorithm(self.X, args)
         np.testing.assert_array_equal(result, self.X)
         self.assertIsNone(self.captured_params)
 
     def test_train(self):
         algorithm = FunctionAdapter(lambda x, _: x)
-        args = {
-            "executionType": ExecutionType.TRAIN
-        }
+        args = {"executionType": ExecutionType.TRAIN}
         algorithm(self.X, args)
         self.assertIsNone(self.captured_params)

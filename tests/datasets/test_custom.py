@@ -76,6 +76,6 @@ class TestCustomDatasets(unittest.TestCase):
             median_anomaly_length=1,
             max_anomaly_length=1,
             num_anomalies=1,
-            period_size=10
+            period_size=10,
         )
         assert dataset.has_anomalies

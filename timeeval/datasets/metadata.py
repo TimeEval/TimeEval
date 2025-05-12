@@ -26,7 +26,7 @@ class Stationarity(Enum):
     NOT_STATIONARY = 3
 
     @staticmethod
-    def from_name(s: int) -> 'Stationarity':
+    def from_name(s: int) -> "Stationarity":
         return Stationarity(s)
 
 
@@ -36,7 +36,7 @@ class TrendType(Enum):
     KUBIC = 3
 
     @staticmethod
-    def from_order(order: int) -> 'TrendType':
+    def from_order(order: int) -> "TrendType":
         return TrendType(order)
 
 
@@ -58,6 +58,7 @@ class Trend:
 @dataclass
 class DatasetMetadata:
     """Represents the metadata of a single time series of a dataset (for each channel)."""
+
     dataset_id: DatasetId
     is_train: bool
     length: int
@@ -123,19 +124,28 @@ class DatasetMetadata:
         return self.stationarity.name.lower()
 
     def to_json(self, pretty: bool = False) -> str:
-        return json.dumps(self, cls=DatasetMetadataEncoder,
-                          indent=2 if pretty else None,
-                          sort_keys=True if pretty else False)
+        return json.dumps(
+            self,
+            cls=DatasetMetadataEncoder,
+            indent=2 if pretty else None,
+            sort_keys=True if pretty else False,
+        )
 
     @staticmethod
-    def from_json(s: str) -> 'DatasetMetadata':
-        meta: DatasetMetadata = json.loads(s, object_hook=DatasetMetadataEncoder.object_hook)
+    def from_json(s: str) -> "DatasetMetadata":
+        meta: DatasetMetadata = json.loads(
+            s, object_hook=DatasetMetadataEncoder.object_hook
+        )
         return meta
 
 
 class DatasetMetadataEncoder(JSONEncoder):
     def default(self, o: Any) -> Any:
-        if isinstance(o, DatasetMetadata) or isinstance(o, Trend) or isinstance(o, AnomalyLength):
+        if (
+            isinstance(o, DatasetMetadata)
+            or isinstance(o, Trend)
+            or isinstance(o, AnomalyLength)
+        ):
             return asdict(o)
         elif isinstance(o, Stationarity) or isinstance(o, TrendType):
             return o.name.lower()
@@ -150,16 +160,24 @@ class DatasetMetadataEncoder(JSONEncoder):
 
     @staticmethod
     def object_hook(dct: Dict[str, Any]) -> Any:
-        if "anomaly_length" in dct and "dataset_id" in dct and "is_train" in dct and "contamination" in dct:
+        if (
+            "anomaly_length" in dct
+            and "dataset_id" in dct
+            and "is_train" in dct
+            and "contamination" in dct
+        ):
             anomaly_length_dict = dct["anomaly_length"]
             anomaly_length = AnomalyLength(
                 min=anomaly_length_dict["min"],
                 median=anomaly_length_dict["median"],
-                max=anomaly_length_dict["max"]
+                max=anomaly_length_dict["max"],
             )
             trends = deepcopy(dct["trends"])
             for k, obj in trends.items():
-                trends[k] = [Trend(TrendType[t["tpe"].upper()], t["coef"], t["confidence_r2"]) for t in obj]
+                trends[k] = [
+                    Trend(TrendType[t["tpe"].upper()], t["coef"], t["confidence_r2"])
+                    for t in obj
+                ]
             stationarities_dict = deepcopy(dct["stationarities"])
             for k, v in stationarities_dict.items():
                 stationarities_dict[k] = Stationarity[v.upper()]

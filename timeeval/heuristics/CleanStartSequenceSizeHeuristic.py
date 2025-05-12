@@ -30,6 +30,7 @@ class CleanStartSequenceSizeHeuristic(TimeEvalParameterHeuristic):
         Maximum fraction of the entire time series length to use as parameter value. This limits the parameter value.
         (default: 0.1)
     """
+
     def __init__(self, max_factor: float = 0.1):
         self.max_factor = max_factor
 

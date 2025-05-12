@@ -11,7 +11,10 @@ options = {
 def pytest_addoption(parser):
     for option in options.keys():
         parser.addoption(
-            f"--{option}", action="store_true", default=False, help=f"run also {option} tests"
+            f"--{option}",
+            action="store_true",
+            default=False,
+            help=f"run also {option} tests",
         )
 
 

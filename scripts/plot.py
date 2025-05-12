@@ -30,7 +30,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--path", type=Path, help="Path to the results folder")
     parser.add_argument("--id", type=int, help="Row number in results.csv")
     parser.add_argument("--datasets", type=Path, help="Path to datasets folder")
-    parser.add_argument("--pylustrator", action="store_true", help="Use pylustrator for plotting!")
+    parser.add_argument(
+        "--pylustrator", action="store_true", help="Use pylustrator for plotting!"
+    )
     args = parser.parse_args(sys.argv[1:])
     return args
 
@@ -46,12 +48,14 @@ def get_experiment_row(args: argparse.Namespace) -> pd.DataFrame:
 
 def get_experiment_path(args: argparse.Namespace) -> Path:
     experiment_row = get_experiment_row(args)
-    return generate_experiment_path(args.path,
-                                    experiment_row.algorithm,
-                                    experiment_row.hyper_params_id,
-                                    experiment_row.collection,
-                                    experiment_row.dataset,
-                                    experiment_row.repetition)
+    return generate_experiment_path(
+        args.path,
+        experiment_row.algorithm,
+        experiment_row.hyper_params_id,
+        experiment_row.collection,
+        experiment_row.dataset,
+        experiment_row.repetition,
+    )
 
 
 def get_anomaly_scores(args: argparse.Namespace) -> np.ndarray:
@@ -62,9 +66,13 @@ def get_anomaly_scores(args: argparse.Namespace) -> np.ndarray:
 
 def get_dataset(args: argparse) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     experiment_row = get_experiment_row(args)
-    logger.log(f"Loading Dataset {experiment_row.dataset} from {experiment_row.collection}")
+    logger.log(
+        f"Loading Dataset {experiment_row.dataset} from {experiment_row.collection}"
+    )
     dm = Datasets(args.datasets)
-    df = dm.get_dataset_df((experiment_row.collection, experiment_row.dataset), train=False)
+    df = dm.get_dataset_df(
+        (experiment_row.collection, experiment_row.dataset), train=False
+    )
 
     column_names = df.columns[1:-1]
     values = df.values[:, 1:-1]
@@ -104,6 +112,7 @@ def main():
 
     if args.pylustrator:
         import pylustrator
+
         pylustrator.start()
 
     axs = plot_dataset(args)

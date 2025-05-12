@@ -27,6 +27,7 @@ class TimeEvalModule(ABC):
         Implementing a TimeEval module is an advanced usage scenario and requires a good understanding of the internals
         of TimeEval.
     """
+
     def prepare(self, timeeval: TimeEval) -> None:
         """Called during the PREPARE-phase of TimeEval and before the individual algorithms' prepare-functions are
         executed.

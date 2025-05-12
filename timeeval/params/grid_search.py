@@ -74,9 +74,11 @@ class FullParameterGrid(ParameterGridConfig):
     def __init__(self, param_grid: Mapping[str, Any]):
         if not isinstance(param_grid, Mapping):
             if isinstance(param_grid, (list, Iterator)):
-                raise TypeError("A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
-                                f"ParameterConfig ({param_grid}). Please use a "
-                                "`timeeval.search.IndependentParameterGrid` for this!")
+                raise TypeError(
+                    "A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
+                    f"ParameterConfig ({param_grid}). Please use a "
+                    "`timeeval.search.IndependentParameterGrid` for this!"
+                )
             else:
                 raise TypeError(f"Parameter grid is not a dict ({param_grid})")
         self._param_grid = ParameterGrid(param_grid)
@@ -122,7 +124,11 @@ class IndependentParameterGrid(ParameterGridConfig):
         Used internally to represent the parameter grids.
     """
 
-    def __init__(self, param_grid: Mapping[str, Any], default_params: Optional[Mapping[str, Any]] = None):
+    def __init__(
+        self,
+        param_grid: Mapping[str, Any],
+        default_params: Optional[Mapping[str, Any]] = None,
+    ):
         if not default_params:
             default_params = {}
         if not isinstance(param_grid, Mapping):
@@ -133,8 +139,10 @@ class IndependentParameterGrid(ParameterGridConfig):
         self.default_params = {}
         for k, v in default_params.items():
             if isinstance(v, list):
-                raise TypeError(f"Default parameters contain a list of values ({k}: {v}). Only fixed values are "
-                                "allowed for defaults!")
+                raise TypeError(
+                    f"Default parameters contain a list of values ({k}: {v}). Only fixed values are "
+                    "allowed for defaults!"
+                )
             self.default_params[k] = [v]
 
         grids = []

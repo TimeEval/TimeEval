@@ -70,9 +70,11 @@ class FixedParameters(ParameterConfig):
     def __init__(self, params: Mapping[str, Any]):
         if not isinstance(params, Mapping):
             if isinstance(params, (list, Iterator)):
-                raise TypeError("A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
-                                f"ParameterConfig ({params}). Please use a "
-                                "`timeeval.search.IndependentParameterGrid` for this!")
+                raise TypeError(
+                    "A sequence of grids (Iterable[Mapping[str, Any]) is not supported by this "
+                    f"ParameterConfig ({params}). Please use a "
+                    "`timeeval.search.IndependentParameterGrid` for this!"
+                )
             else:
                 raise TypeError(f"Parameters are not provided as a dict ({params})")
         self._params = [FixedParams(params)]

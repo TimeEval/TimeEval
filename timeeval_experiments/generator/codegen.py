@@ -29,12 +29,14 @@ class AlgorithmGenerator:
         file_template = self._jenv.get_template("__init__.py.jinja")
         algorithms = self.algorithm_details.algorithm_names
         with target_path.open("w") as fh:
-            fh.write(file_template.render(
-                algorithms=algorithms
-            ))
+            fh.write(file_template.render(algorithms=algorithms))
 
-    def generate_algorithm(self, algorithm: str, target: Union[str, Path], force: bool = False) -> None:
-        target_path = self._check_target(target, allow_overwrite=force, allow_dir=True, name=algorithm)
+    def generate_algorithm(
+        self, algorithm: str, target: Union[str, Path], force: bool = False
+    ) -> None:
+        target_path = self._check_target(
+            target, allow_overwrite=force, allow_dir=True, name=algorithm
+        )
         file_template = self._jenv.get_template("docker-algorithm.py.jinja")
         algo_data = self.algorithm_details.algo_detail(algorithm)
         if "post_process_block" in algo_data and "post_function_name" in algo_data:
@@ -47,7 +49,7 @@ class AlgorithmGenerator:
                 skip_pull=self._skip_pull,
                 input_dimensionality=algo_data["input_dimensionality"],
                 parameters=algo_data["params"],
-                parameters_string=self._encode_params(algo_data['params']),
+                parameters_string=self._encode_params(algo_data["params"]),
                 available=algo_data["available"],
                 post_process_block=algo_data["post_process_block"],
                 postprocess=algo_data["post_function_name"],
@@ -73,35 +75,45 @@ class AlgorithmGenerator:
         file_template = self._jenv.get_template("timeeval.algorithms.rst.jinja")
         algorithms = self.algorithm_details.algorithm_names
         with target_path.open("w") as fh:
-            fh.write(file_template.render(
-                algorithms=algorithms
-            ))
+            fh.write(file_template.render(algorithms=algorithms))
 
     @staticmethod
     def _encode_params(params: Dict[str, Dict[str, Any]]) -> str:
         s_json = json.dumps(params, sort_keys=True, indent=True)
-        return s_json.replace("null", "None").replace("true", "True").replace("false", "False")
+        return (
+            s_json.replace("null", "None")
+            .replace("true", "True")
+            .replace("false", "False")
+        )
 
     @staticmethod
-    def _check_target(target: Union[str, Path],
-                      allow_overwrite: bool = False,
-                      allow_dir: bool = True,
-                      create_parents: bool = False,
-                      name: str = "",
-                      context: str = "") -> Path:
+    def _check_target(
+        target: Union[str, Path],
+        allow_overwrite: bool = False,
+        allow_dir: bool = True,
+        create_parents: bool = False,
+        name: str = "",
+        context: str = "",
+    ) -> Path:
         target_path = Path(target)
         if target_path.exists():
             if target_path.is_file() and allow_overwrite:
                 target_path.unlink()
             elif target_path.is_dir() and allow_dir:
-                return AlgorithmGenerator._check_target(target_path / f"{name}.py",
-                                                        allow_overwrite=allow_overwrite,
-                                                        allow_dir=False,
-                                                        context=context)
+                return AlgorithmGenerator._check_target(
+                    target_path / f"{name}.py",
+                    allow_overwrite=allow_overwrite,
+                    allow_dir=False,
+                    context=context,
+                )
             else:
-                context = f"({context})" if context else f"(for file {name})" if name else ""
-                raise ValueError(f"Path '{target}' already exists{context}! "
-                                 "Use `force=True` to overwrite existing files.")
+                context = (
+                    f"({context})" if context else f"(for file {name})" if name else ""
+                )
+                raise ValueError(
+                    f"Path '{target}' already exists{context}! "
+                    "Use `force=True` to overwrite existing files."
+                )
         elif allow_overwrite or create_parents:
             target_path.parent.mkdir(parents=True, exist_ok=True)
         return target_path

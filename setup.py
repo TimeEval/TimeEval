@@ -29,8 +29,16 @@ class PyTestCommand(Command):
         import pytest
         from pytest import ExitCode
 
-        exit_code = pytest.main(["--cov-report=term", "--cov-report=xml:coverage.xml", "--cov=timeeval",
-                                 "--cov=timeeval_experiments.generator", "--optuna", "tests"])
+        exit_code = pytest.main(
+            [
+                "--cov-report=term",
+                "--cov-report=xml:coverage.xml",
+                "--cov=timeeval",
+                "--cov=timeeval_experiments.generator",
+                "--optuna",
+                "tests",
+            ]
+        )
         if exit_code == ExitCode.TESTS_FAILED:
             raise ValueError("Tests failed!")
         elif exit_code == ExitCode.INTERRUPTED:
@@ -45,7 +53,7 @@ class PyTestCommand(Command):
 
 
 class MyPyCheckCommand(Command):
-    description = 'run MyPy for TimeEval; performs static type checking'
+    description = "run MyPy for TimeEval; performs static type checking"
     user_options = []
 
     def initialize_options(self) -> None:
@@ -72,12 +80,16 @@ class CleanCommand(Command):
         pass
 
     def run(self):
-        files = [
-            ".coverage*",
-            "coverage.xml"
+        files = [".coverage*", "coverage.xml"]
+        dirs = [
+            "build",
+            "dist",
+            "*.egg-info",
+            "**/__pycache__",
+            ".mypy_cache",
+            ".pytest_cache",
+            "**/.ipynb_checkpoints",
         ]
-        dirs = ["build", "dist", "*.egg-info", "**/__pycache__", ".mypy_cache",
-                ".pytest_cache", "**/.ipynb_checkpoints"]
         for d in dirs:
             for filename in glob.glob(d):
                 shutil.rmtree(filename, ignore_errors=True)
@@ -101,7 +113,7 @@ if __name__ == "__main__":
         cmdclass={
             "test": PyTestCommand,
             "typecheck": MyPyCheckCommand,
-            "clean": CleanCommand
+            "clean": CleanCommand,
         },
-        zip_safe=False
+        zip_safe=False,
     )

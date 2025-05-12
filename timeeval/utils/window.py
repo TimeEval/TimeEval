@@ -24,12 +24,14 @@ class Method(Enum):
 
 
 class ReverseWindowing(TransformerMixin):
-    def __init__(self,
-                 window_size: int,
-                 reduction: Method = Method.MEAN,
-                 n_jobs: int = 1,
-                 chunksize: Optional[int] = None,
-                 force_iterative: bool = False) -> None:
+    def __init__(
+        self,
+        window_size: int,
+        reduction: Method = Method.MEAN,
+        n_jobs: int = 1,
+        chunksize: Optional[int] = None,
+        force_iterative: bool = False,
+    ) -> None:
         self.window_size = window_size
         self.reduction = reduction
         self.n_jobs = n_jobs
@@ -39,7 +41,7 @@ class ReverseWindowing(TransformerMixin):
     def _reverse_windowing_vectorized_entire(self, scores: np.ndarray) -> np.ndarray:
         unwindowed_length = (self.window_size - 1) + len(scores)
         mapped = np.full(shape=(unwindowed_length, self.window_size), fill_value=np.nan)
-        mapped[:len(scores), 0] = scores
+        mapped[: len(scores), 0] = scores
 
         for w in range(1, self.window_size):
             mapped[:, w] = np.roll(mapped[:, 0], w)
@@ -51,20 +53,22 @@ class ReverseWindowing(TransformerMixin):
 
         for w in range(self.window_size):
             mapped[:, w] = np.roll(scores, -w)
-        mapped = mapped[:-(self.window_size-1)]
+        mapped = mapped[: -(self.window_size - 1)]
 
         return self.reduction.fn(mapped, axis=1)
 
-    def _reverse_windowing_iterative(self, scores: np.ndarray, is_chunk: bool = False) -> np.ndarray:
+    def _reverse_windowing_iterative(
+        self, scores: np.ndarray, is_chunk: bool = False
+    ) -> np.ndarray:
         if not is_chunk:
             pad_n = (self.window_size - 1, self.window_size - 1)
-            scores = np.pad(scores, pad_n, 'constant', constant_values=(np.nan, np.nan))
+            scores = np.pad(scores, pad_n, "constant", constant_values=(np.nan, np.nan))
 
         for i in range(len(scores) - (self.window_size - 1)):
-            scores[i] = self.reduction.fn(scores[i:i + self.window_size]).item()
+            scores[i] = self.reduction.fn(scores[i : i + self.window_size]).item()
 
         if is_chunk:
-            scores = scores[:-(self.window_size - 1)]
+            scores = scores[: -(self.window_size - 1)]
 
         return scores[~np.isnan(scores)]  # type: ignore
 
@@ -74,31 +78,42 @@ class ReverseWindowing(TransformerMixin):
         scores_split = self._chunk_array(scores, self.n_jobs)
 
         if self.chunksize is None:
-            windowed_scores_split = pool.starmap(self._reverse_windowing_iterative, zip(scores_split, cycle([True])))
+            windowed_scores_split = pool.starmap(
+                self._reverse_windowing_iterative, zip(scores_split, cycle([True]))
+            )
         else:
-            windowed_scores_split = pool.starmap(self._chunk_and_vectorize, zip(scores_split, cycle([False]), cycle([False])))
+            windowed_scores_split = pool.starmap(
+                self._chunk_and_vectorize,
+                zip(scores_split, cycle([False]), cycle([False])),
+            )
 
         return np.concatenate(windowed_scores_split)
 
-    def _chunk_array(self, X: np.ndarray, n_chunks: int, pad_start: bool = True, pad_end: bool = True) -> List[np.ndarray]:
+    def _chunk_array(
+        self, X: np.ndarray, n_chunks: int, pad_start: bool = True, pad_end: bool = True
+    ) -> List[np.ndarray]:
         chunks = []
         len_single = len(X) // n_chunks
         for i in range(n_chunks):
             if i == 0 and pad_start:
-                chunk = np.pad(X[:len_single + self.window_size - 1],
-                               (self.window_size - 1, 0),
-                               'constant',
-                               constant_values=(np.nan, np.nan))
+                chunk = np.pad(
+                    X[: len_single + self.window_size - 1],
+                    (self.window_size - 1, 0),
+                    "constant",
+                    constant_values=(np.nan, np.nan),
+                )
             elif i < (n_chunks - 1):
-                chunk = X[i * len_single:(i + 1) * len_single + self.window_size - 1]
+                chunk = X[i * len_single : (i + 1) * len_single + self.window_size - 1]
             else:
                 if pad_end:
-                    chunk = np.pad(X[i * len_single:],
-                                   (0, self.window_size - 1),
-                                   'constant',
-                                   constant_values=(np.nan, np.nan))
+                    chunk = np.pad(
+                        X[i * len_single :],
+                        (0, self.window_size - 1),
+                        "constant",
+                        constant_values=(np.nan, np.nan),
+                    )
                 else:
-                    chunk = X[i * len_single:]
+                    chunk = X[i * len_single :]
             chunks.append(chunk)
         return chunks
 
@@ -110,11 +125,20 @@ class ReverseWindowing(TransformerMixin):
 
         return np.concatenate(chunked_scores)
 
-    def _chunk_and_vectorize(self, scores: np.ndarray, pad_start: bool = True, pad_end: bool = True) -> np.ndarray:
+    def _chunk_and_vectorize(
+        self, scores: np.ndarray, pad_start: bool = True, pad_end: bool = True
+    ) -> np.ndarray:
         if self.chunksize is None:
-            raise ValueError("Please set an int value for chunksize in order to use _chunk_and_vectorize")
+            raise ValueError(
+                "Please set an int value for chunksize in order to use _chunk_and_vectorize"
+            )
         else:
-            chunks = self._chunk_array(scores, len(scores) // self.chunksize, pad_start=pad_start, pad_end=pad_end)
+            chunks = self._chunk_array(
+                scores,
+                len(scores) // self.chunksize,
+                pad_start=pad_start,
+                pad_end=pad_end,
+            )
             return self._vectorize_chunks(chunks)
 
     def _has_enough_memory_for_vectorized_entire(self, n: int) -> bool:
@@ -123,26 +147,31 @@ class ReverseWindowing(TransformerMixin):
         from pathlib import Path
 
         memory_limit: int = psutil.virtual_memory().available
-        memory_buffer = 128 * 1024**2 + sys.getsizeof(float()) * n  # 128 MB (for other objs) + size of scores array
+        memory_buffer = (
+            128 * 1024**2 + sys.getsizeof(float()) * n
+        )  # 128 MB (for other objs) + size of scores array
 
         # if we are running within a container
         container_limit_file = Path("/sys/fs/cgroup/memory/memory.limit_in_bytes")
         if container_limit_file.exists():
             with container_limit_file.open("r") as fh:
                 container_limit = int(fh.read())
-            if container_limit < 1 * 1024 ** 4:
+            if container_limit < 1 * 1024**4:
                 memory_limit = container_limit - memory_buffer
 
         # if we are running within a dask worker
         try:
             import dask.distributed
+
             dask_memory_limit = dask.distributed.get_worker().memory_limit
             if dask_memory_limit is not None and dask_memory_limit < memory_limit:
                 memory_limit = dask_memory_limit - memory_buffer
         except (ImportError, ValueError):
             pass
 
-        estimated_mem_usage: int = sys.getsizeof(float()) * (n + self.window_size - 1) * self.window_size
+        estimated_mem_usage: int = (
+            sys.getsizeof(float()) * (n + self.window_size - 1) * self.window_size
+        )
         return estimated_mem_usage <= memory_limit
 
     def fit_transform(self, X: np.ndarray, y=None, **fit_params) -> np.ndarray:  # type: ignore[no-untyped-def]
@@ -159,12 +188,14 @@ class ReverseWindowing(TransformerMixin):
         if self._has_enough_memory_for_vectorized_entire(len(X)):
             return self._reverse_windowing_vectorized_entire(X)
         else:
-            print("Falling back to iterative reverse windowing function to limit memory usage!")
+            print(
+                "Falling back to iterative reverse windowing function to limit memory usage!"
+            )
             return self._reverse_windowing_iterative(X)
 
 
 def padding_borders(scores: np.ndarray, input_size: int) -> np.ndarray:
     padding_size = (input_size - len(scores)) // 2
     result = np.zeros(input_size)
-    result[padding_size:padding_size+len(scores)] = scores
+    result[padding_size : padding_size + len(scores)] = scores
     return result

@@ -24,25 +24,35 @@ class TestPeriodSizeHeuristic(unittest.TestCase):
 
     def test_factor(self) -> None:
         heuristic = PeriodSizeHeuristic(factor=1.5)
-        value = heuristic(fixtures.algorithm, fixtures.dataset, fixtures.dummy_dataset_path)
+        value = heuristic(
+            fixtures.algorithm, fixtures.dataset, fixtures.dummy_dataset_path
+        )
         self.assertEqual(value, int(fixtures.dataset.period_size * 1.5))
 
     def test_anomaly_length_fallback(self) -> None:
         heuristic = PeriodSizeHeuristic(fb_anomaly_length_agg_type="median")
-        value = heuristic(fixtures.algorithm, self.dataset_none, fixtures.dummy_dataset_path)
+        value = heuristic(
+            fixtures.algorithm, self.dataset_none, fixtures.dummy_dataset_path
+        )
         self.assertEqual(value, fixtures.dataset.median_anomaly_length)
 
     def test_wrong_agg_type_fallback(self) -> None:
         heuristic = PeriodSizeHeuristic(fb_anomaly_length_agg_type="wrong")
-        value = heuristic(fixtures.algorithm, self.dataset_none, fixtures.dummy_dataset_path)
+        value = heuristic(
+            fixtures.algorithm, self.dataset_none, fixtures.dummy_dataset_path
+        )
         self.assertEqual(value, 1)
 
     def test_value_fallback(self) -> None:
         heuristic = PeriodSizeHeuristic(fb_value=213)
-        value = heuristic(fixtures.algorithm, self.dataset_none, fixtures.dummy_dataset_path)
+        value = heuristic(
+            fixtures.algorithm, self.dataset_none, fixtures.dummy_dataset_path
+        )
         self.assertEqual(value, 213)
 
     def test_value_fallback_on_nan(self) -> None:
         heuristic = PeriodSizeHeuristic(fb_value=213)
-        value = heuristic(fixtures.algorithm, self.dataset_nan, fixtures.dummy_dataset_path)
+        value = heuristic(
+            fixtures.algorithm, self.dataset_nan, fixtures.dummy_dataset_path
+        )
         self.assertEqual(value, 213)

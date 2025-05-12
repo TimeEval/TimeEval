@@ -41,20 +41,32 @@ class Metric(ABC):
     def __call__(self, y_true: np.ndarray, y_score: np.ndarray, **kwargs) -> float:  # type: ignore[no-untyped-def]
         y_true, y_score = self._validate_scores(y_true, y_score, **kwargs)
         if np.unique(y_score).shape[0] == 1:
-            warnings.warn("Cannot compute metric for a constant value in y_score, returning 0.0!")
-            return 0.
+            warnings.warn(
+                "Cannot compute metric for a constant value in y_score, returning 0.0!"
+            )
+            return 0.0
         return self.score(y_true, y_score)
 
-    def _validate_scores(self, y_true: np.ndarray, y_score: np.ndarray,
-                         inf_is_1: bool = True,
-                         neginf_is_0: bool = True,
-                         nan_is_0: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+    def _validate_scores(
+        self,
+        y_true: np.ndarray,
+        y_score: np.ndarray,
+        inf_is_1: bool = True,
+        neginf_is_0: bool = True,
+        nan_is_0: bool = True,
+    ) -> Tuple[np.ndarray, np.ndarray]:
         y_true = np.array(y_true).copy()
         y_score = np.array(y_score).copy()
         # check labels
-        if self.supports_continuous_scorings() and y_true.dtype == np.float_ and y_score.dtype == np.int_:
-            warnings.warn("Assuming that y_true and y_score where permuted, because their dtypes indicate so. "
-                          "y_true should be an integer array and y_score a float array!")
+        if (
+            self.supports_continuous_scorings()
+            and y_true.dtype == np.float_
+            and y_score.dtype == np.int_
+        ):
+            warnings.warn(
+                "Assuming that y_true and y_score where permuted, because their dtypes indicate so. "
+                "y_true should be an integer array and y_score a float array!"
+            )
             return self._validate_scores(y_score, y_true)
 
         y_true: np.ndarray = column_or_1d(y_true)  # type: ignore
@@ -95,7 +107,9 @@ class Metric(ABC):
             y_score[nan_mask] = 0
         else:
             penalize_mask = penalize_mask | nan_mask
-        y_score[penalize_mask] = (~np.array(y_true[penalize_mask], dtype=bool)).astype(np.int_)
+        y_score[penalize_mask] = (~np.array(y_true[penalize_mask], dtype=bool)).astype(
+            np.int_
+        )
 
         assert_all_finite(y_score)
         return y_true, y_score

@@ -42,7 +42,13 @@ class PeriodSizeHeuristic(TimeEvalParameterHeuristic):
     fb_value : int, optional
         Value to use as fallback if no period size is available. (default: 1)
     """
-    def __init__(self, factor: float = 1., fb_anomaly_length_agg_type: Optional[str] = None, fb_value: int = 1):
+
+    def __init__(
+        self,
+        factor: float = 1.0,
+        fb_anomaly_length_agg_type: Optional[str] = None,
+        fb_value: int = 1,
+    ):
         self.factor = factor
         self.fb_anomaly_length_agg_type = fb_anomaly_length_agg_type
         self.fb_value = fb_value
@@ -51,18 +57,26 @@ class PeriodSizeHeuristic(TimeEvalParameterHeuristic):
         period = dataset_details.period_size
         if _is_none(period) and self.fb_anomaly_length_agg_type is not None:
             try:
-                anomaly_length_heuristic = AnomalyLengthHeuristic(agg_type=self.fb_anomaly_length_agg_type)
-                period = anomaly_length_heuristic(algorithm, dataset_details, dataset_path)
-                warnings.warn(f"{algorithm.name}: No period_size specified for dataset {dataset_details.datasetId}. "
-                              f"Using AnomalyLengthHeuristic({self.fb_anomaly_length_agg_type}) as fallback.",
-                              category=HeuristicFallbackWarning)
+                anomaly_length_heuristic = AnomalyLengthHeuristic(
+                    agg_type=self.fb_anomaly_length_agg_type
+                )
+                period = anomaly_length_heuristic(
+                    algorithm, dataset_details, dataset_path
+                )
+                warnings.warn(
+                    f"{algorithm.name}: No period_size specified for dataset {dataset_details.datasetId}. "
+                    f"Using AnomalyLengthHeuristic({self.fb_anomaly_length_agg_type}) as fallback.",
+                    category=HeuristicFallbackWarning,
+                )
             except ValueError:
                 pass
 
         if _is_still_none(period):
-            warnings.warn(f"{algorithm.name}: No period_size specified for dataset {dataset_details.datasetId}. "
-                          f"Using fixed value '{self.fb_value}' as parameter value.",
-                          category=HeuristicFallbackWarning)
+            warnings.warn(
+                f"{algorithm.name}: No period_size specified for dataset {dataset_details.datasetId}. "
+                f"Using fixed value '{self.fb_value}' as parameter value.",
+                category=HeuristicFallbackWarning,
+            )
             return self.fb_value
         # period: Optional[int] but _is_none guards for None, so it's an int!
         return int(period * self.factor)  # type: ignore

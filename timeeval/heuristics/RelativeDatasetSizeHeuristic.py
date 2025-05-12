@@ -18,6 +18,7 @@ class RelativeDatasetSizeHeuristic(TimeEvalParameterHeuristic):
     factor : float
         Factor to multiply the dataset length with to get the parameter value. (default: 0.1)
     """
+
     def __init__(self, factor: float = 0.1):
         self.factor = factor
 

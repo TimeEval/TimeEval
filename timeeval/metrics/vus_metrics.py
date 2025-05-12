@@ -13,7 +13,12 @@ class RangeAucMetric(Metric, ABC):
     See the subclasses' documentation for an explanation of the corresponding metric.
     """
 
-    def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250):
+    def __init__(
+        self,
+        buffer_size: Optional[int] = None,
+        compatibility_mode: bool = False,
+        max_samples: int = 250,
+    ):
         self._buffer_size = buffer_size
         self._compat_mode = compatibility_mode
         self._max_samples = max_samples
@@ -30,7 +35,9 @@ class RangeAucMetric(Metric, ABC):
         ends = index[labels == -1]
         return starts, ends
 
-    def _extend_anomaly_labels(self, y_true: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _extend_anomaly_labels(
+        self, y_true: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Extends the anomaly labels with slopes on both ends. Makes the labels continuous instead of binary."""
         starts, ends = self.anomaly_bounds(y_true)
 
@@ -65,10 +72,12 @@ class RangeAucMetric(Metric, ABC):
             for i, (s, e) in enumerate(zip(starts, ends)):
                 s0 = max(0, s - slope_length)
                 s1 = s + 1
-                y_true_cont[s0:s1] = np.maximum(slope[s0 - s1:], y_true_cont[s0:s1])
+                y_true_cont[s0:s1] = np.maximum(slope[s0 - s1 :], y_true_cont[s0:s1])
                 e0 = e - 1
                 e1 = min(length, e + slope_length)
-                y_true_cont[e0:e1] = np.maximum(slope[e0 - e1:][::-1], y_true_cont[e0:e1])
+                y_true_cont[e0:e1] = np.maximum(
+                    slope[e0 - e1 :][::-1], y_true_cont[e0:e1]
+                )
                 anomalies[i] = [s0, e1]
         return y_true_cont, anomalies
 
@@ -78,14 +87,14 @@ class RangeAucMetric(Metric, ABC):
         else:
             n_samples = min(self._max_samples, y_score.shape[0])
         thresholds: np.ndarray = np.sort(y_score)[::-1]
-        thresholds = thresholds[np.linspace(0, thresholds.shape[0] - 1, n_samples, dtype=np.int_)]
+        thresholds = thresholds[
+            np.linspace(0, thresholds.shape[0] - 1, n_samples, dtype=np.int_)
+        ]
         return thresholds
 
-    def _range_pr_roc_auc_support(self,
-                                  y_true: np.ndarray,
-                                  y_score: np.ndarray,
-                                  with_plotting: bool = False
-                                  ) -> Tuple[float, float, Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]]:
+    def _range_pr_roc_auc_support(
+        self, y_true: np.ndarray, y_score: np.ndarray, with_plotting: bool = False
+    ) -> Tuple[float, float, Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]]:
         y_true_cont, anomalies = self._extend_anomaly_labels(y_true)
         thresholds = self._uniform_threshold_sampling(y_score)
         p = np.average([np.sum(y_true), np.sum(y_true_cont)])
@@ -102,7 +111,7 @@ class RangeAucMetric(Metric, ABC):
             fp = np.sum(y_pred) - tp
             n = len(y_pred) - p
 
-            existence_reward = [np.sum(product[s:e + 1]) > 0 for s, e in anomalies]
+            existence_reward = [np.sum(product[s : e + 1]) > 0 for s, e in anomalies]
             existence_reward = np.sum(existence_reward) / anomalies.shape[0]
 
             recall = min(tp / p, 1) * existence_reward  # = tpr
@@ -116,8 +125,12 @@ class RangeAucMetric(Metric, ABC):
         recalls[-1] = 1
         fprs[-1] = 1
 
-        range_pr_auc: float = np.sum((recalls[1:-1] - recalls[:-2]) * (precisions[1:] + precisions[:-1]) / 2)
-        range_roc_auc: float = np.sum((fprs[1:] - fprs[:-1]) * (recalls[1:] + recalls[:-1]) / 2)
+        range_pr_auc: float = np.sum(
+            (recalls[1:-1] - recalls[:-2]) * (precisions[1:] + precisions[:-1]) / 2
+        )
+        range_roc_auc: float = np.sum(
+            (fprs[1:] - fprs[:-1]) * (recalls[1:] + recalls[:-1]) / 2
+        )
 
         if with_plotting:
             return range_pr_auc, range_roc_auc, (recalls[:-1], fprs[:-1], precisions)
@@ -166,13 +179,21 @@ class RangePrAUC(RangeAucMetric):
     plot_store : bool
     """
 
-    def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250,
-                 plot: bool = False, plot_store: bool = False):
+    def __init__(
+        self,
+        buffer_size: Optional[int] = None,
+        compatibility_mode: bool = False,
+        max_samples: int = 250,
+        plot: bool = False,
+        plot_store: bool = False,
+    ):
         super().__init__(buffer_size, compatibility_mode, max_samples)
         self._plot = plot
         self._plot_store = plot_store
 
-    def _plot_auc(self, metric: float, plotting_details: Tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
+    def _plot_auc(
+        self, metric: float, plotting_details: Tuple[np.ndarray, np.ndarray, np.ndarray]
+    ) -> None:
         import matplotlib.pyplot as plt
 
         tprs, fprs, precs = plotting_details
@@ -188,7 +209,9 @@ class RangePrAUC(RangeAucMetric):
         plt.show()
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        range_pr_auc, _, plotting_details = self._range_pr_roc_auc_support(y_true, y_score, with_plotting=self._plot)
+        range_pr_auc, _, plotting_details = self._range_pr_roc_auc_support(
+            y_true, y_score, with_plotting=self._plot
+        )
         if self._plot and plotting_details is not None:
             self._plot_auc(range_pr_auc, plotting_details)
         return range_pr_auc
@@ -241,13 +264,21 @@ class RangeRocAUC(RangeAucMetric):
     `https://en.wikipedia.org/wiki/Receiver_operating_characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ : Explanation of the ROC-curve.
     """
 
-    def __init__(self, buffer_size: Optional[int] = None, compatibility_mode: bool = False, max_samples: int = 250,
-                 plot: bool = False, plot_store: bool = False):
+    def __init__(
+        self,
+        buffer_size: Optional[int] = None,
+        compatibility_mode: bool = False,
+        max_samples: int = 250,
+        plot: bool = False,
+        plot_store: bool = False,
+    ):
         super().__init__(buffer_size, compatibility_mode, max_samples)
         self._plot = plot
         self._plot_store = plot_store
 
-    def _plot_auc(self, metric: float, plotting_details: Tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
+    def _plot_auc(
+        self, metric: float, plotting_details: Tuple[np.ndarray, np.ndarray, np.ndarray]
+    ) -> None:
         import matplotlib.pyplot as plt
 
         tprs, fprs, precs = plotting_details
@@ -263,7 +294,9 @@ class RangeRocAUC(RangeAucMetric):
         plt.show()
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        _, range_auc_roc, plotting_details = self._range_pr_roc_auc_support(y_true, y_score, with_plotting=self._plot)
+        _, range_auc_roc, plotting_details = self._range_pr_roc_auc_support(
+            y_true, y_score, with_plotting=self._plot
+        )
         if self._plot and plotting_details is not None:
             self._plot_auc(range_auc_roc, plotting_details)
         return range_auc_roc
@@ -304,7 +337,12 @@ class RangePrVUS(RangeAucMetric):
         Area under the curve version using a single buffer size.
     """
 
-    def __init__(self, max_buffer_size: int = 500, compatibility_mode: bool = False, max_samples: int = 250):
+    def __init__(
+        self,
+        max_buffer_size: int = 500,
+        compatibility_mode: bool = False,
+        max_samples: int = 250,
+    ):
         super().__init__(None, compatibility_mode, max_samples)
         self._max_buffer_size = max_buffer_size
 
@@ -362,7 +400,12 @@ class RangeRocVUS(RangeAucMetric):
        15(11): 2774 - 2787, 2022. doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
 
-    def __init__(self, max_buffer_size: int = 500, compatibility_mode: bool = False, max_samples: int = 250):
+    def __init__(
+        self,
+        max_buffer_size: int = 500,
+        compatibility_mode: bool = False,
+        max_samples: int = 250,
+    ):
         super().__init__(None, compatibility_mode, max_samples)
         self._max_buffer_size = max_buffer_size
 

@@ -22,7 +22,7 @@ from timeeval.adapters.docker import (
     DockerTimeoutError,
     DockerMemoryError,
     DockerAlgorithmFailedError,
-    AlgorithmInterface
+    AlgorithmInterface,
 )
 from timeeval.data_types import ExecutionType
 
@@ -40,12 +40,14 @@ class TestDockerAdapter(unittest.TestCase):
                 "bool": True,
                 "float": 1e-3,
                 "numpy": [np.int64(4), np.float64(2.3)],
-                "numpy-list": np.arange(2)
-            }
+                "numpy-list": np.arange(2),
+            },
         )
-        ai_string = ('{"dataInput": "in.csv", "dataOutput": "out.csv", "modelInput": "model-in.csv", '
-                     '"modelOutput": "model-out.csv", "executionType": "train", "customParameters": '
-                     '{"bool": true, "float": 0.001, "numpy": [4, 2.3], "numpy-list": [0, 1]}}')
+        ai_string = (
+            '{"dataInput": "in.csv", "dataOutput": "out.csv", "modelInput": "model-in.csv", '
+            '"modelOutput": "model-out.csv", "executionType": "train", "customParameters": '
+            '{"bool": true, "float": 0.001, "numpy": [4, 2.3], "numpy-list": [0, 1]}}'
+        )
         self.assertEqual(ai.to_json_string(), ai_string)
 
     @patch("timeeval.adapters.docker.docker.from_env")
@@ -53,20 +55,25 @@ class TestDockerAdapter(unittest.TestCase):
         mock_docker_client = MockDockerClient()
         mock_client.return_value = mock_docker_client
         results_path = Path("./results/")
-        input_string = ('execute-algorithm \'{'
-                        f'"dataInput": "{DATASET_TARGET_PATH / "test.csv"}", '
-                        f'"dataOutput": "{RESULTS_TARGET_PATH / SCORES_FILE_NAME}", '
-                        f'"modelInput": "{RESULTS_TARGET_PATH / MODEL_FILE_NAME}", '
-                        f'"modelOutput": "{RESULTS_TARGET_PATH / MODEL_FILE_NAME}", '
-                        '"executionType": "train", "customParameters": {"a": 0}'
-                        '}\'')
+        input_string = (
+            "execute-algorithm '{"
+            f'"dataInput": "{DATASET_TARGET_PATH / "test.csv"}", '
+            f'"dataOutput": "{RESULTS_TARGET_PATH / SCORES_FILE_NAME}", '
+            f'"modelInput": "{RESULTS_TARGET_PATH / MODEL_FILE_NAME}", '
+            f'"modelOutput": "{RESULTS_TARGET_PATH / MODEL_FILE_NAME}", '
+            '"executionType": "train", "customParameters": {"a": 0}'
+            "}'"
+        )
 
         adapter = DockerAdapter("test-image")
-        adapter._run_container(Path("/tmp/test.csv"), {
-            "results_path": results_path,
-            "hyper_params": {"a": 0},
-            "executionType": ExecutionType.TRAIN
-        })
+        adapter._run_container(
+            Path("/tmp/test.csv"),
+            {
+                "results_path": results_path,
+                "hyper_params": {"a": 0},
+                "executionType": ExecutionType.TRAIN,
+            },
+        )
 
         self.assertEqual(mock_docker_client.containers.cmd, input_string)
 
@@ -77,7 +84,9 @@ class TestDockerAdapter(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter("test-image")
-            result = adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
+            result = adapter(
+                Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)}
+            )
         np.testing.assert_array_equal(result, np.arange(10, dtype=np.float64))
 
     @patch("timeeval.adapters.docker.docker.from_env")
@@ -96,15 +105,29 @@ class TestDockerAdapter(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             adapter = DockerAdapter("test-image")
-            adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
+            adapter(
+                Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)}
+            )
 
         self.assertTrue(docker_mock.containers.stopped)
 
         run_kwargs = docker_mock.containers.run_kwargs
-        self.assertIn("mem_swappiness", run_kwargs, msg="mem_swappiness was not set by DockerAdapter")
-        self.assertIn("mem_limit", run_kwargs, msg="mem_limit was not set by DockerAdapter")
-        self.assertIn("memswap_limit", run_kwargs, msg="memswap_limit was not set by DockerAdapter")
-        self.assertIn("nano_cpus", run_kwargs, msg="nano_cpus was not set by DockerAdapter")
+        self.assertIn(
+            "mem_swappiness",
+            run_kwargs,
+            msg="mem_swappiness was not set by DockerAdapter",
+        )
+        self.assertIn(
+            "mem_limit", run_kwargs, msg="mem_limit was not set by DockerAdapter"
+        )
+        self.assertIn(
+            "memswap_limit",
+            run_kwargs,
+            msg="memswap_limit was not set by DockerAdapter",
+        )
+        self.assertIn(
+            "nano_cpus", run_kwargs, msg="nano_cpus was not set by DockerAdapter"
+        )
 
         # must always disable swapping:
         self.assertEqual(run_kwargs["mem_swappiness"], 0)
@@ -121,11 +144,14 @@ class TestDockerAdapter(unittest.TestCase):
         cpu_overwrite = 0.25
 
         with tempfile.TemporaryDirectory() as tmp_path:
-            adapter = DockerAdapter("test-image",
-                                    memory_limit_overwrite=mem_overwrite,
-                                    cpu_limit_overwrite=cpu_overwrite
-                                    )
-            adapter(Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)})
+            adapter = DockerAdapter(
+                "test-image",
+                memory_limit_overwrite=mem_overwrite,
+                cpu_limit_overwrite=cpu_overwrite,
+            )
+            adapter(
+                Path("tests/example_data/data.txt"), {"results_path": Path(tmp_path)}
+            )
 
         run_kwargs = docker_mock.containers.run_kwargs
         self.assertEqual(run_kwargs["mem_limit"], mem_overwrite)
@@ -140,13 +166,19 @@ class TestDockerAdapterDocker(unittest.TestCase):
 
     def tearDown(self) -> None:
         # remove test containers
-        containers = self.docker.containers.list(all=True, filters={"ancestor": TEST_DOCKER_IMAGE})
+        containers = self.docker.containers.list(
+            all=True, filters={"ancestor": TEST_DOCKER_IMAGE}
+        )
         for c in containers:
             c.remove()
         del self.docker
 
-    def _list_test_containers(self, ancestor_image: str = TEST_DOCKER_IMAGE) -> List[Container]:
-        return self.docker.containers.list(all=True, filters={"ancestor": ancestor_image})
+    def _list_test_containers(
+        self, ancestor_image: str = TEST_DOCKER_IMAGE
+    ) -> List[Container]:
+        return self.docker.containers.list(
+            all=True, filters={"ancestor": ancestor_image}
+        )
 
     @pytest.mark.docker
     def test_execute_successful(self):
@@ -156,7 +188,7 @@ class TestDockerAdapterDocker(unittest.TestCase):
                 "executionType": ExecutionType.EXECUTE,
                 "resource_constraints": ResourceConstraints.default_constraints(),
                 "hyper_params": {"sleep": 0.1},
-                "results_path": tmp_path
+                "results_path": tmp_path,
             }
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds"))
             res = adapter(self.input_data_path, args)
@@ -171,7 +203,9 @@ class TestDockerAdapterDocker(unittest.TestCase):
             tmp_path = Path(tmp_path)
             args = {
                 "results_path": tmp_path,
-                "resource_constraints": ResourceConstraints(task_memory_limit=6 * 1024 * 1024)
+                "resource_constraints": ResourceConstraints(
+                    task_memory_limit=6 * 1024 * 1024
+                ),
             }
             adapter = DockerAdapter(TEST_DOCKER_IMAGE)
             with self.assertRaises(DockerMemoryError):
@@ -184,11 +218,11 @@ class TestDockerAdapterDocker(unittest.TestCase):
     def test_execute_timeout(self):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
-            args = {
-                "results_path": tmp_path
-            }
+            args = {"results_path": tmp_path}
             # unit typo in Durations lib (https://github.com/oleiade/durations/blob/master/durations/constants.py#L34)
-            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+            adapter = DockerAdapter(
+                TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds")
+            )
             with self.assertRaises(DockerTimeoutError):
                 adapter(self.input_data_path, args)
         containers = self._list_test_containers()
@@ -201,7 +235,9 @@ class TestDockerAdapterDocker(unittest.TestCase):
             tmp_path = Path(tmp_path)
             args = {
                 "results_path": tmp_path,
-                "resource_constraints": ResourceConstraints(execute_timeout=Duration("100 miliseconds"))
+                "resource_constraints": ResourceConstraints(
+                    execute_timeout=Duration("100 miliseconds")
+                ),
             }
             adapter = DockerAdapter(TEST_DOCKER_IMAGE)
             with self.assertRaises(DockerTimeoutError):
@@ -214,7 +250,9 @@ class TestDockerAdapterDocker(unittest.TestCase):
     def test_execute_timeout_if_no_scores(self):
         args = {
             "executionType": ExecutionType.EXECUTE,
-            "resource_constraints": ResourceConstraints(use_preliminary_scores_on_execute_timeout=False)
+            "resource_constraints": ResourceConstraints(
+                use_preliminary_scores_on_execute_timeout=False
+            ),
         }
         adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
         with self.assertRaises(DockerTimeoutError):
@@ -229,9 +267,11 @@ class TestDockerAdapterDocker(unittest.TestCase):
             tmp_path = Path(tmp_path)
             args = {
                 "executionType": ExecutionType.EXECUTE,
-                "resource_constraints": ResourceConstraints(use_preliminary_scores_on_execute_timeout=True),
+                "resource_constraints": ResourceConstraints(
+                    use_preliminary_scores_on_execute_timeout=True
+                ),
                 "hyper_params": {"write_prelim_results": True, "sleep": 20},
-                "results_path": tmp_path
+                "results_path": tmp_path,
             }
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("5 seconds"))
             res = adapter(self.input_data_path, args)
@@ -248,10 +288,14 @@ class TestDockerAdapterDocker(unittest.TestCase):
             (tmp_path / MODEL_FILE_NAME).touch()
             args = {
                 "executionType": ExecutionType.EXECUTE,
-                "resource_constraints": ResourceConstraints(use_preliminary_scores_on_execute_timeout=False),
-                "results_path": tmp_path
+                "resource_constraints": ResourceConstraints(
+                    use_preliminary_scores_on_execute_timeout=False
+                ),
+                "results_path": tmp_path,
             }
-            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+            adapter = DockerAdapter(
+                TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds")
+            )
             with self.assertRaises(DockerTimeoutError):
                 adapter(self.input_data_path, args)
         containers = self._list_test_containers()
@@ -266,7 +310,7 @@ class TestDockerAdapterDocker(unittest.TestCase):
                 "executionType": ExecutionType.TRAIN,
                 "resource_constraints": ResourceConstraints.default_constraints(),
                 "hyper_params": {"sleep": 0.1},
-                "results_path": tmp_path
+                "results_path": tmp_path,
             }
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("10 seconds"))
             result = adapter(self.input_data_path, args)
@@ -281,7 +325,9 @@ class TestDockerAdapterDocker(unittest.TestCase):
     def test_train_timeout(self):
         args = {
             "executionType": ExecutionType.TRAIN,
-            "resource_constraints": ResourceConstraints(use_preliminary_model_on_train_timeout=False)
+            "resource_constraints": ResourceConstraints(
+                use_preliminary_model_on_train_timeout=False
+            ),
         }
         adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
         with self.assertRaises(DockerTimeoutError):
@@ -297,8 +343,8 @@ class TestDockerAdapterDocker(unittest.TestCase):
             "executionType": ExecutionType.TRAIN,
             "resource_constraints": ResourceConstraints(
                 use_preliminary_model_on_train_timeout=False,
-                train_timeout=Duration("100 miliseconds")
-            )
+                train_timeout=Duration("100 miliseconds"),
+            ),
         }
         adapter = DockerAdapter(TEST_DOCKER_IMAGE)
         with self.assertRaises(DockerTimeoutError):
@@ -315,10 +361,14 @@ class TestDockerAdapterDocker(unittest.TestCase):
             tmp_path = Path(tmp_path)
             args = {
                 "executionType": ExecutionType.TRAIN.value,
-                "resource_constraints": ResourceConstraints(use_preliminary_model_on_train_timeout=True),
-                "results_path": tmp_path
+                "resource_constraints": ResourceConstraints(
+                    use_preliminary_model_on_train_timeout=True
+                ),
+                "results_path": tmp_path,
             }
-            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+            adapter = DockerAdapter(
+                TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds")
+            )
             with self.assertRaises(DockerTimeoutError) as e:
                 adapter(Path("dummy"), args)
 
@@ -335,11 +385,10 @@ class TestDockerAdapterDocker(unittest.TestCase):
             tmp_path = Path(tmp_path)
             # create model file to trick adapter into thinking that training was successful
             (tmp_path / MODEL_FILE_NAME).touch()
-            args = {
-                "executionType": ExecutionType.TRAIN,
-                "results_path": tmp_path
-            }
-            adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds"))
+            args = {"executionType": ExecutionType.TRAIN, "results_path": tmp_path}
+            adapter = DockerAdapter(
+                TEST_DOCKER_IMAGE, timeout=Duration("100 miliseconds")
+            )
             res = adapter(dummy_path, args)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 1)
@@ -358,9 +407,9 @@ class TestDockerAdapterDocker(unittest.TestCase):
                 "executionType": ExecutionType.TRAIN.value,
                 "resource_constraints": ResourceConstraints(
                     use_preliminary_model_on_train_timeout=True,
-                    train_timeout=Duration("100 miliseconds")
+                    train_timeout=Duration("100 miliseconds"),
                 ),
-                "results_path": tmp_path
+                "results_path": tmp_path,
             }
             adapter = DockerAdapter(TEST_DOCKER_IMAGE)
             res = adapter(dummy_path, args)
@@ -383,7 +432,10 @@ class TestDockerAdapterDocker(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             adapter = DockerAdapter(TEST_DOCKER_IMAGE, timeout=Duration("30 seconds"))
-            result = adapter(self.input_data_path, {"results_path": tmp_path, "hyper_params": {"sleep": 1}})
+            result = adapter(
+                self.input_data_path,
+                {"results_path": tmp_path, "hyper_params": {"sleep": 1}},
+            )
         np.testing.assert_array_equal(np.zeros(3600), result)
         containers = self._list_test_containers()
         self.assertEqual(len(containers), 1)
@@ -394,7 +446,10 @@ class TestDockerAdapterDocker(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
             adapter = DockerAdapter(TEST_DOCKER_IMAGE)
-            _ = adapter(self.input_data_path, {"results_path": tmp_path, "hyper_params": {"sleep": 0.1}})
+            _ = adapter(
+                self.input_data_path,
+                {"results_path": tmp_path, "hyper_params": {"sleep": 0.1}},
+            )
         self.assertEqual(len(self._list_test_containers()), 1)
         adapter.get_finalize_fn()()
         self.assertListEqual(self._list_test_containers(), [])

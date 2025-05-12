@@ -15,6 +15,7 @@ class HPI_CLUSTER:
 
     These constants are applicable only for the HPI infrastructure and might not be useful for you.
     """
+
     odin01: str = "odin01"
     odin02: str = "odin02"
     odin03: str = "odin03"
@@ -46,13 +47,38 @@ class HPI_CLUSTER:
     odin14_ip: str = "172.20.11.114"
 
     nodes: List[str] = [
-        odin01, odin02, odin03, odin04, odin05, odin06, odin07, odin08, odin09, odin10, odin11, odin12, odin13, odin14
+        odin01,
+        odin02,
+        odin03,
+        odin04,
+        odin05,
+        odin06,
+        odin07,
+        odin08,
+        odin09,
+        odin10,
+        odin11,
+        odin12,
+        odin13,
+        odin14,
     ]
     """All nodes of the homogenous HPI cluster."""
 
     nodes_ip: List[str] = [
-        odin01_ip, odin02_ip, odin03_ip, odin04_ip, odin05_ip, odin06_ip, odin07_ip, odin08_ip, odin09_ip, odin10_ip,
-        odin11_ip, odin12_ip, odin13_ip, odin14_ip
+        odin01_ip,
+        odin02_ip,
+        odin03_ip,
+        odin04_ip,
+        odin05_ip,
+        odin06_ip,
+        odin07_ip,
+        odin08_ip,
+        odin09_ip,
+        odin10_ip,
+        odin11_ip,
+        odin12_ip,
+        odin13_ip,
+        odin14_ip,
     ]
     """All IP addresses of the nodes in the homogenous HPI cluster."""
 
@@ -67,8 +93,14 @@ class HPI_CLUSTER:
         BENCHMARK: Path("/home/projects/akita/data/benchmark-data/data-processed"),
         CORRELATION_ANOMALIES: Path("/home/projects/akita/data/correlation-anomalies"),
         VARIABLE_LENGTH_TEST_CASES: Path("/home/projects/akita/data/variable-length"),
-        UNIVARIATE_ANOMALY_TEST_CASES: Path("/home/projects/akita/data/univariate-anomaly-test-cases"),
-        MULTIVARIATE_ANOMALY_TEST_CASES: Path("/home/projects/akita/data/multivariate-anomaly-test-cases"),
-        MULTIVARIATE_TEST_CASES: Path("/home/projects/akita/data/multivariate-test-cases")
+        UNIVARIATE_ANOMALY_TEST_CASES: Path(
+            "/home/projects/akita/data/univariate-anomaly-test-cases"
+        ),
+        MULTIVARIATE_ANOMALY_TEST_CASES: Path(
+            "/home/projects/akita/data/multivariate-anomaly-test-cases"
+        ),
+        MULTIVARIATE_TEST_CASES: Path(
+            "/home/projects/akita/data/multivariate-test-cases"
+        ),
     }
     """This dictionary contains the paths to the dataset collection folders."""

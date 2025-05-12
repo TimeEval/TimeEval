@@ -7,11 +7,17 @@ from timeeval.heuristics import TimeEvalParameterHeuristic
 
 
 class HeuristicImpl(TimeEvalParameterHeuristic):
-    def __init__(self, test_str: str = "", test_float: float = .0):
+    def __init__(self, test_str: str = "", test_float: float = 0.0):
         self.test_str = test_str
         self.test_float = test_float
 
-    def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> int:
+    def __call__(
+        self,
+        algorithm: Algorithm,
+        dataset_details: Dataset,
+        dataset_path: Path,
+        **kwargs,
+    ) -> int:
         pass
 
 
@@ -23,7 +29,9 @@ class TestBaseHeuristic(unittest.TestCase):
         self.assertEqual(self.heuristic.name, "HeuristicImpl")
 
     def test_parameter_names(self):
-        self.assertSetEqual(set(self.heuristic.get_param_names()), {"test_str", "test_float"})
+        self.assertSetEqual(
+            set(self.heuristic.get_param_names()), {"test_str", "test_float"}
+        )
 
     def test_parameters(self):
         params = self.heuristic.parameters()
@@ -31,7 +39,13 @@ class TestBaseHeuristic(unittest.TestCase):
 
     def test_no_constructor(self):
         class _Heuristic(TimeEvalParameterHeuristic):
-            def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> int:
+            def __call__(
+                self,
+                algorithm: Algorithm,
+                dataset_details: Dataset,
+                dataset_path: Path,
+                **kwargs,
+            ) -> int:
                 pass
 
         self.assertListEqual(_Heuristic.get_param_names(), [])
@@ -41,7 +55,13 @@ class TestBaseHeuristic(unittest.TestCase):
             def __init__(self, *args):
                 pass
 
-            def __call__(self, algorithm: Algorithm, dataset_details: Dataset, dataset_path: Path, **kwargs) -> int:
+            def __call__(
+                self,
+                algorithm: Algorithm,
+                dataset_details: Dataset,
+                dataset_path: Path,
+                **kwargs,
+            ) -> int:
                 pass
 
         with self.assertRaises(RuntimeError):

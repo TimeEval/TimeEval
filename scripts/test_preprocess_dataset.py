@@ -30,5 +30,5 @@ def test_process_indices(tmp_path: Path) -> None:
 def test_process_convert_datetime(tmp_path: Path) -> None:
     target = tmp_path / "test.csv"
     process(data_file, label_file, target, convert_datetime=True, unit="s")
-    df = pd.read_csv(target, parse_dates=["timestamp"], infer_datetime_format=True)
+    df = pd.read_csv(target, parse_dates=["timestamp"])
     assert df["timestamp"].dtype == np.dtype("<M8[ns]")

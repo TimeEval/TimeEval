@@ -3,17 +3,34 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from timeeval_experiments.generator.algorithm_parsing import AlgorithmLoader, _parse_readme, _parse_manifest
-from timeeval_experiments.generator.exceptions import MissingReadmeWarning, MissingManifestWarning, \
-    InvalidManifestWarning, AlgorithmManifestLoadingWarning
+from timeeval_experiments.generator.algorithm_parsing import (
+    AlgorithmLoader,
+    _parse_readme,
+    _parse_manifest,
+)
+from timeeval_experiments.generator.exceptions import (
+    MissingReadmeWarning,
+    MissingManifestWarning,
+    InvalidManifestWarning,
+    AlgorithmManifestLoadingWarning,
+)
 
 
 class TestAlgorithmParsing(unittest.TestCase):
     def setUp(self) -> None:
         self.repo_path = "tests/example_data/timeeval-algorithms"
-        self.invalid_manifest_1 = {"title": "DEMO algorithm", "inputDimensionality": "univariate"}
-        self.invalid_manifest_2 = {"learningType": "unsupervised", "inputDimensionality": "univariate"}
-        self.invalid_manifest_3 = {"title": "DEMO algorithm", "learningType": "unsupervised"}
+        self.invalid_manifest_1 = {
+            "title": "DEMO algorithm",
+            "inputDimensionality": "univariate",
+        }
+        self.invalid_manifest_2 = {
+            "learningType": "unsupervised",
+            "inputDimensionality": "univariate",
+        }
+        self.invalid_manifest_3 = {
+            "title": "DEMO algorithm",
+            "learningType": "unsupervised",
+        }
 
     def test_parses_fstree_correctly(self):
         loader = AlgorithmLoader(self.repo_path)
@@ -29,35 +46,66 @@ class TestAlgorithmParsing(unittest.TestCase):
             tmp = algo1
             algo1 = algo2
             algo2 = tmp
-        self.assertDictEqual(algo1, {
-            "display_name": "DEMO algorithm with post-processing",
-            "description": "Uses the demo docker image algorithm for testing purposes",
-            "name": "timeeval_test_algorithm_post",
-            "version": "0.3.0",
-            "training_type": "unsupervised",
-            "input_dimensionality": "multivariate",
-            "params": {
-                "raise": {"name": "raise", "type": "Boolean", "defaultValue": "false", "description": ""},
-                "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
+        self.assertDictEqual(
+            algo1,
+            {
+                "display_name": "DEMO algorithm with post-processing",
+                "description": "Uses the demo docker image algorithm for testing purposes",
+                "name": "timeeval_test_algorithm_post",
+                "version": "0.3.0",
+                "training_type": "unsupervised",
+                "input_dimensionality": "multivariate",
+                "params": {
+                    "raise": {
+                        "name": "raise",
+                        "type": "Boolean",
+                        "defaultValue": "false",
+                        "description": "",
+                    },
+                    "sleep": {
+                        "name": "sleep",
+                        "type": "Int",
+                        "defaultValue": 10,
+                        "description": "",
+                    },
+                },
+                "available": True,
+                "post_function_name": "post_func",
+                "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n",
             },
-            "available": True,
-            "post_function_name": "post_func",
-            "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n",
-        })
-        self.assertDictEqual(algo2, {
-            "display_name": "DEMO algorithm",
-            "description": "Uses the demo docker image algorithm for testing purposes",
-            "name": "timeeval_test_algorithm",
-            "version": "0.3.0",
-            "training_type": "unsupervised",
-            "input_dimensionality": "multivariate",
-            "params": {
-                "raise": {"name": "raise", "type": "Boolean", "defaultValue": "false", "description": ""},
-                "sleep": {"name": "sleep", "type": "Int", "defaultValue": 10, "description": ""},
-                "dummy": {"name": "dummy", "type": "String", "defaultValue": "ignore", "description": ""},
+        )
+        self.assertDictEqual(
+            algo2,
+            {
+                "display_name": "DEMO algorithm",
+                "description": "Uses the demo docker image algorithm for testing purposes",
+                "name": "timeeval_test_algorithm",
+                "version": "0.3.0",
+                "training_type": "unsupervised",
+                "input_dimensionality": "multivariate",
+                "params": {
+                    "raise": {
+                        "name": "raise",
+                        "type": "Boolean",
+                        "defaultValue": "false",
+                        "description": "",
+                    },
+                    "sleep": {
+                        "name": "sleep",
+                        "type": "Int",
+                        "defaultValue": 10,
+                        "description": "",
+                    },
+                    "dummy": {
+                        "name": "dummy",
+                        "type": "String",
+                        "defaultValue": "ignore",
+                        "description": "",
+                    },
+                },
+                "available": True,
             },
-            "available": True,
-        })
+        )
         self.assertEqual(algo2, loader.algo_detail("timeeval_test_algorithm"))
 
     def test_skips_missing_readme(self):
@@ -107,10 +155,13 @@ class TestAlgorithmParsing(unittest.TestCase):
                     """
                 )
             res = _parse_readme(algorithm_folder)
-            self.assertDictEqual(res, {
-                "post_function_name": "post_func",
-                "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n"
-            })
+            self.assertDictEqual(
+                res,
+                {
+                    "post_function_name": "post_func",
+                    "post_process_block": "import numpy as np\ndef post_func(X, args):\n    return np.zeros(X.shape[0])\n",
+                },
+            )
 
     def test_skips_missing_manifest(self):
         with tempfile.TemporaryDirectory() as tmp_path:

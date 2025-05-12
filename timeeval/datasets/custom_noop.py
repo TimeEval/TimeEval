@@ -31,16 +31,17 @@ class NoOpCustomDatasets(CustomDatasetsBase):
     def get(self, dataset_name: str) -> Dataset:
         raise KeyError("No custom datasets loaded!")
 
-    def select(self,
-               collection: Optional[str] = None,
-               dataset: Optional[str] = None,
-               dataset_type: Optional[str] = None,
-               datetime_index: Optional[bool] = None,
-               training_type: Optional[TrainingType] = None,
-               train_is_normal: Optional[bool] = None,
-               input_dimensionality: Optional[InputDimensionality] = None,
-               min_anomalies: Optional[int] = None,
-               max_anomalies: Optional[int] = None,
-               max_contamination: Optional[float] = None
-               ) -> List[DatasetId]:
+    def select(
+        self,
+        collection: Optional[str] = None,
+        dataset: Optional[str] = None,
+        dataset_type: Optional[str] = None,
+        datetime_index: Optional[bool] = None,
+        training_type: Optional[TrainingType] = None,
+        train_is_normal: Optional[bool] = None,
+        input_dimensionality: Optional[InputDimensionality] = None,
+        min_anomalies: Optional[int] = None,
+        max_anomalies: Optional[int] = None,
+        max_contamination: Optional[float] = None,
+    ) -> List[DatasetId]:
         return []

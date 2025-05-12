@@ -206,7 +206,7 @@ def main():
         task_memory_limit = 2 * GB,
         task_cpu_limit = 1.0,
     )
-    
+
     # create TimeEval object and pass all the options
     timeeval = TimeEval(dm, datasets, algorithms,
         repetitions=repetitions,

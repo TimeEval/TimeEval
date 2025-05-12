@@ -34,7 +34,7 @@ def _check_signature(signature: str) -> bool:
         r"ParameterDependenceHeuristic|PeriodSizeHeuristic|EmbedDimRangeHeuristic|ContaminationHeuristic|"
         r"DefaultFactorHeuristic|DefaultExponentialFactorHeuristic|DatasetIdHeuristic)[(].*[)]$",
         signature,
-        re.M
+        re.M,
     )
     return res is not None
 
@@ -69,16 +69,18 @@ def TimeEvalHeuristic(signature: str) -> TimeEvalParameterHeuristic:
         The created heuristic object.
     """
     if not _check_signature(signature):
-        raise ValueError(f"Heuristic '{signature}' is invalid! Only constructor calls to classes derived from "
-                         "TimeEvalParameterHeuristic are allowed.")
+        raise ValueError(
+            f"Heuristic '{signature}' is invalid! Only constructor calls to classes derived from "
+            "TimeEvalParameterHeuristic are allowed."
+        )
     return eval(signature)  # type: ignore
 
 
 def inject_heuristic_values(
-        params: T,
-        algorithm: Algorithm,
-        dataset_details: Dataset,
-        dataset_path: Path,
+    params: T,
+    algorithm: Algorithm,
+    dataset_details: Dataset,
+    dataset_path: Path,
 ) -> T:
     """This function parses the supplied parameter mapping in ``params`` and replaces all heuristic definitions with
     their actual values.
@@ -122,8 +124,14 @@ def inject_heuristic_values(
 
     updated_params = deepcopy(params)
     # defer dependence heuristics after all other heuristics
-    heuristic_params = {(k, v) for k, v in params.items() if isinstance(v, str) and v.startswith("heuristic:")}
-    deferred_params = {(k, v) for k, v in heuristic_params if "ParameterDependenceHeuristic" in v}
+    heuristic_params = {
+        (k, v)
+        for k, v in params.items()
+        if isinstance(v, str) and v.startswith("heuristic:")
+    }
+    deferred_params = {
+        (k, v) for k, v in heuristic_params if "ParameterDependenceHeuristic" in v
+    }
     heuristic_params -= deferred_params
     for k, v in list(heuristic_params) + list(deferred_params):
         if isinstance(v, str) and v.startswith("heuristic:"):
@@ -137,7 +145,7 @@ def inject_heuristic_values(
                     # required by ParameterDependenceHeuristic
                     params=updated_params,
                     # required by DefaultFactorHeuristic and DefaultExponentialFactorHeuristic
-                    param_name=k
+                    param_name=k,
                 )
             except Exception as ex:
                 raise ValueError(

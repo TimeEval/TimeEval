@@ -34,6 +34,7 @@ class DefaultFactorHeuristic(TimeEvalParameterHeuristic):
     zero_fb : float
         Value to use for the default value if it is 0. (default: 1.0)
     """
+
     def __init__(self, factor: float = 1.0, zero_fb: float = 1.0):
         if zero_fb == 0:
             raise ValueError("You cannot supply a zero_fb of 0!")
@@ -45,7 +46,9 @@ class DefaultFactorHeuristic(TimeEvalParameterHeuristic):
         try:
             default = algorithm.param_schema[param_name]["defaultValue"]
         except KeyError as e:
-            raise ValueError(f"Could not find the default value for parameter {param_name}") from e
+            raise ValueError(
+                f"Could not find the default value for parameter {param_name}"
+            ) from e
 
         if default == 0:
             default = self.zero_fb

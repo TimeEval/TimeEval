@@ -38,9 +38,17 @@ class ParameterDependenceHeuristic(TimeEvalParameterHeuristic):
     factor : float, optional
         Factor to multiply the source parameter value with. (default: None)
     """
-    def __init__(self, source_parameter: str, fn: Optional[Callable[[Any], Any]] = None, factor: Optional[float] = None):
+
+    def __init__(
+        self,
+        source_parameter: str,
+        fn: Optional[Callable[[Any], Any]] = None,
+        factor: Optional[float] = None,
+    ):
         if fn is not None and factor is not None:
-            raise ValueError("You cannot supply a mapping function and a factor at the same time!")
+            raise ValueError(
+                "You cannot supply a mapping function and a factor at the same time!"
+            )
         self.source_parameter = source_parameter
         self.fn = fn
         self.factor = factor
@@ -49,8 +57,10 @@ class ParameterDependenceHeuristic(TimeEvalParameterHeuristic):
         try:
             original = kwargs["params"][self.source_parameter]
         except KeyError:
-            warnings.warn(f"Could not find a value for source parameter '{self.source_parameter}'",
-                          category=HeuristicFallbackWarning)
+            warnings.warn(
+                f"Could not find a value for source parameter '{self.source_parameter}'",
+                category=HeuristicFallbackWarning,
+            )
             # don't set the parameter --> use the algorithm default
             return None
 

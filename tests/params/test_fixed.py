@@ -16,7 +16,9 @@ class TestFixedParameters(unittest.TestCase):
     def test_fixed_parameters_wrong_input(self):
         with self.assertRaises(TypeError) as ex:
             FixedParameters([{"a": [1, 2]}])
-        self.assertRegex(str(ex.exception), "[P|p]lease use a.*IndependentParameterGrid.")
+        self.assertRegex(
+            str(ex.exception), "[P|p]lease use a.*IndependentParameterGrid."
+        )
 
         with self.assertRaises(TypeError) as ex:
             FixedParameters("a")

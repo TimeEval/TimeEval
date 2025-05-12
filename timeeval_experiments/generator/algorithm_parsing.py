@@ -5,17 +5,25 @@ from pathlib import Path
 from typing import Union, Optional, Dict, List, Any
 
 from .exceptions import (
-    MissingReadmeWarning, MissingManifestWarning, InvalidManifestWarning, AlgorithmManifestLoadingWarning
+    MissingReadmeWarning,
+    MissingManifestWarning,
+    InvalidManifestWarning,
+    AlgorithmManifestLoadingWarning,
 )
 
-IGNORED_FOLDERS = ["results", "data", "scripts", "0-base-images", "1-intermediate-images", "2-scripts"]
+IGNORED_FOLDERS = [
+    "results",
+    "data",
+    "scripts",
+    "0-base-images",
+    "1-intermediate-images",
+    "2-scripts",
+]
 CODEBLOCK = r"[`]{3}\w*?\n(.+?)[`]{3}"
 CODEBLOCK_PATTERN = re.compile(CODEBLOCK, re.S)  # G is set through find**all**
 TE_POST_CODEBLOCK_PATTERN = re.compile(
-    r"<!--BEGIN:timeeval-post-->.*" +
-    CODEBLOCK +
-    r".*<!--END:timeeval-post-->",
-    re.S  # G is set through find**all**
+    r"<!--BEGIN:timeeval-post-->.*" + CODEBLOCK + r".*<!--END:timeeval-post-->",
+    re.S,  # G is set through find**all**
 )
 POST_FUNC_PATTERN = re.compile(r"def (.+?)\(", re.M)
 MANIFEST_FILENAME = "manifest.json"
@@ -34,16 +42,22 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
     with manifest_path.open("r") as fh:
         manifest = json.load(fh)
     if "title" not in manifest:
-        warnings.warn(InvalidManifestWarning.msg(name, "'title' is missing."),
-                      category=InvalidManifestWarning)
+        warnings.warn(
+            InvalidManifestWarning.msg(name, "'title' is missing."),
+            category=InvalidManifestWarning,
+        )
         return None
     if "learningType" not in manifest:
-        warnings.warn(InvalidManifestWarning.msg(name, "'learningType' is missing."),
-                      category=InvalidManifestWarning)
+        warnings.warn(
+            InvalidManifestWarning.msg(name, "'learningType' is missing."),
+            category=InvalidManifestWarning,
+        )
         return None
     if "inputDimensionality" not in manifest:
-        warnings.warn(InvalidManifestWarning.msg(name, "'inputDimensionality' is missing."),
-                      category=InvalidManifestWarning)
+        warnings.warn(
+            InvalidManifestWarning.msg(name, "'inputDimensionality' is missing."),
+            category=InvalidManifestWarning,
+        )
         return None
 
     params = _collect_parameters(name, manifest)
@@ -54,7 +68,7 @@ def _parse_manifest(algo_dir: Path) -> Optional[Dict]:
         "training_type": manifest["learningType"],
         "input_dimensionality": manifest["inputDimensionality"],
         "version": manifest["version"],
-        "params": params
+        "params": params,
     }
 
 
@@ -71,8 +85,10 @@ def _collect_parameters(name: str, manifest: Dict[str, Any]) -> Dict:
                     parameters[param_obj["name"]] = param_obj
 
     if len(parameters) == 0:
-        warnings.warn(InvalidManifestWarning.msg(name, "no parameters found.", will_skip=False),
-                      category=InvalidManifestWarning)
+        warnings.warn(
+            InvalidManifestWarning.msg(name, "no parameters found.", will_skip=False),
+            category=InvalidManifestWarning,
+        )
 
     return parameters
 
@@ -91,11 +107,13 @@ def _parse_readme(algo_dir: Path) -> Optional[Dict]:
     groups = CODEBLOCK_PATTERN.findall(lines)
     post_func_groups = TE_POST_CODEBLOCK_PATTERN.findall(lines)
     if groups and not post_func_groups:
-        warnings.warn(f"Algorithm {name}'s README contains code blocks, but no TimeEval "
-                      "post function annotation (fenced code block with "
-                      "`<!--BEGIN:timeeval-post-->` and `<!--END:timeeval-post-->`)! "
-                      f"If {name} requires post-processing, it will not be generated!",
-                      category=AlgorithmManifestLoadingWarning)
+        warnings.warn(
+            f"Algorithm {name}'s README contains code blocks, but no TimeEval "
+            "post function annotation (fenced code block with "
+            "`<!--BEGIN:timeeval-post-->` and `<!--END:timeeval-post-->`)! "
+            f"If {name} requires post-processing, it will not be generated!",
+            category=AlgorithmManifestLoadingWarning,
+        )
     elif post_func_groups:
         post_process_block = post_func_groups[0]
         post_process_block = _fix_indent(post_process_block)
@@ -135,8 +153,11 @@ class AlgorithmLoader:
 
     def _load(self) -> List[Dict]:
         algo_dirs = [
-            d for d in self.path.iterdir()
-            if d.is_dir() and not d.name.startswith(".") and d.name not in IGNORED_FOLDERS
+            d
+            for d in self.path.iterdir()
+            if d.is_dir()
+            and not d.name.startswith(".")
+            and d.name not in IGNORED_FOLDERS
         ]
         algos = []
         skipped_algos = 0
@@ -153,7 +174,9 @@ class AlgorithmLoader:
             d_algo.update(d_availability)
 
             algos.append(d_algo)
-        print(f"Found {len(algos)}/{len(algo_dirs)} valid algorithms (skipped {skipped_algos})")
+        print(
+            f"Found {len(algos)}/{len(algo_dirs)} valid algorithms (skipped {skipped_algos})"
+        )
         return algos
 
     @property

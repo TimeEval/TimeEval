@@ -27,7 +27,9 @@ class AveragePrecision(Metric):
         self._kwargs = kwargs
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
-        score: float = average_precision_score(y_true, y_score, pos_label=1, **self._kwargs)
+        score: float = average_precision_score(
+            y_true, y_score, pos_label=1, **self._kwargs
+        )
         return score
 
     def supports_continuous_scorings(self) -> bool:
@@ -61,7 +63,9 @@ class FScoreAtK(Metric):
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         y_pred = TopKRangesThresholding(k=self._k).fit_transform(y_true, y_score)
-        score: float = ts_fscore(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
+        score: float = ts_fscore(
+            y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal"
+        )
         return score
 
     def supports_continuous_scorings(self) -> bool:

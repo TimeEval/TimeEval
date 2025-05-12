@@ -23,8 +23,7 @@ class TestBayesianParameterSearch(unittest.TestCase):
         from optuna import distributions
 
         self.algorithm = Algorithm(
-            name="TestAlgorithm",
-            main=FunctionAdapter.identity()
+            name="TestAlgorithm", main=FunctionAdapter.identity()
         )
         self.dataset = Dataset(
             datasetId=("test", "dataset-name"),
@@ -41,7 +40,9 @@ class TestBayesianParameterSearch(unittest.TestCase):
         )
         self.param_distributions = {
             "method": distributions.CategoricalDistribution(["good", "bad"]),
-            "max_features": distributions.FloatDistribution(low=0.0, high=1.0, step=0.01),
+            "max_features": distributions.FloatDistribution(
+                low=0.0, high=1.0, step=0.01
+            ),
             "window_size": distributions.IntDistribution(low=1, high=1000, step=5),
         }
         self.expected_params = [
@@ -50,7 +51,10 @@ class TestBayesianParameterSearch(unittest.TestCase):
         ]
 
     def test_update_options(self):
-        from timeeval.integration.optuna import OptunaConfiguration, OptunaStudyConfiguration
+        from timeeval.integration.optuna import (
+            OptunaConfiguration,
+            OptunaStudyConfiguration,
+        )
         from optuna.samplers import CmaEsSampler, TPESampler
 
         default_sampler = TPESampler()
@@ -60,7 +64,7 @@ class TestBayesianParameterSearch(unittest.TestCase):
             default_storage="sqlite:///optuna.db",
             default_sampler=default_sampler,
             continue_existing_studies=True,
-            dashboard=True
+            dashboard=True,
         )
         optuna_study_config = OptunaStudyConfiguration(
             n_trials=4,
@@ -88,8 +92,12 @@ class TestBayesianParameterSearch(unittest.TestCase):
     def test_lazy_param_creation(self):
         from timeeval.integration.optuna import OptunaStudyConfiguration
 
-        optuna_study_config = OptunaStudyConfiguration(n_trials=4, metric=RangePrAUC(), storage=None)
-        param_search = BayesianParameterSearch(config=optuna_study_config, params=self.param_distributions)
+        optuna_study_config = OptunaStudyConfiguration(
+            n_trials=4, metric=RangePrAUC(), storage=None
+        )
+        param_search = BayesianParameterSearch(
+            config=optuna_study_config, params=self.param_distributions
+        )
         params = list(param_search.iter(self.algorithm, self.dataset))
         self.assertEqual(len(params), 4)
 
@@ -100,7 +108,7 @@ class TestBayesianParameterSearch(unittest.TestCase):
             self.assertListEqual(list(param), list(self.param_distributions.keys()))
             self.assertListEqual(
                 list(param.items()),
-                list(map(lambda k: (k, trial_id), self.param_distributions.keys()))
+                list(map(lambda k: (k, trial_id), self.param_distributions.keys())),
             )
             self.assertEqual(param.uid(), trial_id)
 
@@ -111,23 +119,37 @@ class TestBayesianParameterSearch(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_path:
             tmp_path = Path(tmp_path)
-            journal_file_path = str(tmp_path / "test_materialization.optuna-journal.log")
+            journal_file_path = str(
+                tmp_path / "test_materialization.optuna-journal.log"
+            )
             optuna_study_config = OptunaStudyConfiguration(
                 n_trials=4,
                 metric=RangePrAUC(),
                 storage=lambda: JournalStorage(
-                    JournalFileStorage(journal_file_path, lock_obj=JournalFileOpenLock(journal_file_path))
+                    JournalFileStorage(
+                        journal_file_path,
+                        lock_obj=JournalFileOpenLock(journal_file_path),
+                    )
                 ),
-                sampler=TPESampler(seed=42)
+                sampler=TPESampler(seed=42),
             )
-            param_search = BayesianParameterSearch(config=optuna_study_config, params=self.param_distributions)
+            param_search = BayesianParameterSearch(
+                config=optuna_study_config, params=self.param_distributions
+            )
             params = list(param_search.iter(self.algorithm, self.dataset))
-            loaded_study = optuna.load_study(study_name, storage=optuna_study_config.storage())
+            loaded_study = optuna.load_study(
+                study_name, storage=optuna_study_config.storage()
+            )
             self.assertEqual(loaded_study.study_name, study_name)
             self.assertEqual(loaded_study.user_attrs["algorithm"], self.algorithm.name)
             self.assertEqual(loaded_study.user_attrs["dataset"], self.dataset.name)
-            self.assertEqual(loaded_study.user_attrs["metric"], optuna_study_config.metric.name)
-            self.assertEqual(loaded_study.user_attrs["direction"], str(optuna_study_config.direction).lower())
+            self.assertEqual(
+                loaded_study.user_attrs["metric"], optuna_study_config.metric.name
+            )
+            self.assertEqual(
+                loaded_study.user_attrs["direction"],
+                str(optuna_study_config.direction).lower(),
+            )
 
             for i, (param, p_suggested) in enumerate(zip(params, self.expected_params)):
                 trial_id = f"{self.algorithm.name}-{self.dataset.name}-{i}"
@@ -159,11 +181,16 @@ class TestBayesianParameterSearch(unittest.TestCase):
                 n_trials=4,
                 metric=RangePrAUC(),
                 storage=lambda: JournalStorage(
-                    JournalFileStorage(journal_file_path, lock_obj=JournalFileOpenLock(journal_file_path))
+                    JournalFileStorage(
+                        journal_file_path,
+                        lock_obj=JournalFileOpenLock(journal_file_path),
+                    )
                 ),
-                sampler=TPESampler(seed=42)
+                sampler=TPESampler(seed=42),
             )
-            param_search = BayesianParameterSearch(config=optuna_study_config, params={})
+            param_search = BayesianParameterSearch(
+                config=optuna_study_config, params={}
+            )
             params = list(param_search.iter(self.algorithm, self.dataset))
             for p in params:
                 p.materialize()

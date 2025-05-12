@@ -25,7 +25,9 @@ random.seed(42)
 
 def main():
     dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
-    configurator = AlgorithmConfigurator(config_path="timeeval_experiments/param-config.example.json")
+    configurator = AlgorithmConfigurator(
+        config_path="timeeval_experiments/param-config.example.json"
+    )
 
     # Select datasets and algorithms
     datasets = dm.select()
@@ -123,21 +125,27 @@ def main():
     sys.stdout.flush()
 
     cluster_config = RemoteConfiguration(
-        scheduler_host="localhost",
-        worker_hosts=["localhost"]
+        scheduler_host="localhost", worker_hosts=["localhost"]
     )
     limits = ResourceConstraints(
         tasks_per_host=1,
-        task_cpu_limit=1.,
+        task_cpu_limit=1.0,
         train_timeout=Duration("1 minute"),
-        execute_timeout=Duration("1 minute")
+        execute_timeout=Duration("1 minute"),
     )
-    timeeval = TimeEval(dm, datasets, algorithms,
-                        distributed=True,
-                        remote_config=cluster_config,
-                        resource_constraints=limits,
-                        metrics=[RocAUC(), RangeRocAUC(buffer_size=100), RangePrVUS(max_buffer_size=100)]
-                        )
+    timeeval = TimeEval(
+        dm,
+        datasets,
+        algorithms,
+        distributed=True,
+        remote_config=cluster_config,
+        resource_constraints=limits,
+        metrics=[
+            RocAUC(),
+            RangeRocAUC(buffer_size=100),
+            RangePrVUS(max_buffer_size=100),
+        ],
+    )
     timeeval.run()
     print(timeeval.get_results(aggregated=False))
 

@@ -37,6 +37,7 @@ class Status(Enum):
 
     The status of each evaluation experiment can have one of four states: ok, error, timeout, or out-of-memory (oom).
     """
+
     OK = 0
     ERROR = 1
     TIMEOUT = 2
@@ -177,23 +178,25 @@ class TimeEval:
         instance, e.g. ``timeeval.modules["optuna"]``.
     """
 
-    RESULT_KEYS = ["algorithm",
-                   "collection",
-                   "dataset",
-                   "algo_training_type",
-                   "algo_input_dimensionality",
-                   "dataset_training_type",
-                   "dataset_input_dimensionality",
-                   "train_preprocess_time",
-                   "train_main_time",
-                   "execute_preprocess_time",
-                   "execute_main_time",
-                   "execute_postprocess_time",
-                   "status",
-                   "error_message",
-                   "repetition",
-                   "hyper_params",
-                   "hyper_params_id"]
+    RESULT_KEYS = [
+        "algorithm",
+        "collection",
+        "dataset",
+        "algo_training_type",
+        "algo_input_dimensionality",
+        "dataset_training_type",
+        "dataset_input_dimensionality",
+        "train_preprocess_time",
+        "train_main_time",
+        "execute_preprocess_time",
+        "execute_main_time",
+        "execute_postprocess_time",
+        "status",
+        "error_message",
+        "repetition",
+        "hyper_params",
+        "hyper_params_id",
+    ]
     """This list contains all the _fixed_ result data frame's column headers.
     TimeEval dynamically adds the metrics and execution times depending on its configuration.
 
@@ -214,31 +217,37 @@ class TimeEval:
     within the current working directory.
     """
 
-    def __init__(self,
-                 dataset_mgr: Datasets,
-                 datasets: List[Tuple[str, str]],
-                 algorithms: List[Algorithm],
-                 results_path: Path = DEFAULT_RESULT_PATH,
-                 repetitions: int = 1,
-                 distributed: bool = False,
-                 remote_config: Optional[RemoteConfiguration] = None,
-                 resource_constraints: Optional[ResourceConstraints] = None,
-                 disable_progress_bar: bool = False,
-                 metrics: Optional[List[Metric]] = None,
-                 skip_invalid_combinations: bool = True,
-                 force_training_type_match: bool = False,
-                 force_dimensionality_match: bool = False,
-                 n_jobs: int = -1,
-                 experiment_combinations_file: Optional[Path] = None,
-                 module_configs: Mapping[str, Any] = {}) -> None:
+    def __init__(
+        self,
+        dataset_mgr: Datasets,
+        datasets: List[Tuple[str, str]],
+        algorithms: List[Algorithm],
+        results_path: Path = DEFAULT_RESULT_PATH,
+        repetitions: int = 1,
+        distributed: bool = False,
+        remote_config: Optional[RemoteConfiguration] = None,
+        resource_constraints: Optional[ResourceConstraints] = None,
+        disable_progress_bar: bool = False,
+        metrics: Optional[List[Metric]] = None,
+        skip_invalid_combinations: bool = True,
+        force_training_type_match: bool = False,
+        force_dimensionality_match: bool = False,
+        n_jobs: int = -1,
+        experiment_combinations_file: Optional[Path] = None,
+        module_configs: Mapping[str, Any] = {},
+    ) -> None:
         assert len(datasets) > 0, "No datasets given for evaluation!"
         assert len(algorithms) > 0, "No algorithms given for evaluation!"
         assert repetitions > 0, "Negative or 0 repetitions are not supported!"
         assert n_jobs >= -1, f"n_jobs={n_jobs} not supported (must be >= -1)!"
         if experiment_combinations_file is not None:
-            assert experiment_combinations_file.exists(), "Experiment combination file not found!"
+            assert (
+                experiment_combinations_file.exists()
+            ), "Experiment combination file not found!"
         if remote_config:
-            assert len(remote_config.worker_hosts) > 0, "At least one worker is required to execute experiments!"
+            assert (
+                len(remote_config.worker_hosts) > 0
+            ), "At least one worker is required to execute experiments!"
 
         dataset_details = []
         not_found_datasets = []
@@ -247,15 +256,27 @@ class TimeEval:
                 dataset_details.append(dataset_mgr.get(d))
             except KeyError:
                 not_found_datasets.append(repr(d))
-        assert len(not_found_datasets) == 0, "Some datasets could not be found in DatasetManager!\n  " \
-                                             f"{', '.join(not_found_datasets)}"
+        assert len(not_found_datasets) == 0, (
+            "Some datasets could not be found in DatasetManager!\n  "
+            f"{', '.join(not_found_datasets)}"
+        )
 
         limits = resource_constraints or ResourceConstraints.default_constraints()
         if limits != ResourceConstraints.default_constraints():
-            incompatible_algos = [a.name for a in algorithms if not isinstance(a.main, DockerAdapter) and not (isinstance(a.main, MultivarAdapter) and isinstance(a.main._adapter, DockerAdapter))]
-            assert len(incompatible_algos) == 0, "The following algorithms won't satisfy the specified resource " \
-                                                 f"constraints: {', '.join(incompatible_algos)}. Either drop the " \
-                                                 "resource constraints or use the DockerAdapter for all algorithms!"
+            incompatible_algos = [
+                a.name
+                for a in algorithms
+                if not isinstance(a.main, DockerAdapter)
+                and not (
+                    isinstance(a.main, MultivarAdapter)
+                    and isinstance(a.main._adapter, DockerAdapter)
+                )
+            ]
+            assert len(incompatible_algos) == 0, (
+                "The following algorithms won't satisfy the specified resource "
+                f"constraints: {', '.join(incompatible_algos)}. Either drop the "
+                "resource constraints or use the DockerAdapter for all algorithms!"
+            )
 
         self.log = logging.getLogger(self.__class__.__name__)
         start_date: str = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -293,42 +314,62 @@ class TimeEval:
                 )
                 repetitions = 1
             from .integration.optuna import OptunaModule, OptunaConfiguration
-            optuna_config = module_configs.get("optuna", OptunaConfiguration.default(self.distributed))
+
+            optuna_config = module_configs.get(
+                "optuna", OptunaConfiguration.default(self.distributed)
+            )
             self.modules["optuna"] = OptunaModule(optuna_config)
 
-        self.exps = Experiments(dataset_mgr, dataset_details, algorithms, self.results_path,
-                                resource_constraints=limits,
-                                repetitions=repetitions,
-                                skip_invalid_combinations=skip_invalid_combinations,
-                                force_training_type_match=force_training_type_match,
-                                force_dimensionality_match=force_dimensionality_match,
-                                metrics=self.metrics,
-                                experiment_combinations_file=experiment_combinations_file)
-        assert len(self.exps) != 0, "No valid experiments configured! Please check that the input dimensionality and " \
-                                    "training type of algorithms and datasets match. You can use the parameters "\
-                                    "``skip_invalid_combinations``, ``force_training_type_match``, "\
-                                    "``force_dimensionality_match``, and ``experiment_combinations_file`` to control " \
-                                    "which algorithm runs on which dataset."
+        self.exps = Experiments(
+            dataset_mgr,
+            dataset_details,
+            algorithms,
+            self.results_path,
+            resource_constraints=limits,
+            repetitions=repetitions,
+            skip_invalid_combinations=skip_invalid_combinations,
+            force_training_type_match=force_training_type_match,
+            force_dimensionality_match=force_dimensionality_match,
+            metrics=self.metrics,
+            experiment_combinations_file=experiment_combinations_file,
+        )
+        assert len(self.exps) != 0, (
+            "No valid experiments configured! Please check that the input dimensionality and "
+            "training type of algorithms and datasets match. You can use the parameters "
+            "``skip_invalid_combinations``, ``force_training_type_match``, "
+            "``force_dimensionality_match``, and ``experiment_combinations_file`` to control "
+            "which algorithm runs on which dataset."
+        )
 
         self.remote_config: RemoteConfiguration = remote_config or RemoteConfiguration()
         self.remote_config.update_logging_path(self.results_path)
-        self.log.debug(f"Updated dask logging filepath to {self.remote_config.dask_logging_filename}")
+        self.log.debug(
+            f"Updated dask logging filepath to {self.remote_config.dask_logging_filename}"
+        )
 
         if self.distributed:
-            self.log.info("TimeEval is running in distributed environment, setting up remoting ...")
-            self.remote = Remote(disable_progress_bar=self.disable_progress_bar, remote_config=self.remote_config,
-                                 resource_constraints=limits)
+            self.log.info(
+                "TimeEval is running in distributed environment, setting up remoting ..."
+            )
+            self.remote = Remote(
+                disable_progress_bar=self.disable_progress_bar,
+                remote_config=self.remote_config,
+                resource_constraints=limits,
+            )
             self.results["future_result"] = np.nan
 
             self.log.info("... registering signal handlers ...")
             orig_handler: Callable[[int, Optional[FrameType]], Any] = signal.getsignal(signal.SIGINT)  # type: ignore
 
             def sigint_handler(sig: int, frame: Optional[FrameType] = None) -> Any:
-                self.log.warning(f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
-                                 "containers on all worker nodes (we do not remove them when terminating "
-                                 "ungracefully).")
+                self.log.warning(
+                    f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
+                    "containers on all worker nodes (we do not remove them when terminating "
+                    "ungracefully)."
+                )
                 self.remote.close()
                 return orig_handler(sig, frame)
+
             signal.signal(signal.SIGINT, sigint_handler)
 
             self.log.info("... remoting setup done.")
@@ -340,7 +381,10 @@ class TimeEval:
                 future_result: Optional[Future] = None
                 result: Optional[Dict[str, Any]] = None
 
-                if exp.algorithm.training_type in [TrainingType.SUPERVISED, TrainingType.SEMI_SUPERVISED]:
+                if exp.algorithm.training_type in [
+                    TrainingType.SUPERVISED,
+                    TrainingType.SEMI_SUPERVISED,
+                ]:
                     if exp.resolved_train_dataset_path is None:
                         # Intentionally raise KeyError here if no training dataset is specified.
                         # The Error will be caught by the except clause below.
@@ -349,13 +393,20 @@ class TimeEval:
                     # This check is not necessary for unsupervised algorithms, because they can be executed on all
                     # datasets.
                     if exp.algorithm.training_type != exp.dataset.training_type:
-                        raise ValueError(f"Dataset training type ({exp.dataset.training_type}) incompatible to "
-                                         f"algorithm training type ({exp.algorithm.training_type})!")
+                        raise ValueError(
+                            f"Dataset training type ({exp.dataset.training_type}) incompatible to "
+                            f"algorithm training type ({exp.algorithm.training_type})!"
+                        )
 
-                if (exp.algorithm.input_dimensionality == InputDimensionality.UNIVARIATE and
-                        exp.dataset.input_dimensionality == InputDimensionality.MULTIVARIATE):
-                    raise ValueError(f"Dataset input dimensionality ({exp.dataset.input_dimensionality}) incompatible "
-                                     f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!")
+                if (
+                    exp.algorithm.input_dimensionality == InputDimensionality.UNIVARIATE
+                    and exp.dataset.input_dimensionality
+                    == InputDimensionality.MULTIVARIATE
+                ):
+                    raise ValueError(
+                        f"Dataset input dimensionality ({exp.dataset.input_dimensionality}) incompatible "
+                        f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!"
+                    )
 
                 if self.distributed:
                     future_result = self.remote.add_task(exp.evaluate, key=exp.name)
@@ -364,24 +415,38 @@ class TimeEval:
                 self._record_results(exp, result=result, future_result=future_result)
 
             except DockerTimeoutError as e:
-                self.log.exception(f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} timed out.")
+                self.log.exception(
+                    f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} timed out."
+                )
                 result = {m: np.nan for m in self.metric_names}
-                self._record_results(exp, result=result, status=Status.TIMEOUT, error_message=repr(e))
+                self._record_results(
+                    exp, result=result, status=Status.TIMEOUT, error_message=repr(e)
+                )
             except DockerMemoryError as e:
-                self.log.exception(f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} exceeded its memory limit (OOM).")
+                self.log.exception(
+                    f"Evaluation of {exp.algorithm.name} on the dataset {exp.dataset} exceeded its memory limit (OOM)."
+                )
                 result = {m: np.nan for m in self.metric_names}
-                self._record_results(exp, result=result, status=Status.OOM, error_message=repr(e))
+                self._record_results(
+                    exp, result=result, status=Status.OOM, error_message=repr(e)
+                )
             except Exception as e:
-                self.log.exception(f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}.")
+                self.log.exception(
+                    f"Exception occurred during the evaluation of {exp.algorithm.name} on the dataset {exp.dataset}."
+                )
                 result = {m: np.nan for m in self.metric_names}
-                self._record_results(exp, result=result, status=Status.ERROR, error_message=repr(e))
+                self._record_results(
+                    exp, result=result, status=Status.ERROR, error_message=repr(e)
+                )
 
-    def _record_results(self,
-                        exp: Experiment,
-                        result: Optional[Dict[str, Any]] = None,
-                        future_result: Optional[Future] = None,
-                        status: Status = Status.OK,
-                        error_message: Optional[str] = None) -> None:
+    def _record_results(
+        self,
+        exp: Experiment,
+        result: Optional[Dict[str, Any]] = None,
+        future_result: Optional[Future] = None,
+        status: Status = Status.OK,
+        error_message: Optional[str] = None,
+    ) -> None:
         new_row = {
             "algorithm": exp.algorithm.name,
             "collection": exp.dataset_collection,
@@ -393,7 +458,7 @@ class TimeEval:
             "status": status,
             "error_message": error_message if error_message is not None else "",
             "repetition": exp.repetition,
-            "hyper_params_id": exp.params_id
+            "hyper_params_id": exp.params_id,
         }
         try:
             new_row["hyper_params"] = dumps_params(exp.params)
@@ -406,7 +471,9 @@ class TimeEval:
         if self.results.empty:
             self.results = pd.DataFrame([new_row])
         else:
-            self.results = pd.concat([self.results, pd.DataFrame([new_row])], ignore_index=True)
+            self.results = pd.concat(
+                [self.results, pd.DataFrame([new_row])], ignore_index=True
+            )
 
     def _resolve_future_results(self) -> None:
         self.remote.fetch_results()
@@ -434,7 +501,9 @@ class TimeEval:
 
             return tuple(np.nan for _ in result_keys) + (status, error_message)
 
-        self.results[keys] = self.results["future_result"].apply(get_future_result).tolist()
+        self.results[keys] = (
+            self.results["future_result"].apply(get_future_result).tolist()
+        )
         self.results = self.results.drop(["future_result"], axis=1)
 
     def get_results(self, aggregated: bool = True, short: bool = True) -> pd.DataFrame:
@@ -468,9 +537,15 @@ class TimeEval:
 
         df = self.results
 
-        if np.any(np.isin(df.status.unique(), [Status.ERROR, Status.TIMEOUT, Status.OOM])):  # type:ignore
-            self.log.warning("The results contain errors which are filtered out for the final aggregation. "
-                             "To see all results, call .get_results(aggregated=False)")
+        if np.any(
+            np.isin(
+                df.status.unique(), [Status.ERROR, Status.TIMEOUT, Status.OOM]
+            )  # type:ignore
+        ):
+            self.log.warning(
+                "The results contain errors which are filtered out for the final aggregation. "
+                "To see all results, call .get_results(aggregated=False)"
+            )
             df = df[df.status == Status.OK]
 
         if short:
@@ -507,7 +582,12 @@ class TimeEval:
         self.results.to_csv(path.resolve(), index=False)
 
     @staticmethod
-    def rsync_results_from(results_path: Path, hosts: List[str], disable_progress_bar: bool = False, n_jobs: int = -1) -> None:
+    def rsync_results_from(
+        results_path: Path,
+        hosts: List[str],
+        disable_progress_bar: bool = False,
+        n_jobs: int = -1,
+    ) -> None:
         """Fetches evaluation results of an independent TimeEval run from remote machines merging the temporary data
         and results together on the local host.
 
@@ -530,14 +610,23 @@ class TimeEval:
             hostname,
             socket.gethostbyname(hostname),
             "localhost",
-            socket.gethostbyname("localhost")
+            socket.gethostbyname("localhost"),
         ]
         jobs = [
-            delayed(subprocess.call)(["rsync", "-a", f"{host}:{results_path}/", f"{results_path}"])
+            delayed(subprocess.call)(
+                ["rsync", "-a", f"{host}:{results_path}/", f"{results_path}"]
+            )
             for host in hosts
             if host not in excluded_aliases
         ]
-        with tqdm_joblib(tqdm.tqdm(hosts, desc="Collecting results", disable=disable_progress_bar, total=len(jobs))):
+        with tqdm_joblib(
+            tqdm.tqdm(
+                hosts,
+                desc="Collecting results",
+                disable=disable_progress_bar,
+                total=len(jobs),
+            )
+        ):
             Parallel(n_jobs)(jobs)
 
     def rsync_results(self) -> None:
@@ -554,7 +643,7 @@ class TimeEval:
             self.results_path,
             self.remote_config.worker_hosts,
             self.disable_progress_bar,
-            self.n_jobs
+            self.n_jobs,
         )
 
     def _prepare(self) -> None:
@@ -572,7 +661,13 @@ class TimeEval:
             algorithm.finalize()
 
     def _distributed_prepare(self) -> None:
-        tasks: List[Tuple[Union[Callable[[List[Path]], None], Callable[[], None]], List[Any], Dict[str, Any]]] = []
+        tasks: List[
+            Tuple[
+                Union[Callable[[List[Path]], None], Callable[[], None]],
+                List[Any],
+                Dict[str, Any],
+            ]
+        ] = []
         for algorithm in self.exps.algorithms:
             prepare_fn = algorithm.prepare_fn()
             if prepare_fn:
@@ -585,7 +680,9 @@ class TimeEval:
 
         dir_list = [exp.results_path for exp in self.exps]
         tasks.append((mkdirs, [dir_list], {}))
-        self.log.debug(f"Collected {len(dir_list)} directories to create on remote nodes")
+        self.log.debug(
+            f"Collected {len(dir_list)} directories to create on remote nodes"
+        )
         self.remote.run_on_all_hosts(tasks, msg="Preparing")
 
     def _distributed_finalize(self) -> None:

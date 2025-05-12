@@ -4,7 +4,13 @@ from pathlib import Path
 import warnings
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
-from timeeval import Algorithm, TrainingType, InputDimensionality, DefaultMetrics, DatasetManager
+from timeeval import (
+    Algorithm,
+    TrainingType,
+    InputDimensionality,
+    DefaultMetrics,
+    DatasetManager,
+)
 from timeeval._core.experiments import Experiments
 from timeeval.heuristics.base import HeuristicFallbackWarning
 from timeeval.params import FullParameterGrid
@@ -21,10 +27,9 @@ class TestExperiments(unittest.TestCase):
                 training_type=TrainingType.SUPERVISED,
                 input_dimensionality=InputDimensionality.UNIVARIATE,
                 data_as_file=False,
-                param_config=FullParameterGrid({
-                    "param1": range(3),
-                    "param2": ["a", "b"]
-                })
+                param_config=FullParameterGrid(
+                    {"param1": range(3), "param2": ["a", "b"]}
+                ),
             )
         ]
 
@@ -40,7 +45,7 @@ class TestExperiments(unittest.TestCase):
             repetitions=2,
             metrics=DefaultMetrics.default_list(),
             base_result_path=Path("tmp_path"),
-            skip_invalid_combinations=True
+            skip_invalid_combinations=True,
         )
         self.assertEqual(len(exps), 12)
         exp_names = [exp.name for exp in exps]
@@ -50,10 +55,12 @@ class TestExperiments(unittest.TestCase):
         warnings.simplefilter("ignore", category=HeuristicFallbackWarning)
         datasets = [self.dmgr.get(d) for d in self.dmgr.select()]
         algorithms = deepcopy(self.algorithms)
-        algorithms[0].param_config = FullParameterGrid({
-            "param1": range(2),
-            "param2": ["heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)"]
-        })
+        algorithms[0].param_config = FullParameterGrid(
+            {
+                "param1": range(2),
+                "param2": ["heuristic:PeriodSizeHeuristic(factor=1.0, fb_value=100)"],
+            }
+        )
         exps = Experiments(
             dmgr=self.dmgr,
             datasets=datasets,
@@ -61,17 +68,20 @@ class TestExperiments(unittest.TestCase):
             repetitions=1,
             metrics=DefaultMetrics.default_list(),
             base_result_path=Path("tmp_path"),
-            skip_invalid_combinations=False
+            skip_invalid_combinations=False,
         )
         tasks = [(exp.dataset_name, exp.params) for exp in exps]
         warnings.simplefilter("default", category=HeuristicFallbackWarning)
 
-        self.assertListEqual(tasks, [
-            ("dataset-datetime", {"param1": 0, "param2":  12}),
-            ("dataset-datetime", {"param1": 1, "param2":  12}),
-            ("dataset-int",      {"param1": 0, "param2": 100}),
-            ("dataset-int",      {"param1": 1, "param2": 100})
-        ])
+        self.assertListEqual(
+            tasks,
+            [
+                ("dataset-datetime", {"param1": 0, "param2": 12}),
+                ("dataset-datetime", {"param1": 1, "param2": 12}),
+                ("dataset-int", {"param1": 0, "param2": 100}),
+                ("dataset-int", {"param1": 1, "param2": 100}),
+            ],
+        )
 
         # the parameter IDs for both datasets must be the same despite having different values in param2, because
         # param2 is set by a heuristic depending on the dataset's metadata

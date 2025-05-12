@@ -29,12 +29,13 @@ class OptunaLazyParams(Params):
     distributions: Dict[str, BaseDistribution]
     config: OptunaStudyConfiguration
 
-    def __init__(self,
-                 study_name: str,
-                 index: int,
-                 distributions: Mapping[str, BaseDistribution],
-                 config: OptunaStudyConfiguration,
-                 ):
+    def __init__(
+        self,
+        study_name: str,
+        index: int,
+        distributions: Mapping[str, BaseDistribution],
+        config: OptunaStudyConfiguration,
+    ):
         super().__init__()
         self.study_name = study_name
         self.index = index
@@ -124,9 +125,12 @@ class OptunaLazyParams(Params):
 class OptunaParameterSearch(ParameterConfig):
     """Implementation of the Bayesian optimization using Optuna library."""
 
-    def __init__(self, config: OptunaStudyConfiguration,
-                 params: Mapping[str, BaseDistribution],
-                 include_default_params: bool = False):
+    def __init__(
+        self,
+        config: OptunaStudyConfiguration,
+        params: Mapping[str, BaseDistribution],
+        include_default_params: bool = False,
+    ):
         self._config = config
         self._distributions = params
         self._include_default_params = include_default_params
@@ -159,7 +163,11 @@ class OptunaParameterSearch(ParameterConfig):
                 yield OptunaLazyParams(study_name, 0, self._distributions, self._config)
             except ValueError as e:
                 from .module import log
-                log.warning(f"Could not create default parameters for {algorithm.name}, skipping!", exc_info=e)
+
+                log.warning(
+                    f"Could not create default parameters for {algorithm.name}, skipping!",
+                    exc_info=e,
+                )
 
         # cleanup (each trial manages their own DB connection)
         del study
@@ -167,7 +175,12 @@ class OptunaParameterSearch(ParameterConfig):
             storage.remove_session()
 
         for i in range(self._config.n_trials):
-            yield OptunaLazyParams(study_name, i + self._include_default_params, self._distributions, self._config)
+            yield OptunaLazyParams(
+                study_name,
+                i + self._include_default_params,
+                self._distributions,
+                self._config,
+            )
 
     def __len__(self) -> int:
         return self._config.n_trials + int(self._include_default_params)
@@ -195,7 +208,9 @@ class OptunaParameterSearch(ParameterConfig):
             elif tpe == "str":
                 params[param_name] = str(value)
             else:
-                raise ValueError(f"Unsupported parameter type {tpe} for param {param_name} in {algorithm.name}!")
+                raise ValueError(
+                    f"Unsupported parameter type {tpe} for param {param_name} in {algorithm.name}!"
+                )
 
         if len(params) == 0:
             raise ValueError(f"No default parameters found for {algorithm.name}!")

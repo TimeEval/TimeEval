@@ -9,7 +9,7 @@ algorithm = Algorithm(
     name="deviating_from_mean",
     main=DeviatingFromMean(),
     training_type=TrainingType.UNSUPERVISED,
-    data_as_file=False
+    data_as_file=False,
 )
 dataset = Dataset(
     datasetId=("test", "dataset-datetime"),
@@ -22,7 +22,7 @@ dataset = Dataset(
     min_anomaly_length=1,
     median_anomaly_length=5,
     max_anomaly_length=20,
-    period_size=50
+    period_size=50,
 )
 dummy_dataset_path = Path("dummy")
 real_test_dataset_path = Path("tests/example_data/dataset.test.csv")

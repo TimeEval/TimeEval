@@ -4,7 +4,11 @@ import warnings
 import numpy as np
 
 import tests.fixtures.heuristics_fixtures as fixtures
-from timeeval.heuristics import TimeEvalHeuristic, TimeEvalParameterHeuristic, inject_heuristic_values
+from timeeval.heuristics import (
+    TimeEvalHeuristic,
+    TimeEvalParameterHeuristic,
+    inject_heuristic_values,
+)
 from timeeval.heuristics.base import HeuristicFallbackWarning
 
 
@@ -16,7 +20,9 @@ class TestInjection(unittest.TestCase):
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
         obj = TimeEvalHeuristic("RelativeDatasetSizeHeuristic(factor=0.2)")
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
-        obj = TimeEvalHeuristic("ParameterDependenceHeuristic(source_parameter='x', factor=0.2)")
+        obj = TimeEvalHeuristic(
+            "ParameterDependenceHeuristic(source_parameter='x', factor=0.2)"
+        )
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
         obj = TimeEvalHeuristic("PeriodSizeHeuristic()")
         self.assertIsInstance(obj, TimeEvalParameterHeuristic)
@@ -57,37 +63,50 @@ class TestInjection(unittest.TestCase):
             "contamination": "heuristic:ContaminationHeuristic()",
             "alpha": "heuristic:DefaultFactorHeuristic(factor=2.0)",
             "beta": "heuristic:DefaultExponentialFactorHeuristic(exponent=-2)",
-            "dataset_id": "heuristic:DatasetIdHeuristic()"
+            "dataset_id": "heuristic:DatasetIdHeuristic()",
         }
         # required by DefaultFactorHeuristics and DefaultExponentialFactorHeuristic:
-        fixtures.algorithm.param_schema = {"alpha": {"defaultValue": 0.1}, "beta": {"defaultValue": 5.0}}
+        fixtures.algorithm.param_schema = {
+            "alpha": {"defaultValue": 0.1},
+            "beta": {"defaultValue": 5.0},
+        }
 
         warnings.simplefilter("ignore", category=HeuristicFallbackWarning)
         new_params = inject_heuristic_values(
             params=params,
             algorithm=fixtures.algorithm,
             dataset_details=fixtures.dataset,
-            dataset_path=fixtures.real_test_dataset_path
+            dataset_path=fixtures.real_test_dataset_path,
         )
         warnings.simplefilter("default", category=HeuristicFallbackWarning)
 
         expected_embed_dim_range = (
-            [50, 100, 150] if fixtures.dataset.period_size is None else
-            (np.array([0.5, 1.0, 1.5]) * fixtures.dataset.period_size * 2).astype(int)
+            [50, 100, 150]
+            if fixtures.dataset.period_size is None
+            else (np.array([0.5, 1.0, 1.5]) * fixtures.dataset.period_size * 2).astype(
+                int
+            )
         )
         actual_embed_dim_range = new_params["embed_dim_range"]
         del new_params["embed_dim_range"]
 
-        self.assertDictEqual(new_params, {
-            "x": 2,
-            "window_size": fixtures.dataset.median_anomaly_length,
-            "n_init": 2250,
-            "size": 300,
-            "y": "2%",
-            "period": 1 if fixtures.dataset.period_size is None else fixtures.dataset.period_size,
-            "contamination": 1.0 / 3600,
-            "alpha": 0.2,
-            "beta": 0.05,
-            "dataset_id": fixtures.dataset.datasetId
-        })
+        self.assertDictEqual(
+            new_params,
+            {
+                "x": 2,
+                "window_size": fixtures.dataset.median_anomaly_length,
+                "n_init": 2250,
+                "size": 300,
+                "y": "2%",
+                "period": (
+                    1
+                    if fixtures.dataset.period_size is None
+                    else fixtures.dataset.period_size
+                ),
+                "contamination": 1.0 / 3600,
+                "alpha": 0.2,
+                "beta": 0.05,
+                "dataset_id": fixtures.dataset.datasetId,
+            },
+        )
         np.testing.assert_array_equal(actual_embed_dim_range, expected_embed_dim_range)

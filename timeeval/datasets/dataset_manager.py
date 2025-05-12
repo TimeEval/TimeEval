@@ -35,7 +35,7 @@ class DatasetRecord(NamedTuple):
     period_size: Optional[int]
 
 
-class DatasetManager(ContextManager['DatasetManager'], Datasets):
+class DatasetManager(ContextManager["DatasetManager"], Datasets):
     """Manages benchmark datasets and their meta-information.
 
     Manages dataset collections and their meta-information that are stored in a single folder with an index file.
@@ -70,8 +70,12 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
     :class:`timeeval.datasets.multi_dataset_manager.MultiDatasetManager`
     """
 
-    def __init__(self, data_folder: Union[str, Path], custom_datasets_file: Optional[Union[str, Path]] = None,
-                 create_if_missing: bool = True):
+    def __init__(
+        self,
+        data_folder: Union[str, Path],
+        custom_datasets_file: Optional[Union[str, Path]] = None,
+        create_if_missing: bool = True,
+    ):
         self._log_: logging.Logger = logging.getLogger(self.__class__.__name__)
         self._filepath = Path(data_folder) / self.INDEX_FILENAME
         self._dirty = False
@@ -79,23 +83,31 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
             if create_if_missing:
                 df = self._create_index_file(self._filepath)
             else:
-                raise FileNotFoundError(f"Could not find the index file ({self._filepath.resolve()}). "
-                                        "Is your data_folder correct?")
+                raise FileNotFoundError(
+                    f"Could not find the index file ({self._filepath.resolve()}). "
+                    "Is your data_folder correct?"
+                )
         else:
             df = self._load_df()
         super().__init__(df, custom_datasets_file)
 
-    def __enter__(self) -> 'DatasetManager':
+    def __enter__(self) -> "DatasetManager":
         return self
 
-    def __exit__(self, exception_type: Optional[Type[BaseException]], exception_value: Optional[BaseException],
-                 exception_traceback: Optional[TracebackType]) -> Optional[bool]:
+    def __exit__(
+        self,
+        exception_type: Optional[Type[BaseException]],
+        exception_value: Optional[BaseException],
+        exception_traceback: Optional[TracebackType],
+    ) -> Optional[bool]:
         self.save()
         return None
 
     def _load_df(self) -> pd.DataFrame:
         """Re-read the benchmark dataset collection information from the `datasets.csv` file."""
-        return pd.read_csv(self._filepath, index_col=["collection_name", "dataset_name"]).sort_index()
+        return pd.read_csv(
+            self._filepath, index_col=["collection_name", "dataset_name"]
+        ).sort_index()
 
     ### begin overwrites
     @property
@@ -104,16 +116,27 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
 
     def refresh(self, force: bool = False) -> None:
         if not force and self._dirty:
-            raise Exception("There are unsaved changes in memory that would get lost by reading from disk again!")
+            raise Exception(
+                "There are unsaved changes in memory that would get lost by reading from disk again!"
+            )
         else:
             self._df = self._load_df()
 
-    def _get_dataset_path_internal(self, dataset_id: DatasetId, train: bool = False) -> Path:
-        path = self._get_value_internal(dataset_id, "train_path" if train else "test_path")
-        if not path or (isinstance(path, (np.float64, np.int64, float)) and np.isnan(path)):
-            raise KeyError(f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!")
+    def _get_dataset_path_internal(
+        self, dataset_id: DatasetId, train: bool = False
+    ) -> Path:
+        path = self._get_value_internal(
+            dataset_id, "train_path" if train else "test_path"
+        )
+        if not path or (
+            isinstance(path, (np.float64, np.int64, float)) and np.isnan(path)
+        ):
+            raise KeyError(
+                f"Path to {'training' if train else 'testing'} dataset {dataset_id} not found!"
+            )
         resolved_path: Path = self._filepath.parent.resolve() / path
         return resolved_path
+
     ### end overwrites
 
     def add_dataset(self, dataset: DatasetRecord) -> None:
@@ -130,7 +153,7 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
             The dataset information to add to the benchmark collection.
         """
         df_new = pd.DataFrame(
-            data = {
+            data={
                 "train_path": dataset.train_path,
                 "test_path": dataset.test_path,
                 "dataset_type": dataset.dataset_type,
@@ -150,12 +173,12 @@ class DatasetManager(ContextManager['DatasetManager'], Datasets):
                 "stddev": dataset.stddev,
                 "trend": dataset.trend,
                 "stationarity": dataset.stationarity,
-                "period_size": dataset.period_size
+                "period_size": dataset.period_size,
             },
             index=pd.MultiIndex.from_tuples(
                 tuples=[(dataset.collection_name, dataset.dataset_name)],
-                names=self._df.index.names
-            )
+                names=self._df.index.names,
+            ),
         )
         if self._df.empty:
             df = df_new

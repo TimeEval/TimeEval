@@ -5,27 +5,21 @@ from copy import copy, deepcopy
 import numpy as np
 
 from tests.fixtures.dataset_fixtures import dataset_metadata
-from timeeval.datasets.metadata import Trend, TrendType, DatasetMetadata, AnomalyLength, Stationarity, \
-    DatasetMetadataEncoder
+from timeeval.datasets.metadata import (
+    Trend,
+    TrendType,
+    DatasetMetadata,
+    AnomalyLength,
+    Stationarity,
+    DatasetMetadataEncoder,
+)
 
 
 class TestTrend(unittest.TestCase):
     def setUp(self) -> None:
-        self.linear = Trend(
-            tpe=TrendType.LINEAR,
-            coef=0.78,
-            confidence_r2=0.7
-        )
-        self.quadratic = Trend(
-            tpe=TrendType.QUADRATIC,
-            coef=2.8,
-            confidence_r2=0.58
-        )
-        self.kubic = Trend(
-            tpe=TrendType.KUBIC,
-            coef=0.973,
-            confidence_r2=0.6
-        )
+        self.linear = Trend(tpe=TrendType.LINEAR, coef=0.78, confidence_r2=0.7)
+        self.quadratic = Trend(tpe=TrendType.QUADRATIC, coef=2.8, confidence_r2=0.58)
+        self.kubic = Trend(tpe=TrendType.KUBIC, coef=0.973, confidence_r2=0.6)
 
     def test_correct_name(self):
         self.assertEqual(self.linear.name, "linear trend")
@@ -62,19 +56,13 @@ class TestDatasetMetadata(unittest.TestCase):
 
     def test_mean(self):
         meta = copy(self.base)
-        meta.means = {
-            "value1": 2.5,
-            "value2": 4.0
-        }
+        meta.means = {"value1": 2.5, "value2": 4.0}
         self.assertEqual(self.base.mean, 0)
         self.assertEqual(meta.mean, np.mean([2.5, 4.0]))
 
     def test_stddev(self):
         meta = copy(self.base)
-        meta.stddevs = {
-            "value1": 1.45,
-            "value2": 0.3
-        }
+        meta.stddevs = {"value1": 1.45, "value2": 0.3}
         self.assertEqual(self.base.stddev, 0)
         self.assertEqual(meta.stddev, np.mean([1.45, 0.3]))
 
@@ -82,8 +70,11 @@ class TestDatasetMetadata(unittest.TestCase):
         meta = copy(self.base)
         meta.trends = {
             "value1": [],
-            "value2": [Trend(TrendType.LINEAR, 1.78, 0.67), Trend(TrendType.QUADRATIC, 0.09, 0.54)],
-            "value3": [Trend(TrendType.LINEAR, 5.4, 0.9)]
+            "value2": [
+                Trend(TrendType.LINEAR, 1.78, 0.67),
+                Trend(TrendType.QUADRATIC, 0.09, 0.54),
+            ],
+            "value3": [Trend(TrendType.LINEAR, 5.4, 0.9)],
         }
         self.assertEqual(self.base.trend, "no trend")
         self.assertEqual(meta.trend, "quadratic trend")
@@ -93,7 +84,7 @@ class TestDatasetMetadata(unittest.TestCase):
         meta.stationarities = {
             "value1": Stationarity.TREND_STATIONARY,
             "value2": Stationarity.STATIONARY,
-            "value3": Stationarity.DIFFERENCE_STATIONARY
+            "value3": Stationarity.DIFFERENCE_STATIONARY,
         }
         self.assertEqual(self.base.stationarity, Stationarity.STATIONARY)
         self.assertEqual(self.base.get_stationarity_name(), "stationary")
@@ -102,9 +93,7 @@ class TestDatasetMetadata(unittest.TestCase):
 
     def test_de_serialization(self):
         orig: DatasetMetadata = deepcopy(dataset_metadata)
-        orig.trends = {
-            "value1": [Trend(TrendType.LINEAR, 1.78, 0.67)]
-        }
+        orig.trends = {"value1": [Trend(TrendType.LINEAR, 1.78, 0.67)]}
         serialized = json.dumps(orig, cls=DatasetMetadataEncoder)
         obj = json.loads(serialized, object_hook=DatasetMetadataEncoder.object_hook)
         self.assertEqual(obj, orig)

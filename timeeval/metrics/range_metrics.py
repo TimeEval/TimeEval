@@ -30,8 +30,14 @@ class RangePrecision(Metric):
         Custom name for this metric (e.g. including your parameter changes).
     """
 
-    def __init__(self, thresholding_strategy: ThresholdingStrategy = NoThresholding(), alpha: float = 0,
-                 cardinality: str = "reciprocal", bias: str = "flat", name: str = "RANGE_PRECISION") -> None:
+    def __init__(
+        self,
+        thresholding_strategy: ThresholdingStrategy = NoThresholding(),
+        alpha: float = 0,
+        cardinality: str = "reciprocal",
+        bias: str = "flat",
+        name: str = "RANGE_PRECISION",
+    ) -> None:
         self._thresholding_strategy = thresholding_strategy
         self._alpha = alpha
         self._cardinality = cardinality
@@ -40,7 +46,13 @@ class RangePrecision(Metric):
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         y_pred = self._thresholding_strategy.fit_transform(y_true, y_score)
-        score: float = ts_precision(y_true, y_pred, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        score: float = ts_precision(
+            y_true,
+            y_pred,
+            alpha=self._alpha,
+            cardinality=self._cardinality,
+            bias=self._bias,
+        )
         return score
 
     def supports_continuous_scorings(self) -> bool:
@@ -74,8 +86,14 @@ class RangeRecall(Metric):
         Custom name for this metric (e.g. including your parameter changes).
     """
 
-    def __init__(self, thresholding_strategy: ThresholdingStrategy = NoThresholding(), alpha: float = 0,
-                 cardinality: str = "reciprocal", bias: str = "flat", name: str = "RANGE_RECALL") -> None:
+    def __init__(
+        self,
+        thresholding_strategy: ThresholdingStrategy = NoThresholding(),
+        alpha: float = 0,
+        cardinality: str = "reciprocal",
+        bias: str = "flat",
+        name: str = "RANGE_RECALL",
+    ) -> None:
         self._thresholding_strategy = thresholding_strategy
         self._alpha = alpha
         self._cardinality = cardinality
@@ -84,7 +102,13 @@ class RangeRecall(Metric):
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         y_pred = self._thresholding_strategy.fit_transform(y_true, y_score)
-        score: float = ts_recall(y_true, y_pred, alpha=self._alpha, cardinality=self._cardinality, bias=self._bias)
+        score: float = ts_recall(
+            y_true,
+            y_pred,
+            alpha=self._alpha,
+            cardinality=self._cardinality,
+            bias=self._bias,
+        )
         return score
 
     def supports_continuous_scorings(self) -> bool:
@@ -126,15 +150,17 @@ class RangeFScore(Metric):
         the name: "RANGE_F{beta}_SCORE".
     """
 
-    def __init__(self,
-                 thresholding_strategy: ThresholdingStrategy = NoThresholding(),
-                 beta: float = 1,
-                 p_alpha: float = 0,
-                 r_alpha: float = 0.5,
-                 cardinality: str = "reciprocal",
-                 p_bias: str = "flat",
-                 r_bias: str = "flat",
-                 name: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        thresholding_strategy: ThresholdingStrategy = NoThresholding(),
+        beta: float = 1,
+        p_alpha: float = 0,
+        r_alpha: float = 0.5,
+        cardinality: str = "reciprocal",
+        p_bias: str = "flat",
+        r_bias: str = "flat",
+        name: Optional[str] = None,
+    ) -> None:
         self._thresholding_strategy = thresholding_strategy
         self._beta = beta
         self._p_alpha = p_alpha
@@ -146,11 +172,16 @@ class RangeFScore(Metric):
 
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         y_pred = self._thresholding_strategy.fit_transform(y_true, y_score)
-        score: float = ts_fscore(y_true, y_pred,
-                                 beta=self._beta,
-                                 p_alpha=self._p_alpha, r_alpha=self._r_alpha,
-                                 cardinality=self._cardinality,
-                                 p_bias=self._p_bias, r_bias=self._p_bias)
+        score: float = ts_fscore(
+            y_true,
+            y_pred,
+            beta=self._beta,
+            p_alpha=self._p_alpha,
+            r_alpha=self._r_alpha,
+            cardinality=self._cardinality,
+            p_bias=self._p_bias,
+            r_bias=self._p_bias,
+        )
         return score
 
     def supports_continuous_scorings(self) -> bool:
@@ -194,8 +225,17 @@ class RangePrecisionRangeRecallAUC(AucMetric):
        1920–30. 2018. http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
 
-    def __init__(self, max_samples: int = 50, r_alpha: float = 0.5, p_alpha: float = 0, cardinality: str = "reciprocal",
-                 bias: str = "flat", plot: bool = False, plot_store: bool = False, name: str = "RANGE_PR_AUC") -> None:
+    def __init__(
+        self,
+        max_samples: int = 50,
+        r_alpha: float = 0.5,
+        p_alpha: float = 0,
+        cardinality: str = "reciprocal",
+        bias: str = "flat",
+        plot: bool = False,
+        plot_store: bool = False,
+        name: str = "RANGE_PR_AUC",
+    ) -> None:
         super().__init__(plot, plot_store)
         self._max_samples = max_samples
         self._r_alpha = r_alpha
@@ -207,9 +247,9 @@ class RangePrecisionRangeRecallAUC(AucMetric):
     def score(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         return self._auc(y_true, y_score, self._range_precision_recall_curve)
 
-    def _range_precision_recall_curve(self,
-                                      y_true: np.ndarray,
-                                      y_score: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _range_precision_recall_curve(
+        self, y_true: np.ndarray, y_score: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         thresholds = np.unique(y_score)
         thresholds.sort()
         # The first precision and recall values are precision=class balance and recall=1.0, which corresponds to a
@@ -233,17 +273,27 @@ class RangePrecisionRangeRecallAUC(AucMetric):
         precisions = np.zeros_like(thresholds)
         for i, threshold in enumerate(thresholds):
             y_pred = (y_score >= threshold).astype(np.int64)
-            recalls[i] = ts_recall(y_true, y_pred,
-                                   alpha=self._r_alpha,
-                                   cardinality=self._cardinality,
-                                   bias=self._bias)
-            precisions[i] = ts_precision(y_true, y_pred,
-                                         alpha=self._p_alpha,
-                                         cardinality=self._cardinality,
-                                         bias=self._bias)
+            recalls[i] = ts_recall(
+                y_true,
+                y_pred,
+                alpha=self._r_alpha,
+                cardinality=self._cardinality,
+                bias=self._bias,
+            )
+            precisions[i] = ts_precision(
+                y_true,
+                y_pred,
+                alpha=self._p_alpha,
+                cardinality=self._cardinality,
+                bias=self._bias,
+            )
         # first sort by recall, then by precision to break ties (important for noisy scorings)
         sorted_idx = np.lexsort((precisions * (-1), recalls))[::-1]
-        return np.r_[p0, precisions[sorted_idx], 1], np.r_[r0, recalls[sorted_idx], 0], thresholds
+        return (
+            np.r_[p0, precisions[sorted_idx], 1],
+            np.r_[r0, recalls[sorted_idx], 0],
+            thresholds,
+        )
 
     @property
     def name(self) -> str:

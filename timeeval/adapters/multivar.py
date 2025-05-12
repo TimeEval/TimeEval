@@ -12,6 +12,7 @@ from ..data_types import AlgorithmParameter
 
 class AggregationMethod(Enum):
     """An enum that specifies how to aggregate the anomaly scores of the channels."""
+
     MEAN = 0
     """aggregates channel scores using the element-wise mean."""
     MEDIAN = 1
@@ -35,7 +36,7 @@ class AggregationMethod(Enum):
         elif self == self.MAX:
             return data.max(axis=1)
         else:  # self == self.SUM_BEFORE
-            return data.sum(axis=1) # type: ignore[no-any-return]
+            return data.sum(axis=1)  # type: ignore[no-any-return]
 
     @property
     def combining_before(self) -> bool:
@@ -63,7 +64,9 @@ class MultivarAdapter(Adapter):
         The :class:`~timeeval.adapters.multivar.AggregationMethod` to use to combine the anomaly scores of the dimensions.
     """
 
-    def __init__(self, adapter: Adapter, aggregation: AggregationMethod = AggregationMethod.MEAN) -> None:
+    def __init__(
+        self, adapter: Adapter, aggregation: AggregationMethod = AggregationMethod.MEAN
+    ) -> None:
         assert not isinstance(adapter, MultivarAdapter), "Cannot nest MultivarAdapters"
 
         self._adapter = adapter
@@ -82,7 +85,9 @@ class MultivarAdapter(Adapter):
 
         return df
 
-    def _split_timeseries_into_channels(self, dataset: AlgorithmParameter, tmp_dir: Path) -> List[Path]:
+    def _split_timeseries_into_channels(
+        self, dataset: AlgorithmParameter, tmp_dir: Path
+    ) -> List[Path]:
         """Splits the timeseries into channels and stores the paths to the channels in self._channel_paths."""
         channel_paths: List[Path] = []
         df = self._get_timeseries(dataset)
@@ -97,27 +102,37 @@ class MultivarAdapter(Adapter):
         """Combines the channels into a single timeseries and stores the path to the timeseries in self._channel_paths."""
         channel_path = tmp_dir / "combined_test.csv"
         loaded = self._get_timeseries(dataset)
-        combined = pd.DataFrame(self._aggregation(loaded.iloc[:, :-1].values), index=loaded.index, columns=["combined"])
+        combined = pd.DataFrame(
+            self._aggregation(loaded.iloc[:, :-1].values),
+            index=loaded.index,
+            columns=["combined"],
+        )
         combined[loaded.columns[-1]] = loaded.iloc[:, -1]
         combined.to_csv(channel_path)
         return channel_path
 
     def _combine_channel_scores(self, scores: List[AlgorithmParameter]) -> np.ndarray:
         """Combines the scores of the channels into a single score file."""
-        loaded_scores = np.concatenate([self._get_timeseries(score).values for score in scores], axis=1)
+        loaded_scores = np.concatenate(
+            [self._get_timeseries(score).values for score in scores], axis=1
+        )
         combined_scores: np.ndarray = self._aggregation(loaded_scores)
         return combined_scores
 
     # Adapter overwrites
 
-    def _call(self, dataset: AlgorithmParameter, args: Dict[str, Any]) -> AlgorithmParameter:
+    def _call(
+        self, dataset: AlgorithmParameter, args: Dict[str, Any]
+    ) -> AlgorithmParameter:
         """Calls the anomaly detector on each channel and aggregates the results or combines the channels and calls the anomaly detector on the combined timeseries."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             dataset_paths: Optional[List[Path]] = None
             if self._aggregation.combining_before:
                 dataset_paths = [self._combine_channels(dataset, Path(tmp_dir))]
             else:
-                dataset_paths = self._split_timeseries_into_channels(dataset, Path(tmp_dir))
+                dataset_paths = self._split_timeseries_into_channels(
+                    dataset, Path(tmp_dir)
+                )
 
             scores: List[AlgorithmParameter] = []
             for dataset_path in dataset_paths:
@@ -125,7 +140,9 @@ class MultivarAdapter(Adapter):
 
             if not self._aggregation.combining_before:
                 return self._combine_channel_scores(scores)
-            assert len(scores) == 1, "Expected only one score file when combining before"
+            assert (
+                len(scores) == 1
+            ), "Expected only one score file when combining before"
             return scores[0]
 
     def get_prepare_fn(self) -> Optional[Callable[[], None]]:

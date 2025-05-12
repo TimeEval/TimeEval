@@ -16,7 +16,11 @@ def test_load_multiple_folders(tmp_path):
     _prepare(tmp_path)
     dmgr = MultiDatasetManager(["./tests/example_data", tmp_path])
     assert list(dmgr.get_collection_names()) == ["test", "test-collection"]
-    assert list(dmgr.get_dataset_names()) == ["dataset-datetime", "dataset-int", "test_dataset"]
+    assert list(dmgr.get_dataset_names()) == [
+        "dataset-datetime",
+        "dataset-int",
+        "test_dataset",
+    ]
 
 
 def test_dataset_path(tmp_path):
@@ -26,10 +30,10 @@ def test_dataset_path(tmp_path):
     dmgr = MultiDatasetManager([base_path_example, base_path_tmp])
 
     assert dmgr.get_dataset_path(("test", "dataset-int"), train=False) == (
-                base_path_example.resolve() / "dataset.train.csv"
+        base_path_example.resolve() / "dataset.train.csv"
     )
     assert dmgr.get_dataset_path(("test-collection", "test_dataset"), train=False) == (
-                base_path_tmp.resolve() / "path_test.csv"
+        base_path_tmp.resolve() / "path_test.csv"
     )
 
 

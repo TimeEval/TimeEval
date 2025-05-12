@@ -106,3 +106,12 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 no_implicit_optional = true
 check_untyped_defs = true
+
+[tool.black]
+extend-exclude = '''
+(
+    ^timeeval_experiments/\\d\\d\\d\\d-\\d\\d-\\d\\d[_-].+$  # experiment scripts
+    | notebooks/.*            # notebooks
+    | timeeval/algorithms/.*  # auto-generated code
+)
+'''

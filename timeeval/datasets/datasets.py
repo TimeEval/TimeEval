@@ -34,7 +34,9 @@ class Datasets(abc.ABC):
     INDEX_FILENAME: str = "datasets.csv"
     METADATA_FILENAME_SUFFIX: str = "metadata.json"
 
-    def __init__(self, df: pd.DataFrame, custom_datasets_file: Optional[Union[str, Path]] = None):
+    def __init__(
+        self, df: pd.DataFrame, custom_datasets_file: Optional[Union[str, Path]] = None
+    ):
         self._df: pd.DataFrame = df
 
         if custom_datasets_file:
@@ -50,19 +52,40 @@ class Datasets(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _log(self) -> logging.Logger:
-        ...
+    def _log(self) -> logging.Logger: ...
 
     @abc.abstractmethod
-    def _get_dataset_path_internal(self, dataset_id: DatasetId, train: bool = False) -> Path:
-        ...
+    def _get_dataset_path_internal(
+        self, dataset_id: DatasetId, train: bool = False
+    ) -> Path: ...
 
     def _create_index_file(self, filepath: Path) -> pd.DataFrame:
         df_temp = pd.DataFrame(
-            columns=["dataset_name", "collection_name", "train_path", "test_path", "dataset_type", "datetime_index",
-                     "split_at", "train_type", "train_is_normal", "input_type", "length", "dimensions", "contamination",
-                     "num_anomalies", "min_anomaly_length", "median_anomaly_length", "max_anomaly_length", "mean",
-                     "stddev", "trend", "stationarity", "period_size"])
+            columns=[
+                "dataset_name",
+                "collection_name",
+                "train_path",
+                "test_path",
+                "dataset_type",
+                "datetime_index",
+                "split_at",
+                "train_type",
+                "train_is_normal",
+                "input_type",
+                "length",
+                "dimensions",
+                "contamination",
+                "num_anomalies",
+                "min_anomaly_length",
+                "median_anomaly_length",
+                "max_anomaly_length",
+                "mean",
+                "stddev",
+                "trend",
+                "stationarity",
+                "period_size",
+            ]
+        )
         df_temp.set_index(["collection_name", "dataset_name"], inplace=True)
         dataset_dir = filepath.parent
         if not dataset_dir.is_dir():
@@ -93,22 +116,51 @@ class Datasets(abc.ABC):
             datasets = self._custom_datasets.get_dataset_names()
             index = pd.MultiIndex.from_tuples(
                 tuples=[(collection_names[0], name) for name in datasets],
-                names=self._df.index.names
+                names=self._df.index.names,
             )
             data = {
-                "test_path": [safe_extract_path(name, train=False) for name in datasets],
-                "train_path": [safe_extract_path(name, train=True) for name in datasets],
-                "dataset_type": [self._custom_datasets.get(name).dataset_type for name in datasets],
-                "train_type": [self._custom_datasets.get(name).training_type.value for name in datasets],
-                "input_type": [self._custom_datasets.get(name).input_dimensionality.value for name in datasets],
+                "test_path": [
+                    safe_extract_path(name, train=False) for name in datasets
+                ],
+                "train_path": [
+                    safe_extract_path(name, train=True) for name in datasets
+                ],
+                "dataset_type": [
+                    self._custom_datasets.get(name).dataset_type for name in datasets
+                ],
+                "train_type": [
+                    self._custom_datasets.get(name).training_type.value
+                    for name in datasets
+                ],
+                "input_type": [
+                    self._custom_datasets.get(name).input_dimensionality.value
+                    for name in datasets
+                ],
                 "length": [self._custom_datasets.get(name).length for name in datasets],
-                "dimensions": [self._custom_datasets.get(name).dimensions for name in datasets],
-                "contamination": [self._custom_datasets.get(name).contamination for name in datasets],
-                "num_anomalies": [self._custom_datasets.get(name).num_anomalies for name in datasets],
-                "min_anomaly_length": [self._custom_datasets.get(name).min_anomaly_length for name in datasets],
-                "median_anomaly_length": [self._custom_datasets.get(name).median_anomaly_length for name in datasets],
-                "max_anomaly_length": [self._custom_datasets.get(name).max_anomaly_length for name in datasets],
-                "period_size": [self._custom_datasets.get(name).period_size for name in datasets]
+                "dimensions": [
+                    self._custom_datasets.get(name).dimensions for name in datasets
+                ],
+                "contamination": [
+                    self._custom_datasets.get(name).contamination for name in datasets
+                ],
+                "num_anomalies": [
+                    self._custom_datasets.get(name).num_anomalies for name in datasets
+                ],
+                "min_anomaly_length": [
+                    self._custom_datasets.get(name).min_anomaly_length
+                    for name in datasets
+                ],
+                "median_anomaly_length": [
+                    self._custom_datasets.get(name).median_anomaly_length
+                    for name in datasets
+                ],
+                "max_anomaly_length": [
+                    self._custom_datasets.get(name).max_anomaly_length
+                    for name in datasets
+                ],
+                "period_size": [
+                    self._custom_datasets.get(name).period_size for name in datasets
+                ],
             }
             return pd.DataFrame(data, index=index, columns=self._df.columns)
         else:
@@ -121,24 +173,29 @@ class Datasets(abc.ABC):
 
     def get_collection_names(self) -> List[str]:
         """Returns the unique dataset collection names (includes custom datasets if present)."""
-        return self._custom_datasets.get_collection_names() + list(self._df.index.get_level_values(0).unique())
+        return self._custom_datasets.get_collection_names() + list(
+            self._df.index.get_level_values(0).unique()
+        )
 
     def get_dataset_names(self) -> List[str]:
         """Returns the unique dataset names (includes custom datasets if present)."""
-        return self._custom_datasets.get_dataset_names() + list(self._df.index.get_level_values(1).unique())
+        return self._custom_datasets.get_dataset_names() + list(
+            self._df.index.get_level_values(1).unique()
+        )
 
-    def select(self,
-               collection: Optional[str] = None,
-               dataset: Optional[str] = None,
-               dataset_type: Optional[str] = None,
-               datetime_index: Optional[bool] = None,
-               training_type: Optional[TrainingType] = None,
-               train_is_normal: Optional[bool] = None,
-               input_dimensionality: Optional[InputDimensionality] = None,
-               min_anomalies: Optional[int] = None,
-               max_anomalies: Optional[int] = None,
-               max_contamination: Optional[float] = None
-               ) -> List[DatasetId]:
+    def select(
+        self,
+        collection: Optional[str] = None,
+        dataset: Optional[str] = None,
+        dataset_type: Optional[str] = None,
+        datetime_index: Optional[bool] = None,
+        training_type: Optional[TrainingType] = None,
+        train_is_normal: Optional[bool] = None,
+        input_dimensionality: Optional[InputDimensionality] = None,
+        min_anomalies: Optional[int] = None,
+        max_anomalies: Optional[int] = None,
+        max_contamination: Optional[float] = None,
+    ) -> List[DatasetId]:
         """
         Returns a list of dataset identifiers from the dataset collection whose datasets match **all** of the
         given conditions.
@@ -178,12 +235,23 @@ class Datasets(abc.ABC):
         dataset_names : List[Tuple[str,str]]
             A list of dataset identifiers (tuple of collection name and dataset name).
         """
-        custom_datasets = self._custom_datasets.select(collection, dataset, dataset_type, datetime_index,
-                                                       training_type, train_is_normal, input_dimensionality,
-                                                       min_anomalies, max_anomalies, max_contamination)
+        custom_datasets = self._custom_datasets.select(
+            collection,
+            dataset,
+            dataset_type,
+            datetime_index,
+            training_type,
+            train_is_normal,
+            input_dimensionality,
+            min_anomalies,
+            max_anomalies,
+            max_contamination,
+        )
 
-        if (collection in self._custom_datasets.get_collection_names()
-                or dataset in self._custom_datasets.get_dataset_names()):
+        if (
+            collection in self._custom_datasets.get_collection_names()
+            or dataset in self._custom_datasets.get_dataset_names()
+        ):
             return custom_datasets
         else:
             df = self._df  # self.df()
@@ -211,9 +279,10 @@ class Datasets(abc.ABC):
             default_mask = np.full(len(df), True)
             mask = reduce(lambda x, y: np.logical_and(x, y), selectors, default_mask)
             bench_datasets: List[Tuple[str, str]] = (
-                df[mask].loc[(slice(collection, collection), slice(dataset, dataset)), :]
-                .index
-                .to_list())
+                df[mask]
+                .loc[(slice(collection, collection), slice(dataset, dataset)), :]
+                .index.to_list()
+            )
 
             return bench_datasets + custom_datasets
 
@@ -275,7 +344,9 @@ class Datasets(abc.ABC):
         """
         self._custom_datasets = CustomDatasets(file_path)
 
-    def get(self, collection_name: Union[str, DatasetId], dataset_name: Optional[str] = None) -> Dataset:
+    def get(
+        self, collection_name: Union[str, DatasetId], dataset_name: Optional[str] = None
+    ) -> Dataset:
         """Returns dataset metadata.
 
         Examples
@@ -311,7 +382,9 @@ class Datasets(abc.ABC):
         elif isinstance(collection_name, str) and dataset_name is not None:
             index = (collection_name, dataset_name)
         else:
-            raise ValueError(f"Cannot use {collection_name} and {dataset_name} as index!")
+            raise ValueError(
+                f"Cannot use {collection_name} and {dataset_name} as index!"
+            )
 
         if index[0] in self._custom_datasets.get_collection_names():
             return self._custom_datasets.get(index[1])
@@ -334,7 +407,7 @@ class Datasets(abc.ABC):
                 min_anomaly_length=entry["min_anomaly_length"],
                 median_anomaly_length=entry["median_anomaly_length"],
                 max_anomaly_length=entry["max_anomaly_length"],
-                period_size=period
+                period_size=period,
             )
 
     def get_dataset_path(self, dataset_id: DatasetId, train: bool = False) -> Path:
@@ -358,7 +431,9 @@ class Datasets(abc.ABC):
         else:
             return self._get_dataset_path_internal(dataset_id, train)
 
-    def get_dataset_df(self, dataset_id: DatasetId, train: bool = False) -> pd.DataFrame:
+    def get_dataset_df(
+        self, dataset_id: DatasetId, train: bool = False
+    ) -> pd.DataFrame:
         """Loads the training/testing time series as a data frame.
 
         Parameters
@@ -393,7 +468,9 @@ class Datasets(abc.ABC):
                     ) from e
             return df
 
-    def get_dataset_ndarray(self, dataset_id: DatasetId, train: bool = False) -> np.ndarray:
+    def get_dataset_ndarray(
+        self, dataset_id: DatasetId, train: bool = False
+    ) -> np.ndarray:
         """Loads the training/testing time series as an multi-dimensional array.
 
         Parameters
@@ -436,13 +513,17 @@ class Datasets(abc.ABC):
             train_type_name = self._get_value_internal(dataset_id, "train_type")
             training_type = TrainingType.from_text(train_type_name)
             if training_type == TrainingType.SEMI_SUPERVISED and not train_is_normal:
-                self._log.warning(f"Dataset {dataset_id} is specified as {training_type} ('train_type'). However, "
-                                  f"'train_is_normal' is False! Reverting back to {TrainingType.SUPERVISED}!\n"
-                                  f"Please check your dataset configuration!")
+                self._log.warning(
+                    f"Dataset {dataset_id} is specified as {training_type} ('train_type'). However, "
+                    f"'train_is_normal' is False! Reverting back to {TrainingType.SUPERVISED}!\n"
+                    f"Please check your dataset configuration!"
+                )
                 training_type = TrainingType.SUPERVISED
             return training_type
 
-    def get_detailed_metadata(self, dataset_id: DatasetId, train: bool = False) -> DatasetMetadata:
+    def get_detailed_metadata(
+        self, dataset_id: DatasetId, train: bool = False
+    ) -> DatasetMetadata:
         """Computes detailed metadata about the training or testing time series of a dataset.
 
         For most of the benchmark datasets, the detailed metadata is pre-computed and just has to be loaded from disk.
@@ -476,10 +557,13 @@ class Datasets(abc.ABC):
             try:
                 return DatasetAnalyzer.load_from_json(metadata_file, train)
             except ValueError:
-                self._log.debug(f"Metadata file existed, but the requested file info was not found, recreating it.")
+                self._log.debug(
+                    f"Metadata file existed, but the requested file info was not found, recreating it."
+                )
         else:
             self._log.debug(
-                f"No metadata file for {dataset_id} exists. Analyzing dataset on-the-fly and storing result.")
+                f"No metadata file for {dataset_id} exists. Analyzing dataset on-the-fly and storing result."
+            )
         dm = DatasetAnalyzer(dataset_id, is_train=train, dataset_path=path)
         if dataset_id[0] in self._custom_datasets.get_collection_names():
             self._log.warning("Cannot store metadata information for custom datasets!")

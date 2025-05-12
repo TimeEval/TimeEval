@@ -84,7 +84,11 @@ class OptunaConfiguration:
             "error": logging.ERROR,
             "critical": logging.CRITICAL,
         }
-        level = switcher[self.log_level] if isinstance(self.log_level, str) else self.log_level
+        level = (
+            switcher[self.log_level]
+            if isinstance(self.log_level, str)
+            else self.log_level
+        )
         optuna.logging.set_verbosity(level)
 
     @staticmethod
@@ -136,7 +140,9 @@ class OptunaStudyConfiguration:
     direction: Optional[Union[str, StudyDirection]] = "maximize"
     continue_existing_study: bool = False
 
-    def update_unset_options(self, global_config: OptunaConfiguration) -> OptunaStudyConfiguration:
+    def update_unset_options(
+        self, global_config: OptunaConfiguration
+    ) -> OptunaStudyConfiguration:
         return OptunaStudyConfiguration(
             n_trials=self.n_trials,
             metric=self.metric,
@@ -144,17 +150,20 @@ class OptunaStudyConfiguration:
             sampler=self.sampler or global_config.default_sampler,
             pruner=self.pruner or global_config.default_pruner,
             direction=self.direction,
-            continue_existing_study=self.continue_existing_study or global_config.continue_existing_studies,
+            continue_existing_study=self.continue_existing_study
+            or global_config.continue_existing_studies,
         )
 
-    def copy(self,
-             n_trials: Optional[int] = None,
-             metric: Optional[Metric] = None,
-             storage: Optional[Union[str, Callable[[], BaseStorage]]] = None,
-             sampler: Optional[BaseSampler] = None,
-             pruner: Optional[BasePruner] = None,
-             direction: Optional[Union[str, StudyDirection]] = None,
-             continue_existing_study: Optional[bool] = None) -> OptunaStudyConfiguration:
+    def copy(
+        self,
+        n_trials: Optional[int] = None,
+        metric: Optional[Metric] = None,
+        storage: Optional[Union[str, Callable[[], BaseStorage]]] = None,
+        sampler: Optional[BaseSampler] = None,
+        pruner: Optional[BasePruner] = None,
+        direction: Optional[Union[str, StudyDirection]] = None,
+        continue_existing_study: Optional[bool] = None,
+    ) -> OptunaStudyConfiguration:
         """Create a copy of this configuration with the given parameters replaced."""
 
         return OptunaStudyConfiguration(
@@ -164,5 +173,6 @@ class OptunaStudyConfiguration:
             sampler=sampler or self.sampler,
             pruner=pruner or self.pruner,
             direction=direction or self.direction,
-            continue_existing_study=continue_existing_study or self.continue_existing_study,
+            continue_existing_study=continue_existing_study
+            or self.continue_existing_study,
         )
