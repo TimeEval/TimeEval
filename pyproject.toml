@@ -116,16 +116,13 @@ disallow_incomplete_defs = true
 no_implicit_optional = true
 check_untyped_defs = true
 
-
 [tool.isort]
 profile = "black"
 line_length = 88
 multi_line_output = 5
 balanced_wrapping = true
 skip_gitignore = true
-extend_skip_glob = [
-    "timeeval_experiments/20*.py",
-]
+extend_skip_glob = ["timeeval_experiments/20*.py"]
 extend_skip = [
     "notebooks",
     "timeeval/algorithms",
