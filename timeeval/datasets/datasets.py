@@ -558,7 +558,7 @@ class Datasets(abc.ABC):
                 return DatasetAnalyzer.load_from_json(metadata_file, train)
             except ValueError:
                 self._log.debug(
-                    f"Metadata file existed, but the requested file info was not found, recreating it."
+                    "Metadata file existed, but the requested file info was not found, recreating it."
                 )
         else:
             self._log.debug(

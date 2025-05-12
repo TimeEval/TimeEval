@@ -236,7 +236,7 @@ class DockerAdapter(Adapter):
         except (APIError, ImageNotFound) as e:
             reason = str(e)
             for exc in exc_causes(e):
-                if type(exc) == ImageNotFound:
+                if isinstance(exc, ImageNotFound):
                     reason = "image not found"
                     break
 

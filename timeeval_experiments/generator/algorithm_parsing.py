@@ -128,7 +128,7 @@ def _fix_indent(codeblock: str) -> str:
     lines = codeblock.expandtabs(tabsize=4).split("\n")
     indent_size = len(lines[0]) - len(lines[0].lstrip())
     if indent_size > 0:
-        return "\n".join([l[indent_size:] for l in lines])
+        return "\n".join([line[indent_size:] for line in lines])
     else:
         return codeblock
 

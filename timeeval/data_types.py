@@ -62,7 +62,7 @@ class InputDimensionality(Enum):
     def from_dimensions(n: int) -> InputDimensionality:
         """Converts the feature/dimension/channel count to an Enum-object."""
         if n < 1:
-            raise ValueError(f"Zero dimensional dataset is not supported!")
+            raise ValueError("Zero dimensional dataset is not supported!")
         elif n == 1:
             return InputDimensionality.UNIVARIATE
         else:

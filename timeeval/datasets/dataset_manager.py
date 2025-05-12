@@ -109,7 +109,7 @@ class DatasetManager(ContextManager["DatasetManager"], Datasets):
             self._filepath, index_col=["collection_name", "dataset_name"]
         ).sort_index()
 
-    ### begin overwrites
+    # -- begin overwrites
     @property
     def _log(self) -> logging.Logger:
         return self._log_
@@ -137,7 +137,7 @@ class DatasetManager(ContextManager["DatasetManager"], Datasets):
         resolved_path: Path = self._filepath.parent.resolve() / path
         return resolved_path
 
-    ### end overwrites
+    # -- end overwrites
 
     def add_dataset(self, dataset: DatasetRecord) -> None:
         """Adds a new dataset to the benchmark dataset collection (in-memory).

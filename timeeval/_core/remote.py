@@ -172,7 +172,7 @@ class Remote:
         command = f"if [ -f {logfile} ]; then mv {logfile} {logfile.parent}/{logfile.stem}-$(hostname){logfile.suffix}; fi"
         failed_on = self.run_on_all_hosts_ssh(command)
         if len(failed_on) == 0:
-            self.log.debug(f"... logfile renaming successful!")
+            self.log.debug("... logfile renaming successful!")
         else:
             self.log.error(
                 f"... could not rename logfile on hosts {', '.join(failed_on)}!"

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from timeeval import Algorithm
 from timeeval.datasets import Dataset

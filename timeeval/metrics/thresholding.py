@@ -136,7 +136,7 @@ class NoThresholding(ThresholdingStrategy):
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"NoThresholding()"
+        return "NoThresholding()"
 
 
 class FixedValueThresholding(ThresholdingStrategy):
@@ -407,7 +407,7 @@ class PyThreshThresholding(ThresholdingStrategy):
       y_pred = thresholding.fit_transform(y_labels, y_scores)
     """
 
-    def __init__(self, pythresh_thresholder: "BaseThresholder", random_state: Any = None):  # type: ignore
+    def __init__(self, pythresh_thresholder: "BaseThresholder", random_state: Any = None):  # type: ignore # noqa: F821
         super().__init__()
         self._thresholder = pythresh_thresholder
         self._predictions: Optional[np.ndarray] = None
@@ -474,7 +474,7 @@ class PyThreshThresholding(ThresholdingStrategy):
 
 
 @contextlib.contextmanager
-def tmp_np_random_seed_pythresh(thresholder: "BaseThresholder", random_state: Any) -> Generator[None, None, None]:  # type: ignore
+def tmp_np_random_seed_pythresh(thresholder: "BaseThresholder", random_state: Any) -> Generator[None, None, None]:  # type: ignore # noqa: F821
     import pythresh.version
 
     pythresh_version = list(map(int, pythresh.version.__version__.split(".")))

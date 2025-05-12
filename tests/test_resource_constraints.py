@@ -3,7 +3,6 @@ import unittest
 import psutil
 from durations import Duration
 
-from tests.fixtures.algorithms import DeviatingFromMean
 from timeeval import Algorithm, DatasetManager, ResourceConstraints, TimeEval
 from timeeval.adapters import DockerAdapter
 from timeeval.resource_constraints import DEFAULT_TIMEOUT, GB

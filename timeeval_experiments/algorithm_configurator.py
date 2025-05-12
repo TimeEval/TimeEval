@@ -65,7 +65,7 @@ class AlgorithmConfigurator:
         else:
             return elems
 
-    def configure(
+    def configure(  # noqa: C901
         self,
         algos: Union[List[Algorithm], Algorithm],
         use_defaults: bool = False,

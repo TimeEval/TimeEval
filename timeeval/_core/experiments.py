@@ -179,7 +179,7 @@ class Experiment:
 
         if not self.resolved_train_dataset_path:
             raise ValueError(
-                f"No training dataset was provided. Algorithm cannot be trained!"
+                "No training dataset was provided. Algorithm cannot be trained!"
             )
 
         if self.algorithm.data_as_file:

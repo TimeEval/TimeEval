@@ -1,5 +1,7 @@
 [flake8]
 show-source = True
+count = True
+statistics = True
 max-complexity = 10
 hang-closing = False
 max-line-length = 88
@@ -19,7 +21,9 @@ extend-exclude =
     notebooks
     scripts
     results
+    timeeval/algorithms
     timeeval_experiments/20*.py
+    example-experiment.py
 
 
 per-file-ignores =

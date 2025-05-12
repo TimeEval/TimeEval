@@ -75,7 +75,7 @@ class DatasetAnalyzer:
         is_train: bool,
         df: Optional[pd.DataFrame] = None,
         dataset_path: Optional[Path] = None,
-        dmgr: Optional["Datasets"] = None,  # type: ignore
+        dmgr: Optional["Datasets"] = None,  # type: ignore # noqa: F821
         ignore_stationarity: bool = False,
         ignore_trend: bool = False,
     ) -> None:

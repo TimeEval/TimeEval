@@ -23,7 +23,7 @@ logging.basicConfig(
 random.seed(42)
 
 
-def main():
+def main() -> None:
     dm = DatasetManager(Path("tests/example_data"), create_if_missing=False)
     configurator = AlgorithmConfigurator(
         config_path="timeeval_experiments/param-config.example.json"
@@ -120,7 +120,7 @@ def main():
     print()
     for algo in algorithms:
         print(f"Algorithm {algo.name} param_grid:")
-        for config in algo.param_config.iter(algo, dataset=datasets[0]):
+        for config in algo.param_config.iter(algo, dataset=dm.get(datasets[0])):
             print(f"  {config}")
     sys.stdout.flush()
 

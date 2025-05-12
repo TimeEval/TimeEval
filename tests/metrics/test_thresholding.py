@@ -14,7 +14,7 @@ from timeeval.metrics.thresholding import (
 )
 
 try:
-    import pythresh
+    import pythresh  # noqa: F401
 
     _skip_pythresh_test = False
 except ImportError:
@@ -75,7 +75,7 @@ class TestThresholding(unittest.TestCase):
         self._test_strategy(strategy, 0.70, [0, 0, 1, 0, 0, 0, 0, 0, 0])
 
     @pytest.mark.skipif(
-        _skip_pythresh_test == True, reason="PyThresh is not installed!"
+        _skip_pythresh_test is True, reason="PyThresh is not installed!"
     )
     def test_pythresh_thresholding(self):
         import pythresh.version
@@ -96,7 +96,7 @@ class TestThresholding(unittest.TestCase):
         self._test_strategy(strategy, exp_threshold, exp_res)
 
     @pytest.mark.skipif(
-        _skip_pythresh_test == True, reason="PyThresh is not installed!"
+        _skip_pythresh_test is True, reason="PyThresh is not installed!"
     )
     def test_pythresh_thresholding_new(self):
         import pythresh.version

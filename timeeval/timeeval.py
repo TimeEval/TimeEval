@@ -305,20 +305,7 @@ class TimeEval:
 
         # load necessary modules:
         self.modules: Dict[str, TimeEvalModule] = {}
-        # Optuna
-        if any(isinstance(a.param_config, BayesianParameterSearch) for a in algorithms):
-            if repetitions > 1:
-                self.log.warning(
-                    f"`repetitions` was set to {repetitions}. However, some algorithms require Optuna for parameter "
-                    "search, which does not support repetitions. Reducing `repetitions` for all experiments to 1."
-                )
-                repetitions = 1
-            from .integration.optuna import OptunaConfiguration, OptunaModule
-
-            optuna_config = module_configs.get(
-                "optuna", OptunaConfiguration.default(self.distributed)
-            )
-            self.modules["optuna"] = OptunaModule(optuna_config)
+        self._auto_load_modules(algorithms, repetitions, module_configs)
 
         self.exps = Experiments(
             dataset_mgr,
@@ -341,7 +328,7 @@ class TimeEval:
             "which algorithm runs on which dataset."
         )
 
-        self.remote_config: RemoteConfiguration = remote_config or RemoteConfiguration()
+        self.remote_config = remote_config or RemoteConfiguration()
         self.remote_config.update_logging_path(self.results_path)
         self.log.debug(
             f"Updated dask logging filepath to {self.remote_config.dask_logging_filename}"
@@ -359,20 +346,44 @@ class TimeEval:
             self.results["future_result"] = np.nan
 
             self.log.info("... registering signal handlers ...")
-            orig_handler: Callable[[int, Optional[FrameType]], Any] = signal.getsignal(signal.SIGINT)  # type: ignore
-
-            def sigint_handler(sig: int, frame: Optional[FrameType] = None) -> Any:
-                self.log.warning(
-                    f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
-                    "containers on all worker nodes (we do not remove them when terminating "
-                    "ungracefully)."
-                )
-                self.remote.close()
-                return orig_handler(sig, frame)
-
-            signal.signal(signal.SIGINT, sigint_handler)
+            self._register_signal_handlers()
 
             self.log.info("... remoting setup done.")
+
+    def _auto_load_modules(
+        self,
+        algorithms: List[Algorithm],
+        repetitions: int,
+        module_configs: Mapping[str, Any],
+    ) -> None:
+        # Optuna
+        if any(isinstance(a.param_config, BayesianParameterSearch) for a in algorithms):
+            if repetitions > 1:
+                self.log.warning(
+                    f"`repetitions` was set to {repetitions}. However, some algorithms require Optuna for parameter "
+                    "search, which does not support repetitions. Reducing `repetitions` for all experiments to 1."
+                )
+                repetitions = 1
+            from .integration.optuna import OptunaConfiguration, OptunaModule
+
+            optuna_config = module_configs.get(
+                "optuna", OptunaConfiguration.default(self.distributed)
+            )
+            self.modules["optuna"] = OptunaModule(optuna_config)
+
+    def _register_signal_handlers(self) -> None:
+        orig_handler: Callable[[int, Optional[FrameType]], Any] = signal.getsignal(signal.SIGINT)  # type: ignore
+
+        def sigint_handler(sig: int, frame: Optional[FrameType] = None) -> Any:
+            self.log.warning(
+                f"SIGINT ({sig}) received, shutting down cluster. Please look for dangling Docker "
+                "containers on all worker nodes (we do not remove them when terminating "
+                "ungracefully)."
+            )
+            self.remote.close()
+            return orig_handler(sig, frame)
+
+        signal.signal(signal.SIGINT, sigint_handler)
 
     def _run(self) -> None:
         desc = "Submitting evaluation tasks" if self.distributed else "Evaluating"
@@ -380,33 +391,8 @@ class TimeEval:
             try:
                 future_result: Optional[Future] = None
                 result: Optional[Dict[str, Any]] = None
-
-                if exp.algorithm.training_type in [
-                    TrainingType.SUPERVISED,
-                    TrainingType.SEMI_SUPERVISED,
-                ]:
-                    if exp.resolved_train_dataset_path is None:
-                        # Intentionally raise KeyError here if no training dataset is specified.
-                        # The Error will be caught by the except clause below.
-                        raise KeyError("Path to training dataset not found!")
-
-                    # This check is not necessary for unsupervised algorithms, because they can be executed on all
-                    # datasets.
-                    if exp.algorithm.training_type != exp.dataset.training_type:
-                        raise ValueError(
-                            f"Dataset training type ({exp.dataset.training_type}) incompatible to "
-                            f"algorithm training type ({exp.algorithm.training_type})!"
-                        )
-
-                if (
-                    exp.algorithm.input_dimensionality == InputDimensionality.UNIVARIATE
-                    and exp.dataset.input_dimensionality
-                    == InputDimensionality.MULTIVARIATE
-                ):
-                    raise ValueError(
-                        f"Dataset input dimensionality ({exp.dataset.input_dimensionality}) incompatible "
-                        f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!"
-                    )
+                # raises exceptions if not compatible
+                self._check_compatible(exp)
 
                 if self.distributed:
                     future_result = self.remote.add_task(exp.evaluate, key=exp.name)
@@ -438,6 +424,40 @@ class TimeEval:
                 self._record_results(
                     exp, result=result, status=Status.ERROR, error_message=repr(e)
                 )
+
+    def _check_compatible(self, exp: Experiment) -> None:
+        """Check if the algorithm and dataset are compatible.
+
+        This method checks if the algorithm and dataset of the requested experiment are
+        compatible by comparing their training type and input dimensionality.
+        """
+        if exp.algorithm.training_type in [
+            TrainingType.SUPERVISED,
+            TrainingType.SEMI_SUPERVISED,
+        ]:
+            # Intentionally raise KeyError here if no training dataset is specified.
+            # The Error will be caught by the except clause in _run().
+            if exp.resolved_train_dataset_path is None:
+                raise KeyError("Path to training dataset not found!")
+
+            # This check is not necessary for unsupervised algorithms, because they can be executed on all
+            # datasets.
+            if exp.algorithm.training_type != exp.dataset.training_type:
+                raise ValueError(
+                    f"Dataset training type ({exp.dataset.training_type}) incompatible to "
+                    f"algorithm training type ({exp.algorithm.training_type})!"
+                )
+
+        # Multivariate algorithms can process both univariate and multivariate datasets.
+        # However, univariate algorithms can only process univariate datasets.
+        if (
+            exp.algorithm.input_dimensionality == InputDimensionality.UNIVARIATE
+            and exp.dataset.input_dimensionality == InputDimensionality.MULTIVARIATE
+        ):
+            raise ValueError(
+                f"Dataset input dimensionality ({exp.dataset.input_dimensionality}) incompatible "
+                f"to algorithm input dimensionality ({exp.algorithm.input_dimensionality})!"
+            )
 
     def _record_results(
         self,

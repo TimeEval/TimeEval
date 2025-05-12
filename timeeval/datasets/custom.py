@@ -1,7 +1,7 @@
 import json
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -191,12 +191,19 @@ class CustomDatasets(CustomDatasetsBase):
             if max_contamination is not None:
                 selectors.append(lambda meta: meta.contamination <= max_contamination)
 
-            custom_datasets = []
-            for d in self._dataset_store:
-                if dataset is not None and dataset != d:
-                    continue
+            return self._find_custom_datasets(dataset=dataset, selectors=selectors)
 
-                _, _, metadata = self._dataset_store[d]
-                if np.all([fn(metadata) for fn in selectors]):
-                    custom_datasets.append(d)
-            return [("custom", name) for name in custom_datasets]
+    def _find_custom_datasets(
+        self,
+        dataset: Optional[str] = None,
+        selectors: List[Callable[[Dataset], bool]] = [],
+    ) -> List[DatasetId]:
+        custom_datasets = []
+        for d in self._dataset_store:
+            if dataset is not None and dataset != d:
+                continue
+
+            _, _, metadata = self._dataset_store[d]
+            if np.all([fn(metadata) for fn in selectors]):
+                custom_datasets.append(d)
+        return [("custom", name) for name in custom_datasets]

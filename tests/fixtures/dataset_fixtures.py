@@ -93,22 +93,24 @@ dataset_content_io.seek(0)
 dataset_ndarray = dataset_df.values
 
 
-def fill_file(path, lines=(dataset_index_content_nab,)):
+def fill_file(
+    path: Path, lines: tuple[str, ...] = (dataset_index_content_nab,)
+) -> None:
     with open(path / Datasets.INDEX_FILENAME, "w") as f:
         f.write(dataset_index_header)
         f.write("\n")
-        for l in lines:
-            f.write(l)
+        for line in lines:
+            f.write(line)
             f.write("\n")
 
 
-def read_file(path):
+def read_file(path: Path) -> list[str]:
     assert os.path.isfile(path / Datasets.INDEX_FILENAME)
     with open(path / Datasets.INDEX_FILENAME, "r") as f:
-        return [l.strip() for l in f.readlines()]
+        return [line.strip() for line in f.readlines()]
 
 
-def add_dataset(dm: DatasetManager):
+def add_dataset(dm: DatasetManager) -> None:
     dm.add_dataset(
         DatasetRecord(
             collection_name=test_record.collection_name,

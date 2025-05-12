@@ -188,39 +188,7 @@ class OptunaModule(TimeEvalModule):
             )
 
         if self.config.dashboard:
-            if self.storage_url is None and not isinstance(
-                self.config.default_storage, str
-            ):
-                # user provided a custom storage backend, try to get the URL:
-                from sqlalchemy.exc import OperationalError
-
-                try:
-                    storage = optuna.storages.get_storage(self.config.default_storage())
-                    if hasattr(storage, "url"):
-                        self.storage_url = storage.url
-                    else:
-                        log.warning(
-                            f"Could not find dashboard connection URL for storage {self.config.default_storage}, "
-                            "not starting dashboard!"
-                        )
-                except OperationalError as e:
-                    log.warning(
-                        "Could not find connection URL for storage, not starting dashboard!",
-                        exc_info=e,
-                    )
-
-            if self.storage_url is not None:
-                storage_host = (
-                    timeeval.remote.config.scheduler_host
-                    if timeeval.distributed
-                    else "localhost"
-                )
-                dashboard_url = f"http://{storage_host}:8080"
-                log.debug(f"starting managed Optuna dashboard ({dashboard_url})...")
-                print(f"\n\tOpen Optuna dashboard at {dashboard_url}\n")
-                tasks.append(
-                    (_start_dashboard_container, [], {"storage": self.storage_url})
-                )
+            tasks.extend(self._start_dashboard(timeeval))
 
         if timeeval.distributed:
             log.debug(
@@ -278,3 +246,46 @@ class OptunaModule(TimeEvalModule):
             if isinstance(self.config.default_storage, str)
             else self.config.default_storage()
         )
+
+    def _start_dashboard(
+        self, timeeval: TimeEval
+    ) -> list[tuple[Callable, list[Any], dict[str, Any]]]:
+        delayed_tasks: list[tuple[Callable, list[Any], dict[str, Any]]] = []
+
+        # set the storage URL if it is not already set:
+        if self.storage_url is None and not isinstance(
+            self.config.default_storage, str
+        ):
+            # user provided a custom storage backend, try to get the URL:
+            from sqlalchemy.exc import OperationalError
+
+            try:
+                storage = optuna.storages.get_storage(self.config.default_storage())
+                if hasattr(storage, "url"):
+                    self.storage_url = storage.url
+                else:
+                    log.warning(
+                        f"Could not find dashboard connection URL for storage {self.config.default_storage}, "
+                        "not starting dashboard!"
+                    )
+            except OperationalError as e:
+                log.warning(
+                    "Could not find connection URL for storage, not starting dashboard!",
+                    exc_info=e,
+                )
+
+        # start dashboard container only if we have a storage URL:
+        if self.storage_url is not None:
+            storage_host = (
+                timeeval.remote.config.scheduler_host
+                if timeeval.distributed
+                else "localhost"
+            )
+            dashboard_url = f"http://{storage_host}:8080"
+            log.debug(f"starting managed Optuna dashboard ({dashboard_url})...")
+            print(f"\n\tOpen Optuna dashboard at {dashboard_url}\n")
+            delayed_tasks.append(
+                (_start_dashboard_container, [], {"storage": self.storage_url})
+            )
+
+        return delayed_tasks

@@ -96,11 +96,15 @@ sort = "Cover"
 
 [tool.mypy]
 python_version = "3.9"
+pretty = true
 show_error_codes = true
 exclude = [
     "^timeeval_experiments/\\d\\d\\d\\d-\\d\\d-\\d\\d[_-].+$",
     "^notebooks/.*$",
     "^scripts/.*$",
+    "^tests/.*$",
+    "conftest.py",
+    "setup.py",
 ]
 ignore_missing_imports = true
 warn_unused_configs = true
