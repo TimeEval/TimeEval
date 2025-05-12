@@ -12,7 +12,7 @@ defaults:
 
 jobs:
   typecheck:
-    name: Typecheck TimeEval on ubuntu with python 3.7
+    name: Typecheck TimeEval on ubuntu with python 3.9
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,10 +21,11 @@ jobs:
         with:
           use-mamba: true
           auto-update-conda: true
-          python-version: "3.7"
+          python-version: "3.9"
+          channels: defaults
       - name: Install CI dependencies
         run: |
-          pip install -r requirements.ci
+          pip install ".[ci]"
       - name: Typecheck with mypy
         run: |
           python setup.py typecheck
@@ -35,7 +36,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
-        python_version: ["3.7", "3.11"]
+        python_version: ["3.9", "3.12"]
       fail-fast: false
 
     steps:
@@ -46,9 +47,10 @@ jobs:
         use-mamba: true
         auto-update-conda: true
         python-version: ${{ matrix.python_version }}
+        channels: defaults
     - name: Install CI dependencies
       run: |
-        pip install -r requirements.ci
+        pip install ".[ci]"
     - name: Test with pytest
       run: |
         python setup.py test

@@ -34,10 +34,16 @@ class MockDaskClient:
         self.closed = False
         self.did_shutdown = False
 
-    def submit(self, task, *args, workers: Optional[List] = None, **kwargs) -> Future:
-        result = task(*args, **kwargs)
+    def submit(self, task, *args, **kwargs) -> Future:
+        kwargs.pop("pure", False)
+        kwargs.pop("workers", None)
+        kwargs.pop("key", None)
         f = Future()  # type: ignore
-        f.set_result(result)
+        try:
+            result = task(*args, **kwargs)
+            f.set_result(result)
+        except Exception as e:
+            f.set_exception(e)
         return f
 
     def run(self, task, *args, **kwargs):

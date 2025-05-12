@@ -9,7 +9,7 @@ from typing import Any, List, Callable, Tuple, Dict
 
 import tqdm
 from dask import config as dask_config
-from dask.distributed import Client, SSHCluster
+from dask.distributed import Client, SSHCluster, SpecCluster
 
 from ..remote_configuration import RemoteConfiguration
 from ..resource_constraints import ResourceConstraints
@@ -42,7 +42,7 @@ class Remote:
         self.log.info("... Dask SSH cluster successfully started!")
         self.disable_progress_bar = disable_progress_bar
 
-    def start_or_restart_cluster(self, n: int = 0) -> SSHCluster:
+    def start_or_restart_cluster(self, n: int = 0) -> SpecCluster:
         scheduler_host = self.config.scheduler_host
         port = self.config.scheduler_port
         scheduler_address = f"{scheduler_host}:{port}"
@@ -66,7 +66,8 @@ class Remote:
 
     def add_task(self, task: Callable, *args, **kwargs) -> Future:  # type: ignore[no-untyped-def]
         self.log.debug(f"Submitting task {task} to cluster")
-        future = self.client.submit(task, *args, pure=False, **kwargs)
+        kwargs["pure"] = False
+        future = self.client.submit(task, *args, **kwargs)
         self.futures.append(future)
         return future  # type: ignore
 
@@ -98,10 +99,14 @@ class Remote:
                 failed_on.append(host)
         return failed_on
 
+    @staticmethod
+    async def async_gather(client: Client, futures: List[Future[Dict[str, Any]]]) -> None:
+        await client.gather(futures, asynchronous=True)
+
     def fetch_results(self) -> None:
         n_experiments = len(self.futures)
         self.log.debug(f"Waiting for the results of {n_experiments} tasks submitted previously to the cluster")
-        coroutine_future = run_coroutine_threadsafe(self.client.gather(self.futures, asynchronous=True), get_event_loop())
+        coroutine_future = run_coroutine_threadsafe(self.async_gather(self.client, self.futures), get_event_loop())
         progress_bar = tqdm.trange(n_experiments, desc="Evaluating distributedly", position=0, disable=self.disable_progress_bar)
 
         while not coroutine_future.done():

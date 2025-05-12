@@ -68,8 +68,10 @@ class OptunaLazyParams(Params):
     def materialize(self) -> Params:
         # only materialize once:
         if self._study is None:
-            if self.config.storage is None or isinstance(self.config.storage, str):
-                storage: Union[None, str, BaseStorage] = self.config.storage
+            if self.config.storage is None:
+                raise ValueError("No optuna storage configured!")
+            elif isinstance(self.config.storage, str):
+                storage: Union[str, BaseStorage] = self.config.storage
             else:
                 storage = self.config.storage()
             self._study = optuna.load_study(

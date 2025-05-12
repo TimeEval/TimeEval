@@ -29,7 +29,7 @@ class TestThresholding(unittest.TestCase):
 
     def test_no_thresholding(self):
         strategy = NoThresholding()
-        self.assertIsNone(strategy.find_threshold(self.y_true, self.y_true))
+        self.assertEqual(strategy.find_threshold(self.y_true, self.y_true), 0.5)
 
         # allow ints
         result = strategy.fit_transform(self.y_true, self.y_true)

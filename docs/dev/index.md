@@ -70,7 +70,47 @@ By default, tests that are marked with the following keys are skipped:
 - docker
 - dask
 
-To run these tests, add the respective keys as parameters: 
+To run these tests, add the respective keys as parameters:
+
 ```bash
 pytest --[key] # e.g. --docker
 ```
+
+### Known issues
+
+#### Tests with `--dask` fail
+
+- Make sure that password-less SSH is possible from your account, i.a. the following command must work without a password-check:
+
+  ```bash
+  ssh localhost
+  ```
+
+- You need to install TimeEval properly in the current environment.
+  An editable installation (via `pip install -e .`) does not work.
+
+- If it still does not work, make sure that the test files are also installed correctly into the site-packages:
+
+  - Remove the exclusion of tests-files in `setup.py`:
+
+    ```python
+    ...
+    setup(
+        version=VERSION,
+        long_description=README,
+        long_description_content_type="text/markdown",
+        packages=find_packages(exclude=("tests", "tests.*")), # <-- HERE
+        url="https://github.com/TimeEval/TimeEval",
+    ...
+    ```
+
+  - Re-install TimeEval: `pip uninstall timeeval && pip install .`
+
+  - Check that there is a `timeeval`- and a `test`-folder in your installation folder
+    (`<somewhere>/lib/python3.<version>/site-packages/`)
+
+- Sometimes there are some connection issues, just run the failing tests again via:
+
+  ```bash
+  pytest tests --dask -k <test-name>
+  ```

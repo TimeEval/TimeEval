@@ -1,10 +1,12 @@
 import unittest
 from copy import deepcopy
 from pathlib import Path
+import warnings
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
 from timeeval import Algorithm, TrainingType, InputDimensionality, DefaultMetrics, DatasetManager
 from timeeval._core.experiments import Experiments
+from timeeval.heuristics.base import HeuristicFallbackWarning
 from timeeval.params import FullParameterGrid
 
 
@@ -26,7 +28,7 @@ class TestExperiments(unittest.TestCase):
             )
         ]
 
-    def test_unique_experiment_name(self):
+    def test_unique_experiment_name(self) -> None:
         """
         The experiment names are used as keys for the distributed evaluation tasks and must be unique!
         """
@@ -44,7 +46,8 @@ class TestExperiments(unittest.TestCase):
         exp_names = [exp.name for exp in exps]
         self.assertEqual(len(exp_names), len(set(exp_names)))
 
-    def test_common_params_id_for_heuristics(self):
+    def test_common_params_id_for_heuristics(self) -> None:
+        warnings.simplefilter("ignore", category=HeuristicFallbackWarning)
         datasets = [self.dmgr.get(d) for d in self.dmgr.select()]
         algorithms = deepcopy(self.algorithms)
         algorithms[0].param_config = FullParameterGrid({
@@ -60,8 +63,9 @@ class TestExperiments(unittest.TestCase):
             base_result_path=Path("tmp_path"),
             skip_invalid_combinations=False
         )
-
         tasks = [(exp.dataset_name, exp.params) for exp in exps]
+        warnings.simplefilter("default", category=HeuristicFallbackWarning)
+
         self.assertListEqual(tasks, [
             ("dataset-datetime", {"param1": 0, "param2":  12}),
             ("dataset-datetime", {"param1": 1, "param2":  12}),
