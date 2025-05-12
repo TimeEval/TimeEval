@@ -12,7 +12,7 @@ defaults:
 
 jobs:
   pre-commit:
-    name: Run pre-commit hooks in Python 3.13
+    name: Run pre-commit hooks in Python 3.12
     runs-on: ubuntu-latest
     permissions:
       # Allows this workflow to push changes to the repository
@@ -25,7 +25,7 @@ jobs:
         with:
           use-mamba: true
           auto-update-conda: true
-          python-version: "3.13"
+          python-version: "3.12"
           channels: defaults
 
       - name: Get changed files
