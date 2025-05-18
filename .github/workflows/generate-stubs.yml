@@ -43,7 +43,6 @@ jobs:
           add-paths: |
             timeeval/algorithms
             docs/api/timeeval.algorithms.rst
-          committer: timeeval-bot[bot]
           commit-message: "[automated] Update algorithm stubs"
           branch: "feat/automated-update-algorithm-stubs"
           title: "[automated] Update algorithm stubs"

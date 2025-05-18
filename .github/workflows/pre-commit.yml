@@ -47,5 +47,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "[automated] `pre-commit` fixes"
-          commit_user_name: timeeval-bot[bot]
           create_branch: false
