@@ -410,3 +410,4 @@ timeeval.algorithms.valmod
 --------------------------
 
 .. autofunction:: timeeval.algorithms.valmod
+
