@@ -50,15 +50,15 @@ Features
 Listing :ref:`example-experiment-py` illustrates some main features of TimeEval:
 
 Dataset API:
-   :doc:`Interface <api/timeeval.datasets>` to available dataset collection to select datasets easily (L21-22).
+   :doc:`Interface <api/timeeval.datasets>` to available dataset collection to select datasets easily (L31-32).
 Algorithm Adapter Architecture:
-   TimeEval supports different algorithm adapters to execute simple Python functions or whole pipelines and applications (L27, L38).
+   TimeEval supports different algorithm adapters to execute simple Python functions or whole pipelines and applications (L21ff, L35).
 Hyperparameter Specification:
-   Algorithm hyperparameters can be specified using different search grids (L28-31).
+   Algorithm hyperparameters can be specified using different search grids (L35).
 Metrics:
-   TimeEval provides various evaluation metrics (such as :attr:`timeeval.utils.metrics.DefaultMetrics.ROC_AUC`,
-   :attr:`timeeval.utils.metrics.DefaultMetrics.RANGE_PR_AUC`, or :attr:`timeeval.utils.metrics.FScoreAtK`)
-   and measures algorithm runtimes automatically (L43).
+   TimeEval provides various evaluation metrics (such as :attr:`timeeval.metrics.DefaultMetrics.ROC_AUC`,
+   :attr:`timeeval.metrics.DefaultMetrics.RANGE_PR_AUC`, or :class:`timeeval.metrics.FScoreAtK`)
+   and measures algorithm runtimes automatically (L50).
 Distributed Execution:
    TimeEval can be deployed on a compute cluster to execute evaluation tasks distributedly.
 
