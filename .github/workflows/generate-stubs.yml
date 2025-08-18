@@ -16,9 +16,9 @@ jobs:
     name: Checking out timeeval-algorithms to update algorithm stubs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Checkout timeeval-algorithms
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: timeeval/timeeval-algorithms
           path: './timeeval-algorithms'
