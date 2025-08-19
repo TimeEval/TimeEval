@@ -16,7 +16,7 @@ jobs:
     name: Typecheck TimeEval on ubuntu with python 3.9
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3.2.0
         with:
@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v3.2.0
       with:
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v3.2.0
       with:
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3.2.0
         with:

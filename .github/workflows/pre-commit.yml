@@ -18,7 +18,7 @@ jobs:
       # Allows this workflow to push changes to the repository
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3.2.0
