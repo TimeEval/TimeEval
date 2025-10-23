@@ -44,7 +44,7 @@ jobs:
       # push fixes if pre-commit fails
       - if: ${{ failure() && github.event_name == 'pull_request' && !github.event.pull_request.draft }}
         name: Push pre-commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "[automated] `pre-commit` fixes"
           create_branch: false
