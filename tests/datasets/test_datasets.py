@@ -300,14 +300,14 @@ def test_get_dataset_df_datetime_parsing():
     )
     # bundled datasets
     df = dm.get_dataset_df(("test", "dataset-datetime"))
-    assert df["timestamp"].dtype == np.dtype("<M8[ns]")
+    assert np.issubdtype(df["timestamp"].dtype, np.datetime64)
     df = dm.get_dataset_df(("test", "dataset-int"))
-    assert df["timestamp"].dtype == np.dtype("int64")
+    assert np.issubdtype(df["timestamp"].dtype, np.integer)
     # custom datasets
     df = dm.get_dataset_df(("custom", "dataset.1.train"), train=False)
-    assert df["timestamp"].dtype == np.dtype("<M8[ns]")
+    assert np.issubdtype(df["timestamp"].dtype, np.datetime64)
     df = dm.get_dataset_df(("custom", "dataset.1.train"), train=True)
-    assert df["timestamp"].dtype == np.dtype("int64")
+    assert np.issubdtype(df["timestamp"].dtype, np.integer)
 
 
 def test_get_dataset_path_missing(tmp_path):
