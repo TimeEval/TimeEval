@@ -153,7 +153,7 @@ jobs:
 
     steps:
     - name: Download packages
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         path: dist
     - name: Restore original folder structure of dist
