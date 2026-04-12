@@ -459,7 +459,9 @@ class Datasets(abc.ABC):
         else:
             df = pd.read_csv(path, parse_dates=["timestamp"])
             # timestamp parsing failed, hopefully because we have an integer-timestamp
-            if not isinstance(df["timestamp"].dtype, np.dtype) or not np.issubdtype(df["timestamp"].dtype, np.datetime64):
+            if not isinstance(df["timestamp"].dtype, np.dtype) or not np.issubdtype(
+                df["timestamp"].dtype, np.datetime64
+            ):
                 try:
                     df["timestamp"] = df["timestamp"].astype(np.int_)
                 except ValueError as e:
