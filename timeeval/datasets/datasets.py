@@ -255,7 +255,7 @@ class Datasets(abc.ABC):
             return custom_datasets
         else:
             df = self._df  # self.df()
-            selectors: List[np.ndarray] = []
+            selectors: List[pd.Series[bool]] = []
             if dataset_type is not None:
                 selectors.append(df["dataset_type"] == dataset_type)
             if datetime_index is not None:
@@ -459,7 +459,7 @@ class Datasets(abc.ABC):
         else:
             df = pd.read_csv(path, parse_dates=["timestamp"])
             # timestamp parsing failed, hopefully because we have an integer-timestamp
-            if df["timestamp"].dtype == np.dtype("O"):
+            if not isinstance(df["timestamp"].dtype, np.dtype) or not np.issubdtype(df["timestamp"].dtype, np.datetime64):
                 try:
                     df["timestamp"] = df["timestamp"].astype(np.int_)
                 except ValueError as e:

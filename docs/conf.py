@@ -80,7 +80,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "dask": ("https://docs.dask.org/en/stable/", None),
     "numpy": ("https://numpy.org/doc/1.21/", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/version/1.3/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/version/1.5/", None),
     "sklearn": ("https://scikit-learn.org/0.24/", None),
     "statsmodels": ("https://www.statsmodels.org/v0.12.2/", None),
     "pythresh": ("https://pythresh.readthedocs.io/en/latest", None),
